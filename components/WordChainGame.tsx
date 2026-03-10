@@ -84,55 +84,57 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col landscape:flex-row lg:flex-col items-center justify-center p-4 gap-4 lg:gap-0">
         
-        <div className="text-center mb-12">
-          <h3 className="text-2xl text-gray-600 mb-2 font-medium">請說出屬於以下類別的詞彙：</h3>
-          <div className="text-5xl md:text-6xl font-bold text-blue-600 bg-white px-8 py-6 rounded-3xl shadow-md border-4 border-blue-100">
-            {category}
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          <div className="text-center mb-4 lg:mb-12">
+            <h3 className="text-xl landscape:text-lg lg:text-2xl text-gray-600 mb-2 font-medium">請說出屬於以下類別的詞彙：</h3>
+            <div className="text-4xl landscape:text-3xl lg:text-6xl font-bold text-blue-600 bg-white px-6 py-4 lg:px-8 lg:py-6 rounded-3xl shadow-md border-4 border-blue-100">
+              {category}
+            </div>
+          </div>
+
+          <div className="mt-4 lg:mt-12 flex gap-4">
+            {!isActive && timeLeft === 60 ? (
+              <button 
+                onClick={startGame}
+                className="px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 bg-green-500 text-white rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all"
+              >
+                開始計時
+              </button>
+            ) : (
+              <button 
+                onClick={handleAddScore}
+                disabled={!isActive}
+                className={`flex items-center gap-2 px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg transition-all ${isActive ? 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+              >
+                <Plus size={24} className="lg:w-8 lg:h-8" />
+                加 1 分
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-3xl">
+        <div className="flex flex-row landscape:flex-col lg:flex-row gap-4 lg:gap-8 items-center justify-center w-full max-w-3xl flex-1">
           
           {/* Timer */}
-          <div className="flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-64">
-            <Timer size={48} className={timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-gray-400'} />
-            <div className={`text-6xl font-bold mt-4 ${timeLeft <= 10 && isActive ? 'text-red-500' : 'text-gray-800'}`}>
+          <div className="flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
+            <Timer size={32} className={`lg:w-12 lg:h-12 ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-gray-400'}`} />
+            <div className={`text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 ${timeLeft <= 10 && isActive ? 'text-red-500' : 'text-gray-800'}`}>
               {timeLeft}
             </div>
-            <div className="text-gray-500 mt-2 font-medium">剩餘秒數</div>
+            <div className="text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">剩餘秒數</div>
           </div>
 
           {/* Score */}
-          <div className="flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-64">
-            <Trophy size={48} className="text-yellow-500" />
-            <div className="text-6xl font-bold mt-4 text-gray-800">
+          <div className="flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
+            <Trophy size={32} className="text-yellow-500 lg:w-12 lg:h-12" />
+            <div className="text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 text-gray-800">
               {score}
             </div>
-            <div className="text-gray-500 mt-2 font-medium">成功聯想數</div>
+            <div className="text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">成功聯想數</div>
           </div>
 
-        </div>
-
-        <div className="mt-12 flex gap-4">
-          {!isActive && timeLeft === 60 ? (
-            <button 
-              onClick={startGame}
-              className="px-12 py-4 bg-green-500 text-white rounded-full font-bold text-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all"
-            >
-              開始計時
-            </button>
-          ) : (
-            <button 
-              onClick={handleAddScore}
-              disabled={!isActive}
-              className={`flex items-center gap-2 px-12 py-4 rounded-full font-bold text-2xl shadow-lg transition-all ${isActive ? 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-            >
-              <Plus size={32} />
-              加 1 分
-            </button>
-          )}
         </div>
 
         {!isActive && timeLeft === 0 && (

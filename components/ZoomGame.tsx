@@ -146,63 +146,65 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <p className="text-2xl text-gray-700 font-bold">總得分：{score} 分</p>
           </div>
         ) : (
-          <>
-            <div className="relative w-64 h-64 md:w-80 md:h-80 bg-white rounded-3xl shadow-xl overflow-hidden flex items-center justify-center border-4 border-gray-200 mb-8">
+          <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full">
+            <div className="relative w-64 h-64 landscape:w-40 landscape:h-40 lg:w-80 lg:h-80 bg-white rounded-3xl shadow-xl overflow-hidden flex items-center justify-center border-4 border-gray-200 mb-4 lg:mb-8 flex-shrink-0">
               <div 
-                className="text-[150px] md:text-[200px] leading-none transition-transform duration-700 ease-in-out"
+                className="text-[150px] landscape:text-[100px] lg:text-[200px] leading-none transition-transform duration-700 ease-in-out"
                 style={{ transform: `scale(${zoomLevel})` }}
               >
                 {currentItem.emoji}
               </div>
             </div>
 
-            {isRevealed && (
-              <div className="text-4xl font-bold text-gray-800 mb-8 animate-bounce-in">
-                {currentItem.name}
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              {!isRevealed ? (
-                <>
-                  <button 
-                    onClick={handleZoomOut}
-                    disabled={zoomLevel <= 1}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-lg transition-all ${zoomLevel <= 1 ? 'bg-gray-200 text-gray-400' : 'bg-blue-500 text-white hover:bg-blue-600 shadow-md active:scale-95'}`}
-                  >
-                    <ZoomOut size={24} />
-                    縮小一點
-                  </button>
-                  
-                  <button 
-                    onClick={handleReveal}
-                    className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-lg transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95"
-                  >
-                    <Eye size={24} />
-                    看答案
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    onClick={handleCorrect}
-                    className="flex items-center gap-2 px-8 py-4 rounded-full font-bold text-xl transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95 animate-fade-in"
-                  >
-                    <CheckCircle2 size={28} />
-                    答對
-                  </button>
-                  
-                  <button 
-                    onClick={handleWrong}
-                    className="flex items-center gap-2 px-8 py-4 rounded-full font-bold text-xl transition-all bg-red-500 text-white hover:bg-red-600 shadow-md active:scale-95 animate-fade-in"
-                  >
-                    <XCircle size={28} />
-                    答錯
-                  </button>
-                </>
+            <div className="flex flex-col items-center gap-4">
+              {isRevealed && (
+                <div className="text-3xl landscape:text-2xl lg:text-4xl font-bold text-gray-800 mb-2 lg:mb-8 animate-bounce-in">
+                  {currentItem.name}
+                </div>
               )}
+
+              <div className="flex gap-2 lg:gap-4">
+                {!isRevealed ? (
+                  <>
+                    <button 
+                      onClick={handleZoomOut}
+                      disabled={zoomLevel <= 1}
+                      className={`flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all ${zoomLevel <= 1 ? 'bg-gray-200 text-gray-400' : 'bg-blue-500 text-white hover:bg-blue-600 shadow-md active:scale-95'}`}
+                    >
+                      <ZoomOut size={24} className="landscape:w-5 landscape:h-5" />
+                      縮小一點
+                    </button>
+                    
+                    <button 
+                      onClick={handleReveal}
+                      className="flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95"
+                    >
+                      <Eye size={24} className="landscape:w-5 landscape:h-5" />
+                      看答案
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      onClick={handleCorrect}
+                      className="flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95 animate-fade-in"
+                    >
+                      <CheckCircle2 size={28} className="landscape:w-6 landscape:h-6" />
+                      答對
+                    </button>
+                    
+                    <button 
+                      onClick={handleWrong}
+                      className="flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-red-500 text-white hover:bg-red-600 shadow-md active:scale-95 animate-fade-in"
+                    >
+                      <XCircle size={28} className="landscape:w-6 landscape:h-6" />
+                      答錯
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

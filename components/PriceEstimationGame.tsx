@@ -234,62 +234,74 @@ const PriceEstimationGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' })
             <p className="text-2xl text-gray-700 font-bold">總得分：{score} 分</p>
           </div>
         ) : (
-          <>
-            <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border-4 border-gray-100 w-full max-w-2xl text-center mb-12">
-              <h3 className="text-2xl md:text-3xl text-gray-500 font-medium mb-6">請問這個大約多少錢？</h3>
-              <div className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight">
-                {currentItem.name}
+          <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-12 w-full">
+            <div className="flex-1 flex flex-col items-center w-full">
+              <div className="bg-white p-6 landscape:p-4 lg:p-12 rounded-3xl shadow-xl border-4 border-gray-100 w-full max-w-2xl text-center mb-4 lg:mb-12">
+                <h3 className="text-xl landscape:text-lg lg:text-3xl text-gray-500 font-medium mb-2 lg:mb-6">請問這個大約多少錢？</h3>
+                <div className="text-3xl landscape:text-2xl lg:text-5xl font-bold text-gray-800 leading-tight">
+                  {currentItem.name}
+                </div>
               </div>
+              {selectedOption !== null && (
+                <button 
+                  onClick={handleNext}
+                  className="hidden landscape:block lg:hidden mt-2 px-8 py-3 bg-blue-500 text-white rounded-full font-bold text-xl shadow-lg hover:bg-blue-600 active:scale-95 transition-all animate-fade-in"
+                >
+                  {round >= TOTAL_ROUNDS ? '看結果' : '下一題'}
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-              {currentOptions.map((price, idx) => {
-                const isSelected = selectedOption === price;
-                const isActuallyCorrect = price === currentItem.correct;
-                
-                let btnClass = "bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300";
-                if (selectedOption !== null) {
-                  if (isActuallyCorrect) {
-                    btnClass = "bg-green-100 border-green-500 text-green-800 ring-4 ring-green-200 scale-105";
-                  } else if (isSelected) {
-                    btnClass = "bg-red-100 border-red-500 text-red-800 opacity-70";
-                  } else {
-                    btnClass = "bg-gray-50 border-gray-200 text-gray-400 opacity-50";
+            <div className="flex-1 w-full flex flex-col items-center">
+              <div className="grid grid-cols-1 landscape:grid-cols-1 lg:grid-cols-3 gap-3 landscape:gap-2 lg:gap-6 w-full max-w-4xl">
+                {currentOptions.map((price, idx) => {
+                  const isSelected = selectedOption === price;
+                  const isActuallyCorrect = price === currentItem.correct;
+                  
+                  let btnClass = "bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300";
+                  if (selectedOption !== null) {
+                    if (isActuallyCorrect) {
+                      btnClass = "bg-green-100 border-green-500 text-green-800 ring-4 ring-green-200 scale-105";
+                    } else if (isSelected) {
+                      btnClass = "bg-red-100 border-red-500 text-red-800 opacity-70";
+                    } else {
+                      btnClass = "bg-gray-50 border-gray-200 text-gray-400 opacity-50";
+                    }
                   }
-                }
 
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleOptionClick(price)}
-                    disabled={selectedOption !== null}
-                    className={`
-                      relative py-8 px-4 rounded-2xl border-4 shadow-md font-bold text-3xl md:text-4xl transition-all duration-300
-                      ${btnClass}
-                    `}
-                  >
-                    ${price.toLocaleString()}
-                    
-                    {selectedOption !== null && isActuallyCorrect && (
-                      <CheckCircle2 className="absolute top-4 right-4 text-green-500 w-8 h-8 md:w-10 md:h-10" />
-                    )}
-                    {isSelected && !isActuallyCorrect && (
-                      <XCircle className="absolute top-4 right-4 text-red-500 w-8 h-8 md:w-10 md:h-10" />
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleOptionClick(price)}
+                      disabled={selectedOption !== null}
+                      className={`
+                        relative py-4 landscape:py-3 lg:py-8 px-4 rounded-2xl border-4 shadow-md font-bold text-2xl landscape:text-xl lg:text-4xl transition-all duration-300
+                        ${btnClass}
+                      `}
+                    >
+                      ${price.toLocaleString()}
+                      
+                      {selectedOption !== null && isActuallyCorrect && (
+                        <CheckCircle2 className="absolute top-2 right-2 lg:top-4 lg:right-4 text-green-500 w-6 h-6 lg:w-10 lg:h-10" />
+                      )}
+                      {isSelected && !isActuallyCorrect && (
+                        <XCircle className="absolute top-2 right-2 lg:top-4 lg:right-4 text-red-500 w-6 h-6 lg:w-10 lg:h-10" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedOption !== null && (
+                <button 
+                  onClick={handleNext}
+                  className="block landscape:hidden lg:block mt-8 lg:mt-16 px-12 py-4 bg-blue-500 text-white rounded-full font-bold text-2xl shadow-lg hover:bg-blue-600 active:scale-95 transition-all animate-fade-in"
+                >
+                  {round >= TOTAL_ROUNDS ? '看結果' : '下一題'}
+                </button>
+              )}
             </div>
-
-            {selectedOption !== null && (
-              <button 
-                onClick={handleNext}
-                className="mt-16 px-12 py-4 bg-blue-500 text-white rounded-full font-bold text-2xl shadow-lg hover:bg-blue-600 active:scale-95 transition-all animate-fade-in"
-              >
-                {round >= TOTAL_ROUNDS ? '看結果' : '下一題'}
-              </button>
-            )}
-          </>
+          </div>
         )}
 
       </div>

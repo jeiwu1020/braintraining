@@ -167,55 +167,59 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         )}
 
-        <div className={`mb-8 text-center ${isComplete ? 'hidden' : ''}`}>
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-4 h-10">
-            {showResult ? '正確順序是：' : isPlaying ? '請記住順序...' : isWaitingForPlayer ? '請說出順序！' : '準備好開始了嗎？'}
-          </h3>
-          
-          {showResult && (
-            <div className="flex flex-col items-center gap-4 animate-bounce-in">
-              <div className={`text-2xl md:text-3xl font-bold px-8 py-3 rounded-full shadow-sm ${isLastRoundCorrect ? 'bg-green-100 text-green-700 border-2 border-green-300' : 'bg-red-100 text-red-700 border-2 border-red-300'}`}>
-                {isLastRoundCorrect ? '🎉 答對了！' : '❌ 答錯了！'}
+        <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full">
+          <div className={`flex-1 flex flex-col items-center justify-center text-center ${isComplete ? 'hidden' : ''}`}>
+            <h3 className="text-xl landscape:text-lg lg:text-3xl font-bold text-gray-700 mb-2 lg:mb-4 h-10">
+              {showResult ? '正確順序是：' : isPlaying ? '請記住順序...' : isWaitingForPlayer ? '請說出順序！' : '準備好開始了嗎？'}
+            </h3>
+            
+            {showResult && (
+              <div className="flex flex-col items-center gap-2 lg:gap-4 animate-bounce-in">
+                <div className={`text-lg landscape:text-base lg:text-3xl font-bold px-6 py-2 lg:px-8 lg:py-3 rounded-full shadow-sm ${isLastRoundCorrect ? 'bg-green-100 text-green-700 border-2 border-green-300' : 'bg-red-100 text-red-700 border-2 border-red-300'}`}>
+                  {isLastRoundCorrect ? '🎉 答對了！' : '❌ 答錯了！'}
+                </div>
+                <div className="text-xl landscape:text-lg lg:text-4xl font-bold text-blue-600 bg-white px-4 py-2 lg:px-6 lg:py-4 rounded-2xl shadow-md">
+                  {getSequenceText()}
+                </div>
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 bg-white px-6 py-4 rounded-2xl shadow-md">
-                {getSequenceText()}
-              </div>
+            )}
+
+            {!isPlaying && !isWaitingForPlayer && !showResult && (
+              <button 
+                onClick={playSequence}
+                className="px-6 py-3 landscape:px-4 landscape:py-2 lg:px-8 lg:py-4 bg-blue-500 text-white rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-md hover:bg-blue-600 flex items-center gap-2 mx-auto transition-transform active:scale-95"
+              >
+                <Play size={24} className="lg:w-7 lg:h-7" /> 播放順序
+              </button>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col items-center justify-center w-full">
+            <div className={`grid grid-cols-2 gap-3 landscape:gap-2 lg:gap-8 w-full max-w-[240px] landscape:max-w-[180px] lg:max-w-md ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+              {COLORS.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleColorClick(c.id)}
+                  disabled={!isWaitingForPlayer || isPlaying}
+                  className={`
+                    aspect-square rounded-2xl lg:rounded-[2rem] shadow-lg transition-all duration-200 border-4 border-white/20
+                    ${activeColor === c.id ? c.active + ' scale-95 ring-8 ring-white/50' : c.color + ' hover:scale-105'}
+                    ${!isWaitingForPlayer ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}
+                  `}
+                />
+              ))}
             </div>
-          )}
 
-          {!isPlaying && !isWaitingForPlayer && !showResult && (
-            <button 
-              onClick={playSequence}
-              className="px-8 py-4 bg-blue-500 text-white rounded-full font-bold text-2xl shadow-md hover:bg-blue-600 flex items-center gap-2 mx-auto transition-transform active:scale-95"
-            >
-              <Play size={28} /> 播放順序
-            </button>
-          )}
-        </div>
-
-        <div className={`grid grid-cols-2 gap-4 md:gap-8 max-w-md w-full ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
-          {COLORS.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => handleColorClick(c.id)}
-              disabled={!isWaitingForPlayer || isPlaying}
-              className={`
-                aspect-square rounded-[2rem] shadow-lg transition-all duration-200 border-4 border-white/20
-                ${activeColor === c.id ? c.active + ' scale-95 ring-8 ring-white/50' : c.color + ' hover:scale-105'}
-                ${!isWaitingForPlayer ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}
-              `}
-            />
-          ))}
-        </div>
-
-        {/* Progress dots for player input */}
-        <div className="mt-12 flex gap-3 h-4">
-          {isWaitingForPlayer && Array.from({ length: sequence.length }).map((_, i) => (
-            <div 
-              key={i} 
-              className={`w-6 h-6 rounded-full transition-colors duration-300 ${i < playerSequence.length ? 'bg-green-500 shadow-md' : 'bg-gray-300'}`}
-            />
-          ))}
+            {/* Progress dots for player input */}
+            <div className="mt-6 lg:mt-12 flex gap-2 lg:gap-3 h-4">
+              {isWaitingForPlayer && Array.from({ length: sequence.length }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`w-4 h-4 lg:w-6 lg:h-6 rounded-full transition-colors duration-300 ${i < playerSequence.length ? 'bg-green-500 shadow-md' : 'bg-gray-300'}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
       </div>
