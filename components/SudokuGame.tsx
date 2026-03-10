@@ -194,10 +194,10 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-4 landscape:p-2 lg:p-4 overflow-y-auto">
         
         {/* Stats Bar */}
-        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
+        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 landscape:p-2 lg:p-3 rounded-2xl shadow-sm mb-4 landscape:mb-2 lg:mb-4 border border-gray-100">
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Trophy className="text-yellow-500" />
             分數: {score}
@@ -219,8 +219,8 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               className="grid gap-0 border-2 border-gray-800"
               style={{ 
                 gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
-                width: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)',
-                height: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)'
+                width: isAdvanced ? 'min(90vw, 65vh, 400px)' : 'min(80vw, 65vh, 300px)',
+                height: isAdvanced ? 'min(90vw, 65vh, 400px)' : 'min(80vw, 65vh, 300px)'
               }}
             >
               {grid.map((row, r) => 
@@ -234,7 +234,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     <div 
                       key={`${r}-${c}`}
                       className={`
-                        flex items-center justify-center text-lg sm:text-2xl font-bold transition-colors
+                        flex items-center justify-center text-lg sm:text-2xl landscape:text-lg lg:text-2xl font-bold transition-colors
                         border-r border-b border-gray-300
                         ${isRightEdge ? 'border-r-2 border-r-gray-800' : ''}
                         ${isBottomEdge ? 'border-b-2 border-b-gray-800' : ''}
@@ -262,7 +262,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   onClick={() => handleNumberInput(num)}
                   disabled={isComplete}
                   className={`
-                    py-4 landscape:py-3 lg:py-4 rounded-xl font-bold text-2xl landscape:text-xl lg:text-2xl shadow-sm transition-transform active:scale-95
+                    py-4 landscape:py-2 lg:py-4 rounded-xl font-bold text-2xl landscape:text-xl lg:text-2xl shadow-sm transition-transform active:scale-95
                     ${isAdvanced ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}
                     ${isComplete ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
