@@ -219,6 +219,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               className="grid gap-0 border-2 border-gray-800"
               style={{ 
                 gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${size}, minmax(0, 1fr))`,
                 width: isAdvanced ? 'min(90vw, 65vh, 400px)' : 'min(80vw, 65vh, 300px)',
                 height: isAdvanced ? 'min(90vw, 65vh, 400px)' : 'min(80vw, 65vh, 300px)'
               }}
