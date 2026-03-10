@@ -1,0 +1,226 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, RefreshCw, Play, CheckCircle2, Trophy, Timer } from 'lucide-react';
+import { Difficulty } from '../types';
+import { soundService } from '../services/soundService';
+
+interface Props {
+  onBack: () => void;
+  difficulty?: Difficulty;
+}
+
+const COLORS = [
+  { id: 0, color: 'bg-red-500', active: 'bg-red-300', name: '紅色' },
+  { id: 1, color: 'bg-blue-500', active: 'bg-blue-300', name: '藍色' },
+  { id: 2, color: 'bg-yellow-400', active: 'bg-yellow-200', name: '黃色' },
+  { id: 3, color: 'bg-green-500', active: 'bg-green-300', name: '綠色' },
+];
+
+const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+  const isAdvanced = difficulty === 'ADVANCED';
+  
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [playerSequence, setPlayerSequence] = useState<number[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeColor, setActiveColor] = useState<number | null>(null);
+  const [level, setLevel] = useState(isAdvanced ? 4 : 3);
+  const [isWaitingForPlayer, setIsWaitingForPlayer] = useState(false);
+  const [round, setRound] = useState(1);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [isLastRoundCorrect, setIsLastRoundCorrect] = useState<boolean | null>(null);
+  const [roundStartTime, setRoundStartTime] = useState(Date.now());
+  const [isComplete, setIsComplete] = useState(false);
+  const TOTAL_ROUNDS = 10;
+
+  useEffect(() => {
+    initGame();
+  }, [difficulty]);
+
+  const initGame = () => {
+    setRound(1);
+    setScore(0);
+    setIsComplete(false);
+    setShowResult(false);
+    generateSequence(1, isAdvanced ? 4 : 3);
+  };
+
+  const generateSequence = (currentRound: number, currentLevel: number) => {
+    const newSeq = Array.from({ length: currentLevel }, () => Math.floor(Math.random() * 4));
+    setSequence(newSeq);
+    setPlayerSequence([]);
+    setIsWaitingForPlayer(false);
+    setShowResult(false);
+    setIsLastRoundCorrect(null);
+  };
+
+  const playSequence = async () => {
+    setIsPlaying(true);
+    setIsWaitingForPlayer(false);
+    
+    for (let i = 0; i < sequence.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setActiveColor(sequence[i]);
+      soundService.playGameSound('HIGH');
+      
+      await new Promise(resolve => setTimeout(resolve, isAdvanced ? 300 : 500));
+      setActiveColor(null);
+    }
+    
+    setIsPlaying(false);
+    setIsWaitingForPlayer(true);
+    setRoundStartTime(Date.now());
+  };
+
+  const handleNextRound = (isCorrect: boolean, timeTaken: number) => {
+    setShowResult(true);
+    setIsLastRoundCorrect(isCorrect);
+    
+    if (isCorrect) {
+      const roundScore = Math.max(10, 100 - Math.floor(timeTaken) * 2);
+      setScore(prev => prev + roundScore);
+      soundService.playWin();
+    } else {
+      soundService.playWrong();
+    }
+
+    setTimeout(() => {
+      if (round < TOTAL_ROUNDS) {
+        const nextRound = round + 1;
+        setRound(nextRound);
+        // Increase level slightly every 3 rounds
+        const nextLevel = (isAdvanced ? 4 : 3) + Math.floor(nextRound / 3);
+        setLevel(nextLevel);
+        generateSequence(nextRound, nextLevel);
+      } else {
+        setIsComplete(true);
+        soundService.playWin();
+      }
+    }, 2500);
+  };
+
+  const handleColorClick = (colorId: number) => {
+    if (!isWaitingForPlayer || isPlaying || showResult || isComplete) return;
+
+    soundService.playGameSound('LOW');
+    setActiveColor(colorId);
+    setTimeout(() => setActiveColor(null), 200);
+
+    const newPlayerSeq = [...playerSequence, colorId];
+    setPlayerSequence(newPlayerSeq);
+
+    // Check correctness
+    const currentIndex = newPlayerSeq.length - 1;
+    if (newPlayerSeq[currentIndex] !== sequence[currentIndex]) {
+      // Wrong
+      setIsWaitingForPlayer(false);
+      handleNextRound(false, 0);
+      return;
+    }
+
+    // Correct so far
+    if (newPlayerSeq.length === sequence.length) {
+      // Level complete
+      setIsWaitingForPlayer(false);
+      const timeTaken = (Date.now() - roundStartTime) / 1000;
+      handleNextRound(true, timeTaken);
+    }
+  };
+
+  const getSequenceText = () => {
+    return sequence.map(id => COLORS.find(c => c.id === id)?.name).join(' ➔ ');
+  };
+
+  return (
+    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
+      <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
+        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+          <ArrowLeft size={24} />
+        </button>
+        <div className="text-center">
+          <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>順序記憶</h2>
+          <p className="text-xs text-gray-500">長度：{level}</p>
+        </div>
+        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+          <RefreshCw size={24} />
+        </button>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
+        
+        {/* Stats Bar */}
+        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
+          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
+            <Timer className="text-blue-500" />
+            第 {round} / {TOTAL_ROUNDS} 關
+          </div>
+          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
+            <Trophy className="text-yellow-500" />
+            分數: {score}
+          </div>
+        </div>
+
+        {isComplete && (
+          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-md">
+            <CheckCircle2 className="w-16 h-16 text-green-500 mb-2" />
+            <h3 className="text-2xl font-bold text-green-600 mb-2">挑戰完成！</h3>
+            <p className="text-xl text-gray-700 font-bold">總得分：{score} 分</p>
+          </div>
+        )}
+
+        <div className={`mb-8 text-center ${isComplete ? 'hidden' : ''}`}>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-4 h-10">
+            {showResult ? '正確順序是：' : isPlaying ? '請記住順序...' : isWaitingForPlayer ? '請說出順序！' : '準備好開始了嗎？'}
+          </h3>
+          
+          {showResult && (
+            <div className="flex flex-col items-center gap-4 animate-bounce-in">
+              <div className={`text-2xl md:text-3xl font-bold px-8 py-3 rounded-full shadow-sm ${isLastRoundCorrect ? 'bg-green-100 text-green-700 border-2 border-green-300' : 'bg-red-100 text-red-700 border-2 border-red-300'}`}>
+                {isLastRoundCorrect ? '🎉 答對了！' : '❌ 答錯了！'}
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 bg-white px-6 py-4 rounded-2xl shadow-md">
+                {getSequenceText()}
+              </div>
+            </div>
+          )}
+
+          {!isPlaying && !isWaitingForPlayer && !showResult && (
+            <button 
+              onClick={playSequence}
+              className="px-8 py-4 bg-blue-500 text-white rounded-full font-bold text-2xl shadow-md hover:bg-blue-600 flex items-center gap-2 mx-auto transition-transform active:scale-95"
+            >
+              <Play size={28} /> 播放順序
+            </button>
+          )}
+        </div>
+
+        <div className={`grid grid-cols-2 gap-4 md:gap-8 max-w-md w-full ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+          {COLORS.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => handleColorClick(c.id)}
+              disabled={!isWaitingForPlayer || isPlaying}
+              className={`
+                aspect-square rounded-[2rem] shadow-lg transition-all duration-200 border-4 border-white/20
+                ${activeColor === c.id ? c.active + ' scale-95 ring-8 ring-white/50' : c.color + ' hover:scale-105'}
+                ${!isWaitingForPlayer ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}
+              `}
+            />
+          ))}
+        </div>
+
+        {/* Progress dots for player input */}
+        <div className="mt-12 flex gap-3 h-4">
+          {isWaitingForPlayer && Array.from({ length: sequence.length }).map((_, i) => (
+            <div 
+              key={i} 
+              className={`w-6 h-6 rounded-full transition-colors duration-300 ${i < playerSequence.length ? 'bg-green-500 shadow-md' : 'bg-gray-300'}`}
+            />
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default SimonSaysGame;
