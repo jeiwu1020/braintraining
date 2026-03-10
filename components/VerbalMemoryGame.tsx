@@ -127,7 +127,7 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
         )}
 
         <div 
-          className={`grid gap-3 md:gap-4 max-w-4xl w-full ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`grid gap-2 landscape:gap-1 lg:gap-4 w-full max-w-[90vw] landscape:max-w-[60vh] lg:max-w-4xl ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}
           style={{ 
             gridTemplateColumns: `repeat(${isAdvanced ? 5 : 4}, minmax(0, 1fr))` 
           }}
@@ -137,7 +137,7 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
               key={card.id}
               onClick={() => handleCardClick(index)}
               className={`
-                aspect-[4/3] sm:aspect-[3/2] rounded-xl text-3xl md:text-5xl flex items-center justify-center shadow-md transition-all duration-300 transform border-2
+                aspect-[4/3] landscape:aspect-square sm:aspect-[3/2] rounded-xl text-3xl landscape:text-2xl md:text-5xl flex items-center justify-center shadow-md transition-all duration-300 transform border-2
                 ${card.isFlipped || card.isMatched ? 'bg-white border-gray-200' : 'bg-blue-500 border-blue-600 hover:bg-blue-600 active:scale-95'}
                 ${card.isMatched ? 'opacity-50' : ''}
               `}
@@ -145,7 +145,7 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
               {card.isFlipped || card.isMatched ? (
                 <span className="animate-fade-in">{card.content}</span>
               ) : (
-                <span className="text-white font-bold text-4xl md:text-6xl">{index + 1}</span>
+                <span className="text-white font-bold text-4xl landscape:text-2xl md:text-6xl">{index + 1}</span>
               )}
             </button>
           ))}

@@ -153,26 +153,24 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         )}
 
-        <div className={`flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-5xl ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`flex flex-col landscape:flex-row lg:flex-row gap-4 lg:gap-8 items-center justify-center w-full max-w-5xl ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
           
           {/* Original Grid (Left) */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full max-w-[70vw] landscape:max-w-[40vh] lg:max-w-md">
             <div className="mb-2 font-bold text-gray-600 bg-white px-4 py-1 rounded-full shadow-sm">原圖 (A)</div>
             <div 
-              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'}`}
+              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'} w-full`}
             >
               <div 
-                className="grid gap-2"
+                className="grid gap-2 landscape:gap-1 lg:gap-4 w-full"
                 style={{ 
-                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-                  width: isAdvanced ? 'min(40vw, 350px)' : 'min(45vw, 300px)',
-                  height: isAdvanced ? 'min(40vw, 350px)' : 'min(45vw, 300px)'
+                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
                 }}
               >
                 {originalGrid.map((emoji, idx) => (
                   <div 
                     key={`orig-${idx}`}
-                    className="flex items-center justify-center text-4xl sm:text-5xl md:text-6xl bg-gray-50 rounded-xl border border-gray-100 shadow-sm"
+                    className="aspect-square flex items-center justify-center text-4xl landscape:text-3xl lg:text-6xl bg-gray-50 rounded-xl border border-gray-100 shadow-sm"
                   >
                     {emoji}
                   </div>
@@ -182,19 +180,17 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
 
           {/* Modified Grid (Right) */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full max-w-[70vw] landscape:max-w-[40vh] lg:max-w-md">
             <div className="mb-2 font-bold text-blue-600 bg-blue-50 px-4 py-1 rounded-full shadow-sm border border-blue-200 flex items-center gap-2">
               <Search size={16} /> 找不同 (B)
             </div>
             <div 
-              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-400' : 'border-emerald-400'}`}
+              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-400' : 'border-emerald-400'} w-full`}
             >
               <div 
-                className="grid gap-2"
+                className="grid gap-2 landscape:gap-1 lg:gap-4 w-full"
                 style={{ 
-                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-                  width: isAdvanced ? 'min(40vw, 350px)' : 'min(45vw, 300px)',
-                  height: isAdvanced ? 'min(40vw, 350px)' : 'min(45vw, 300px)'
+                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
                 }}
               >
                 {modifiedGrid.map((emoji, idx) => {
@@ -206,7 +202,7 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                       onClick={() => handleCellClick(idx)}
                       disabled={isComplete || isFound}
                       className={`
-                        relative flex items-center justify-center text-4xl sm:text-5xl md:text-6xl rounded-xl border shadow-sm transition-all duration-300
+                        relative aspect-square flex items-center justify-center text-4xl landscape:text-3xl lg:text-6xl rounded-xl border shadow-sm transition-all duration-300
                         ${isFound ? 'bg-green-100 border-green-400 ring-4 ring-green-300 scale-105' : 'bg-gray-50 border-gray-100 hover:bg-blue-50 hover:border-blue-200 active:scale-95'}
                       `}
                     >
