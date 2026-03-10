@@ -25,8 +25,8 @@ const ADVANCED_ITEMS = [
   { emoji: '🚁', name: '直升機' }, { emoji: '🏰', name: '城堡' }, { emoji: '🚀', name: '火箭' }, { emoji: '🗽', name: '自由女神' }, { emoji: '🌋', name: '火山' },
   { emoji: '🎡', name: '摩天輪' }, { emoji: '🔬', name: '顯微鏡' }, { emoji: '🗿', name: '摩艾石像' }, { emoji: '🗼', name: '東京鐵塔' }, { emoji: '🎢', name: '雲霄飛車' },
   { emoji: '🛰️', name: '人造衛星' }, { emoji: '🛸', name: '幽浮' }, { emoji: '🧬', name: 'DNA' }, { emoji: '🦠', name: '病毒' }, { emoji: '🧯', name: '滅火器' },
-  { emoji: '🧭', name: '指南針' }, { emoji: '⚓', name: '船錨' }, { emoji: '🪬', name: '法蒂瑪之手' }, { emoji: '⛩️', name: '鳥居' }, { emoji: '🕌', name: '清真寺' },
-  { emoji: '🕍', name: '猶太教堂' }, { emoji: '🕋', name: '克爾白' }, { emoji: '🏛️', name: '古典建築' }, { emoji: '🏟️', name: '體育場' }, { emoji: '🏗️', name: '建築工地' },
+  { emoji: '🧭', name: '指南針' }, { emoji: '⚓', name: '船錨' }, { emoji: '🧯', name: '滅火器' }, { emoji: '💎', name: '鑽石' }, { emoji: '👑', name: '皇冠' },
+  { emoji: '🔮', name: '水晶球' }, { emoji: '🎭', name: '面具' }, { emoji: '🎨', name: '調色盤' }, { emoji: '🎬', name: '打板' }, { emoji: '🎰', name: '吃角子老虎' },
   { emoji: '🛤️', name: '鐵軌' }, { emoji: '🛣️', name: '高速公路' }, { emoji: '🗺️', name: '世界地圖' }, { emoji: '🏔️', name: '雪山' }, { emoji: '🏕️', name: '露營帳篷' },
   { emoji: '🏖️', name: '沙灘傘' }, { emoji: '🏜️', name: '沙漠' }, { emoji: '🏝️', name: '荒島' }, { emoji: '🏞️', name: '國家公園' }, { emoji: '🔭', name: '望遠鏡' },
   { emoji: '📡', name: '衛星天線' }, { emoji: '💡', name: '燈泡' }, { emoji: '🔦', name: '手電筒' }, { emoji: '🏮', name: '燈籠' }, { emoji: '📓', name: '筆記本' },
@@ -43,6 +43,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
   const [roundStartTime, setRoundStartTime] = useState(Date.now());
   const [usedIndices, setUsedIndices] = useState<number[]>([]);
   const [isComplete, setIsComplete] = useState(false);
@@ -59,6 +60,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setIsRevealed(false);
     setRound(1);
     setScore(0);
+    setCorrectCount(0);
     setUsedIndices([firstIndex]);
     setIsComplete(false);
     setRoundStartTime(Date.now());
@@ -88,6 +90,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     const timeTaken = (Date.now() - roundStartTime) / 1000;
     const roundScore = Math.max(10, 100 - Math.floor(timeTaken) * 2);
     setScore(prev => prev + roundScore);
+    setCorrectCount(prev => prev + 1);
     soundService.playWin();
     nextRound();
   };
@@ -143,14 +146,18 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-8 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-2xl mt-12">
             <CheckCircle2 className="w-20 h-20 text-green-500 mb-4" />
             <h3 className="text-3xl font-bold text-green-600 mb-4">挑戰完成！</h3>
-            <p className="text-2xl text-gray-700 font-bold">總得分：{score} 分</p>
+            <p className="text-2xl text-gray-700 font-bold mb-2">總得分：{score} 分</p>
+            <p className="text-xl text-gray-600 font-bold">答對題數：{correctCount} / {TOTAL_ROUNDS} 題</p>
           </div>
         ) : (
           <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full">
             <div className="relative w-64 h-64 landscape:w-40 landscape:h-40 lg:w-80 lg:h-80 bg-white rounded-3xl shadow-xl overflow-hidden flex items-center justify-center border-4 border-gray-200 mb-4 lg:mb-8 flex-shrink-0">
               <div 
-                className="text-[150px] landscape:text-[100px] lg:text-[200px] leading-none transition-transform duration-700 ease-in-out"
-                style={{ transform: `scale(${zoomLevel})` }}
+                className="text-[150px] landscape:text-[100px] lg:text-[200px] leading-none"
+                style={{ 
+                  transform: `scale(${zoomLevel})`,
+                  transition: zoomLevel === (isAdvanced ? 8 : 5) ? 'none' : 'transform 0.3s ease-out'
+                }}
               >
                 {currentItem.emoji}
               </div>
