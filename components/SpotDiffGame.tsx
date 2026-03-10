@@ -206,7 +206,7 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         ${isFound ? 'bg-green-100 border-green-400 ring-4 ring-green-300 scale-105' : 'bg-gray-50 border-gray-100 hover:bg-blue-50 hover:border-blue-200 active:scale-95'}
                       `}
                     >
-                      <span className="absolute top-0 left-0 bg-blue-600 text-white text-base sm:text-lg md:text-xl font-black px-3 py-1 rounded-br-xl rounded-tl-xl shadow-md z-10">{idx + 1}</span>
+                      <span className="absolute top-0 left-0 bg-blue-600 text-white text-[10px] landscape:text-[10px] lg:text-xl font-black px-1.5 py-0.5 lg:px-3 lg:py-1 rounded-br-lg lg:rounded-br-xl rounded-tl-lg lg:rounded-tl-xl shadow-md z-10">{idx + 1}</span>
                       {emoji}
                       {isFound && (
                         <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 rounded-xl">

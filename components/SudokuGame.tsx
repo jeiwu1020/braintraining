@@ -215,63 +215,65 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         )}
 
-        {/* Board */}
-        <div className={`bg-white p-2 rounded-xl shadow-lg border-2 ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'} mb-6 ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div 
-            className="grid gap-0 border-2 border-gray-800"
-            style={{ 
-              gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
-              width: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)',
-              height: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)'
-            }}
-          >
-            {grid.map((row, r) => 
-              row.map((cell, c) => {
-                const isTarget = targetCell?.r === r && targetCell?.c === c;
-                const isError = errorCell?.r === r && errorCell?.c === c;
-                const isRightEdge = (c + 1) % subgridSize === 0 && c !== size - 1;
-                const isBottomEdge = (r + 1) % subgridSize === 0 && r !== size - 1;
-                
-                return (
-                  <div 
-                    key={`${r}-${c}`}
-                    className={`
-                      flex items-center justify-center text-lg sm:text-2xl font-bold transition-colors
-                      border-r border-b border-gray-300
-                      ${isRightEdge ? 'border-r-2 border-r-gray-800' : ''}
-                      ${isBottomEdge ? 'border-b-2 border-b-gray-800' : ''}
-                      ${c === size - 1 ? 'border-r-0' : ''}
-                      ${r === size - 1 ? 'border-b-0' : ''}
-                      ${isTarget ? 'bg-yellow-200 ring-4 ring-yellow-400 ring-inset scale-105 z-10 shadow-md' : ''}
-                      ${isError ? 'bg-red-300 ring-4 ring-red-500 ring-inset' : ''}
-                      ${cell.isFixed ? 'bg-gray-100 text-gray-800' : 'text-blue-600'}
-                    `}
-                  >
-                    {cell.value || ''}
-                  </div>
-                );
-              })
-            )}
+        <div className={`flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+          {/* Board */}
+          <div className={`bg-white p-2 rounded-xl shadow-lg border-2 ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'} mb-2 lg:mb-6`}>
+            <div 
+              className="grid gap-0 border-2 border-gray-800"
+              style={{ 
+                gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+                width: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)',
+                height: isAdvanced ? 'min(90vw, 400px)' : 'min(80vw, 300px)'
+              }}
+            >
+              {grid.map((row, r) => 
+                row.map((cell, c) => {
+                  const isTarget = targetCell?.r === r && targetCell?.c === c;
+                  const isError = errorCell?.r === r && errorCell?.c === c;
+                  const isRightEdge = (c + 1) % subgridSize === 0 && c !== size - 1;
+                  const isBottomEdge = (r + 1) % subgridSize === 0 && r !== size - 1;
+                  
+                  return (
+                    <div 
+                      key={`${r}-${c}`}
+                      className={`
+                        flex items-center justify-center text-lg sm:text-2xl font-bold transition-colors
+                        border-r border-b border-gray-300
+                        ${isRightEdge ? 'border-r-2 border-r-gray-800' : ''}
+                        ${isBottomEdge ? 'border-b-2 border-b-gray-800' : ''}
+                        ${c === size - 1 ? 'border-r-0' : ''}
+                        ${r === size - 1 ? 'border-b-0' : ''}
+                        ${isTarget ? 'bg-yellow-200 ring-4 ring-yellow-400 ring-inset scale-105 z-10 shadow-md' : ''}
+                        ${isError ? 'bg-red-300 ring-4 ring-red-500 ring-inset' : ''}
+                        ${cell.isFixed ? 'bg-gray-100 text-gray-800' : 'text-blue-600'}
+                      `}
+                    >
+                      {cell.value || ''}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Controls */}
-        <div className={`w-full max-w-md ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div className="grid grid-cols-5 gap-2 mb-4">
-            {numbers.map(num => (
-              <button
-                key={num}
-                onClick={() => handleNumberInput(num)}
-                disabled={isComplete}
-                className={`
-                  py-4 rounded-xl font-bold text-2xl shadow-sm transition-transform active:scale-95
-                  ${isAdvanced ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}
-                  ${isComplete ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
-              >
-                {num}
-              </button>
-            ))}
+          {/* Controls */}
+          <div className="w-full max-w-md flex flex-col justify-center">
+            <div className={`grid ${isAdvanced ? 'grid-cols-5 landscape:grid-cols-3 lg:grid-cols-5' : 'grid-cols-4 landscape:grid-cols-2 lg:grid-cols-4'} gap-2 mb-4`}>
+              {numbers.map(num => (
+                <button
+                  key={num}
+                  onClick={() => handleNumberInput(num)}
+                  disabled={isComplete}
+                  className={`
+                    py-4 landscape:py-3 lg:py-4 rounded-xl font-bold text-2xl landscape:text-xl lg:text-2xl shadow-sm transition-transform active:scale-95
+                    ${isAdvanced ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}
+                    ${isComplete ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
