@@ -14,63 +14,61 @@ type Cell = {
   isError: boolean;
 };
 
-const PUZZLES_4X4 = [
-  {
-    solution: [
-      [1, 2, 3, 4],
-      [3, 4, 1, 2],
-      [2, 1, 4, 3],
-      [4, 3, 2, 1]
-    ],
-    initial: [
-      [1, null, 3, null],
-      [null, 4, null, 2],
-      [null, 1, null, 3],
-      [4, null, 2, null]
-    ]
-  },
-  {
-    solution: [
-      [4, 1, 2, 3],
-      [2, 3, 4, 1],
-      [3, 4, 1, 2],
-      [1, 2, 3, 4]
-    ],
-    initial: [
-      [null, 1, null, 3],
-      [2, null, null, 1],
-      [3, null, 1, null],
-      [null, 2, null, 4]
-    ]
-  }
-];
+const generateSudoku = (size: number, subgridSize: number) => {
+  const grid = Array(size).fill(null).map(() => Array(size).fill(0));
 
-const PUZZLES_9X9 = [
-  {
-    solution: [
-      [5, 3, 4, 6, 7, 8, 9, 1, 2],
-      [6, 7, 2, 1, 9, 5, 3, 4, 8],
-      [1, 9, 8, 3, 4, 2, 5, 6, 7],
-      [8, 5, 9, 7, 6, 1, 4, 2, 3],
-      [4, 2, 6, 8, 5, 3, 7, 9, 1],
-      [7, 1, 3, 9, 2, 4, 8, 5, 6],
-      [9, 6, 1, 5, 3, 7, 2, 8, 4],
-      [2, 8, 7, 4, 1, 9, 6, 3, 5],
-      [3, 4, 5, 2, 8, 6, 1, 7, 9]
-    ],
-    initial: [
-      [5, 3, null, null, 7, null, null, null, null],
-      [6, null, null, 1, 9, 5, null, null, null],
-      [null, 9, 8, null, null, null, null, 6, null],
-      [8, null, null, null, 6, null, null, null, 3],
-      [4, null, null, 8, null, 3, null, null, 1],
-      [7, null, null, null, 2, null, null, null, 6],
-      [null, 6, null, null, null, null, 2, 8, null],
-      [null, null, null, 4, 1, 9, null, null, 5],
-      [null, null, null, null, 8, null, null, 7, 9]
-    ]
+  const isSafe = (r: number, c: number, num: number) => {
+    for (let i = 0; i < size; i++) {
+      if (grid[r][i] === num) return false;
+      if (grid[i][c] === num) return false;
+    }
+    const sr = Math.floor(r / subgridSize) * subgridSize;
+    const sc = Math.floor(c / subgridSize) * subgridSize;
+    for (let i = 0; i < subgridSize; i++) {
+      for (let j = 0; j < subgridSize; j++) {
+        if (grid[sr + i][sc + j] === num) return false;
+      }
+    }
+    return true;
+  };
+
+  const solve = () => {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (grid[r][c] === 0) {
+          const nums = Array.from({length: size}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+          for (const num of nums) {
+            if (isSafe(r, c, num)) {
+              grid[r][c] = num;
+              if (solve()) return true;
+              grid[r][c] = 0;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  solve();
+
+  const solution = grid.map(row => [...row]);
+  const initial: (number | null)[][] = grid.map(row => [...row]);
+  
+  const cellsToRemove = size === 9 ? 45 : 8;
+  let removed = 0;
+  while (removed < cellsToRemove) {
+    const r = Math.floor(Math.random() * size);
+    const c = Math.floor(Math.random() * size);
+    if (initial[r][c] !== null) {
+      initial[r][c] = null;
+      removed++;
+    }
   }
-];
+
+  return { solution, initial };
+};
 
 const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const isAdvanced = difficulty === 'ADVANCED';
@@ -133,10 +131,9 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const initGame = () => {
-    const puzzles = isAdvanced ? PUZZLES_9X9 : PUZZLES_4X4;
-    const randomPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+    const { solution: newSolution, initial } = generateSudoku(size, subgridSize);
     
-    const newGrid: Cell[][] = randomPuzzle.initial.map(row => 
+    const newGrid: Cell[][] = initial.map(row => 
       row.map(val => ({
         value: val,
         isFixed: val !== null,
@@ -145,7 +142,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     );
     
     setGrid(newGrid);
-    setSolution(randomPuzzle.solution);
+    setSolution(newSolution);
     setScore(0);
     setIsComplete(false);
     setErrorCell(null);
