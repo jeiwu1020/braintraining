@@ -361,24 +361,49 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {/* ===== LANDSCAPE layout ===== */}
             <div className="hidden landscape:flex flex-1 overflow-hidden">
                 {/* Board column */}
-                <div className="flex-1 flex items-center justify-center p-1 overflow-hidden">
-                    {/* Square container sized by height */}
-                    <div className="flex items-center justify-center h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)'}}>
-                        <div className="w-full h-full flex flex-col">
-                            {/* Col labels — offset by row-label width (20px) */}
-                            <div className="flex flex-none" style={{paddingLeft:'20px',marginBottom:'2px'}}>
-                                {COL_LABELS.map(c=><div key={c} className="flex-1 text-center font-bold text-slate-500 text-[9px]">{c}</div>)}
-                            </div>
-                            {/* Row labels + board */}
-                            <div className="flex flex-1 min-h-0">
-                                <div className="flex flex-col flex-none" style={{width:'20px',paddingRight:'3px'}}>
-                                    {ROW_LABELS.map(r=><div key={r} className="flex-1 flex items-center justify-center font-bold text-slate-500 text-[9px]">{r}</div>)}
-                                </div>
-                                <div className="flex-1 min-w-0 min-h-0">
-                                    {renderBoard()}
-                                </div>
-                            </div>
+                <div className="flex-1 flex items-center justify-center overflow-hidden p-1">
+                    {/*
+                      Square wrapper: height-driven, aspect-ratio 1:1.
+                      Inside: board fills 100%, coordinates are absolutely overlaid.
+                      Board has p-1.5 (6px) padding + border-4 (4px) = 10px total inset before grid starts.
+                      Each cell = (boardSize - 2*10px) / 8, centered at cell_start + cellSize/2.
+                      We approximate with CSS: offset = 10/boardPx, cellSpan = (1 - 2*offset) / 8
+                      But since we don't know boardPx at render time, we use percentage of the board div.
+                      border-4 = 4px each side, p-1.5 = 6px each side → total inset = 10px each side.
+                      As % of board: we use inline style with calc.
+                      Label centers: col C_i center = 10px + (i+0.5) * (boardW - 20px)/8
+                      Expressed as % of boardW: left = (10 + (i+0.5)*(W-20)/8) / W * 100
+                      Since W is unknown, we use: left = calc(10px + (i * (100% - 20px)/8) + (100% - 20px)/16)
+                                                       = calc(10px + (2i+1) * (100% - 20px) / 16)
+                    */}
+                    <div className="relative h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)'}}>
+                        {/* Board fills container */}
+                        <div className="w-full h-full">
+                            {renderBoard()}
                         </div>
+                        {/* Col labels — absolutely positioned, centered on each column */}
+                        {COL_LABELS.map((c,i)=>(
+                            <div key={c}
+                                className="absolute -top-4 font-bold text-slate-500 text-[9px] flex items-center justify-center"
+                                style={{
+                                    width:'calc((100% - 20px) / 8)',
+                                    left:`calc(10px + ${i} * (100% - 20px) / 8)`,
+                                    transform:'none',
+                                }}>
+                                {c}
+                            </div>
+                        ))}
+                        {/* Row labels — absolutely positioned, centered on each row */}
+                        {ROW_LABELS.map((r,i)=>(
+                            <div key={r}
+                                className="absolute -left-4 font-bold text-slate-500 text-[9px] flex items-center justify-center"
+                                style={{
+                                    height:'calc((100% - 20px) / 8)',
+                                    top:`calc(10px + ${i} * (100% - 20px) / 8)`,
+                                }}>
+                                {r}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
