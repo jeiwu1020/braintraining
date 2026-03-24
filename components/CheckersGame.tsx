@@ -200,7 +200,7 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
 
     // Shared board renderer
     const renderBoard=()=>(
-        <div ref={boardDivRef} className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full h-full relative" style={{aspectRatio:'1/1'}}>
+        <div ref={boardDivRef} className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full h-full relative">
             <div className="w-full h-full grid grid-cols-8 grid-rows-8">
                 {board.map((row,r)=>row.map((p,c)=>{
                     const isDark=(r+c)%2===1;
@@ -351,7 +351,9 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                         <div className="flex flex-col justify-between pr-1 w-5">
                             {ROW_LABELS.map(r=><div key={r} className="flex-1 flex items-center justify-center font-bold text-slate-500 text-[9px]">{r}</div>)}
                         </div>
-                        {renderBoard()}
+                        <div className="flex-1 aspect-square">
+                            {renderBoard()}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -361,31 +363,25 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {/* ===== LANDSCAPE layout ===== */}
             <div className="hidden landscape:flex flex-1 overflow-hidden">
                 {/* Board column */}
-                <div className="flex-1 flex items-center justify-center overflow-hidden p-1">
+                <div className="flex-1 flex items-center justify-center overflow-hidden">
                     {/*
-                      Square wrapper: height-driven, aspect-ratio 1:1.
-                      Inside: board fills 100%, coordinates are absolutely overlaid.
-                      Board has p-1.5 (6px) padding + border-4 (4px) = 10px total inset before grid starts.
-                      Each cell = (boardSize - 2*10px) / 8, centered at cell_start + cellSize/2.
-                      We approximate with CSS: offset = 10/boardPx, cellSpan = (1 - 2*offset) / 8
-                      But since we don't know boardPx at render time, we use percentage of the board div.
-                      border-4 = 4px each side, p-1.5 = 6px each side → total inset = 10px each side.
-                      As % of board: we use inline style with calc.
-                      Label centers: col C_i center = 10px + (i+0.5) * (boardW - 20px)/8
-                      Expressed as % of boardW: left = (10 + (i+0.5)*(W-20)/8) / W * 100
-                      Since W is unknown, we use: left = calc(10px + (i * (100% - 20px)/8) + (100% - 20px)/16)
-                                                       = calc(10px + (2i+1) * (100% - 20px) / 16)
+                      Strategy: size the whole coord+board block by available height.
+                      LABEL_SIZE = 16px. BOARD_INSET = 10px (border-4 + p-1.5).
+                      Total square side = boardSide + LABEL_SIZE.
+                      boardSide is driven by height: boardSide = availableH - LABEL_SIZE.
+                      We use a fixed outer div sized via inline style referencing dvh,
+                      minus header (~44px) and 8px padding.
                     */}
-                    {/*
-                      Outer wrapper adds pt-4 (col label space) and pl-4 (row label space),
-                      so the board sits inside with labels in the margin.
-                    */}
-                    <div className="relative h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)',paddingTop:'16px',paddingLeft:'16px',boxSizing:'border-box'}}>
-                        {/* Board fills the inner area after padding */}
-                        <div className="w-full h-full">
+                    <div className="relative flex-none"
+                        style={{
+                            height:'calc(100dvh - 44px - 8px)',
+                            width:'calc(100dvh - 44px - 8px)',
+                        }}>
+                        {/* Board — inset by label sizes, fills remaining square */}
+                        <div className="absolute" style={{top:'16px',left:'16px',right:'0px',bottom:'0px',position:'absolute'}}>
                             {renderBoard()}
                         </div>
-                        {/* Col labels — anchored to top margin, aligned to each column */}
+                        {/* Col labels — top strip, aligned to each column of board */}
                         {COL_LABELS.map((c,i)=>(
                             <div key={c}
                                 className="absolute top-0 font-bold text-slate-500 text-[9px] flex items-center justify-center"
@@ -397,7 +393,7 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                                 {c}
                             </div>
                         ))}
-                        {/* Row labels — anchored to left margin, aligned to each row */}
+                        {/* Row labels — left strip, aligned to each row of board */}
                         {ROW_LABELS.map((r,i)=>(
                             <div key={r}
                                 className="absolute left-0 font-bold text-slate-500 text-[9px] flex items-center justify-center"
