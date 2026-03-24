@@ -200,7 +200,7 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
 
     // Shared board renderer
     const renderBoard=()=>(
-        <div ref={boardDivRef} className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full aspect-square relative">
+        <div ref={boardDivRef} className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full h-full relative" style={{aspectRatio:'1/1'}}>
             <div className="w-full h-full grid grid-cols-8 grid-rows-8">
                 {board.map((row,r)=>row.map((p,c)=>{
                     const isDark=(r+c)%2===1;
@@ -361,20 +361,22 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {/* ===== LANDSCAPE layout ===== */}
             <div className="hidden landscape:flex flex-1 overflow-hidden">
                 {/* Board column */}
-                <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
-                    <div className="flex flex-col items-center justify-center h-full" style={{height:'min(100%,calc(100vw - 180px))'}}>
-                        {/* Col labels */}
-                        <div className="flex w-full pl-5 mb-0.5 flex-none">
-                            {COL_LABELS.map(c=><div key={c} className="flex-1 text-center font-bold text-slate-500 text-[9px]">{c}</div>)}
-                        </div>
-                        <div className="flex flex-1 min-h-0 w-full items-stretch">
-                            {/* Row labels */}
-                            <div className="flex flex-col justify-between pr-1 w-5 flex-none">
-                                {ROW_LABELS.map(r=><div key={r} className="flex-1 flex items-center justify-center font-bold text-slate-500 text-[9px]">{r}</div>)}
+                <div className="flex-1 flex items-center justify-center p-1 overflow-hidden">
+                    {/* Square container sized by height */}
+                    <div className="flex items-center justify-center h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)'}}>
+                        <div className="w-full h-full flex flex-col">
+                            {/* Col labels — offset by row-label width (20px) */}
+                            <div className="flex flex-none" style={{paddingLeft:'20px',marginBottom:'2px'}}>
+                                {COL_LABELS.map(c=><div key={c} className="flex-1 text-center font-bold text-slate-500 text-[9px]">{c}</div>)}
                             </div>
-                            {/* Board — square constrained by height */}
-                            <div className="aspect-square" style={{height:'100%',maxHeight:'100%'}}>
-                                {renderBoard()}
+                            {/* Row labels + board */}
+                            <div className="flex flex-1 min-h-0">
+                                <div className="flex flex-col flex-none" style={{width:'20px',paddingRight:'3px'}}>
+                                    {ROW_LABELS.map(r=><div key={r} className="flex-1 flex items-center justify-center font-bold text-slate-500 text-[9px]">{r}</div>)}
+                                </div>
+                                <div className="flex-1 min-w-0 min-h-0">
+                                    {renderBoard()}
+                                </div>
                             </div>
                         </div>
                     </div>
