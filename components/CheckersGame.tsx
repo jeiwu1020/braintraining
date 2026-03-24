@@ -376,30 +376,35 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                       Since W is unknown, we use: left = calc(10px + (i * (100% - 20px)/8) + (100% - 20px)/16)
                                                        = calc(10px + (2i+1) * (100% - 20px) / 16)
                     */}
-                    <div className="relative h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)'}}>
-                        {/* Board fills container */}
+                    {/*
+                      Outer wrapper adds pt-4 (col label space) and pl-4 (row label space),
+                      so the board sits inside with labels in the margin.
+                    */}
+                    <div className="relative h-full" style={{aspectRatio:'1/1',maxWidth:'calc(100% - 4px)',paddingTop:'16px',paddingLeft:'16px',boxSizing:'border-box'}}>
+                        {/* Board fills the inner area after padding */}
                         <div className="w-full h-full">
                             {renderBoard()}
                         </div>
-                        {/* Col labels — absolutely positioned, centered on each column */}
+                        {/* Col labels — anchored to top margin, aligned to each column */}
                         {COL_LABELS.map((c,i)=>(
                             <div key={c}
-                                className="absolute -top-4 font-bold text-slate-500 text-[9px] flex items-center justify-center"
+                                className="absolute top-0 font-bold text-slate-500 text-[9px] flex items-center justify-center"
                                 style={{
-                                    width:'calc((100% - 20px) / 8)',
-                                    left:`calc(10px + ${i} * (100% - 20px) / 8)`,
-                                    transform:'none',
+                                    height:'16px',
+                                    width:'calc((100% - 16px - 20px) / 8)',
+                                    left:`calc(16px + 10px + ${i} * (100% - 16px - 20px) / 8)`,
                                 }}>
                                 {c}
                             </div>
                         ))}
-                        {/* Row labels — absolutely positioned, centered on each row */}
+                        {/* Row labels — anchored to left margin, aligned to each row */}
                         {ROW_LABELS.map((r,i)=>(
                             <div key={r}
-                                className="absolute -left-4 font-bold text-slate-500 text-[9px] flex items-center justify-center"
+                                className="absolute left-0 font-bold text-slate-500 text-[9px] flex items-center justify-center"
                                 style={{
-                                    height:'calc((100% - 20px) / 8)',
-                                    top:`calc(10px + ${i} * (100% - 20px) / 8)`,
+                                    width:'16px',
+                                    height:'calc((100% - 16px - 20px) / 8)',
+                                    top:`calc(16px + 10px + ${i} * (100% - 16px - 20px) / 8)`,
                                 }}>
                                 {r}
                             </div>
