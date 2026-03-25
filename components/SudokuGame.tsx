@@ -78,6 +78,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<number[][]>([]);
   const [targetCell, setTargetCell] = useState<{r: number, c: number} | null>(null);
+  const [isManualSelect, setIsManualSelect] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [score, setScore] = useState(0);
   const [roundStartTime, setRoundStartTime] = useState(Date.now());
@@ -146,7 +147,24 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setScore(0);
     setIsComplete(false);
     setErrorCell(null);
+    setIsManualSelect(false);
     findNextTargetCell(newGrid);
+  };
+
+  const handleCellClick = (r: number, c: number) => {
+    if (isComplete) return;
+    const cell = grid[r][c];
+    if (cell.isFixed || cell.value !== null) return; // can't select filled cells
+    // Toggle: clicking same cell deselects and goes back to auto
+    if (isManualSelect && targetCell?.r === r && targetCell?.c === c) {
+      setIsManualSelect(false);
+      findNextTargetCell(grid);
+      return;
+    }
+    setIsManualSelect(true);
+    setTargetCell({ r, c });
+    setRoundStartTime(Date.now());
+    setErrorCell(null);
   };
 
   const handleNumberInput = (num: number) => {
@@ -166,7 +184,15 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       setScore(prev => prev + roundScore);
       
       soundService.playGameSound('HIGH');
-      findNextTargetCell(newGrid);
+      if (isManualSelect) {
+        // Stay in manual mode — deselect current cell, let player pick next
+        setTargetCell(null);
+        // Check if game is complete
+        const remaining = newGrid.flat().some(cell => cell.value === null);
+        if (!remaining) { setIsComplete(true); soundService.playWin(); }
+      } else {
+        findNextTargetCell(newGrid);
+      }
     } else {
       // Wrong
       setErrorCell({ r, c });
@@ -202,6 +228,9 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <Trophy className="text-yellow-500" />
             分數: {score}
           </div>
+          <div className={`text-xs font-bold px-2 py-1 rounded-full ${isManualSelect ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
+            {isManualSelect ? '✋ 手動選格' : '🤖 自動選格'}
+          </div>
         </div>
 
         {isComplete && (
@@ -234,6 +263,7 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   return (
                     <div 
                       key={`${r}-${c}`}
+                      onClick={() => handleCellClick(r, c)}
                       className={`
                         flex items-center justify-center text-lg sm:text-2xl landscape:text-lg lg:text-2xl font-bold transition-colors
                         border-r border-b border-gray-300
@@ -241,9 +271,10 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         ${isBottomEdge ? 'border-b-2 border-b-gray-800' : ''}
                         ${c === size - 1 ? 'border-r-0' : ''}
                         ${r === size - 1 ? 'border-b-0' : ''}
-                        ${isTarget ? 'bg-yellow-200 ring-4 ring-yellow-400 ring-inset scale-105 z-10 shadow-md' : ''}
+                        ${isTarget && isManualSelect ? 'bg-blue-200 ring-4 ring-blue-400 ring-inset scale-105 z-10 shadow-md cursor-pointer' : ''}
+                        ${isTarget && !isManualSelect ? 'bg-yellow-200 ring-4 ring-yellow-400 ring-inset scale-105 z-10 shadow-md' : ''}
                         ${isError ? 'bg-red-300 ring-4 ring-red-500 ring-inset' : ''}
-                        ${cell.isFixed ? 'bg-gray-100 text-gray-800' : 'text-blue-600'}
+                        ${cell.isFixed ? 'bg-gray-100 text-gray-800' : (!cell.value ? 'cursor-pointer hover:bg-blue-50' : 'text-blue-600')}
                       `}
                     >
                       {cell.value || ''}
