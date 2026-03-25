@@ -137,7 +137,7 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-indigo-50 overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] bg-indigo-50 overflow-hidden relative">
         {/* Header */}
       <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10">
         <button 
@@ -162,10 +162,10 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       </div>
 
       {/* Main Content: Flex Row on landscape, Flex Col on portrait */}
-      <div className="flex-1 flex flex-col sm:flex-row overflow-hidden relative">
+      <div className="flex-1 flex flex-col sm:flex-row overflow-hidden relative landscape:flex-row">
         
         {/* Game Area - Centered & Scrollable */}
-        <div className="flex-1 flex items-center justify-center p-2 overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center p-2 landscape:p-1 overflow-y-auto">
             <div className="relative">
                 {/* Column Labels (A-D) */}
                 <div className="flex mb-1 pl-8">

@@ -363,20 +363,13 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {/* ===== LANDSCAPE layout ===== */}
             <div className="hidden landscape:flex flex-1 overflow-hidden">
                 {/* Board column */}
-                <div className="flex-1 flex items-center justify-center overflow-hidden">
+                <div className="flex-1 flex items-center justify-center overflow-hidden" style={{minWidth:0}}>
                     {/*
-                      Strategy: size the whole coord+board block by available height.
-                      LABEL_SIZE = 16px. BOARD_INSET = 10px (border-4 + p-1.5).
-                      Total square side = boardSide + LABEL_SIZE.
-                      boardSide is driven by height: boardSide = availableH - LABEL_SIZE.
-                      We use a fixed outer div sized via inline style referencing dvh,
-                      minus header (~44px) and 8px padding.
+                      Strategy: let the container be height-driven square.
+                      Use h-full on outer, then aspect-ratio:1/1 to derive width.
+                      This avoids any dvh/vh calculations that break on Android.
                     */}
-                    <div className="relative flex-none"
-                        style={{
-                            height:'calc(100dvh - 44px - 8px)',
-                            width:'calc(100dvh - 44px - 8px)',
-                        }}>
+                    <div className="relative" style={{height:'100%',aspectRatio:'1 / 1'}}>
                         {/* Board — inset by label sizes, fills remaining square */}
                         <div className="absolute" style={{top:'16px',left:'16px',right:'0px',bottom:'0px',position:'absolute'}}>
                             {renderBoard()}

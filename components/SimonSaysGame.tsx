@@ -145,7 +145,7 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
+      <div className="flex-1 flex flex-col items-center justify-start p-4 landscape:p-2 overflow-y-auto w-full">
         
         {/* Stats Bar */}
         <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
@@ -160,7 +160,7 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </div>
 
         {isComplete && (
-          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-md">
+          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-4 landscape:p-3 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-md">
             <CheckCircle2 className="w-16 h-16 text-green-500 mb-2" />
             <h3 className="text-2xl font-bold text-green-600 mb-2">挑戰完成！</h3>
             <p className="text-xl text-gray-700 font-bold">總得分：{score} 分</p>

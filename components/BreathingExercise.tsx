@@ -118,7 +118,7 @@ const BreathingExercise: React.FC<Props> = ({ onBack }) => {
 
   if (isFinished) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-sky-50 p-4 animate-fade-in">
+        <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-sky-50 p-4 animate-fade-in">
             <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full">
                 <CheckCircle2 className="w-24 h-24 text-sky-500 mx-auto mb-6" />
                 <h2 className="text-2xl font-bold text-sky-900 mb-4">呼吸練習完成</h2>
@@ -138,7 +138,7 @@ const BreathingExercise: React.FC<Props> = ({ onBack }) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-sky-50 p-4 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-sky-50 p-4 landscape:p-2 relative overflow-hidden">
       <button 
         onClick={onBack}
         className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-md text-gray-600 hover:bg-gray-100 z-50"

@@ -105,7 +105,7 @@ const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   if (isFinished) {
     const evalResult = getEvaluation(score);
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-rose-50 p-4 animate-fade-in">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-rose-50 p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-rose-200">
               <Trophy className="w-20 h-20 text-rose-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-rose-900 mb-2">{evalResult.title}</h2>
@@ -133,11 +133,11 @@ const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   }
 
   if (loading || !level) {
-      return <div className="min-h-screen bg-rose-50 flex items-center justify-center"><Loader2 className="animate-spin text-rose-500"/></div>;
+      return <div className="min-h-[100dvh] bg-rose-50 flex items-center justify-center"><Loader2 className="animate-spin text-rose-500"/></div>;
   }
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-50' : 'bg-rose-50'}`}>
+    <div className={`flex flex-col h-[100dvh] overflow-hidden transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-50' : 'bg-rose-50'}`}>
        {/* Header */}
        <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
             <button onClick={onBack} className="p-2 bg-white rounded-full text-rose-800 shadow-sm hover:bg-rose-100">
@@ -153,7 +153,7 @@ const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </div>
 
         {/* Main Content - Allow scrolling if height is small (landscape) */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 landscape:p-2">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 min-h-full">
                 
                 {/* Left Side: Question */}

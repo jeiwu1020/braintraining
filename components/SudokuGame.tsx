@@ -220,10 +220,10 @@ const SudokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-start p-4 landscape:p-2 lg:p-4 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-4 landscape:p-1 lg:p-4 overflow-y-auto">
         
         {/* Stats Bar */}
-        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 landscape:p-2 lg:p-3 rounded-2xl shadow-sm mb-4 landscape:mb-2 lg:mb-4 border border-gray-100">
+        <div className="w-full max-w-md flex justify-between items-center bg-white p-2 landscape:p-1.5 lg:p-3 rounded-2xl shadow-sm mb-2 landscape:mb-1 lg:mb-4 border border-gray-100">
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Trophy className="text-yellow-500" />
             分數: {score}

@@ -89,7 +89,7 @@ const PatternGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50 p-4 animate-fade-in">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-blue-50 p-4 animate-fade-in">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-blue-200">
           <Trophy className="w-20 h-20 text-blue-500 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-blue-900 mb-2">推理完成！</h2>
@@ -106,14 +106,14 @@ const PatternGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (loading || !level) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-blue-50 flex items-center justify-center">
         <Loader2 className="animate-spin text-blue-500 w-12 h-12" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-blue-50 overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] bg-blue-50 overflow-hidden relative">
       <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
         <button onClick={onBack} className="p-2 bg-white rounded-full text-blue-800 shadow-sm hover:bg-blue-100"><ArrowLeft size={20} /></button>
         <div className="flex items-center gap-4">
@@ -123,10 +123,10 @@ const PatternGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 gap-4 sm:gap-8 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 landscape:p-1 landscape:gap-2 gap-4 sm:gap-8 overflow-y-auto">
         
         {/* Question Sequence */}
-        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-lg border-2 border-blue-100 w-full max-w-4xl flex flex-wrap justify-center gap-2 sm:gap-6 min-h-[100px] sm:min-h-[120px] items-center shrink-0">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-lg border-2 border-blue-100 w-full max-w-4xl flex flex-wrap justify-center gap-2 sm:gap-6 min-h-[80px] sm:min-h-[120px] landscape:min-h-[60px] items-center shrink-0">
           {level.sequence.map((item, idx) => {
             const isQuestionMark = item === '?';
             // If round is complete and this is the question mark, show the answer

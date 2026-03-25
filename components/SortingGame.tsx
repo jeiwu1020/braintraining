@@ -154,7 +154,7 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isSessionFinished) {
     return (
-      <div className="flex flex-col h-screen bg-orange-50 overflow-hidden">
+      <div className="flex flex-col h-[100dvh] bg-orange-50 overflow-hidden">
         {/* Header */}
         <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
             <h2 className="text-xl font-bold text-orange-800 flex items-center">
@@ -164,7 +164,7 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </div>
 
         {/* Scrollable Content - List all items */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 landscape:p-2">
             <div className="max-w-2xl mx-auto space-y-4 pb-24">
                 <div className="bg-white p-6 rounded-2xl shadow-md text-center border-b-4 border-orange-200">
                     <p className="text-gray-600 mb-2">太棒了！你的分類能力非常好。</p>
@@ -203,7 +203,7 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </div>
 
         {/* Bottom Actions - Fixed */}
-        <div className="flex-none p-4 bg-white border-t border-orange-100 flex gap-4 z-20">
+        <div className="flex-none p-2 landscape:p-1.5 bg-white border-t border-orange-100 flex gap-4 z-20">
             <button 
                 onClick={onBack}
                 className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-colors"
@@ -223,7 +223,7 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (loading || !level) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-orange-50">
         <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
         <p className="text-orange-700 text-lg">AI 正在準備題目中...</p>
       </div>
@@ -234,7 +234,7 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const correctCategoryName = currentItem.category === 'A' ? level.categoryA : level.categoryB;
 
   return (
-    <div className="flex flex-col h-screen bg-orange-50 overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] bg-orange-50 overflow-hidden relative">
       {/* Header */}
       <div className="flex-none p-2 sm:p-4 flex justify-between items-center bg-white/50 backdrop-blur-sm shadow-sm z-10">
         <button onClick={onBack} className="p-2 bg-white rounded-full text-orange-800 shadow-sm hover:bg-orange-100">
