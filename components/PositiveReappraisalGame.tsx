@@ -40,7 +40,7 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isLast = currentIndex === scenarios.length - 1;
 
     return (
-        <div className="min-h-screen bg-amber-50 flex flex-col font-sans">
+        <div className="h-[100dvh] bg-amber-50 flex flex-col font-sans overflow-hidden">
             <header className="p-4 md:p-6 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10">
                 <button
                     onClick={onBack}
@@ -55,9 +55,9 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col pb-28">
+            <main className="flex-1 max-w-5xl w-full mx-auto p-2 sm:p-4 md:p-8 flex flex-col pb-24 overflow-y-auto">
                 
-                <div className="mb-6 flex items-center justify-between bg-white px-4 py-2 rounded-full shadow-sm">
+                <div className="mb-4 md:mb-6 flex items-center justify-between bg-white px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-sm">
                     <span className="text-amber-600 font-bold">第 {currentIndex + 1} 題</span>
                     <div className="flex-1 mx-4 bg-amber-100 rounded-full h-2">
                         <div 
@@ -68,31 +68,31 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     <span className="text-amber-600 font-bold">共 {scenarios.length} 題</span>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-6 md:gap-8 flex-1">
+                <div className="flex flex-col md:flex-row landscape:flex-row gap-4 md:gap-8 flex-1 min-h-0">
                     
                     {/* Left: Event and Negative Thought */}
-                    <div className="w-full md:w-1/2 flex flex-col gap-6">
-                        <div className="bg-white p-6 md:p-8 rounded-3xl border-2 border-slate-200 shadow-md">
-                            <h2 className="text-lg md:text-xl font-bold text-slate-500 mb-2">發生的事件：</h2>
-                            <p className="text-2xl md:text-3xl text-slate-800 font-medium leading-relaxed">
+                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col gap-3 md:gap-6">
+                        <div className="bg-white p-4 md:p-8 rounded-3xl border-2 border-slate-200 shadow-md">
+                            <h2 className="text-base md:text-xl font-bold text-slate-500 mb-1 md:mb-2">發生的事件：</h2>
+                            <p className="text-xl md:text-3xl text-slate-800 font-medium leading-normal md:leading-relaxed">
                                 {currentScenario.event}
                             </p>
                         </div>
                         
-                        <div className="bg-slate-800 p-6 md:p-8 rounded-3xl shadow-lg relative overflow-hidden">
-                            <CloudRain className="absolute right-[-20px] top-[-20px] w-32 h-32 text-slate-700 opacity-50" />
-                            <h2 className="text-lg md:text-xl font-bold text-slate-400 mb-4 flex items-center">
-                                <MessageSquareQuote className="w-6 h-6 mr-2 outline-none" />
+                        <div className="bg-slate-800 p-4 md:p-8 rounded-3xl shadow-lg relative overflow-hidden flex-1">
+                            <CloudRain className="absolute right-[-20px] top-[-20px] w-24 h-24 md:w-32 md:h-32 text-slate-700 opacity-50" />
+                            <h2 className="text-base md:text-xl font-bold text-slate-400 mb-2 md:mb-4 flex items-center">
+                                <MessageSquareQuote className="w-5 h-5 md:w-6 md:h-6 mr-2 outline-none" />
                                 容易產生的自動化負面想法（認知扭曲）：
                             </h2>
-                            <p className="text-2xl md:text-3xl text-white font-medium italic relative z-10 leading-relaxed">
+                            <p className="text-lg md:text-3xl text-white font-medium italic relative z-10 leading-normal md:leading-relaxed">
                                 {currentScenario.negativeThought}
                             </p>
                             
                             {!showReframes && (
                                 <button
                                     onClick={() => setShowReframes(true)}
-                                    className="mt-8 w-full py-4 bg-amber-500 text-white rounded-xl font-bold text-xl hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
+                                    className="mt-4 md:mt-8 w-full py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold text-lg md:text-xl hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
                                 >
                                     <Lightbulb className="w-6 h-6 mr-2" />
                                     顯示轉念思考 (解套方法)
@@ -102,19 +102,19 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     </div>
 
                     {/* Right: Positive Reframes */}
-                    <div className="w-full md:w-1/2 h-full">
+                    <div className="w-full md:w-1/2 landscape:w-1/2 h-full flex flex-col min-h-0">
                         {showReframes ? (
-                            <div className="bg-amber-100 p-6 md:p-8 rounded-3xl border-4 border-amber-300 shadow-xl h-full flex flex-col animate-fade-in">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <Sun className="w-10 h-10 text-amber-500" />
-                                    <h2 className="text-2xl md:text-3xl font-extrabold text-amber-800">
+                            <div className="bg-amber-100 p-4 md:p-8 rounded-3xl border-4 border-amber-300 shadow-xl h-full flex flex-col overflow-y-auto animate-fade-in flex-1">
+                                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 shrink-0">
+                                    <Sun className="w-8 h-8 md:w-10 md:h-10 text-amber-500" />
+                                    <h2 className="text-xl md:text-3xl font-extrabold text-amber-800">
                                         可以試著這樣想：
                                     </h2>
                                 </div>
-                                <div className="flex flex-col gap-4 flex-1">
+                                <div className="flex flex-col gap-3 md:gap-4 flex-1">
                                     {currentScenario.reframes.map((reframe, idx) => (
-                                        <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-400 transform transition-transform hover:translate-x-2">
-                                            <p className="text-xl md:text-2xl text-amber-900 font-medium">✨ {reframe}</p>
+                                        <div key={idx} className="bg-white p-3 md:p-5 rounded-2xl shadow-sm border-l-4 border-amber-400 transform transition-transform hover:translate-x-2">
+                                            <p className="text-lg md:text-2xl text-amber-900 font-medium">✨ {reframe}</p>
                                         </div>
                                     ))}
                                 </div>

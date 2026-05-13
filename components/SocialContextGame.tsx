@@ -53,7 +53,7 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isLast = currentIndex === scenarios.length - 1;
 
     return (
-        <div className="min-h-screen bg-purple-50 flex flex-col font-sans">
+        <div className="h-[100dvh] bg-purple-50 flex flex-col font-sans overflow-hidden">
             <header className="p-4 md:p-6 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10">
                 <button
                     onClick={onBack}
@@ -68,10 +68,10 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col pb-24">
+            <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col pb-24 md:pb-28 overflow-y-auto">
                 
                 {/* Progress bar */}
-                <div className="mb-6 flex items-center justify-between bg-white px-4 py-2 rounded-full shadow-sm">
+                <div className="mb-4 md:mb-6 flex items-center justify-between bg-white px-4 py-2 rounded-full shadow-sm">
                     <span className="text-purple-600 font-bold">第 {currentIndex + 1} 題</span>
                     <div className="flex-1 mx-4 bg-purple-100 rounded-full h-2">
                         <div 
@@ -82,10 +82,10 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     <span className="text-purple-600 font-bold">共 {scenarios.length} 題</span>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-6 md:gap-8 flex-1">
-                    {/* Left: Scenario Description */}
-                    <div className="w-full md:w-1/2 flex flex-col justify-center">
-                        <div className="bg-white p-6 md:p-10 rounded-3xl border-4 border-purple-200 shadow-lg">
+                    <div className="flex flex-col md:flex-row landscape:flex-row gap-4 md:gap-8 flex-1 min-h-0">
+                        {/* Left: Scenario Description */}
+                        <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col justify-center">
+                            <div className="bg-white p-4 md:p-10 rounded-3xl border-4 border-purple-200 shadow-lg">
                             <h2 className="text-2xl md:text-3xl font-bold text-purple-800 mb-4">{currentScenario.title}</h2>
                             <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
                                 {currentScenario.description}
@@ -104,7 +104,7 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     </div>
 
                     {/* Right: Options & Feedback */}
-                    <div className="w-full md:w-1/2 flex flex-col justify-center gap-4">
+                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col justify-center gap-3 md:gap-4">
                         {showOptions && currentScenario.options.map((option, index) => {
                             const isSelected = selectedOption === index;
                             const showCorrectness = showFeedback && (isSelected || option.isCorrect);
@@ -123,24 +123,24 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                                     key={index}
                                     disabled={showFeedback}
                                     onClick={() => handleOptionSelect(index)}
-                                    className={`w-full text-left p-4 md:p-6 rounded-2xl border-2 transition-all duration-300 ${optionClass}`}
+                                    className={`w-full text-left p-3 md:p-6 rounded-2xl border-2 transition-all duration-300 flex-1 ${optionClass}`}
                                 >
                                     <div className="flex items-start">
-                                        <span className="text-xl md:text-2xl font-bold mr-4 mt-1 opacity-50">
+                                        <span className="text-lg md:text-2xl font-bold mr-3 mt-1 opacity-50">
                                             {String.fromCharCode(65 + index)}.
                                         </span>
                                         <div className="flex-1">
-                                            <p className="text-lg md:text-xl font-medium">{option.text}</p>
+                                            <p className="text-base md:text-xl font-medium">{option.text}</p>
                                             
                                             {/* Feedback text */}
                                             {showFeedback && isSelected && (
-                                                <div className={`mt-3 p-3 rounded-xl text-base md:text-lg animate-fade-in ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                                                <div className={`mt-2 p-2 rounded-xl text-sm md:text-lg animate-fade-in ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
                                                     {option.feedback}
                                                 </div>
                                             )}
                                             {/* Show feedback for correct answer even if not selected */}
                                             {showFeedback && !isSelected && option.isCorrect && (
-                                                <div className="mt-3 p-3 rounded-xl text-base md:text-lg bg-green-100 animate-fade-in">
+                                                <div className="mt-2 p-2 rounded-xl text-sm md:text-lg bg-green-100 animate-fade-in">
                                                     {option.feedback}
                                                 </div>
                                             )}
