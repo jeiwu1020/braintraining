@@ -41,62 +41,68 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
 
     return (
         <div className="h-[100dvh] bg-amber-50 flex flex-col font-sans overflow-hidden">
-            <header className="p-4 md:p-6 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10">
+            <header className="px-2 py-2 md:p-6 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
                 <button
                     onClick={onBack}
-                    className="flex items-center text-amber-600 hover:text-amber-800 transition-colors font-bold text-lg md:text-xl"
+                    className="flex items-center text-amber-600 hover:text-amber-800 transition-colors font-bold text-sm md:text-xl shrink-0"
                 >
-                    <ArrowLeft className="mr-2 w-6 h-6 md:w-8 md:h-8" />
-                    返回目錄
+                    <ArrowLeft className="mr-1 md:mr-2 w-5 h-5 md:w-8 md:h-8" />
+                    <span className="hidden sm:inline">返回目錄</span>
                 </button>
-                <div className="flex items-center space-x-2 text-amber-800">
-                    <Lightbulb className="w-6 h-6 md:w-8 md:h-8" />
-                    <h1 className="text-xl md:text-2xl font-bold">轉念練習</h1>
+                <div className="flex-1 flex justify-center items-center px-2 md:px-4">
+                    <div className="flex items-center bg-amber-50 px-3 md:px-4 py-1 rounded-full border border-amber-100 max-w-[200px] sm:max-w-[300px] w-full">
+                        <span className="text-amber-600 font-bold text-xs sm:text-sm shrink-0">第 {currentIndex + 1} 題</span>
+                        <div className="flex-1 mx-2 bg-amber-200 rounded-full h-1.5 md:h-2">
+                            <div 
+                                className="bg-amber-500 h-1.5 md:h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((currentIndex + 1) / scenarios.length) * 100}%` }}
+                            ></div>
+                        </div>
+                        <span className="text-amber-600 font-bold text-xs sm:text-sm shrink-0">共 {scenarios.length} 題</span>
+                    </div>
+                </div>
+                <div className="flex items-center space-x-1 md:space-x-2 text-amber-800 shrink-0">
+                    <Lightbulb className="hidden sm:block w-5 h-5 md:w-8 md:h-8" />
+                    <h1 className="text-sm sm:text-xl md:text-2xl font-bold">轉念練習</h1>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl w-full mx-auto p-2 sm:p-4 md:p-8 flex flex-col pb-24 overflow-y-auto">
+            <main className="flex-1 max-w-5xl w-full mx-auto p-2 sm:p-4 md:p-8 flex flex-col pb-20 md:pb-24 overflow-y-auto landscape:pb-20">
                 
-                <div className="mb-4 md:mb-6 flex items-center justify-between bg-white px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-sm">
-                    <span className="text-amber-600 font-bold">第 {currentIndex + 1} 題</span>
-                    <div className="flex-1 mx-4 bg-amber-100 rounded-full h-2">
-                        <div 
-                            className="bg-amber-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${((currentIndex + 1) / scenarios.length) * 100}%` }}
-                        ></div>
-                    </div>
-                    <span className="text-amber-600 font-bold">共 {scenarios.length} 題</span>
-                </div>
-
-                <div className="flex flex-col md:flex-row landscape:flex-row gap-4 md:gap-8 flex-1 min-h-0">
+                <div className="flex flex-col md:flex-row landscape:flex-row gap-2 sm:gap-4 md:gap-8 flex-1 min-h-0">
                     
                     {/* Left: Event and Negative Thought */}
-                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col gap-3 md:gap-6">
-                        <div className="bg-white p-4 md:p-8 rounded-3xl border-2 border-slate-200 shadow-md">
-                            <h2 className="text-base md:text-xl font-bold text-slate-500 mb-1 md:mb-2">發生的事件：</h2>
-                            <p className="text-xl md:text-3xl text-slate-800 font-medium leading-normal md:leading-relaxed">
+                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col gap-2 sm:gap-4 md:gap-6">
+                        <div className="bg-white p-3 md:p-8 rounded-2xl md:rounded-3xl border-2 border-slate-200 shadow-md">
+                            <h2 className="text-xs sm:text-sm md:text-xl font-bold text-slate-500 mb-0.5 sm:mb-1 md:mb-2">發生的事件：</h2>
+                            <p className="text-sm sm:text-xl md:text-3xl text-slate-800 font-medium leading-tight md:leading-relaxed">
                                 {currentScenario.event}
                             </p>
                         </div>
                         
-                        <div className="bg-slate-800 p-4 md:p-8 rounded-3xl shadow-lg relative overflow-hidden flex-1">
-                            <CloudRain className="absolute right-[-20px] top-[-20px] w-24 h-24 md:w-32 md:h-32 text-slate-700 opacity-50" />
-                            <h2 className="text-base md:text-xl font-bold text-slate-400 mb-2 md:mb-4 flex items-center">
-                                <MessageSquareQuote className="w-5 h-5 md:w-6 md:h-6 mr-2 outline-none" />
-                                容易產生的自動化負面想法（認知扭曲）：
+                        <div className="bg-slate-800 p-3 md:p-8 rounded-2xl md:rounded-3xl shadow-lg relative overflow-hidden flex-1 flex flex-col">
+                            <CloudRain className="absolute right-[-10px] top-[-10px] sm:right-[-20px] sm:top-[-20px] w-16 h-16 md:w-32 md:h-32 text-slate-700 opacity-50" />
+                            <h2 className="text-xs sm:text-sm md:text-xl font-bold text-slate-400 mb-1 md:mb-4 flex items-center">
+                                <MessageSquareQuote className="w-4 h-4 md:w-6 md:h-6 mr-1 sm:mr-2 outline-none" />
+                                <span className="hidden sm:inline">容易產生的自動化負面想法（認知扭曲）：</span>
+                                <span className="sm:hidden">自動化負面想法：</span>
                             </h2>
-                            <p className="text-lg md:text-3xl text-white font-medium italic relative z-10 leading-normal md:leading-relaxed">
-                                {currentScenario.negativeThought}
-                            </p>
+                            <div className="flex-1 sm:overflow-y-auto min-h-0">
+                                <p className="text-sm sm:text-lg md:text-3xl text-white font-medium italic relative z-10 leading-tight md:leading-relaxed">
+                                    {currentScenario.negativeThought}
+                                </p>
+                            </div>
                             
                             {!showReframes && (
-                                <button
-                                    onClick={() => setShowReframes(true)}
-                                    className="mt-4 md:mt-8 w-full py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold text-lg md:text-xl hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
-                                >
-                                    <Lightbulb className="w-6 h-6 mr-2" />
-                                    顯示轉念思考 (解套方法)
-                                </button>
+                                <div className="mt-2 sm:mt-4 text-center shrink-0">
+                                    <button
+                                        onClick={() => setShowReframes(true)}
+                                        className="w-full max-w-[280px] mx-auto py-2 sm:py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold text-sm sm:text-lg md:text-xl hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
+                                    >
+                                        <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
+                                        顯示轉念思考 (解套方法)
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
