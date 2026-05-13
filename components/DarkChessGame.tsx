@@ -56,16 +56,28 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [showRules, setShowRules] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const saveHistory = () => {
-      const gridSnapshot = grid.map(p => p ? { ...p } : null);
-      setHistory(prev => [...prev, {
-          grid: gridSnapshot,
-          isRedTurn,
-          playerColor,
-          log,
-          firstFlipDone,
-          gameOver
-      }]);
+      setHistory(prev => {
+          // Prevent saving duplicate identical states due to rapid clicks
+          const gridSnapshot = grid.map(p => p ? { ...p } : null);
+          const newState = {
+              grid: gridSnapshot,
+              isRedTurn,
+              playerColor,
+              log,
+              firstFlipDone,
+              gameOver
+          };
+          // Simplified heuristic: if grid is completely identical to last history, ignore
+          if (prev.length > 0) {
+              const last = prev[prev.length - 1];
+              const isIdentical = JSON.stringify(last.grid) === JSON.stringify(gridSnapshot);
+              if (isIdentical && last.isRedTurn === isRedTurn) return prev;
+          }
+          return [...prev, newState];
+      });
   };
 
   useEffect(() => { initGame(); }, []);
@@ -394,28 +406,43 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   const handleUndo = () => {
     if (history.length === 0) return;
-    let popCount = 1;
 
-    // Check PVE mode: if it is player's turn, we undo AI's move AND player's move
-    if (gameMode === 'PVE' && playerColor && history.length >= 2) {
-        const isPlayerTurnNow = (playerColor === 'RED' && isRedTurn) || (playerColor === 'BLACK' && !isRedTurn);
-        if (isPlayerTurnNow) {
-            popCount = 2; // Undo AI and Player actions
+    let newHistory = [...history];
+    let targetState = null;
+
+    if (gameMode === 'PVE' && playerColor) {
+        // In PVE, we want to rewind to the LAST state where it was the player's turn to act.
+        // A player's turn is when:
+        // 1. (playerColor === 'RED' && isRedTurn) OR (playerColor === 'BLACK' && !isRedTurn)
+        // 2. OR firstFlipDone is false (before any color was assigned).
+        const lastPlayerStateIndex = newHistory.findLastIndex(s => 
+            !s.firstFlipDone || 
+            (s.playerColor === 'RED' && s.isRedTurn) || 
+            (s.playerColor === 'BLACK' && !s.isRedTurn)
+        );
+
+        if (lastPlayerStateIndex !== -1) {
+            targetState = newHistory[lastPlayerStateIndex];
+            newHistory = newHistory.slice(0, lastPlayerStateIndex);
+        } else {
+            // Cannot find a valid player turn, just pop 1 (fallback)
+            targetState = newHistory.pop();
         }
+    } else {
+        // In PVP, or PVE before colors are determined, simply revert exactly 1 step
+        targetState = newHistory.pop();
     }
 
-    const newHistory = [...history];
-    const prevState = newHistory[newHistory.length - popCount];
-    newHistory.splice(newHistory.length - popCount, popCount);
-
-    setGrid(prevState.grid);
-    setIsRedTurn(prevState.isRedTurn);
-    setPlayerColor(prevState.playerColor);
-    setLog(prevState.log);
-    setFirstFlipDone(prevState.firstFlipDone);
-    setGameOver(prevState.gameOver);
-    setHistory(newHistory);
-    setSelectedIdx(null);
+    if (targetState) {
+        setGrid(targetState.grid);
+        setIsRedTurn(targetState.isRedTurn);
+        setPlayerColor(targetState.playerColor);
+        setLog(targetState.log);
+        setFirstFlipDone(targetState.firstFlipDone);
+        setGameOver(targetState.gameOver);
+        setHistory(newHistory);
+        setSelectedIdx(null);
+    }
   };
 
   useEffect(() => {

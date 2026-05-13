@@ -25,6 +25,10 @@ import VerbalMemoryGame from './components/VerbalMemoryGame';
 import WordChainGame from './components/WordChainGame';
 import SimonSaysGame from './components/SimonSaysGame';
 import PriceEstimationGame from './components/PriceEstimationGame';
+// Mental Health Games
+import SocialContextGame from './components/SocialContextGame';
+import HazardIdentificationGame from './components/HazardIdentificationGame';
+import PositiveReappraisalGame from './components/PositiveReappraisalGame';
 // Board Games
 import GomokuGame from './components/GomokuGame';
 import DarkChessGame from './components/DarkChessGame';
@@ -39,7 +43,7 @@ import {
   Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
   Sun, Palette, MousePointer2, Heart, Zap, Shapes, Clock, HelpCircle, 
   Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
-  ZoomIn, MessageCircle, Link, ListOrdered, DollarSign
+  ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -95,6 +99,13 @@ const App: React.FC = () => {
         return <SimonSaysGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.PRICE_ESTIMATION:
         return <PriceEstimationGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      // Mental Health
+      case GameState.SOCIAL_CONTEXT:
+        return <SocialContextGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.HAZARD_ID:
+        return <HazardIdentificationGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.POSITIVE_THINKING:
+        return <PositiveReappraisalGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       // Board Games
       case GameState.GOMOKU:
         return <GomokuGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
@@ -494,6 +505,40 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             color={isAdvanced ? "bg-white" : "bg-yellow-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
             onClick={() => onSelectGame(GameState.PRICE_ESTIMATION)}
+            />
+
+            {/* --- Mental Health Section Header --- */}
+            <div className="col-span-full mt-8 mb-2 flex items-center">
+                <div className="h-px bg-gray-300 flex-1"></div>
+                <span className="px-4 text-gray-500 font-bold text-sm">心理與社交情境</span>
+                <div className="h-px bg-gray-300 flex-1"></div>
+            </div>
+
+            <MenuCard
+            title="情境應對"
+            description={isAdvanced ? "職場與複雜衝突情境處理。" : "日常人際互動與社交禮儀問答。"}
+            icon={<Users className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-purple-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-purple-200"}
+            onClick={() => onSelectGame(GameState.SOCIAL_CONTEXT)}
+            />
+
+            <MenuCard
+            title="安全辨識"
+            description={isAdvanced ? "戶外與長照情境的安全隱患。" : "居家與日常生活危險情境尋找。"}
+            icon={<TriangleAlert className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-red-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
+            onClick={() => onSelectGame(GameState.HAZARD_ID)}
+            />
+
+            <MenuCard
+            title="轉念練習"
+            description={isAdvanced ? "深度認知重塑與自我對話。" : "將負面想法轉化為正向或客觀思考。"}
+            icon={<Lightbulb className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-500'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-amber-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
+            onClick={() => onSelectGame(GameState.POSITIVE_THINKING)}
             />
 
             {/* --- Relaxation Section Header --- */}
