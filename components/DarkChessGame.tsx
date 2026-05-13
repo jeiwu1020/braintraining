@@ -1,7 +1,7 @@
 
 // ... imports ... (Keep existing imports)
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, BookOpen, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, BookOpen, X, Undo2 } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -54,6 +54,19 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
   const [firstFlipDone, setFirstFlipDone] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+
+  const saveHistory = () => {
+      const gridSnapshot = grid.map(p => p ? { ...p } : null);
+      setHistory(prev => [...prev, {
+          grid: gridSnapshot,
+          isRedTurn,
+          playerColor,
+          log,
+          firstFlipDone,
+          gameOver
+      }]);
+  };
 
   useEffect(() => { initGame(); }, []);
   useEffect(() => { initGame(); }, [gameMode]);
@@ -74,6 +87,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setFirstFlipDone(false);
     setLog("遊戲開始！請翻牌");
     setGameOver(false);
+    setHistory([]);
   };
 
   const getAdjacents = (idx: number) => {
@@ -129,6 +143,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       // 1. Reveal hidden piece
       if (target && !target.revealed) {
           if (selectedIdx !== null) { setSelectedIdx(null); return; }
+          saveHistory();
           const newGrid = [...grid];
           if (newGrid[idx]) newGrid[idx]!.revealed = true;
           setGrid(newGrid);
@@ -192,6 +207,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const movePiece = (from: number, to: number) => {
+      saveHistory();
       const newGrid = [...grid];
       newGrid[to] = newGrid[from];
       newGrid[from] = null;
@@ -202,6 +218,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const capturePiece = (from: number, to: number) => {
+      saveHistory();
       const newGrid = [...grid];
       const victim = newGrid[to]!;
       victim.dead = true; 
@@ -355,6 +372,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   const executeAction = (action: any, aiColorRed: boolean) => {
       if (action.type === 'REVEAL') {
+          saveHistory();
           const newGrid = [...grid];
           newGrid[action.to]!.revealed = true;
           setGrid(newGrid);
@@ -372,6 +390,32 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       } else if (action.type === 'CAPTURE') {
           capturePiece(action.from, action.to);
       }
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    let popCount = 1;
+
+    // Check PVE mode: if it is player's turn, we undo AI's move AND player's move
+    if (gameMode === 'PVE' && playerColor && history.length >= 2) {
+        const isPlayerTurnNow = (playerColor === 'RED' && isRedTurn) || (playerColor === 'BLACK' && !isRedTurn);
+        if (isPlayerTurnNow) {
+            popCount = 2; // Undo AI and Player actions
+        }
+    }
+
+    const newHistory = [...history];
+    const prevState = newHistory[newHistory.length - popCount];
+    newHistory.splice(newHistory.length - popCount, popCount);
+
+    setGrid(prevState.grid);
+    setIsRedTurn(prevState.isRedTurn);
+    setPlayerColor(prevState.playerColor);
+    setLog(prevState.log);
+    setFirstFlipDone(prevState.firstFlipDone);
+    setGameOver(prevState.gameOver);
+    setHistory(newHistory);
+    setSelectedIdx(null);
   };
 
   useEffect(() => {
@@ -392,48 +436,55 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   }, [isRedTurn, playerColor, gameOver, gameMode]);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-amber-50 overflow-hidden">
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-amber-50 overflow-hidden text-amber-900">
         {/* Compact Header */}
-        <div className="flex-none p-2 flex justify-between items-center bg-[#f7e7ce] shadow-sm z-10 border-b border-amber-200 h-12 sm:h-14">
-            <button onClick={onBack} className="p-1.5 bg-white/50 rounded-full text-amber-900"><ArrowLeft size={18} /></button>
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => setShowRules(true)}
-                    className="flex items-center gap-1 px-2 py-1.5 bg-white/50 rounded-full text-xs font-bold text-amber-900 border border-amber-300"
-                    title="象棋規則說明"
-                >
-                    <BookOpen size={14} />
-                    <span className="hidden sm:inline">規則</span>
-                </button>
+        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-[#f7e7ce] shadow-sm z-10 border-b landscape:border-b-0 landscape:border-r border-amber-200 portrait:h-14 landscape:w-16 landscape:h-full">
+            <button onClick={onBack} className="p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><ArrowLeft size={18} /></button>
+            <div className="flex portrait:flex-row landscape:flex-col items-center gap-2">
                 <button 
                     onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-full text-xs sm:text-sm font-bold text-amber-900 border border-amber-300"
+                    className="flex items-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-white/50 rounded-full text-xs sm:text-sm font-bold text-amber-900 border border-amber-300"
                 >
                     {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                    {gameMode === 'PVE' ? '單人' : '雙人'}
+                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                </button>
+                <button 
+                    onClick={handleUndo} 
+                    disabled={history.length === 0}
+                    className="p-1.5 md:p-2 bg-white/50 rounded-full border border-amber-300 hover:bg-white/80 disabled:opacity-50 flex items-center justify-center text-amber-900"
+                >
+                    <Undo2 size={16} />
+                </button>
+                <button
+                    onClick={() => setShowRules(true)}
+                    className="p-1.5 md:p-2 bg-amber-100 rounded-full border border-amber-300 hover:bg-amber-200 text-amber-900"
+                    title="象棋規則說明"
+                >
+                    <BookOpen size={16} />
                 </button>
             </div>
-            <button onClick={initGame} className="p-1.5 bg-white/50 rounded-full text-amber-900"><RefreshCw size={18} /></button>
+            <button onClick={initGame} className="p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><RefreshCw size={18} /></button>
         </div>
 
-        {/* Log */}
-        <div className="flex-none text-center py-1 bg-[#f7e7ce] text-amber-900 border-b border-amber-200">
-            <div className="font-bold text-sm sm:text-base">{log}</div>
-            <div className="text-xs opacity-70">
-                {isRedTurn ? "紅方回合" : "黑方回合"} 
-                {gameMode === 'PVE' && playerColor && <span className="ml-1">({playerColor === 'RED' ? '你:紅' : '你:黑'})</span>}
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Log */}
+            <div className="flex-none text-center py-1 sm:py-2 bg-[#f7e7ce] text-amber-900 border-b border-amber-200 z-10">
+                <div className="font-bold text-sm sm:text-base">{log}</div>
+                <div className="text-xs opacity-70">
+                    {isRedTurn ? "紅方回合" : "黑方回合"} 
+                    {gameMode === 'PVE' && playerColor && <span className="ml-1">({playerColor === 'RED' ? '你:紅' : '你:黑'})</span>}
+                </div>
             </div>
-        </div>
 
-        {/* Board Container */}
-        <div className="flex-1 flex flex-col items-center justify-center p-2 bg-amber-100 overflow-hidden">
+            {/* Board Container */}
+            <div className="flex-1 flex flex-col items-center justify-center p-2 bg-amber-100 overflow-hidden w-full h-full">
             <div 
                 className="relative flex flex-col items-center justify-center w-full"
                 style={{ 
                     aspectRatio: '2/1',
-                    maxHeight: '60vh',
-                    maxWidth: '120vh',
-                    width: '95vw'
+                    maxHeight: 'min(70vh, 100vw)',
+                    maxWidth: 'min(140vh, 100vw)',
                 }}
             > 
                 <div className="w-full h-full flex flex-col">
@@ -492,6 +543,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 </div>
             </div>
         </div>
+        </div>
         
         {/* Game Over Overlay */}
         {gameOver && (
@@ -542,7 +594,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                             onClick={() => setShowRules(false)}
                             className="w-full py-2 bg-[#8B4513] text-white rounded font-bold hover:bg-[#5C3317]"
                         >
-                            了解了，開始遊戲！
+                            了解，開始遊戲！
                         </button>
                     </div>
                 </div>

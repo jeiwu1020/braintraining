@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -23,6 +23,9 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
   const [winner, setWinner] = useState<number | null>(null);
   const [winningCells, setWinningCells] = useState<{r:number, c:number}[]>([]);
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
+  const [history, setHistory] = useState<number[][][]>([]);
+  const [turnHistory, setTurnHistory] = useState<boolean[]>([]);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     resetGame();
@@ -38,6 +41,8 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     setIsPlayerTurn(true);
     setWinner(null);
     setWinningCells([]);
+    setHistory([]);
+    setTurnHistory([]);
   };
 
   const checkWin = (b: number[][], player: number) => {
@@ -79,6 +84,9 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     const r = getValidRow(board, col);
     if (r === -1) return;
 
+    setHistory([...history, board.map(row => [...row])]);
+    setTurnHistory([...turnHistory, isPlayerTurn]);
+
     const newBoard = board.map(row => [...row]);
     newBoard[r][col] = currentPlayer;
     setBoard(newBoard);
@@ -94,10 +102,37 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     }
   };
 
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    let stepsToUndo = 1;
+    if (gameMode === 'PVE' && isPlayerTurn && history.length >= 2) {
+      stepsToUndo = 2; // Undo AI's move and player's move
+    }
+    
+    const newHistory = [...history];
+    const newTurnHistory = [...turnHistory];
+    
+    const prevBoard = newHistory[newHistory.length - stepsToUndo];
+    const prevTurn = newTurnHistory[newTurnHistory.length - stepsToUndo];
+    
+    newHistory.splice(newHistory.length - stepsToUndo, stepsToUndo);
+    newTurnHistory.splice(newTurnHistory.length - stepsToUndo, stepsToUndo);
+    
+    setBoard(prevBoard);
+    setIsPlayerTurn(prevTurn);
+    setHistory(newHistory);
+    setTurnHistory(newTurnHistory);
+    setWinner(null);
+    setWinningCells([]);
+  };
+
   // Improved AI
   useEffect(() => {
     if (gameMode === 'PVE' && !isPlayerTurn && !winner) {
       const timer = setTimeout(() => {
+        setHistory(prev => [...prev, board.map(row => [...row])]);
+        setTurnHistory(prev => [...prev, isPlayerTurn]);
         let bestCol = -1;
         
         // 1. Check for Immediate Win (AI)
@@ -183,30 +218,50 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
   }, [isPlayerTurn, winner, board, gameMode]);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-blue-50 overflow-hidden">
-        {/* Compact Header */}
-        <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-12 sm:h-14">
-            <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-blue-800"><ArrowLeft size={18} /></button>
-            <button 
-                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full text-xs sm:text-sm font-bold text-blue-900 border border-blue-200"
-            >
-                {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                {gameMode === 'PVE' ? '單人' : '雙人'}
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-blue-50 overflow-hidden text-blue-900">
+        {/* Header / Sidebar */}
+        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
+            <button onClick={onBack} className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-800 hover:bg-blue-100">
+                <ArrowLeft size={18} />
             </button>
-            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-blue-800"><RefreshCw size={18} /></button>
+            <div className="flex portrait:flex-row landscape:flex-col gap-2">
+                <button 
+                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-blue-50 rounded-full text-xs sm:text-sm font-bold text-blue-900 border border-blue-200"
+                >
+                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
+                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                </button>
+                <button 
+                    onClick={handleUndo} 
+                    disabled={history.length === 0}
+                    className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-900 border border-blue-200 hover:bg-blue-100 disabled:opacity-50 flex items-center justify-center"
+                >
+                    <Undo2 size={16} />
+                </button>
+                <button 
+                    onClick={() => setShowRules(true)} 
+                    className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-900 border border-blue-200 hover:bg-blue-100 flex items-center justify-center"
+                >
+                    <HelpCircle size={16} />
+                </button>
+            </div>
+            <button onClick={resetGame} className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-800 hover:bg-blue-100">
+                <RefreshCw size={18} />
+            </button>
         </div>
 
-        {/* Status */}
-        <div className="flex-none text-center py-1 font-bold text-blue-900 text-sm sm:text-base">
-            {winner ? (winner === 1 ? "紅方獲勝！" : "黃方獲勝！") : (isPlayerTurn ? "紅方回合" : "黃方回合")}
-        </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Status */}
+            <div className="flex-none text-center py-1 sm:py-2 font-bold text-blue-900 text-sm sm:text-lg bg-blue-100/50">
+                {winner ? (winner === 1 ? "紅方獲勝！" : "黃方獲勝！") : (isPlayerTurn ? "紅方回合" : "黃方回合")}
+            </div>
 
-        {/* Main Board */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden w-full">
-            {/* Scaled Wrapper: Constrain by height in landscape (vh) or width in portrait (vw) */}
-            {/* Reduced max-height to leave room for labels */}
-            <div className="relative bg-blue-600 rounded-b-xl rounded-t-lg shadow-2xl p-2 sm:p-3 pt-8" style={{ height: 'min(65vh, 100vw)', aspectRatio: '7/6' }}>
+            {/* Main Board */}
+            <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden w-full h-full">
+                {/* Scaled Wrapper: Constrain by width or height */}
+                <div className="relative bg-blue-600 rounded-b-xl rounded-t-lg shadow-2xl p-2 sm:p-3 pt-8" style={{ height: 'min(75vh, 600px, 90vw * 6 / 7)', aspectRatio: '7/6' }}>
                 
                 {/* Labels Top - moved inside container relative to top */}
                 <div className="absolute top-1 left-0 w-full flex justify-around px-2">
@@ -245,7 +300,30 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
                 <div className="absolute -bottom-4 left-4 w-3 h-4 bg-blue-800 rounded-b"></div>
                 <div className="absolute -bottom-4 right-4 w-3 h-4 bg-blue-800 rounded-b"></div>
             </div>
+            </div>
         </div>
+
+        {/* Rules Modal */}
+        {showRules && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-blue-900"><HelpCircle /> 遊戲規則</h2>
+                    <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
+                        <li>雙方輪流將棋子從頂部對應行數放下。</li>
+                        <li>棋子會垂直落下直到抵達最底部或其他的棋子上。</li>
+                        <li>先將4顆自己的棋子連成一線（橫、豎、斜）的玩家獲勝。</li>
+                        <li>若棋盤被填滿且無人連成4子，則為平局。</li>
+                    </ul>
+                    <button 
+                        onClick={() => setShowRules(false)} 
+                        className="w-full py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
+                    >
+                        了解，開始遊戲！
+                    </button>
+                </div>
+            </div>
+        )}
+
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -25,6 +25,16 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
   const [winner, setWinner] = useState<number | null>(null);
 
+  interface GameState {
+    hLines: number[][];
+    vLines: number[][];
+    squares: number[][];
+    turn: number;
+    scores: { p1: number, p2: number };
+  }
+  const [history, setHistory] = useState<GameState[]>([]);
+  const [showRules, setShowRules] = useState(false);
+
   useEffect(() => {
     resetGame();
   }, [gameMode]);
@@ -36,6 +46,7 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
     setTurn(1);
     setScores({ p1: 0, p2: 0 });
     setWinner(null);
+    setHistory([]);
   };
 
   const checkBoxCompletion = (r: number, c: number, currentHLines: number[][], currentVLines: number[][]) => {
@@ -53,6 +64,15 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
     const isH = type === 'h';
     if (isH && hLines[r][c] !== 0) return;
     if (!isH && vLines[r][c] !== 0) return;
+
+    // Save history before move
+    setHistory(prev => [...prev, {
+        hLines: hLines.map(row => [...row]),
+        vLines: vLines.map(row => [...row]),
+        squares: squares.map(row => [...row]),
+        turn,
+        scores: { ...scores }
+    }]);
 
     makeMove(type, r, c);
   };
@@ -108,6 +128,28 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
     } else {
         setTurn(prev => prev === 1 ? 2 : 1);
     }
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    // In PVT if you undo, revert to last player's state
+    let targetIndex = history.length - 1;
+    if (gameMode === 'PVE') {
+        while (targetIndex >= 0 && history[targetIndex].turn === 2) {
+            targetIndex--;
+        }
+        if (targetIndex < 0) targetIndex = 0;
+    }
+
+    const prevState = history[targetIndex];
+    setHistory(history.slice(0, targetIndex));
+    setHLines(prevState.hLines);
+    setVLines(prevState.vLines);
+    setSquares(prevState.squares);
+    setTurn(prevState.turn);
+    setScores(prevState.scores);
+    setWinner(null);
   };
 
   // AI Logic
@@ -189,6 +231,13 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
         }
 
         if (bestMove) {
+            setHistory(prev => [...prev, {
+                hLines: hLines.map(row => [...row]),
+                vLines: vLines.map(row => [...row]),
+                squares: squares.map(row => [...row]),
+                turn,
+                scores: { ...scores }
+            }]);
             makeMove(bestMove.type, bestMove.r, bestMove.c);
         }
 
@@ -204,22 +253,43 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-rose-50 overflow-hidden">
-        {/* Header */}
-        <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-14">
-            <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-rose-800"><ArrowLeft size={20} /></button>
-            <button 
-                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-50 rounded-full text-sm font-bold text-rose-900 border border-rose-200"
-            >
-                {gameMode === 'PVE' ? <User size={16} /> : <Users size={16} />}
-                {gameMode === 'PVE' ? '單人' : '雙人'}
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-rose-50 overflow-hidden">
+        {/* Header / Sidebar */}
+        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full text-rose-800">
+            <button onClick={onBack} className="p-1.5 md:p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                <ArrowLeft size={18} />
             </button>
-            <button onClick={resetGame} className="p-2 bg-gray-100 rounded-full text-rose-800"><RefreshCw size={20} /></button>
+            <div className="flex portrait:flex-row landscape:flex-col gap-2">
+                <button 
+                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-rose-50 rounded-full text-xs sm:text-sm font-bold text-rose-900 border border-rose-200"
+                >
+                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
+                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                </button>
+                <button 
+                    onClick={handleUndo} 
+                    disabled={history.length === 0}
+                    className="p-1.5 md:p-2 bg-rose-50 rounded-full text-rose-900 border border-rose-200 hover:bg-rose-100 disabled:opacity-50 flex items-center justify-center"
+                >
+                    <Undo2 size={16} />
+                </button>
+                <button 
+                    onClick={() => setShowRules(true)} 
+                    className="p-1.5 md:p-2 bg-rose-50 rounded-full text-rose-900 border border-rose-200 hover:bg-rose-100 flex items-center justify-center"
+                >
+                    <HelpCircle size={16} />
+                </button>
+            </div>
+            <button onClick={resetGame} className="p-1.5 md:p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                <RefreshCw size={18} />
+            </button>
         </div>
 
-        {/* Score Board - Compact Version */}
-        <div className="flex justify-center gap-8 py-1 bg-rose-100 border-b border-rose-200">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Score Board - Compact Version */}
+            <div className="flex justify-center gap-8 py-1 bg-rose-100 border-b border-rose-200 z-10">
             <div className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-all ${turn === 1 ? 'bg-white shadow-md border-2 border-red-400' : 'opacity-70'}`}>
                 <div className="text-xs text-gray-500 font-bold whitespace-nowrap">{gameMode === 'PVP' ? '紅方' : '你'}</div>
                 <div className="text-xl font-black text-red-500">{scores.p1}</div>
@@ -230,10 +300,10 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
             </div>
         </div>
 
-        {/* Game Board */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-rose-50 overflow-hidden">
-            <div className="bg-white p-4 rounded-xl shadow-2xl border-4 border-rose-200" style={{ width: 'min(90vw, 55vh)', height: 'min(90vw, 55vh)' }}>
-                <div className="relative w-full h-full">
+            {/* Game Board */}
+            <div className="flex-1 flex flex-col items-center justify-center p-4 bg-rose-50 overflow-hidden">
+                <div className="bg-white p-4 rounded-xl shadow-2xl border-4 border-rose-200" style={{ width: 'min(90vw, min(65vh, 600px))', height: 'min(90vw, min(65vh, 600px))' }}>
+                    <div className="relative w-full h-full">
                     
                     {/* Render Squares (Backgrounds) */}
                     <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)`, gridTemplateRows: `repeat(${ROWS}, 1fr)` }}>
@@ -291,10 +361,31 @@ const DotsAndBoxesGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
 
                 </div>
             </div>
-            <div className="mt-4 text-rose-800 font-bold text-sm">
+            <div className="mt-4 text-rose-800 font-bold text-sm mb-4">
                 點擊點與點之間的線條來連線
             </div>
         </div>
+        </div>
+
+        {/* Rules Modal */}
+        {showRules && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><HelpCircle /> 遊戲規則</h2>
+                    <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
+                        <li>雙方輪流在相鄰的兩個點之間畫一條橫線或直線。</li>
+                        <li>誰畫下第四條線完成一個「正方形（格子）」，該格即歸他所有，他可以加1分並且<b>「獲得額外一次畫線機會」</b>。</li>
+                        <li>所有格子被佔滿後結束，分數多者獲勝。</li>
+                    </ul>
+                    <button 
+                        onClick={() => setShowRules(false)} 
+                        className="w-full py-2 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700"
+                    >
+                        了解，開始遊戲！
+                    </button>
+                </div>
+            </div>
+        )}
 
         {winner && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">

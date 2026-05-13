@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Crown } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, Crown, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -26,6 +26,15 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [isWinModalOpen, setIsWinModalOpen] = useState(false);
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
 
+  interface GameState {
+    board: Piece[][];
+    p1Inv: Piece[];
+    p2Inv: Piece[];
+    turn: 1 | 2;
+  }
+  const [history, setHistory] = useState<GameState[]>([]);
+  const [showRules, setShowRules] = useState(false);
+
   useEffect(() => { resetGame(); }, [gameMode]);
 
   const initPieces = (p: 1 | 2) => [
@@ -42,6 +51,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       setWinner(null);
       setIsWinModalOpen(false);
       setSelectedPiece(null);
+      setHistory([]);
   };
 
   const checkWin = (b: Piece[][]) => {
@@ -91,6 +101,13 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const executeMove = (from: {source: 'board'|'inv', index: number}, toIdx: number) => {
+      setHistory(prev => [...prev, {
+          board: board.map(s => [...s]),
+          p1Inv: [...p1Inv],
+          p2Inv: [...p2Inv],
+          turn
+      }]);
+
       const newBoard = board.map(s => [...s]);
       let piece: Piece;
       if (from.source === 'inv') {
@@ -109,6 +126,29 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       const w = checkWin(newBoard);
       if (w) { setWinner(w); setIsWinModalOpen(true); soundService.playWin(); }
       else setTurn(turn === 1 ? 2 : 1);
+  };
+
+  const handleUndo = () => {
+      if (history.length === 0) return;
+      
+      let targetIndex = history.length - 1;
+      if (gameMode === 'PVE' && turn === 1) {
+          // If it's PVE and player's turn, we undo both AI's last move and player's last move
+          while (targetIndex >= 0 && history[targetIndex].turn === 2) {
+              targetIndex--;
+          }
+          if (targetIndex < 0) targetIndex = 0; // fallback
+      }
+      
+      const prevState = history[targetIndex];
+      setHistory(history.slice(0, targetIndex));
+      setBoard(prevState.board);
+      setP1Inv(prevState.p1Inv);
+      setP2Inv(prevState.p2Inv);
+      setTurn(prevState.turn);
+      setWinner(null);
+      setIsWinModalOpen(false);
+      setSelectedPiece(null);
   };
 
   // --- SUPER STRONG AI LOGIC ---
@@ -264,20 +304,44 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-orange-50 overflow-hidden">
-        <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-14">
-            <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-orange-800"><ArrowLeft size={20} /></button>
-            <button onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')} className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full text-sm font-bold text-orange-900 border border-orange-200">
-                {gameMode === 'PVE' ? <User size={16} /> : <Users size={16} />} {gameMode === 'PVE' ? '單人' : '雙人'}
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-orange-50 overflow-hidden text-orange-900">
+        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
+            <button onClick={onBack} className="p-1.5 md:p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                <ArrowLeft size={18} />
             </button>
-            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-orange-800"><RefreshCw size={20} /></button>
+            <div className="flex portrait:flex-row landscape:flex-col gap-2">
+                <button 
+                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')} 
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-orange-50 rounded-full text-xs sm:text-sm font-bold border border-orange-200"
+                >
+                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />} 
+                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                </button>
+                <button 
+                    onClick={handleUndo} 
+                    disabled={history.length === 0}
+                    className="p-1.5 md:p-2 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 disabled:opacity-50 flex items-center justify-center"
+                >
+                    <Undo2 size={16} />
+                </button>
+                <button 
+                    onClick={() => setShowRules(true)} 
+                    className="p-1.5 md:p-2 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 flex items-center justify-center"
+                >
+                    <HelpCircle size={16} />
+                </button>
+            </div>
+            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200">
+                <RefreshCw size={18} />
+            </button>
         </div>
 
-        <div className="flex-none text-center py-1 font-bold text-orange-800 text-sm sm:text-base">
-            {winner ? (winner === 1 ? "藍方獲勝！" : "橘方獲勝！") : (turn === 1 ? "藍方回合 (你)" : (gameMode==='PVE'?"電腦思考中...":"橘方回合"))}
-        </div>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-none text-center py-1 sm:py-2 font-bold text-sm sm:text-lg bg-orange-200 border-b border-orange-300 z-10">
+                {winner ? (winner === 1 ? "藍方獲勝！" : "橘方獲勝！") : (turn === 1 ? "藍方回合 (你)" : (gameMode==='PVE'?"電腦思考中...":"橘方回合"))}
+            </div>
 
-        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-2 gap-2 sm:gap-6 overflow-hidden w-full max-h-full">
+            <div className="flex-1 flex flex-col portrait:sm:flex-row landscape:flex-row items-center justify-center p-2 gap-2 sm:gap-6 overflow-hidden w-full h-full">
             <div className={`flex-none order-1 sm:order-3 p-2 rounded-xl bg-orange-100/50 grid grid-cols-6 sm:grid-cols-2 gap-2 justify-center items-center w-full sm:w-auto h-auto sm:max-h-full ${turn === 2 ? 'ring-2 ring-orange-400' : 'opacity-70'}`}>
                 {p2Inv.map((p, i) => (
                     <button key={p.id} onClick={() => handleInvClick(2, i)} disabled={gameMode === 'PVE'} className={`transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
@@ -320,6 +384,29 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 ))}
             </div>
         </div>
+        </div>
+
+        {/* Rules Modal */}
+        {showRules && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-orange-900"><HelpCircle /> 遊戲規則：奇雞連連</h2>
+                    <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
+                        <li>雙方各有三種尺寸大小的圈圈（套娃/奇雞）。</li>
+                        <li><b>放置規則：</b>你可以將場外自己顏色的圈圈放入棋盤上的空位。</li>
+                        <li><b>吃掉（覆蓋）規則：</b>你可以將自己「較大」的圈圈，蓋在棋盤上任何「較小」的圈圈（不論敵我）上方。且你可以移動棋盤上自己已經下的圈圈去蓋別人！</li>
+                        <li><b>勝利條件：</b>先將自己顏色的3個圈圈連成一線（橫、豎、斜皆可）者獲勝！</li>
+                        <li><b>注意：</b>當你移動棋盤上自己的圈圈時，可能會露出下面原本被蓋住的對方圈圈。如果對方因此連成一線，對方會立刻獲勝！</li>
+                    </ul>
+                    <button 
+                        onClick={() => setShowRules(false)} 
+                        className="w-full py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
+                    >
+                        了解，開始遊戲！
+                    </button>
+                </div>
+            </div>
+        )}
 
         {winner && isWinModalOpen && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

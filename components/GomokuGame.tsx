@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -24,6 +24,9 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [winningLine, setWinningLine] = useState<{r:number, c:number}[]>([]);
   const [isWinModalOpen, setIsWinModalOpen] = useState(false);
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
+  const [history, setHistory] = useState<number[][][]>([]);
+  const [turnHistory, setTurnHistory] = useState<boolean[]>([]);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     resetGame();
@@ -40,6 +43,8 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setWinner(null);
     setWinningLine([]);
     setIsWinModalOpen(false);
+    setHistory([]);
+    setTurnHistory([]);
   };
 
   const checkWin = (currentBoard: number[][], player: number) => {
@@ -183,6 +188,11 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     if (gameMode === 'PVE' && !isBlackTurn) return;
 
     const currentPlayer = isBlackTurn ? CELL_BLACK : CELL_WHITE;
+    
+    // Save history
+    setHistory([...history, board.map(row => [...row])]);
+    setTurnHistory([...turnHistory, isBlackTurn]);
+
     const newBoard = board.map(row => [...row]);
     newBoard[r][c] = currentPlayer;
     setBoard(newBoard);
@@ -199,11 +209,41 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     }
   };
 
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    let stepsToUndo = 1;
+    if (gameMode === 'PVE' && isBlackTurn && history.length >= 2) {
+      stepsToUndo = 2; // Undo AI's move and player's move
+    }
+    
+    const newHistory = [...history];
+    const newTurnHistory = [...turnHistory];
+    
+    const prevBoard = newHistory[newHistory.length - stepsToUndo];
+    const prevTurn = newTurnHistory[newTurnHistory.length - stepsToUndo];
+    
+    newHistory.splice(newHistory.length - stepsToUndo, stepsToUndo);
+    newTurnHistory.splice(newTurnHistory.length - stepsToUndo, stepsToUndo);
+    
+    setBoard(prevBoard);
+    setIsBlackTurn(prevTurn);
+    setHistory(newHistory);
+    setTurnHistory(newTurnHistory);
+    setWinner(null);
+    setIsWinModalOpen(false);
+    setWinningLine([]);
+  };
+
   useEffect(() => {
     if (gameMode === 'PVE' && !isBlackTurn && !winner) {
       const timer = setTimeout(() => {
         const move = getAIMove(board);
         if (move) {
+          // Save history for AI move 
+          setHistory(prev => [...prev, board.map(row => [...row])]);
+          setTurnHistory(prev => [...prev, isBlackTurn]);
+
           const newBoard = board.map(row => [...row]);
           newBoard[move.r][move.c] = CELL_WHITE;
           setBoard(newBoard);
@@ -228,34 +268,53 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   }, [isBlackTurn, winner, board, gameMode]);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-stone-100 overflow-hidden">
-      {/* Compact Header */}
-      <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-12 sm:h-14">
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-stone-100 overflow-hidden">
+      {/* Header / Sidebar */}
+      <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
         <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200">
           <ArrowLeft size={18} />
         </button>
-        <button 
-            onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-stone-100 rounded-full text-xs sm:text-sm font-bold text-stone-700 border border-stone-300"
-        >
-            {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-            {gameMode === 'PVE' ? '單人' : '雙人'}
-        </button>
+        
+        <div className="flex portrait:flex-row landscape:flex-col gap-2">
+            <button 
+                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-stone-100 rounded-full text-xs sm:text-sm font-bold text-stone-700 border border-stone-300"
+            >
+                {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
+                <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+            </button>
+            <button 
+                onClick={handleUndo} 
+                disabled={history.length === 0}
+                className="p-1.5 md:p-2 bg-stone-100 rounded-full text-stone-700 border border-stone-300 hover:bg-stone-200 disabled:opacity-50 flex items-center justify-center"
+            >
+                <Undo2 size={16} />
+            </button>
+            <button 
+                onClick={() => setShowRules(true)} 
+                className="p-1.5 md:p-2 bg-stone-100 rounded-full text-stone-700 border border-stone-300 hover:bg-stone-200 flex items-center justify-center"
+            >
+                <HelpCircle size={16} />
+            </button>
+        </div>
+
         <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200">
           <RefreshCw size={18} />
         </button>
       </div>
 
-      {/* Status Bar */}
-      <div className="flex-none text-center py-1 bg-stone-200 text-stone-800 font-bold text-sm">
-          {winner ? (winner === 1 ? "黑棋獲勝！" : winner === 2 ? "白棋獲勝！" : "平手") : (isBlackTurn ? "黑棋回合" : "白棋回合")}
-      </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Status Bar */}
+          <div className="flex-none text-center py-1 sm:py-2 bg-stone-200 text-stone-800 font-bold text-sm sm:text-lg">
+              {winner ? (winner === 1 ? "黑棋獲勝！" : winner === 2 ? "白棋獲勝！" : "平手") : (isBlackTurn ? "黑棋回合" : "白棋回合")}
+          </div>
 
-      {/* Main Board Area - Flex to center, strict overflow hidden */}
-      <div className="flex-1 flex items-center justify-center p-1 sm:p-2 bg-stone-200 overflow-hidden w-full">
+          {/* Board Area */}
+          <div className="flex-1 flex items-center justify-center p-1 sm:p-2 bg-stone-200 overflow-hidden w-full h-full">
         
-        {/* Dynamic Sizing Container: Reduced height max to 70vh to avoid clipping */}
-        <div className="flex flex-col items-center justify-center" style={{ width: 'min(85vw, 70vh)' }}>
+            {/* Dynamic Sizing Container: Restricted based on both dimensions */}
+            <div className="flex flex-col items-center justify-center" style={{ width: 'min(90vw, min(75vh, 600px))' }}>
             
             {/* Top Coordinates */}
             <div className="flex pl-6 mb-0.5 w-full">
@@ -314,7 +373,28 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </div>
         </div>
       </div>
+      </div>
       
+      {/* Rules Modal */}
+      {showRules && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><HelpCircle /> 遊戲規則</h2>
+                <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
+                    <li>黑子先手，雙方輪流落子。</li>
+                    <li>任何一方在橫向、縱向或斜向連續排成5個或以上的同色棋子即獲勝。</li>
+                    <li>若棋盤下滿且無人連成5子，則為平局。</li>
+                </ul>
+                <button 
+                  onClick={() => setShowRules(false)} 
+                  className="w-full py-2 bg-stone-800 text-white rounded-lg font-bold hover:bg-stone-700"
+                >
+                  了解，開始遊戲！
+                </button>
+            </div>
+        </div>
+      )}
+
       {/* Winner Overlay */}
       {winner && isWinModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 pointer-events-none">

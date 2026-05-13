@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 
@@ -38,6 +38,10 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [whiteCount, setWhiteCount] = useState(2);
   const [validMoves, setValidMoves] = useState<{r:number, c:number}[]>([]);
   const [gameMode, setGameMode] = useState<'PVE' | 'PVP'>('PVE');
+  
+  const [history, setHistory] = useState<number[][][]>([]);
+  const [turnHistory, setTurnHistory] = useState<number[]>([]);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     resetGame();
@@ -56,6 +60,8 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setWinner(null);
     updateCounts(b);
     setValidMoves(getValidMoves(b, BLACK));
+    setHistory([]);
+    setTurnHistory([]);
   };
 
   const updateCounts = (b: number[][]) => {
@@ -118,6 +124,9 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     if (gameMode === 'PVE' && turn !== BLACK) return; 
     if (!validMoves.some(m => m.r === r && m.c === c)) return;
 
+    setHistory(prev => [...prev, board.map(row => [...row])]);
+    setTurnHistory(prev => [...prev, turn]);
+
     const currentPlayer = turn;
     const nextPlayer = currentPlayer === BLACK ? WHITE : BLACK;
     const nextBoard = flipPieces(board, r, c, currentPlayer);
@@ -148,6 +157,32 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       if (blk > wht) { setWinner(1); soundService.playWin(); }
       else if (wht > blk) { setWinner(2); soundService.playWin(); }
       else setWinner(3);
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    let stepsToUndo = 1;
+    if (gameMode === 'PVE' && turn === BLACK && history.length >= 2) {
+      stepsToUndo = 2;
+    }
+    
+    const newHistory = [...history];
+    const newTurnHistory = [...turnHistory];
+    
+    const prevBoard = newHistory[newHistory.length - stepsToUndo];
+    const prevTurn = newTurnHistory[newTurnHistory.length - stepsToUndo];
+    
+    newHistory.splice(newHistory.length - stepsToUndo, stepsToUndo);
+    newTurnHistory.splice(newTurnHistory.length - stepsToUndo, stepsToUndo);
+    
+    setBoard(prevBoard);
+    setTurn(prevTurn);
+    setHistory(newHistory);
+    setTurnHistory(newTurnHistory);
+    setWinner(null);
+    updateCounts(prevBoard);
+    setValidMoves(getValidMoves(prevBoard, prevTurn));
   };
 
   // Improved AI Logic
@@ -181,6 +216,9 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 }
             }
 
+            setHistory(prev => [...prev, board.map(row => [...row])]);
+            setTurnHistory(prev => [...prev, WHITE]);
+
             const nextBoard = flipPieces(board, bestMove.r, bestMove.c, WHITE);
             setBoard(nextBoard);
             updateCounts(nextBoard);
@@ -198,49 +236,70 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   }, [turn, board, winner, gameMode]);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-emerald-50 overflow-hidden">
-        {/* Compact Header */}
-        <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-12 sm:h-14">
-            <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-emerald-800"><ArrowLeft size={18} /></button>
-            <button 
-                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-xs sm:text-sm font-bold text-emerald-900 border border-emerald-200"
-            >
-                {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                {gameMode === 'PVE' ? '單人' : '雙人'}
+    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-emerald-50 overflow-hidden text-emerald-900">
+        {/* Header / Sidebar */}
+        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
+            <button onClick={onBack} className="p-1.5 md:p-2 bg-emerald-50 rounded-full text-emerald-800 hover:bg-emerald-100">
+                <ArrowLeft size={18} />
             </button>
-            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-emerald-800"><RefreshCw size={18} /></button>
+            <div className="flex portrait:flex-row landscape:flex-col gap-2">
+                <button 
+                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-emerald-50 rounded-full text-xs sm:text-sm font-bold text-emerald-900 border border-emerald-200"
+                >
+                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
+                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                </button>
+                <button 
+                    onClick={handleUndo} 
+                    disabled={history.length === 0}
+                    className="p-1.5 md:p-2 bg-emerald-50 rounded-full text-emerald-900 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 flex items-center justify-center"
+                >
+                    <Undo2 size={16} />
+                </button>
+                <button 
+                    onClick={() => setShowRules(true)} 
+                    className="p-1.5 md:p-2 bg-emerald-50 rounded-full text-emerald-900 border border-emerald-200 hover:bg-emerald-100 flex items-center justify-center"
+                >
+                    <HelpCircle size={16} />
+                </button>
+            </div>
+            <button onClick={resetGame} className="p-1.5 md:p-2 bg-emerald-50 rounded-full text-emerald-800 hover:bg-emerald-100">
+                <RefreshCw size={18} />
+            </button>
         </div>
 
-        {/* Scores */}
-        <div className="flex justify-center gap-6 py-1 font-bold text-base sm:text-lg bg-emerald-100 flex-none">
-            <div className={`flex items-center gap-2 ${turn === BLACK ? 'scale-110 text-black' : 'text-gray-500'}`}>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-black rounded-full shadow"></div> 
-                {gameMode === 'PVP' ? '黑' : '你'}: {blackCount}
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Scores */}
+            <div className="flex justify-center gap-6 py-1 font-bold text-base sm:text-lg bg-emerald-100 border-b border-emerald-200 flex-none z-10">
+                <div className={`flex items-center gap-2 ${turn === BLACK ? 'scale-110 text-black' : 'text-gray-500'}`}>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-black rounded-full shadow"></div> 
+                    {gameMode === 'PVP' ? '黑' : '你'}: {blackCount}
+                </div>
+                <div className={`flex items-center gap-2 ${turn === WHITE ? 'scale-110 text-black' : 'text-gray-500'}`}>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white border border-gray-400 rounded-full shadow"></div> 
+                    {gameMode === 'PVP' ? '白' : '腦'}: {whiteCount}
+                </div>
             </div>
-            <div className={`flex items-center gap-2 ${turn === WHITE ? 'scale-110 text-black' : 'text-gray-500'}`}>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white border border-gray-400 rounded-full shadow"></div> 
-                {gameMode === 'PVP' ? '白' : '腦'}: {whiteCount}
-            </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col items-center justify-center p-2 bg-emerald-100 overflow-hidden w-full">
-            {/* 
-                CRITICAL FIX: 
-                The board plus labels must fit within the viewport.
-                Landscape height is small.
-                We constrain the outer wrapper, not just the board inside.
-                We use `w-full` max width but restrict by `max-height`.
-            */}
-            <div 
-                className="flex flex-col items-center justify-center w-full"
-                style={{
-                    maxHeight: 'min(75vh, 100vw)', // Height constraint
-                    maxWidth: 'min(75vh, 90vw)',   // Width matches height (square-ish target)
-                    aspectRatio: '1/1'
-                }}
-            >
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col items-center justify-center p-2 bg-emerald-50 overflow-hidden w-full h-full">
+                {/* 
+                    CRITICAL FIX: 
+                    The board plus labels must fit within the viewport.
+                    Landscape height is small.
+                    We constrain the outer wrapper, not just the board inside.
+                    We use `w-full` max width but restrict by `max-height`.
+                */}
+                <div 
+                    className="flex flex-col items-center justify-center w-full"
+                    style={{
+                        maxHeight: 'min(75vh, 100vw)', // Height constraint
+                        maxWidth: 'min(min(75vh, 100vw), min(80vw, 600px))', // Width matches height (square-ish target)
+                        aspectRatio: '1/1'
+                    }}
+                >
                 {/* Top Labels */}
                 <div className="flex pl-6 mb-0.5 w-full shrink-0">
                     {COLS.map(c => (
@@ -283,6 +342,29 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 </div>
             </div>
         </div>
+        </div>
+
+        {/* Rules Modal */}
+        {showRules && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-900"><HelpCircle /> 遊戲規則</h2>
+                    <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
+                        <li>黑子先手。</li>
+                        <li>下子時，必須將對方的棋子夾在自己剛下的棋子和原有的棋子之間（橫、豎、斜皆可）。</li>
+                        <li>被夾住的對方棋子會翻轉為自己的顏色。</li>
+                        <li>如果沒有任何合法的位置可以翻轉對方的棋子，則必須「跳過（Pass）」此回合。</li>
+                        <li>當棋盤下滿，或雙方皆無法再下子時結束，棋子多者獲勝。</li>
+                    </ul>
+                    <button 
+                        onClick={() => setShowRules(false)} 
+                        className="w-full py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700"
+                    >
+                        了解，開始遊戲！
+                    </button>
+                </div>
+            </div>
+        )}
 
         {winner && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
