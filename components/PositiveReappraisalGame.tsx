@@ -75,20 +75,20 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col gap-2 sm:gap-4 md:gap-6 landscape:gap-1.5">
                         <div className="bg-white p-3 md:p-8 landscape:p-2 rounded-2xl md:rounded-3xl border-2 border-slate-200 shadow-md shrink-0">
                             <h2 className="text-xs sm:text-sm md:text-xl font-bold text-slate-500 mb-0.5 sm:mb-1 md:mb-2 landscape:mb-0">發生的事件：</h2>
-                            <p className="text-sm sm:text-xl md:text-3xl landscape:text-sm text-slate-800 font-medium leading-tight md:leading-relaxed">
+                            <p className="text-sm sm:text-xl md:text-3xl landscape:text-base text-slate-800 font-medium leading-tight md:leading-relaxed">
                                 {currentScenario.event}
                             </p>
                         </div>
                         
                         <div className="bg-slate-800 p-3 md:p-8 landscape:p-2 rounded-2xl md:rounded-3xl shadow-lg relative overflow-hidden flex-1 flex flex-col min-h-[0]">
                             <CloudRain className="absolute right-[-10px] top-[-10px] sm:right-[-20px] sm:top-[-20px] w-16 h-16 md:w-32 md:h-32 text-slate-700 opacity-50" />
-                            <h2 className="text-xs sm:text-sm md:text-xl landscape:text-sm font-bold text-slate-400 mb-1 md:mb-4 landscape:mb-0.5 flex items-center shrink-0">
-                                <MessageSquareQuote className="w-4 h-4 md:w-6 md:h-6 landscape:w-4 landscape:h-4 mr-1 sm:mr-2 outline-none" />
+                            <h2 className="text-xs sm:text-sm md:text-xl landscape:text-base font-bold text-slate-400 mb-1 md:mb-4 landscape:mb-0.5 flex items-center shrink-0">
+                                <MessageSquareQuote className="w-4 h-4 md:w-6 md:h-6 landscape:w-5 landscape:h-5 mr-1 sm:mr-2 outline-none" />
                                 <span className="hidden sm:inline landscape:hidden">容易產生的自動化負面想法（認知扭曲）：</span>
                                 <span className="sm:hidden landscape:inline">自動化負面想法：</span>
                             </h2>
                             <div className="flex-1 overflow-y-auto min-h-0">
-                                <p className="text-sm sm:text-lg md:text-3xl landscape:text-sm text-white font-medium italic relative z-10 leading-tight md:leading-relaxed">
+                                <p className="text-sm sm:text-lg md:text-3xl landscape:text-base text-white font-medium italic relative z-10 leading-tight md:leading-relaxed">
                                     {currentScenario.negativeThought}
                                 </p>
                             </div>
@@ -97,7 +97,7 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                                 <div className="mt-2 sm:mt-4 landscape:mt-1 text-center shrink-0">
                                     <button
                                         onClick={() => setShowReframes(true)}
-                                        className="w-full max-w-[280px] mx-auto py-2 sm:py-3 md:py-4 landscape:py-1.5 bg-amber-500 text-white rounded-xl font-bold text-sm sm:text-lg md:text-xl landscape:text-sm hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
+                                        className="w-full max-w-[280px] mx-auto py-2 sm:py-3 md:py-4 landscape:py-1.5 bg-amber-500 text-white rounded-xl font-bold text-sm sm:text-lg md:text-xl landscape:text-base hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
                                     >
                                         <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 landscape:w-3 landscape:h-3 mr-1 sm:mr-2" />
                                         顯示轉念思考 (解套方法)
@@ -113,14 +113,14 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                             <div className="bg-amber-100 p-4 md:p-8 landscape:p-2 rounded-3xl border-4 border-amber-300 shadow-xl h-full flex flex-col overflow-y-auto animate-fade-in flex-1">
                                 <div className="flex items-center gap-2 md:gap-3 landscape:gap-1 mb-4 md:mb-6 landscape:mb-2 shrink-0">
                                     <Sun className="w-8 h-8 md:w-10 md:h-10 landscape:w-5 landscape:h-5 text-amber-500" />
-                                    <h2 className="text-xl md:text-3xl landscape:text-lg font-extrabold text-amber-800">
+                                    <h2 className="text-xl md:text-3xl landscape:text-xl font-extrabold text-amber-800">
                                         可以試著這樣想：
                                     </h2>
                                 </div>
                                 <div className="flex flex-col gap-3 md:gap-4 landscape:gap-1.5 flex-1">
                                     {currentScenario.reframes.map((reframe, idx) => (
                                         <div key={idx} className="bg-white p-3 md:p-5 landscape:p-1.5 rounded-2xl landscape:rounded-lg shadow-sm border-l-4 rounded-l-md border-amber-400 transform transition-transform hover:translate-x-2">
-                                            <p className="text-lg md:text-2xl landscape:text-[12px] sm:landscape:text-xs text-amber-900 font-medium leading-tight">✨ {reframe}</p>
+                                            <p className="text-lg md:text-2xl landscape:text-sm text-amber-900 font-medium leading-tight">✨ {reframe}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -129,7 +129,7 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                             <div className="h-full border-4 border-dashed border-amber-200 rounded-3xl flex items-center justify-center p-8 landscape:p-2 bg-white/50">
                                 <div className="text-center">
                                     <MessageSquareQuote className="w-16 h-16 landscape:w-8 landscape:h-8 text-amber-300 mx-auto mb-4 landscape:mb-1" />
-                                    <p className="text-xl md:text-2xl landscape:text-base text-amber-600 font-bold">
+                                    <p className="text-xl md:text-2xl landscape:text-lg text-amber-600 font-bold">
                                         如果換個角度想，<br/>我們可以怎麼看待這件事？
                                     </p>
                                 </div>

@@ -108,20 +108,20 @@ const HazardIdentificationGame: React.FC<Props> = ({ onBack, difficulty }) => {
                                     className={`relative text-left p-2 sm:p-4 md:p-6 landscape:p-1.5 rounded-xl md:rounded-2xl landscape:rounded-lg border-2 transition-all duration-300 flex flex-col ${cardClass}`}
                                 >
                                     <div className="flex items-center sm:items-start mb-0 sm:mb-2 landscape:mb-0">
-                                        <div className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 landscape:w-5 landscape:h-5 shrink-0 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 landscape:mr-1.5 text-sm sm:text-base md:text-xl landscape:text-xs font-bold bg-white shadow-sm
+                                        <div className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 landscape:w-6 landscape:h-6 shrink-0 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 landscape:mr-1.5 text-sm sm:text-base md:text-xl landscape:text-sm font-bold bg-white shadow-sm
                                             ${isRevealed ? (isHazard ? 'text-red-600' : 'text-green-600') : 'text-gray-500'}
                                         `}>
                                             {index + 1}
                                         </div>
-                                        <p className="text-sm sm:text-lg md:text-2xl landscape:text-sm font-bold sm:pt-1 landscape:pt-0 leading-tight">{item.text}</p>
+                                        <p className="text-sm sm:text-lg md:text-2xl landscape:text-base font-bold sm:pt-1 landscape:pt-0 leading-tight">{item.text}</p>
                                     </div>
                                     
                                     {/* Explanation shown after click */}
                                     <div className={`overflow-hidden transition-all duration-500 ${isRevealed ? 'max-h-40 mt-1 sm:mt-2 md:mt-4 landscape:mt-0.5 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                        <div className={`p-2 sm:p-3 md:p-4 landscape:p-2 rounded-lg md:rounded-xl text-xs sm:text-base md:text-lg landscape:text-xs font-medium ${isHazard ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                        <div className={`p-2 sm:p-3 md:p-4 landscape:p-2 rounded-lg md:rounded-xl text-xs sm:text-base md:text-lg landscape:text-sm font-medium ${isHazard ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                                             <div className="flex items-center gap-1 sm:gap-2 landscape:gap-1 mb-0.5 sm:mb-1 landscape:mb-0">
                                                 {isHazard ? <TriangleAlert className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 landscape:w-3 landscape:h-3"/> : <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 landscape:w-3 landscape:h-3" />}
-                                                <span className="font-bold text-xs sm:text-sm md:text-base landscape:text-xs">{isHazard ? '危險提示' : '安全行為'}</span>
+                                                <span className="font-bold text-xs sm:text-sm md:text-base landscape:text-sm">{isHazard ? '危險提示' : '安全行為'}</span>
                                             </div>
                                             <span className="leading-snug">{item.explanation}</span>
                                         </div>

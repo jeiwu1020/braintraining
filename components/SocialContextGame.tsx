@@ -86,15 +86,15 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     {/* Left: Scenario Description */}
                     <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col justify-center">
                         <div className="bg-white p-4 md:p-10 landscape:p-2 rounded-3xl landscape:rounded-xl border-4 landscape:border-2 border-purple-200 shadow-lg">
-                            <h2 className="text-2xl md:text-3xl landscape:text-base font-bold text-purple-800 mb-4 landscape:mb-1">{currentScenario.title}</h2>
-                            <p className="text-xl md:text-2xl landscape:text-sm text-gray-700 leading-relaxed landscape:leading-snug">
+                            <h2 className="text-2xl md:text-3xl landscape:text-lg font-bold text-purple-800 mb-4 landscape:mb-1">{currentScenario.title}</h2>
+                            <p className="text-xl md:text-2xl landscape:text-base text-gray-700 leading-relaxed landscape:leading-snug">
                                 {currentScenario.description}
                             </p>
                             {!showOptions && (
                                 <div className="mt-8 landscape:mt-2 pt-6 landscape:pt-2 border-t border-purple-100 flex justify-center">
                                     <button
                                         onClick={() => setShowOptions(true)}
-                                        className="py-3 px-8 landscape:py-1.5 landscape:px-4 bg-purple-500 text-white rounded-full font-bold text-lg landscape:text-sm hover:bg-purple-600 shadow transition-all transform hover:scale-105"
+                                        className="py-3 px-8 landscape:py-1.5 landscape:px-4 bg-purple-500 text-white rounded-full font-bold text-lg landscape:text-base hover:bg-purple-600 shadow transition-all transform hover:scale-105"
                                     >
                                         查看選項
                                     </button>
@@ -126,21 +126,21 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
                                     className={`w-full text-left p-3 md:p-6 landscape:p-1 landscape:px-2 rounded-2xl landscape:rounded-lg border-2 landscape:border transition-all duration-300 flex-1 ${optionClass}`}
                                 >
                                     <div className="flex items-start">
-                                        <span className="text-lg md:text-2xl landscape:text-sm font-bold mr-3 landscape:mr-1 mt-1 landscape:mt-0 opacity-50 shrink-0">
+                                        <span className="text-lg md:text-2xl landscape:text-base font-bold mr-3 landscape:mr-1 mt-1 landscape:mt-0 opacity-50 shrink-0">
                                             {String.fromCharCode(65 + index)}.
                                         </span>
                                         <div className="flex-1">
-                                            <p className="text-base md:text-xl landscape:text-xs sm:landscape:text-sm font-medium leading-tight">{option.text}</p>
+                                            <p className="text-base md:text-xl landscape:text-sm font-medium leading-tight">{option.text}</p>
                                             
                                             {/* Feedback text */}
                                             {showFeedback && isSelected && (
-                                                <div className={`mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-[10px] sm:landscape:text-xs leading-tight animate-fade-in ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                                                <div className={`mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-xs leading-tight animate-fade-in ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
                                                     {option.feedback}
                                                 </div>
                                             )}
                                             {/* Show feedback for correct answer even if not selected */}
                                             {showFeedback && !isSelected && option.isCorrect && (
-                                                <div className="mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-[10px] sm:landscape:text-xs leading-tight bg-green-100 animate-fade-in">
+                                                <div className="mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-xs leading-tight bg-green-100 animate-fade-in">
                                                     {option.feedback}
                                                 </div>
                                             )}
