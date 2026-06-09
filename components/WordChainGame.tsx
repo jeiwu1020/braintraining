@@ -32,9 +32,10 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isActive, setIsActive] = useState(false);
+  const [usedIndices, setUsedIndices] = useState<number[]>([]);
 
   useEffect(() => {
-    initGame();
+    initGame(true);
   }, [difficulty]);
 
   useEffect(() => {
@@ -50,8 +51,24 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
-  const initGame = () => {
-    setCategory(categories[Math.floor(Math.random() * categories.length)]);
+  const initGame = (resetHistory = false) => {
+    let currentUsed = usedIndices;
+    if (resetHistory) {
+        currentUsed = [];
+        setUsedIndices([]);
+    }
+    
+    let availableIndices = categories.map((_, idx) => idx).filter(idx => !currentUsed.includes(idx));
+    if (availableIndices.length === 0) {
+        availableIndices = categories.map((_, idx) => idx);
+        currentUsed = [];
+        setUsedIndices([]);
+    }
+    
+    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    setUsedIndices([...currentUsed, randomIndex]);
+    
+    setCategory(categories[randomIndex]);
     setScore(0);
     setTimeLeft(60);
     setIsActive(false);
@@ -79,7 +96,7 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>語意聯想</h2>
           <p className="text-xs text-gray-500">{isAdvanced ? '進階條件限制' : '生活類別聯想'}</p>
         </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={() => initGame(false)} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <RefreshCw size={24} />
         </button>
       </div>
@@ -148,7 +165,7 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 <span className="text-xl mt-2 block">個詞彙</span>
               </p>
               <button 
-                onClick={initGame} 
+                onClick={() => initGame(false)} 
                 className="w-full py-4 bg-green-500 text-white rounded-full font-bold text-2xl hover:bg-green-600 active:scale-95 transition-all shadow-lg"
               >
                 再玩一次
