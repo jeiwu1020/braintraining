@@ -147,50 +147,16 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   // AI
   useEffect(() => {
       if (gameMode === 'PVE' && turn === 2 && !winner && !isAnimating) {
-          const timer = setTimeout(() => {
-              // Heuristic:
-              // 1. Prioritize free turns
-              // 2. Prioritize captures
-              // 3. Pick right-most pit (to clear side) or random
-              
-              const validMoves = [];
-              for(let i=7; i<=12; i++) if (board[i] > 0) validMoves.push(i);
-
-              if (validMoves.length === 0) return; // Should be handled by game over check, but safety
-
-              let bestMove = validMoves[0];
-              let bestScore = -1;
-
-              for (const m of validMoves) {
-                  let score = 0;
-                  // Lookahead simulation (simple)
-                  let seeds = board[m];
-                  let endPos = (m + seeds) % 14; 
-                  
-                  let steps = seeds;
-                  let curr = m;
-                  while(steps > 0) {
-                      curr = (curr + 1) % 14;
-                      if (curr !== P1_STORE) steps--;
-                  }
-                  
-                  if (curr === P2_STORE) score += 50; // Free turn
-                  if (board[curr] === 0 && curr >= 7 && curr <= 12 && board[12-curr] > 0) score += 20 + board[12-curr]; // Capture
-                  
-                  score += Math.random() * 5; // Randomness
-
-                  if (score > bestScore) {
-                      bestScore = score;
-                      bestMove = m;
-                  }
+          const timer = setTimeout(async () => {
+              const { getAdvancedMove, getNormalMove } = await import('../utils/mancalaAI');
+              const bestMove = difficulty === 'ADVANCED' ? getAdvancedMove(board) : getNormalMove(board);
+              if (bestMove !== -1) {
+                  move(bestMove);
               }
-              
-              move(bestMove);
-
           }, 800);
           return () => clearTimeout(timer);
       }
-  }, [turn, board, winner, gameMode, isAnimating]);
+  }, [turn, board, winner, gameMode, isAnimating, difficulty]);
 
   const Pit: React.FC<{ idx: number; isStore?: boolean; owner?: number }> = ({ idx, isStore = false, owner = 0 }) => {
       const seeds = board[idx] || 0;
