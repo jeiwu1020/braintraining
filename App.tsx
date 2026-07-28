@@ -163,7 +163,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
     if (savedScroll) {
       const scrollPos = parseInt(savedScroll, 10);
       if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTop = scrollPos;
+        setTimeout(() => { if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = scrollPos; }, 50);
       }
       window.scrollTo(0, scrollPos);
     }
@@ -202,10 +202,10 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
   };
 
   return (
-    <div className={`min-h-screen ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
+    <div className={`fixed inset-0 ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
       
       {/* Sidebar / Header Area */}
-      <div className="w-full sm:w-1/3 p-6 sm:p-8 md:p-12 flex flex-col justify-center items-center sm:items-start text-center sm:text-left z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent">
+      <div className="w-full sm:w-1/3 shrink-0 p-6 sm:p-8 md:p-12 flex flex-col justify-center items-center sm:items-start text-center sm:text-left z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent">
         <div className="inline-flex items-center justify-center p-4 bg-white rounded-3xl shadow-lg mb-6 animate-fade-in">
           {isAdvanced ? <Zap className="text-purple-600 w-10 h-10 mr-3" /> : <Sparkles className="text-emerald-500 w-10 h-10 mr-3" />}
           <h1 className={`text-3xl md:text-4xl font-bold ${theme.titleColor} tracking-wide`}>綜合腦訓練</h1>
