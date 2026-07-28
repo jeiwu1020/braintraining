@@ -39,11 +39,16 @@ import MancalaGame from './components/MancalaGame';
 import CheckersGame from './components/CheckersGame';
 import GobbletGame from './components/GobbletGame';
 
+import TreasureGame from './components/TreasureGame';
+import RouletteGame from './components/RouletteGame';
+import HigherLowerGame from './components/HigherLowerGame';
+
 import { 
   Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
   Sun, Palette, MousePointer2, Heart, Zap, Shapes, Clock, HelpCircle, 
   Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
-  ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb
+  ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb,
+  Map, Target, ArrowUpRight
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -123,6 +128,12 @@ const App: React.FC = () => {
         return <CheckersGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.GOBBLET:
         return <GobbletGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.TREASURE:
+        return <TreasureGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.ROULETTE:
+        return <RouletteGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.HIGHER_LOWER:
+        return <HigherLowerGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       default:
         return <MainMenu onSelectGame={setGameState} difficulty={difficulty} setDifficulty={setDifficulty} />;
     }
@@ -505,6 +516,40 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             color={isAdvanced ? "bg-white" : "bg-yellow-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
             onClick={() => onSelectGame(GameState.PRICE_ESTIMATION)}
+            />
+
+            {/* --- Luck & Group Games Section Header --- */}
+            <div className="col-span-full mt-8 mb-2 flex items-center">
+                <div className="h-px bg-gray-300 flex-1"></div>
+                <span className="px-4 text-gray-500 font-bold text-sm">好運團康遊戲</span>
+                <div className="h-px bg-gray-300 flex-1"></div>
+            </div>
+
+            <MenuCard
+            title="尋寶大冒險"
+            description={isAdvanced ? "更大的地圖與隱藏的炸彈陷阱！" : "大家一起喊出位置，看看誰能挖到寶藏！"}
+            icon={<Map className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-yellow-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
+            onClick={() => onSelectGame(GameState.TREASURE)}
+            />
+
+            <MenuCard
+            title="命運轉盤"
+            description={isAdvanced ? "更多選項與雙倍計分，大膽預測！" : "猜猜轉盤會停在哪裡？充滿歡樂與運氣！"}
+            icon={<Target className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-red-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
+            onClick={() => onSelectGame(GameState.ROULETTE)}
+            />
+
+            <MenuCard
+            title="步步高升"
+            description={isAdvanced ? "猜大小，連續猜對獲得更高分！" : "比大小！下一張牌會更大還是更小？"}
+            icon={<ArrowUpRight className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-600'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-green-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
+            onClick={() => onSelectGame(GameState.HIGHER_LOWER)}
             />
 
             {/* --- Mental Health Section Header --- */}

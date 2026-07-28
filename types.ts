@@ -35,7 +35,11 @@ export enum GameState {
   DOTS_BOXES = 'DOTS_BOXES',
   MANCALA = 'MANCALA',
   CHECKERS = 'CHECKERS',
-  GOBBLET = 'GOBBLET'
+  GOBBLET = 'GOBBLET',
+  // New Luck/Group Games
+  TREASURE = 'TREASURE',
+  ROULETTE = 'ROULETTE',
+  HIGHER_LOWER = 'HIGHER_LOWER'
 }
 
 export type Difficulty = 'NORMAL' | 'ADVANCED';
