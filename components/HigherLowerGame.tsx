@@ -247,27 +247,27 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
         <div className="flex w-full justify-between items-center mb-2 sm:mb-4 landscape:mb-1 px-2 sm:px-4 gap-4 sm:gap-8">
             <div className={`flex-1 rounded-2xl p-2 sm:p-4 landscape:p-1 flex flex-col items-center border-4 transition-colors
                 ${teamAChoice ? 'bg-blue-100 border-blue-400' : 'bg-blue-50 border-blue-200'}`}>
-                <span className="text-lg sm:text-xl font-bold text-blue-800 mb-1">A 組</span>
-                <span className="text-3xl sm:text-4xl font-black text-blue-600 mb-2">{teamAScore}</span>
+                <span className="text-lg sm:text-xl landscape:text-xs font-bold text-blue-800 mb-1">A 組</span>
+                <span className="text-3xl sm:text-4xl font-black text-blue-600 mb-2 landscape:mb-0">{teamAScore}</span>
                 {gameState === 'BETTING' && (
                     <div className="flex gap-2">
                         <button 
                             onClick={() => setTeamAChoice('HIGHER')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
-                            <ArrowUpCircle size={20} /> 大
+                            <ArrowUpCircle className="landscape:hidden" size={20} /> 大
                         </button>
                         <button 
                             onClick={() => setTeamAChoice('PASS')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
                             PASS
                         </button>
                         <button 
                             onClick={() => setTeamAChoice('LOWER')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
-                            <ArrowDownCircle size={20} /> 小
+                            <ArrowDownCircle className="landscape:hidden" size={20} /> 小
                         </button>
                     </div>
                 )}
@@ -286,32 +286,32 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
             
             <div className="flex flex-col items-center shrink-0">
                 <span className="text-sm font-bold text-gray-400">回合</span>
-                <span className="text-2xl sm:text-3xl font-black text-green-700 bg-green-100 px-4 py-2 rounded-xl">{round} / {maxRounds}</span>
+                <span className="text-2xl sm:text-3xl font-black text-green-700 bg-green-100 px-4 py-2 landscape:px-2 landscape:py-1 rounded-xl">{round} / {maxRounds}</span>
             </div>
 
             <div className={`flex-1 rounded-2xl p-2 sm:p-4 landscape:p-1 flex flex-col items-center border-4 transition-colors
                 ${teamBChoice ? 'bg-red-100 border-red-400' : 'bg-red-50 border-red-200'}`}>
-                <span className="text-lg sm:text-xl font-bold text-red-800 mb-1">B 組</span>
-                <span className="text-3xl sm:text-4xl font-black text-red-600 mb-2">{teamBScore}</span>
+                <span className="text-lg sm:text-xl landscape:text-xs font-bold text-red-800 mb-1">B 組</span>
+                <span className="text-3xl sm:text-4xl font-black text-red-600 mb-2 landscape:mb-0">{teamBScore}</span>
                 {gameState === 'BETTING' && (
                     <div className="flex gap-2">
                         <button 
                             onClick={() => setTeamBChoice('HIGHER')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
-                            <ArrowUpCircle size={20} /> 大
+                            <ArrowUpCircle className="landscape:hidden" size={20} /> 大
                         </button>
                         <button 
                             onClick={() => setTeamBChoice('PASS')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
                             PASS
                         </button>
                         <button 
                             onClick={() => setTeamBChoice('LOWER')}
-                            className={`px-4 py-2 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
                         >
-                            <ArrowDownCircle size={20} /> 小
+                            <ArrowDownCircle className="landscape:hidden" size={20} /> 小
                         </button>
                     </div>
                 )}
@@ -356,7 +356,7 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                     {/* Previous Card (Small) */}
                     <div className="flex flex-col items-center opacity-60 scale-75 sm:scale-100 origin-right">
                         <span className="mb-2 landscape:mb-0 font-bold text-gray-500">上一張</span>
-                        <div className="w-24 h-36 sm:w-32 sm:h-48 landscape:w-16 landscape:h-24 landscape:sm:w-24 landscape:sm:h-36 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col items-center justify-center relative">
+                        <div className="w-24 h-36 sm:w-32 sm:h-48 landscape:w-14 landscape:h-20 landscape:sm:w-16 landscape:sm:h-24 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col items-center justify-center relative">
                             {previousCard ? (
                                 previousCard.isJoker ? (
                                     <span className="text-5xl">{previousCard.suitSymbol}</span>
@@ -374,32 +374,32 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
 
                     {/* Current Card (Large) */}
                     <div className="flex flex-col items-center">
-                        <span className="mb-2 landscape:mb-0 font-bold text-green-700 text-lg sm:text-xl">現在的牌</span>
+                        <span className="mb-2 landscape:mb-0 font-bold text-green-700 text-lg sm:text-xl landscape:text-xs">現在的牌</span>
                         <AnimatePresence mode="popLayout">
                             <motion.div 
                                 key={currentCard?.display + (currentCard?.suitSymbol || '')}
                                 initial={{ x: 100, opacity: 0, rotateY: 90 }}
                                 animate={{ x: 0, opacity: 1, rotateY: 0 }}
                                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                                className="w-40 h-60 sm:w-48 sm:h-72 landscape:w-28 landscape:h-40 landscape:sm:w-36 landscape:sm:h-52 bg-white rounded-2xl shadow-xl border-4 border-gray-200 flex flex-col items-center justify-center relative overflow-hidden shrink-0"
+                                className="w-40 h-60 sm:w-48 sm:h-72 landscape:w-20 landscape:h-28 landscape:sm:w-24 landscape:sm:h-32 bg-white rounded-2xl shadow-xl border-4 border-gray-200 flex flex-col items-center justify-center relative overflow-hidden shrink-0"
                             >
                                 {currentCard && (
                                     currentCard.isJoker ? (
                                         <div className="flex flex-col items-center justify-center h-full w-full bg-purple-50">
-                                            <span className="text-8xl">{currentCard.suitSymbol}</span>
-                                            <span className={`text-3xl font-black mt-4 ${currentCard.color}`}>{currentCard.display}</span>
+                                            <span className="text-8xl landscape:text-5xl">{currentCard.suitSymbol}</span>
+                                            <span className={`text-3xl landscape:text-lg font-black mt-4 landscape:mt-1 ${currentCard.color}`}>{currentCard.display}</span>
                                         </div>
                                     ) : (
                                         <>
                                             <div className={`absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col items-center ${currentCard.color}`}>
-                                                <span className="text-xl sm:text-2xl font-black">{currentCard.display}</span>
-                                                <span className="text-lg sm:text-xl">{currentCard.suitSymbol}</span>
+                                                <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
+                                                <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
                                             </div>
                                             <span className={`text-6xl sm:text-8xl font-black ${currentCard.color}`}>{currentCard.display}</span>
                                             <span className="text-5xl sm:text-7xl mt-2 sm:mt-4">{currentCard.suitSymbol}</span>
                                             <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex flex-col items-center rotate-180 ${currentCard.color}`}>
-                                                <span className="text-xl sm:text-2xl font-black">{currentCard.display}</span>
-                                                <span className="text-lg sm:text-xl">{currentCard.suitSymbol}</span>
+                                                <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
+                                                <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
                                             </div>
                                         </>
                                     )
@@ -415,22 +415,22 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                         <button
                             onClick={handleReveal}
                             disabled={!teamAChoice || !teamBChoice}
-                            className={`px-8 py-4 rounded-full font-black text-2xl flex items-center gap-3 transition-all
+                            className={`px-8 py-4 landscape:px-6 landscape:py-2 rounded-full font-black text-2xl flex items-center gap-3 transition-all
                                 ${teamAChoice && teamBChoice 
                                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xl hover:scale-105' 
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                         >
-                            <Play size={28} />
+                            <Play className="landscape:w-5 landscape:h-5" size={28} />
                             開牌！
                         </button>
                     ) : (
                         <div className="flex flex-col items-center">
-                            <span className="text-3xl font-black text-green-700 mb-4">{roundResult.mainMsg}</span>
+                            <span className="text-3xl font-black text-green-700 mb-4 landscape:mb-1">{roundResult.mainMsg}</span>
                             <button
                                 onClick={handleNextRound}
-                                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xl shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+                                className="px-8 py-3 landscape:px-6 landscape:py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xl shadow-lg hover:scale-105 transition-all flex items-center gap-2"
                             >
-                                {round >= maxRounds ? '查看結果' : '下一回合'} <ArrowLeft className="rotate-180" size={24} />
+                                {round >= maxRounds ? '查看結果' : '下一回合'} <ArrowLeft className="rotate-180 landscape:w-5 landscape:h-5" size={24} />
                             </button>
                         </div>
                     )}
