@@ -269,8 +269,8 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
   };
 
   return (
-    <div className="min-h-screen bg-rose-50 flex flex-col items-center py-6 px-4">
-      <div className="w-full max-w-4xl flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-rose-50 flex flex-col items-center py-6 px-4 landscape:py-2">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-4 landscape:mb-2">
         <button
           onClick={onBack}
           className="p-3 bg-white rounded-full shadow-md text-gray-600 hover:bg-gray-50 transition-colors"
@@ -292,7 +292,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 w-full max-w-5xl flex flex-col items-center flex-1">
+      <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 landscape:p-2 w-full max-w-5xl flex flex-col items-center flex-1">
         
         {gameState === 'SETUP' && (
             <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md">
@@ -352,19 +352,19 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
 
         {gameState === 'PLAYING' && (
             <>
-                <div className="w-full text-center mb-4 border-b border-gray-100 pb-2">
-                    <span className="bg-rose-100 px-6 py-2 rounded-full text-rose-800 font-bold shadow-sm inline-block">
+                <div className="w-full text-center mb-4 landscape:mb-2 border-b border-gray-100 pb-2">
+                    <span className="bg-rose-100 px-6 py-2 landscape:py-1 rounded-full text-rose-800 font-bold shadow-sm inline-block">
                         {gameMode === 'ROUNDS' ? `回合: ${currentRound} / ${targetValue}` : `目標分數: ${targetValue} 分 (目前第 ${currentRound} 回合)`}
                     </span>
                 </div>
                 
                 {/* Main Grid: Team A | Roulette | Team B */}
-                <div className="w-full flex flex-col lg:flex-row items-stretch justify-center gap-4 lg:gap-8 mb-6">
+                <div className="w-full flex flex-col landscape:flex-row lg:flex-row items-stretch justify-center gap-4 lg:gap-8 mb-6 landscape:mb-2">
                     
                     {/* Team A Panel */}
-                    <div className={`flex-1 rounded-3xl p-4 flex flex-col items-center border-4 transition-colors
+                    <div className={`flex-1 rounded-3xl p-4 landscape:p-2 flex flex-col items-center border-4 transition-colors
                         ${teamAChoice ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
-                        <div className="w-full flex justify-between items-center mb-4 border-b-2 border-blue-200 pb-2">
+                        <div className="w-full flex justify-between items-center mb-4 landscape:mb-2 border-b-2 border-blue-200 pb-2">
                             <span className="text-xl font-black text-blue-800">A 組</span>
                             <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full shadow-sm">
                                 <Coins className="text-yellow-500 w-5 h-5" />
@@ -387,8 +387,8 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
                     </div>
 
                     {/* Roulette Center */}
-                    <div className="flex flex-col items-center justify-center shrink-0 min-w-[280px]">
-                        <div className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-3xl shadow-inner bg-gray-100 border-8 border-rose-200 overflow-hidden flex items-center justify-center mb-6">
+                    <div className="flex flex-col items-center justify-center shrink-0 min-w-[280px] landscape:min-w-[200px]">
+                        <div className="relative w-48 h-48 sm:w-64 sm:h-64 landscape:w-32 landscape:h-32 rounded-3xl shadow-inner bg-gray-100 border-8 border-rose-200 overflow-hidden flex items-center justify-center mb-6 landscape:mb-2">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentIndex}
@@ -398,10 +398,10 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
                                     transition={{ duration: 0.1 }}
                                     className={`absolute inset-0 flex flex-col items-center justify-center ${wheelOptions[currentIndex].color} text-white`}
                                 >
-                                    <span className="text-6xl sm:text-7xl drop-shadow-lg mb-2 sm:mb-4">
+                                    <span className="text-6xl sm:text-7xl landscape:text-5xl drop-shadow-lg mb-2 sm:mb-4 landscape:mb-1">
                                         {wheelOptions[currentIndex].icon}
                                     </span>
-                                    <span className="text-xl sm:text-2xl font-black tracking-wider drop-shadow-md text-center px-2">
+                                    <span className="text-xl sm:text-2xl landscape:text-lg font-black tracking-wider drop-shadow-md text-center px-2">
                                         {wheelOptions[currentIndex].label}
                                     </span>
                                 </motion.div>
@@ -409,11 +409,11 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
                         </div>
                         
                         {!isSpinning && resultMsg ? (
-                            <div className="flex flex-col items-center gap-4 w-full">
-                                <span className="text-xl font-bold text-center text-rose-700">{resultMsg.main}</span>
+                            <div className="flex flex-col items-center gap-4 landscape:gap-2 w-full">
+                                <span className="text-xl landscape:text-lg font-bold text-center text-rose-700">{resultMsg.main}</span>
                                 <button
                                     onClick={resetRound}
-                                    className={`px-8 py-3 text-white rounded-full font-bold text-lg shadow-md hover:scale-105 transition-all w-full ${isGameOverRound ? 'bg-amber-500 hover:bg-amber-600' : 'bg-indigo-500 hover:bg-indigo-600'}`}
+                                    className={`px-8 py-3 landscape:py-2 text-white rounded-full font-bold text-lg landscape:text-base shadow-md hover:scale-105 transition-all w-full ${isGameOverRound ? 'bg-amber-500 hover:bg-amber-600' : 'bg-indigo-500 hover:bg-indigo-600'}`}
                                 >
                                     {isGameOverRound ? '查看結果' : '下一回合'}
                                 </button>
@@ -422,22 +422,22 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
                             <button
                                 onClick={startSpin}
                                 disabled={isSpinning || !teamAChoice || !teamBChoice}
-                                className={`px-8 py-4 sm:px-12 sm:py-6 rounded-full font-black text-xl sm:text-2xl shadow-xl transition-all flex items-center justify-center gap-3 w-full
+                                className={`px-8 py-4 sm:px-12 sm:py-6 landscape:px-6 landscape:py-2 rounded-full font-black text-xl sm:text-2xl landscape:text-lg shadow-xl transition-all flex items-center justify-center gap-3 w-full
                                     ${isSpinning || !teamAChoice || !teamBChoice
                                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                                         : 'bg-rose-500 text-white hover:bg-rose-600 hover:scale-105 active:scale-95'
                                     }`}
                             >
-                                {isSpinning ? <Square className="animate-spin" /> : <Play size={28} />}
+                                {isSpinning ? <Square className="animate-spin landscape:w-5 landscape:h-5" /> : <Play className="landscape:w-5 landscape:h-5" size={28} />}
                                 {isSpinning ? '旋轉中...' : '開始旋轉！'}
                             </button>
                         )}
                     </div>
 
                     {/* Team B Panel */}
-                    <div className={`flex-1 rounded-3xl p-4 flex flex-col items-center border-4 transition-colors
+                    <div className={`flex-1 rounded-3xl p-4 landscape:p-2 flex flex-col items-center border-4 transition-colors
                         ${teamBChoice ? 'bg-red-100 border-red-300' : 'bg-red-50 border-red-200'}`}>
-                        <div className="w-full flex justify-between items-center mb-4 border-b-2 border-red-200 pb-2">
+                        <div className="w-full flex justify-between items-center mb-4 landscape:mb-2 border-b-2 border-red-200 pb-2">
                             <span className="text-xl font-black text-red-800">B 組</span>
                             <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full shadow-sm">
                                 <Coins className="text-yellow-500 w-5 h-5" />
@@ -462,11 +462,11 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
                 </div>
                 
                 {/* Available Options Guide (Events) */}
-                <div className="mt-auto pt-4 w-full border-t border-gray-200 flex flex-col items-center">
-                    <p className="text-center text-gray-500 mb-2 font-bold text-sm">轉盤也可能轉到以下事件：</p>
-                    <div className="flex flex-wrap justify-center gap-2">
+                <div className="mt-auto pt-4 landscape:pt-1 w-full border-t border-gray-200 flex flex-col items-center">
+                    <p className="text-center text-gray-500 mb-2 landscape:mb-1 font-bold text-sm">轉盤也可能轉到以下事件：</p>
+                    <div className="flex flex-wrap justify-center gap-2 landscape:gap-1">
                         {eventItems.map((opt, i) => (
-                            <div key={i} className={`flex items-center gap-1 px-3 py-1 rounded-full text-white text-sm font-bold ${opt.color} opacity-80`}>
+                            <div key={i} className={`flex items-center gap-1 px-3 py-1 landscape:px-2 landscape:py-0 rounded-full text-white text-sm landscape:text-xs font-bold ${opt.color} opacity-80`}>
                                 <span>{opt.icon}</span>
                                 <span>{opt.label}</span>
                             </div>

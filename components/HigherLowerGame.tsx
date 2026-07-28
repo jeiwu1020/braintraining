@@ -219,7 +219,7 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col items-center py-6 px-4 landscape:py-2 relative">
+    <div className="min-h-screen bg-green-50 flex flex-col items-center py-6 px-4 landscape:py-1 relative">
       <div className="w-full max-w-4xl flex items-center justify-between mb-4 landscape:mb-1">
         <button
           onClick={onBack}
@@ -352,7 +352,7 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
         ) : (
             <div className="flex flex-col items-center justify-center gap-4 landscape:gap-1 w-full flex-1">
                 {/* Cards Area */}
-                <div className="flex flex-row items-center justify-center gap-4 sm:gap-12 landscape:gap-4 py-4 sm:py-8 landscape:py-2 px-4 w-full bg-slate-50 rounded-3xl shadow-inner border border-slate-200">
+                <div className="flex flex-row items-center justify-center gap-4 sm:gap-12 landscape:gap-4 py-4 sm:py-8 landscape:py-1 px-4 w-full bg-slate-50 rounded-3xl shadow-inner border border-slate-200">
                     {/* Previous Card (Small) */}
                     <div className="flex flex-col items-center opacity-60 scale-75 sm:scale-100 origin-right">
                         <span className="mb-2 landscape:mb-0 font-bold text-gray-500">上一張</span>
