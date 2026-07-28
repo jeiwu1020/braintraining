@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameState, Difficulty } from './types';
 import SortingGame from './components/SortingGame';
 import MemoryGame from './components/MemoryGame';
@@ -156,6 +156,27 @@ interface MenuProps {
 
 const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty }) => {
   const isAdvanced = difficulty === 'ADVANCED';
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('menuScrollPos');
+    if (savedScroll) {
+      const scrollPos = parseInt(savedScroll, 10);
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollPos;
+      }
+      window.scrollTo(0, scrollPos);
+    }
+  }, []);
+
+  const handleSelectGame = (game: GameState) => {
+    let scrollPos = window.scrollY;
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollTop > 0) {
+        scrollPos = scrollContainerRef.current.scrollTop;
+    }
+    sessionStorage.setItem('menuScrollPos', scrollPos.toString());
+    onSelectGame(game);
+  };
 
   // Theme configuration based on difficulty
   const theme = isAdvanced ? {
@@ -222,7 +243,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
       </div>
 
       {/* Cards Scroll Area */}
-      <div className="w-full sm:w-2/3 p-4 sm:p-6 md:p-12 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
+      <div ref={scrollContainerRef} className="w-full sm:w-2/3 p-4 sm:p-6 md:p-12 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto pb-20 sm:pb-8">
             
             {/* --- Board Games Section Header --- */}
@@ -238,7 +259,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Grid3x3 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-gray-700'}`} />}
             color="bg-white"
             borderColor="border-gray-300"
-            onClick={() => onSelectGame(GameState.GOMOKU)}
+            onClick={() => handleSelectGame(GameState.GOMOKU)}
             />
 
             <MenuCard
@@ -247,7 +268,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Square className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-600'}`} />}
             color="bg-rose-50"
             borderColor="border-rose-300"
-            onClick={() => onSelectGame(GameState.DOTS_BOXES)}
+            onClick={() => handleSelectGame(GameState.DOTS_BOXES)}
             />
 
             <MenuCard
@@ -256,7 +277,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Gem className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-600'}`} />}
             color="bg-cyan-50"
             borderColor="border-cyan-300"
-            onClick={() => onSelectGame(GameState.MANCALA)}
+            onClick={() => handleSelectGame(GameState.MANCALA)}
             />
 
             <MenuCard
@@ -265,7 +286,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Scroll className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-700'}`} />}
             color="bg-amber-50"
             borderColor="border-amber-300"
-            onClick={() => onSelectGame(GameState.DARK_CHESS)}
+            onClick={() => handleSelectGame(GameState.DARK_CHESS)}
             />
 
             <MenuCard
@@ -274,7 +295,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ArrowDownToLine className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
             color="bg-blue-50"
             borderColor="border-blue-300"
-            onClick={() => onSelectGame(GameState.CONNECT_FOUR)}
+            onClick={() => handleSelectGame(GameState.CONNECT_FOUR)}
             />
 
             <MenuCard
@@ -283,7 +304,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Circle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-emerald-700'}`} />}
             color="bg-emerald-50"
             borderColor="border-emerald-300"
-            onClick={() => onSelectGame(GameState.OTHELLO)}
+            onClick={() => handleSelectGame(GameState.OTHELLO)}
             />
 
             <MenuCard
@@ -292,7 +313,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Swords className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-700'}`} />}
             color="bg-slate-100"
             borderColor="border-slate-300"
-            onClick={() => onSelectGame(GameState.CHECKERS)}
+            onClick={() => handleSelectGame(GameState.CHECKERS)}
             />
 
             <MenuCard
@@ -301,7 +322,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Crown className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
             color="bg-orange-50"
             borderColor="border-orange-300"
-            onClick={() => onSelectGame(GameState.GOBBLET)}
+            onClick={() => handleSelectGame(GameState.GOBBLET)}
             />
 
             {/* --- Cognitive Games Section Header --- */}
@@ -317,7 +338,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Brain className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-orange-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-            onClick={() => onSelectGame(GameState.SORTING)}
+            onClick={() => handleSelectGame(GameState.SORTING)}
             />
             
             <MenuCard
@@ -326,7 +347,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Smile className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-indigo-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-indigo-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
-            onClick={() => onSelectGame(GameState.MEMORY)}
+            onClick={() => handleSelectGame(GameState.MEMORY)}
             />
 
             <MenuCard
@@ -335,7 +356,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Type className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-pink-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-            onClick={() => onSelectGame(GameState.SENTENCE)}
+            onClick={() => handleSelectGame(GameState.SENTENCE)}
             />
 
             <MenuCard
@@ -344,7 +365,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Eye className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-yellow-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-            onClick={() => onSelectGame(GameState.FIND)}
+            onClick={() => handleSelectGame(GameState.FIND)}
             />
 
             <MenuCard
@@ -353,7 +374,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ShoppingCart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-green-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-            onClick={() => onSelectGame(GameState.MARKET)}
+            onClick={() => handleSelectGame(GameState.MARKET)}
             />
 
             <MenuCard
@@ -362,7 +383,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ListChecks className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-purple-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-purple-200"}
-            onClick={() => onSelectGame(GameState.STEPS)}
+            onClick={() => handleSelectGame(GameState.STEPS)}
             />
 
             <MenuCard
@@ -371,7 +392,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Sun className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-slate-100"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-slate-300"}
-            onClick={() => onSelectGame(GameState.SHADOW)}
+            onClick={() => handleSelectGame(GameState.SHADOW)}
             />
 
             <MenuCard
@@ -380,7 +401,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Palette className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-rose-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
-            onClick={() => onSelectGame(GameState.STROOP)}
+            onClick={() => handleSelectGame(GameState.STROOP)}
             />
 
             <MenuCard
@@ -389,7 +410,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<MousePointer2 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-cyan-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
-            onClick={() => onSelectGame(GameState.DOTS)}
+            onClick={() => handleSelectGame(GameState.DOTS)}
             />
 
             <MenuCard
@@ -398,7 +419,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Heart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-pink-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-            onClick={() => onSelectGame(GameState.EMOTION)}
+            onClick={() => handleSelectGame(GameState.EMOTION)}
             />
 
             {/* --- NEW GAMES --- */}
@@ -409,7 +430,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Shapes className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-blue-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-            onClick={() => onSelectGame(GameState.PATTERN)}
+            onClick={() => handleSelectGame(GameState.PATTERN)}
             />
 
             <MenuCard
@@ -418,7 +439,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Clock className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-slate-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-slate-200"}
-            onClick={() => onSelectGame(GameState.TIME)}
+            onClick={() => handleSelectGame(GameState.TIME)}
             />
 
             <MenuCard
@@ -427,7 +448,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<HelpCircle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-orange-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-            onClick={() => onSelectGame(GameState.ODD_ONE)}
+            onClick={() => handleSelectGame(GameState.ODD_ONE)}
             />
 
             <MenuCard
@@ -436,7 +457,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Volume2 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-indigo-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-indigo-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
-            onClick={() => onSelectGame(GameState.SOUND)}
+            onClick={() => handleSelectGame(GameState.SOUND)}
             />
 
             <MenuCard
@@ -445,7 +466,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Grid className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-teal-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-teal-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-teal-200"}
-            onClick={() => onSelectGame(GameState.PUZZLE)}
+            onClick={() => handleSelectGame(GameState.PUZZLE)}
             />
 
             <MenuCard
@@ -454,7 +475,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Grid3x3 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-fuchsia-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-fuchsia-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-fuchsia-200"}
-            onClick={() => onSelectGame(GameState.SUDOKU)}
+            onClick={() => handleSelectGame(GameState.SUDOKU)}
             />
 
             <MenuCard
@@ -463,7 +484,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Search className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-amber-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-            onClick={() => onSelectGame(GameState.SPOT_DIFF)}
+            onClick={() => handleSelectGame(GameState.SPOT_DIFF)}
             />
 
             {/* --- Group Activity Games Section Header --- */}
@@ -479,7 +500,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ZoomIn className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-blue-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-            onClick={() => onSelectGame(GameState.ZOOM)}
+            onClick={() => handleSelectGame(GameState.ZOOM)}
             />
 
             <MenuCard
@@ -488,7 +509,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<MessageCircle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-pink-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-            onClick={() => onSelectGame(GameState.VERBAL_MEMORY)}
+            onClick={() => handleSelectGame(GameState.VERBAL_MEMORY)}
             />
 
             <MenuCard
@@ -497,7 +518,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Link className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-green-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-            onClick={() => onSelectGame(GameState.WORD_CHAIN)}
+            onClick={() => handleSelectGame(GameState.WORD_CHAIN)}
             />
 
             <MenuCard
@@ -506,7 +527,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ListOrdered className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-orange-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-            onClick={() => onSelectGame(GameState.SIMON_SAYS)}
+            onClick={() => handleSelectGame(GameState.SIMON_SAYS)}
             />
 
             <MenuCard
@@ -515,7 +536,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<DollarSign className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-yellow-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-            onClick={() => onSelectGame(GameState.PRICE_ESTIMATION)}
+            onClick={() => handleSelectGame(GameState.PRICE_ESTIMATION)}
             />
 
             {/* --- Luck & Group Games Section Header --- */}
@@ -531,7 +552,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Map className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-yellow-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-            onClick={() => onSelectGame(GameState.TREASURE)}
+            onClick={() => handleSelectGame(GameState.TREASURE)}
             />
 
             <MenuCard
@@ -540,7 +561,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Target className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-red-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
-            onClick={() => onSelectGame(GameState.ROULETTE)}
+            onClick={() => handleSelectGame(GameState.ROULETTE)}
             />
 
             <MenuCard
@@ -549,7 +570,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<ArrowUpRight className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-green-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-            onClick={() => onSelectGame(GameState.HIGHER_LOWER)}
+            onClick={() => handleSelectGame(GameState.HIGHER_LOWER)}
             />
 
             {/* --- Mental Health Section Header --- */}
@@ -565,7 +586,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Users className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
             color={isAdvanced ? "bg-white" : "bg-purple-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-purple-200"}
-            onClick={() => onSelectGame(GameState.SOCIAL_CONTEXT)}
+            onClick={() => handleSelectGame(GameState.SOCIAL_CONTEXT)}
             />
 
             <MenuCard
@@ -574,7 +595,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<TriangleAlert className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-red-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
-            onClick={() => onSelectGame(GameState.HAZARD_ID)}
+            onClick={() => handleSelectGame(GameState.HAZARD_ID)}
             />
 
             <MenuCard
@@ -583,7 +604,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Lightbulb className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-500'}`} />}
             color={isAdvanced ? "bg-white" : "bg-amber-50"}
             borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-            onClick={() => onSelectGame(GameState.POSITIVE_THINKING)}
+            onClick={() => handleSelectGame(GameState.POSITIVE_THINKING)}
             />
 
             {/* --- Relaxation Section Header --- */}
@@ -599,7 +620,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             icon={<Wind className="w-8 h-8 text-sky-500" />}
             color="bg-sky-50"
             borderColor="border-sky-200"
-            onClick={() => onSelectGame(GameState.BREATHING)}
+            onClick={() => handleSelectGame(GameState.BREATHING)}
             />
         </div>
       </div>
