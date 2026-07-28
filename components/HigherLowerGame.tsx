@@ -359,11 +359,11 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                         <div className="w-24 h-36 sm:w-32 sm:h-48 landscape:w-14 landscape:h-20 landscape:sm:w-16 landscape:sm:h-24 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col items-center justify-center relative">
                             {previousCard ? (
                                 previousCard.isJoker ? (
-                                    <span className="text-5xl">{previousCard.suitSymbol}</span>
+                                    <span className="text-5xl landscape:text-2xl">{previousCard.suitSymbol}</span>
                                 ) : (
                                     <>
-                                        <span className={`text-3xl sm:text-4xl font-black ${previousCard.color}`}>{previousCard.display}</span>
-                                        <span className="text-4xl sm:text-5xl mt-2">{previousCard.suitSymbol}</span>
+                                        <span className={`text-3xl sm:text-4xl landscape:text-xl font-black ${previousCard.color}`}>{previousCard.display}</span>
+                                        <span className="text-4xl sm:text-5xl landscape:text-2xl mt-2 landscape:mt-0">{previousCard.suitSymbol}</span>
                                     </>
                                 )
                             ) : (
@@ -395,8 +395,8 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                                                 <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
                                                 <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
                                             </div>
-                                            <span className={`text-6xl sm:text-8xl font-black ${currentCard.color}`}>{currentCard.display}</span>
-                                            <span className="text-5xl sm:text-7xl mt-2 sm:mt-4">{currentCard.suitSymbol}</span>
+                                            <span className={`text-6xl sm:text-8xl landscape:text-4xl font-black ${currentCard.color}`}>{currentCard.display}</span>
+                                            <span className="text-5xl sm:text-7xl landscape:text-3xl mt-2 sm:mt-4 landscape:mt-1">{currentCard.suitSymbol}</span>
                                             <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex flex-col items-center rotate-180 ${currentCard.color}`}>
                                                 <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
                                                 <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
