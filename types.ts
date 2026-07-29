@@ -39,7 +39,9 @@ export enum GameState {
   // New Luck/Group Games
   TREASURE = 'TREASURE',
   ROULETTE = 'ROULETTE',
-  HIGHER_LOWER = 'HIGHER_LOWER'
+  HIGHER_LOWER = 'HIGHER_LOWER',
+  BLACKJACK = 'BLACKJACK',
+  GUESS_CARD = 'GUESS_CARD'
 }
 
 export type Difficulty = 'NORMAL' | 'ADVANCED';

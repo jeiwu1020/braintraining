@@ -42,13 +42,15 @@ import GobbletGame from './components/GobbletGame';
 import TreasureGame from './components/TreasureGame';
 import RouletteGame from './components/RouletteGame';
 import HigherLowerGame from './components/HigherLowerGame';
+import BlackjackGame from './components/BlackjackGame';
+import GuessCardGame from './components/GuessCardGame';
 
 import { 
   Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
   Sun, Palette, MousePointer2, Heart, Zap, Shapes, Clock, HelpCircle, 
   Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
   ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb,
-  Map, Target, ArrowUpRight
+  Map, Target, ArrowUpRight, Shield, Layers
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -132,6 +134,10 @@ const App: React.FC = () => {
         return <TreasureGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.ROULETTE:
         return <RouletteGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.BLACKJACK:
+        return <BlackjackGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.GUESS_CARD:
+        return <GuessCardGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.HIGHER_LOWER:
         return <HigherLowerGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       default:
@@ -572,6 +578,25 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
             borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
             onClick={() => handleSelectGame(GameState.HIGHER_LOWER)}
             />
+
+            <MenuCard
+            title="公開 21 點"
+            description="計算點數與風險評估，可選擇對抗莊家或分組對抗。"
+            icon={<Shield className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-600'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-slate-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-slate-200"}
+            onClick={() => handleSelectGame(GameState.BLACKJACK)}
+            />
+
+            <MenuCard
+            title="邏輯猜牌"
+            description="透過發問與排除法，找出目標卡牌。"
+            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
+            color={isAdvanced ? "bg-white" : "bg-blue-50"}
+            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
+            onClick={() => handleSelectGame(GameState.GUESS_CARD)}
+            />
+
 
             {/* --- Mental Health Section Header --- */}
             <div className="col-span-full mt-8 mb-2 flex items-center">
