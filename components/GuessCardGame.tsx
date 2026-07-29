@@ -169,7 +169,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
         : "grid-cols-7 sm:grid-cols-10 lg:grid-cols-[13] max-w-6xl";
 
     return (
-        <div className="h-full w-full flex flex-col p-2 sm:p-6 bg-blue-50 relative overflow-hidden">
+        <div className="h-full w-full flex flex-col p-1 sm:p-3 bg-blue-50 relative overflow-hidden">
             
             {/* Dialog Overlay for Answers */}
             <AnimatePresence>
@@ -200,58 +200,58 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
             </AnimatePresence>
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-2 sm:mb-4 shrink-0 px-2">
-                <button onClick={onBack} className="p-2 sm:p-3 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
-                    <ArrowLeft size={20} />
+            <div className="flex items-center justify-between mb-1 sm:mb-2 shrink-0 px-1 sm:px-2">
+                <button onClick={onBack} className="p-1.5 sm:p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
+                    <ArrowLeft size={18} />
                 </button>
                 <div className="flex flex-col items-center">
-                    <h1 className="text-xl sm:text-3xl font-bold text-blue-900">邏輯猜牌</h1>
-                    <span className="text-xs sm:text-sm text-blue-600 font-bold hidden sm:block mt-1">發問扣10分 / 點擊卡牌盲猜錯扣30分</span>
+                    <h1 className="text-lg sm:text-2xl font-bold text-blue-900">邏輯猜牌</h1>
+                    <span className="text-[10px] sm:text-xs text-blue-600 font-bold hidden sm:block mt-0.5">發問扣10分 / 點擊卡牌盲猜錯扣30分</span>
                 </div>
-                <button onClick={initGame} className="p-2 sm:p-3 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
-                    <RefreshCw size={20} />
+                <button onClick={initGame} className="p-1.5 sm:p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
+                    <RefreshCw size={18} />
                 </button>
             </div>
 
             {/* Main Layout */}
-            <div className="flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0">
+            <div className="flex-1 flex flex-col landscape:flex-row gap-1 sm:gap-3 min-h-0">
                 
-                {/* Left Panel: Questions (33% on landscape) */}
-                <div className="w-full landscape:w-1/3 flex flex-col gap-2 shrink-0 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-blue-100 min-h-0">
-                    <div className="flex justify-between items-center mb-1 sm:mb-2 px-1">
-                        <span className="font-bold text-blue-800 flex items-center gap-1 text-sm sm:text-base"><HelpCircle size={16}/> 發問區</span>
-                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs sm:text-sm">分數: {score}</span>
+                {/* Left Panel: Questions (40% on landscape) */}
+                <div className="w-full landscape:w-[42%] flex flex-col gap-1 sm:gap-2 shrink-0 bg-white p-2 sm:p-3 rounded-xl shadow-sm border border-blue-100 min-h-0">
+                    <div className="flex justify-between items-center mb-1 px-1">
+                        <span className="font-bold text-blue-800 flex items-center gap-1 text-sm"><HelpCircle size={14}/> 發問區</span>
+                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-xs">分數: {score}</span>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 sm:gap-4">
+                    <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 sm:gap-3">
                         
                         {/* 快速分類 */}
                         <div>
-                            <div className="text-xs font-bold text-gray-400 mb-2">顏色與奇偶</div>
-                            <div className="flex flex-wrap gap-2">
-                                <button onClick={()=>handleQuickAsk('RED')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-bold hover:bg-red-100 disabled:opacity-50 active:scale-95">紅色</button>
-                                <button onClick={()=>handleQuickAsk('BLACK')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg text-sm font-bold hover:bg-gray-200 disabled:opacity-50 active:scale-95">黑色</button>
-                                <button onClick={()=>handleQuickAsk('EVEN')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">雙數</button>
-                                <button onClick={()=>handleQuickAsk('ODD')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">單數</button>
+                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">顏色與奇偶</div>
+                            <div className="grid grid-cols-4 gap-1 sm:gap-2">
+                                <button onClick={()=>handleQuickAsk('RED')} disabled={isWon || !!showDialog} className="py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-red-100 disabled:opacity-50 active:scale-95">紅色</button>
+                                <button onClick={()=>handleQuickAsk('BLACK')} disabled={isWon || !!showDialog} className="py-1.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-gray-200 disabled:opacity-50 active:scale-95">黑色</button>
+                                <button onClick={()=>handleQuickAsk('EVEN')} disabled={isWon || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">雙數</button>
+                                <button onClick={()=>handleQuickAsk('ODD')} disabled={isWon || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">單數</button>
                             </div>
                         </div>
                         
                         <div>
-                            <div className="text-xs font-bold text-gray-400 mb-2">字母與數字</div>
-                            <div className="flex flex-wrap gap-2">
-                                <button onClick={()=>handleQuickAsk('FACE')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold hover:bg-purple-100 disabled:opacity-50 active:scale-95">字母(J,Q,K,A)</button>
-                                <button onClick={()=>handleQuickAsk('NUM')} disabled={isWon || !!showDialog} className="px-3 py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-xs font-bold hover:bg-teal-100 disabled:opacity-50 active:scale-95">數字(2~10)</button>
+                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">字母與數字</div>
+                            <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                                <button onClick={()=>handleQuickAsk('FACE')} disabled={isWon || !!showDialog} className="py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-purple-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">字母(J,Q,K,A)</button>
+                                <button onClick={()=>handleQuickAsk('NUM')} disabled={isWon || !!showDialog} className="py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-teal-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">數字(2~10)</button>
                             </div>
                         </div>
 
                         {/* 花色 */}
                         <div>
-                            <div className="text-xs font-bold text-gray-400 mb-2">單一花色</div>
-                            <div className="flex gap-2">
-                                <button onClick={()=>handleQuickAsk('SPADE')} disabled={isWon || !!showDialog} className="flex-1 py-1.5 border border-gray-200 rounded-lg text-lg hover:bg-gray-50 disabled:opacity-50">♠</button>
-                                <button onClick={()=>handleQuickAsk('HEART')} disabled={isWon || !!showDialog} className="flex-1 py-1.5 border border-red-200 text-red-600 rounded-lg text-lg hover:bg-red-50 disabled:opacity-50">♥</button>
-                                <button onClick={()=>handleQuickAsk('DIAMOND')} disabled={isWon || !!showDialog} className="flex-1 py-1.5 border border-red-200 text-red-600 rounded-lg text-lg hover:bg-red-50 disabled:opacity-50">♦</button>
-                                <button onClick={()=>handleQuickAsk('CLUB')} disabled={isWon || !!showDialog} className="flex-1 py-1.5 border border-gray-200 rounded-lg text-lg hover:bg-gray-50 disabled:opacity-50">♣</button>
+                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">單一花色</div>
+                            <div className="grid grid-cols-4 gap-1 sm:gap-2">
+                                <button onClick={()=>handleQuickAsk('SPADE')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♠</button>
+                                <button onClick={()=>handleQuickAsk('HEART')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♥</button>
+                                <button onClick={()=>handleQuickAsk('DIAMOND')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♦</button>
+                                <button onClick={()=>handleQuickAsk('CLUB')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♣</button>
                             </div>
                         </div>
 
@@ -288,18 +288,18 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                     {isWon && (
                         <motion.div 
                             initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                            className="mt-2 p-2 sm:p-3 bg-green-500 rounded-xl text-center shadow-lg text-white shrink-0 flex items-center justify-center gap-3"
+                            className="mt-1 p-1.5 sm:p-2 bg-green-500 rounded-lg text-center shadow-md text-white shrink-0 flex items-center justify-center gap-2"
                         >
-                            <Trophy size={24} className="text-yellow-300" />
-                            <div className="text-sm sm:text-base font-bold">成功找出目標！得分: {score}</div>
+                            <Trophy size={18} className="text-yellow-300" />
+                            <div className="text-xs sm:text-sm font-bold">成功找出目標！得分: {score}</div>
                         </motion.div>
                     )}
                 </div>
 
-                {/* Right Panel: Cards Grid (66% on landscape) */}
-                <div className="flex-1 bg-white/50 rounded-2xl sm:rounded-3xl p-2 sm:p-4 overflow-y-auto min-h-0 border-2 border-white shadow-inner flex flex-col">
+                {/* Right Panel: Cards Grid (Remaining space) */}
+                <div className="flex-1 bg-white/50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 overflow-y-auto min-h-0 border-2 border-white shadow-inner flex flex-col">
                     <div className="flex-1 flex items-center justify-center">
-                        <div className={`grid ${gridClass} gap-1 sm:gap-2 w-full mx-auto`}>
+                        <div className={`grid ${gridClass} gap-1 sm:gap-1.5 w-full mx-auto`}>
                             {cards.map((card, index) => (
                                 <motion.button
                                     key={card.id}

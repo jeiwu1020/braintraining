@@ -86,7 +86,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
         setP2Cards([newDeck[1], newDeck[3]]);
         setDeck(newDeck.slice(4));
         setTurn('P1');
-        setMessage('玩家回合 (合作決定)');
+        setMessage('A組回合 (合作決定)');
     };
 
     const startPvPMode = () => {
@@ -113,13 +113,13 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
         if (p1Bust && p2Bust) {
             setMessage('雙方皆爆牌，平局。');
         } else if (p1Bust) {
-            setMessage(mode === 'DEALER' ? '玩家爆牌，莊家獲勝。' : '第一組爆牌，第二組獲勝。');
+            setMessage(mode === 'DEALER' ? 'A組爆牌，B組(電腦)獲勝。' : 'A組爆牌，B組獲勝。');
         } else if (p2Bust) {
-            setMessage(mode === 'DEALER' ? '莊家爆牌，玩家獲勝！' : '第二組爆牌，第一組獲勝！');
+            setMessage(mode === 'DEALER' ? 'B組(電腦)爆牌，A組獲勝！' : 'B組爆牌，A組獲勝！');
         } else if (p1Score > p2Score) {
-            setMessage(mode === 'DEALER' ? '玩家點數較大，獲勝！' : '第一組獲勝！');
+            setMessage(mode === 'DEALER' ? 'A組點數較大，獲勝！' : 'A組獲勝！');
         } else if (p2Score > p1Score) {
-            setMessage(mode === 'DEALER' ? '莊家點數較大，獲勝。' : '第二組獲勝！');
+            setMessage(mode === 'DEALER' ? 'B組(電腦)點數較大，獲勝。' : 'B組獲勝！');
         } else {
             setMessage('點數相同，平局。');
         }
@@ -172,13 +172,13 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
         setDeck(deck.slice(1));
         if (calculateScore(newHand) > 21) {
             setTurn('END');
-            setMessage('玩家爆牌！莊家獲勝。');
+            setMessage('A組爆牌！B組(電腦)獲勝。');
         }
     };
 
     const handleStandDealerMode = () => {
         setTurn('P2');
-        setMessage('莊家回合...');
+        setMessage('B組(電腦)回合...');
     };
 
     // Dealer auto-play logic
@@ -191,7 +191,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                     setDeck(deck.slice(1));
                     if (calculateScore(newHand) > 21) {
                         setTurn('END');
-                        setMessage('莊家爆牌！玩家獲勝！');
+                        setMessage('B組(電腦)爆牌！A組獲勝！');
                     }
                 } else {
                     resolveGame(p1Cards, p2Cards);
@@ -246,33 +246,33 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
         const isDone = isBusted || hasStood || turn === 'END';
 
         return (
-            <div className={`flex-1 flex flex-col items-center p-3 sm:p-6 rounded-3xl transition-all duration-500 relative ${isDone ? 'opacity-80 bg-black/10' : 'bg-white/10'}`}>
-                <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-6">
-                    <h2 className="text-lg sm:text-3xl landscape:text-xl font-bold">{title}</h2>
-                    <div className={`px-3 py-1 sm:px-5 sm:py-2 rounded-full font-mono text-base sm:text-2xl landscape:text-lg shadow-md ${isBusted ? 'bg-red-500 text-white' : hasStood ? 'bg-green-500 text-white' : 'bg-black/40 text-white'}`}>
+            <div className={`flex-1 flex flex-col items-center p-2 sm:p-4 rounded-3xl transition-all duration-500 relative ${isDone ? 'opacity-80 bg-black/10' : 'bg-white/10'}`}>
+                <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+                    <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold">{title}</h2>
+                    <div className={`px-2 py-1 sm:px-4 sm:py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${isBusted ? 'bg-red-500 text-white' : hasStood ? 'bg-green-500 text-white' : 'bg-black/40 text-white'}`}>
                         {isBusted ? '爆牌' : hasStood ? `${score} 停牌` : `${score} 點`}
                     </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-1 sm:gap-3 mb-4 min-h-[6rem] sm:min-h-[10rem]">
+                <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                     <AnimatePresence>
                         {cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                     </AnimatePresence>
                 </div>
 
                 {!isDone && (
-                    <div className="flex gap-2 sm:gap-4 mt-auto">
+                    <div className="flex gap-2 sm:gap-3 mt-auto">
                         <button 
                             onClick={() => setAction('HIT')}
-                            className={`px-4 sm:px-8 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-xl landscape:text-sm shadow-md transition-all ${action === 'HIT' ? 'bg-yellow-400 text-yellow-900 ring-4 ring-yellow-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
+                            className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'HIT' ? 'bg-yellow-400 text-yellow-900 ring-4 ring-yellow-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
                         >
-                            <RefreshCw size={18} className="inline mr-1" /> 補牌
+                            <RefreshCw size={16} className="inline mr-1" /> 補牌
                         </button>
                         <button 
                             onClick={() => setAction('STAND')}
-                            className={`px-4 sm:px-8 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-xl landscape:text-sm shadow-md transition-all ${action === 'STAND' ? 'bg-gray-400 text-gray-900 ring-4 ring-gray-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
+                            className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'STAND' ? 'bg-gray-400 text-gray-900 ring-4 ring-gray-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
                         >
-                            <CheckCircle size={18} className="inline mr-1" /> 停牌
+                            <CheckCircle size={16} className="inline mr-1" /> 停牌
                         </button>
                     </div>
                 )}
@@ -307,7 +307,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                 
                 {mode === 'PVP' ? (
                     <>
-                        {renderPlayerAreaPvP(true, '第一組', p1Cards, p1Score, p1Stood, p1Action, setP1Action)}
+                        {renderPlayerAreaPvP(true, 'A組', p1Cards, p1Score, p1Stood, p1Action, setP1Action)}
                         <div className="w-full h-px sm:w-px sm:h-full bg-green-600/50 shrink-0 relative flex items-center justify-center">
                             {turn !== 'END' && canExecutePvP && (
                                 <motion.button 
@@ -321,39 +321,39 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                                 </motion.button>
                             )}
                         </div>
-                        {renderPlayerAreaPvP(false, '第二組', p2Cards, p2Score, p2Stood, p2Action, setP2Action)}
+                        {renderPlayerAreaPvP(false, 'B組', p2Cards, p2Score, p2Stood, p2Action, setP2Action)}
                     </>
                 ) : (
                     // DEALER MODE (Legacy layout)
                     <>
-                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-6 rounded-3xl transition-all duration-500 bg-white/10`}>
+                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 bg-white/10`}>
                              <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                                <h2 className="text-lg sm:text-3xl landscape:text-xl font-bold">玩家</h2>
-                                <div className={`px-3 py-1 rounded-full font-mono text-base sm:text-2xl landscape:text-lg shadow-md ${p1Score > 21 ? 'bg-red-500' : 'bg-black/40'}`}>
+                                <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold">A組</h2>
+                                <div className={`px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${p1Score > 21 ? 'bg-red-500' : 'bg-black/40'}`}>
                                     {p1Score > 21 ? '爆牌' : `${p1Score} 點`}
                                 </div>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-1 sm:gap-3 mb-4 min-h-[6rem] sm:min-h-[10rem]">
+                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                                 <AnimatePresence>
                                     {p1Cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                                 </AnimatePresence>
                             </div>
                             {turn === 'P1' && (
-                                <div className="flex gap-2 sm:gap-4 mt-auto">
-                                    <button onClick={drawCardDealerMode} className="px-4 sm:px-8 py-2 sm:py-3 bg-yellow-500 text-yellow-900 rounded-xl font-bold landscape:text-sm shadow-md">補牌</button>
-                                    <button onClick={handleStandDealerMode} className="px-4 sm:px-8 py-2 sm:py-3 bg-gray-600 text-white rounded-xl font-bold landscape:text-sm shadow-md">停牌</button>
+                                <div className="flex gap-2 sm:gap-3 mt-auto">
+                                    <button onClick={drawCardDealerMode} className="px-3 sm:px-6 py-1.5 sm:py-2 bg-yellow-500 text-yellow-900 rounded-xl font-bold landscape:text-sm shadow-md">補牌</button>
+                                    <button onClick={handleStandDealerMode} className="px-3 sm:px-6 py-1.5 sm:py-2 bg-gray-600 text-white rounded-xl font-bold landscape:text-sm shadow-md">停牌</button>
                                 </div>
                             )}
                         </div>
                         <div className="w-full h-px sm:w-px sm:h-full bg-green-600/50 shrink-0"></div>
-                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-6 rounded-3xl transition-all duration-500 ${turn === 'P2' ? 'bg-white/10' : 'opacity-70'}`}>
+                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 ${turn === 'P2' ? 'bg-white/10' : 'opacity-70'}`}>
                              <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                                <h2 className="text-lg sm:text-3xl landscape:text-xl font-bold">莊家</h2>
-                                <div className="px-3 py-1 rounded-full font-mono text-base sm:text-2xl landscape:text-lg bg-black/40 shadow-md">
+                                <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold">B組(電腦)</h2>
+                                <div className="px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg bg-black/40 shadow-md">
                                     {p2Score} 點
                                 </div>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-1 sm:gap-3 mb-4 min-h-[6rem] sm:min-h-[10rem]">
+                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                                 <AnimatePresence>
                                     {p2Cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                                 </AnimatePresence>
