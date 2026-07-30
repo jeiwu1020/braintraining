@@ -111,9 +111,14 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
           }
       }
       const volume = sum / bufferLength;
+      
+      // Boost volume sensitivity (average volume is usually quite low, ~10-40)
+      const normalizedVolume = Math.min((volume * 3.5) / 255, 1);
+      // Non-linear curve to make small sounds visible but still allow large expansion for loud sounds
+      const boostedVolume = Math.pow(normalizedVolume, 0.6);
 
-      // Only draw if volume is above a threshold
-      if (volume > 5) {
+      // Only draw if there is some sound
+      if (volume > 2) {
           const cx = canvas.width / 2;
           const cy = canvas.height / 2;
           
@@ -121,11 +126,11 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
           const currentHue = (highestFreqIdx / bufferLength) * 360 + hueRef.current;
           hueRef.current += 0.5; // Slowly shift base color
           
-          // Map volume to radius/distance from center
-          const radius = (volume / 255) * (canvas.width / 2 - 20) + 10;
+          // Map boosted volume to radius/distance from center
+          const radius = boostedVolume * (canvas.width / 2 - 20) + 10;
           
-          // Map volume to brush size
-          const bSize = (volume / 255) * 10 + 1;
+          // Map boosted volume to brush size
+          const bSize = boostedVolume * 15 + 2;
 
           ctx.save();
           ctx.translate(cx, cy);
