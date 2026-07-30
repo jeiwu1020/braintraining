@@ -120,13 +120,15 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
       setGameState('GAMEOVER');
       setScore(s => {
           let timeBonus = 0;
-          if (timerMode === 'DOWN') {
+          if (isTimeout) {
+              timeBonus = 0;
+          } else if (timerMode === 'DOWN') {
               timeBonus = time * 2;
           } else {
               timeBonus = Math.max(0, 300 - time) * 2;
           }
           setFinalScoreStats({ base: s, bonus: timeBonus, total: s + timeBonus });
-          setMessage(isTimeout ? `時間到！加成 +${timeBonus}` : `遊戲結束！加成 +${timeBonus}`);
+          setMessage(isTimeout ? `時間到！` : `遊戲結束！加成 +${timeBonus}`);
           return s + timeBonus;
       });
   };

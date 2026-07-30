@@ -48,12 +48,19 @@ import MastermindGame from './components/MastermindGame';
 import SetGame from './components/SetGame';
 import PyramidGame from './components/PyramidGame';
 
+// Relaxing Games
+import AmbientSoundGame from './components/AmbientSoundGame';
+import MandalaGame from './components/MandalaGame';
+import AffirmationCardGame from './components/AffirmationCardGame';
+import StarryRippleGame from './components/StarryRippleGame';
+import MuscleRelaxationGame from './components/MuscleRelaxationGame';
+
 import { 
   Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
   Sun, Palette, MousePointer2, Heart, Zap, Shapes, Clock, HelpCircle, 
   Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
   ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb,
-  Map, Target, ArrowUpRight, Shield, Layers, ChevronRight, LayoutGrid
+  Map, Target, ArrowUpRight, Shield, Layers, ChevronRight, LayoutGrid, Headphones, PenTool, LayoutTemplate
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -68,6 +75,16 @@ const App: React.FC = () => {
         return <MemoryGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.BREATHING:
         return <BreathingExercise onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.AMBIENT_SOUND:
+        return <AmbientSoundGame onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.MANDALA:
+        return <MandalaGame onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.AFFIRMATION:
+        return <AffirmationCardGame onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.STARRY_RIPPLE:
+        return <StarryRippleGame onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.MUSCLE_RELAXATION:
+        return <MuscleRelaxationGame onBack={() => setGameState(GameState.MENU)} />;
       case GameState.SENTENCE:
         return <SentenceGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.FIND:
@@ -672,11 +689,51 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                         <>
                             <MenuCard
                             title="呼吸律動"
-                            description="跟隨 3-2-1 倒數與引導，緩解焦慮。"
+                            description="跟隨 4-7-8 呼吸引導，平靜思緒。"
                             icon={<Wind className="w-8 h-8 text-sky-500" />}
                             color="bg-sky-50"
                             borderColor="border-sky-200"
                             onClick={() => handleSelectGame(GameState.BREATHING)}
+                            />
+                            <MenuCard
+                            title="環境白噪音"
+                            description="聆聽雨聲、海浪與微風，幫助放鬆與專注。"
+                            icon={<Headphones className="w-8 h-8 text-indigo-500" />}
+                            color="bg-indigo-50"
+                            borderColor="border-indigo-200"
+                            onClick={() => handleSelectGame(GameState.AMBIENT_SOUND)}
+                            />
+                            <MenuCard
+                            title="紓壓聲繪"
+                            description="結合語音與塗鴉，用聲音的大小與頻率繪出心靈畫作。"
+                            icon={<PenTool className="w-8 h-8 text-purple-500" />}
+                            color="bg-purple-50"
+                            borderColor="border-purple-200"
+                            onClick={() => handleSelectGame(GameState.MANDALA)}
+                            />
+                            <MenuCard
+                            title="正向肯定小卡"
+                            description="抽取充滿感恩與正能量的話語，溫暖每一天。"
+                            icon={<Heart className="w-8 h-8 text-pink-500" />}
+                            color="bg-pink-50"
+                            borderColor="border-pink-200"
+                            onClick={() => handleSelectGame(GameState.AFFIRMATION)}
+                            />
+                            <MenuCard
+                            title="指尖星空"
+                            description="輕觸螢幕，創造屬於你的療癒水波與星空。"
+                            icon={<Sparkles className="w-8 h-8 text-blue-500" />}
+                            color="bg-blue-50"
+                            borderColor="border-blue-200"
+                            onClick={() => handleSelectGame(GameState.STARRY_RIPPLE)}
+                            />
+                            <MenuCard
+                            title="漸進式放鬆"
+                            description="跟隨引導放鬆全身肌肉，釋放深層壓力。"
+                            icon={<Smile className="w-8 h-8 text-teal-500" />}
+                            color="bg-teal-50"
+                            borderColor="border-teal-200"
+                            onClick={() => handleSelectGame(GameState.MUSCLE_RELAXATION)}
                             />
                         </>
                     )}

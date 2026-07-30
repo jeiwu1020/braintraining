@@ -103,7 +103,9 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty }) => {
       setGameState('GAMEOVER');
       setScore(s => {
           let timeBonus = 0;
-          if (timerMode === 'DOWN') {
+          if (isTimeout) {
+              timeBonus = 0;
+          } else if (timerMode === 'DOWN') {
               timeBonus = time * 2;
           } else {
               timeBonus = Math.max(0, 300 - time) * 2;
@@ -112,9 +114,9 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty }) => {
           if (isWin) {
               setMessage(`恭喜過關！加成 +${timeBonus}`);
           } else if (isTimeout) {
-              setMessage(`時間到！加成 +${timeBonus}`);
+              setMessage(`時間到！`);
           } else {
-              setMessage(`沒有配對了，結算！加成 +${timeBonus}`);
+              setMessage(`沒有配對了，結算！`);
           }
           return s + timeBonus;
       });

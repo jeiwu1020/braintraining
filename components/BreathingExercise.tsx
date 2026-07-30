@@ -64,21 +64,21 @@ const BreathingExercise: React.FC<Props> = ({ onBack }) => {
       setScale(1.5);
       
       addTimeout(() => {
-        // --- HOLD (4s) ---
+        // --- HOLD (7s) ---
         setPhase('Hold');
-        setInstruction('屏住呼吸...'); // Changed from '保持呼吸'
-        setSeconds(4);
+        setInstruction('屏住呼吸...'); 
+        setSeconds(7);
         // Animation: Stay at 1.5x
         setDuration(0); 
         setScale(1.5);
 
         addTimeout(() => {
-          // --- EXHALE (6s) ---
+          // --- EXHALE (8s) ---
           setPhase('Exhale');
           setInstruction('用嘴巴慢慢吐氣...');
-          setSeconds(6);
-          // Animation: Shrink to 1x over 6000ms
-          setDuration(6000);
+          setSeconds(8);
+          // Animation: Shrink to 1x over 8000ms
+          setDuration(8000);
           setScale(1.0);
           
           addTimeout(() => {
@@ -92,9 +92,8 @@ const BreathingExercise: React.FC<Props> = ({ onBack }) => {
              } else {
                  setIsFinished(true);
              }
-          }, 6000); // End of Exhale
-
-        }, 4000); // End of Hold
+          }, 8000); // End of Exhale
+        }, 7000); // End of Hold
       }, 4000); // End of Inhale
     };
 
