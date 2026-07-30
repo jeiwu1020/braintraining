@@ -54,6 +54,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
     const [lastAnswer, setLastAnswer] = useState<{q: string, ans: boolean, isGuess?: boolean} | null>(null);
     const [showDialog, setShowDialog] = useState<{q: string, ans: boolean, isGuess?: boolean} | null>(null);
     const [isWon, setIsWon] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
 
     // Dynamic question states
     const [compareOp, setCompareOp] = useState<'>'|'<'|'=='>('>');
@@ -71,10 +72,11 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
         setLastAnswer(null);
         setShowDialog(null);
         setIsWon(false);
+        setIsGameOver(false);
     };
 
     const handleDirectGuess = (card: CardType) => {
-        if (!targetCard || isWon || showDialog || card.isEliminated) return;
+        if (!targetCard || isWon || showDialog || card.isEliminated || isGameOver) return;
         
         const isCorrect = card.id === targetCard.id;
         setShowDialog({ q: `直接猜測：${card.suit}${card.value}`, ans: isCorrect, isGuess: true });
@@ -86,14 +88,18 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                 setIsWon(true);
             } else {
                 setCards(prev => prev.map(c => c.id === card.id ? { ...c, isEliminated: true } : c));
-                setScore(prev => prev - 30);
+                setScore(prev => {
+                    const newScore = prev - 30;
+                    if (newScore <= 0) setIsGameOver(true);
+                    return newScore;
+                });
                 setLastAnswer({ q: `猜測 ${card.suit}${card.value}`, ans: false, isGuess: true });
             }
         }, 2500);
     };
 
     const processQuestion = (label: string, condition: (c: CardType) => boolean) => {
-        if (!targetCard || isWon || showDialog) return;
+        if (!targetCard || isWon || showDialog || isGameOver) return;
         
         const answer = condition(targetCard);
         
@@ -123,14 +129,18 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                 return newCards;
             });
 
-            setScore(prev => prev - 10); // Deduct points for asking
+            setScore(prev => {
+                const newScore = prev - 10;
+                if (newScore <= 0) setIsGameOver(true);
+                return newScore;
+            }); // Deduct points for asking
             setLastAnswer({ q: label, ans: answer });
             
         }, 2500);
     };
 
     const handleQuickAsk = (type: string) => {
-        if (showDialog) return;
+        if (showDialog || isGameOver) return;
         switch (type) {
             case 'RED': processQuestion('是紅色的嗎？(♥/♦)', c => c.color === 'RED'); break;
             case 'BLACK': processQuestion('是黑色的嗎？(♠/♣)', c => c.color === 'BLACK'); break;
@@ -146,7 +156,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
     };
 
     const handleNumberAsk = () => {
-        if (showDialog) return;
+        if (showDialog || isGameOver) return;
         const valNum = getNumValue(compareVal);
         let label = '';
         let cond: (c: CardType) => boolean;
@@ -216,11 +226,11 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
             {/* Main Layout */}
             <div className="flex-1 flex flex-col landscape:flex-row gap-1 sm:gap-3 min-h-0">
                 
-                {/* Left Panel: Questions (40% on landscape) */}
-                <div className="w-full landscape:w-[42%] flex flex-col gap-1 sm:gap-2 shrink-0 bg-white p-2 sm:p-3 rounded-xl shadow-sm border border-blue-100 min-h-0">
+                {/* Left Panel: Questions (50% on landscape) */}
+                <div className="w-full landscape:w-[50%] flex flex-col gap-1 sm:gap-2 shrink-0 bg-white p-2 sm:p-3 rounded-xl shadow-sm border border-blue-100 min-h-0">
                     <div className="flex justify-between items-center mb-1 px-1">
                         <span className="font-bold text-blue-800 flex items-center gap-1 text-sm"><HelpCircle size={14}/> 發問區</span>
-                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-xs">分數: {score}</span>
+                        <span className={`font-bold px-2 py-0.5 rounded-full text-xs ${score > 0 ? 'text-blue-600 bg-blue-50' : 'text-red-600 bg-red-50'}`}>分數: {score}</span>
                     </div>
 
                     <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 sm:gap-3">
@@ -229,18 +239,18 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                         <div>
                             <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">顏色與奇偶</div>
                             <div className="grid grid-cols-4 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('RED')} disabled={isWon || !!showDialog} className="py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-red-100 disabled:opacity-50 active:scale-95">紅色</button>
-                                <button onClick={()=>handleQuickAsk('BLACK')} disabled={isWon || !!showDialog} className="py-1.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-gray-200 disabled:opacity-50 active:scale-95">黑色</button>
-                                <button onClick={()=>handleQuickAsk('EVEN')} disabled={isWon || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">雙數</button>
-                                <button onClick={()=>handleQuickAsk('ODD')} disabled={isWon || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">單數</button>
+                                <button onClick={()=>handleQuickAsk('RED')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-red-100 disabled:opacity-50 active:scale-95">紅色</button>
+                                <button onClick={()=>handleQuickAsk('BLACK')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-gray-200 disabled:opacity-50 active:scale-95">黑色</button>
+                                <button onClick={()=>handleQuickAsk('EVEN')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">雙數</button>
+                                <button onClick={()=>handleQuickAsk('ODD')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">單數</button>
                             </div>
                         </div>
                         
                         <div>
                             <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">字母與數字</div>
                             <div className="grid grid-cols-2 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('FACE')} disabled={isWon || !!showDialog} className="py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-purple-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">字母(J,Q,K,A)</button>
-                                <button onClick={()=>handleQuickAsk('NUM')} disabled={isWon || !!showDialog} className="py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-teal-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">數字(2~10)</button>
+                                <button onClick={()=>handleQuickAsk('FACE')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-purple-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">字母(J,Q,K,A)</button>
+                                <button onClick={()=>handleQuickAsk('NUM')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-teal-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">數字(2~10)</button>
                             </div>
                         </div>
 
@@ -248,10 +258,10 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                         <div>
                             <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">單一花色</div>
                             <div className="grid grid-cols-4 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('SPADE')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♠</button>
-                                <button onClick={()=>handleQuickAsk('HEART')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♥</button>
-                                <button onClick={()=>handleQuickAsk('DIAMOND')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♦</button>
-                                <button onClick={()=>handleQuickAsk('CLUB')} disabled={isWon || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♣</button>
+                                <button onClick={()=>handleQuickAsk('SPADE')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♠</button>
+                                <button onClick={()=>handleQuickAsk('HEART')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♥</button>
+                                <button onClick={()=>handleQuickAsk('DIAMOND')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♦</button>
+                                <button onClick={()=>handleQuickAsk('CLUB')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♣</button>
                             </div>
                         </div>
 
@@ -274,7 +284,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                                     {VALUES.map(v => <option key={v} value={v}>{v}</option>)}
                                 </select>
                                 <button 
-                                    onClick={handleNumberAsk} disabled={isWon || !!showDialog}
+                                    onClick={handleNumberAsk} disabled={isWon || isGameOver || !!showDialog}
                                     className="ml-auto bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-50"
                                 >
                                     發問
@@ -294,6 +304,17 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                             <div className="text-xs sm:text-sm font-bold">成功找出目標！得分: {score}</div>
                         </motion.div>
                     )}
+                    {isGameOver && (
+                        <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                            className="mt-1 p-1.5 sm:p-2 bg-red-500 rounded-lg text-center shadow-md text-white shrink-0 flex items-center justify-center gap-2"
+                        >
+                            <div className="text-xs sm:text-sm font-bold flex flex-col items-center">
+                                <span>分數歸零，遊戲結束！</span>
+                                <span>正確解答為：{targetCard?.suit}{targetCard?.value}</span>
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Right Panel: Cards Grid (Remaining space) */}
@@ -308,6 +329,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: index * 0.01 }}
+                                    style={{ containerType: 'inline-size' as any }}
                                     className={`
                                         relative aspect-[2/3] rounded border flex flex-col items-center justify-center
                                         transition-all duration-500 overflow-hidden shadow-sm outline-none
@@ -319,9 +341,9 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                                         }
                                     `}
                                 >
-                                    <div className={`flex flex-col items-center ${card.color === 'RED' ? 'text-red-600' : 'text-gray-900'}`}>
-                                        <span className={`text-xs sm:text-lg landscape:text-sm font-bold leading-none`}>{card.value}</span>
-                                        <span className={`text-xl sm:text-3xl landscape:text-2xl mt-0.5 leading-none`}>{card.suit}</span>
+                                    <div className={`flex flex-col items-center justify-center w-full h-full p-0.5 ${card.color === 'RED' ? 'text-red-600' : 'text-gray-900'}`}>
+                                        <span className="font-bold leading-none" style={{ fontSize: 'clamp(14px, 45cqw, 32px)' }}>{card.value}</span>
+                                        <span className="leading-none" style={{ fontSize: 'clamp(18px, 60cqw, 42px)', marginTop: 'clamp(2px, 2cqw, 4px)' }}>{card.suit}</span>
                                     </div>
                                     
                                     {card.isEliminated && (

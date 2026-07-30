@@ -41,7 +41,10 @@ export enum GameState {
   ROULETTE = 'ROULETTE',
   HIGHER_LOWER = 'HIGHER_LOWER',
   BLACKJACK = 'BLACKJACK',
-  GUESS_CARD = 'GUESS_CARD'
+  GUESS_CARD = 'GUESS_CARD',
+  MASTERMIND = 'MASTERMIND',
+  SET = 'SET',
+  PYRAMID = 'PYRAMID'
 }
 
 export type Difficulty = 'NORMAL' | 'ADVANCED';
