@@ -70,13 +70,36 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
       }
   }, [isMusicOn, isPlaying]);
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const toggleMusic = () => {
+      const nextMusicOn = !isMusicOn;
+      setIsMusicOn(nextMusicOn);
+      if (audioRef.current) {
+          if (nextMusicOn && isPlaying) {
+              audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+          } else {
+              audioRef.current.pause();
+          }
+      }
+  };
+
+  const togglePlay = () => {
+      const nextPlaying = !isPlaying;
+      setIsPlaying(nextPlaying);
+      if (audioRef.current) {
+          if (isMusicOn && nextPlaying) {
+              audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+          } else {
+              audioRef.current.pause();
+          }
+      }
+  };
   
   const reset = () => {
       setCurrentStep(0);
       setTimeLeft(steps[0].duration);
       setIsPlaying(false);
       setIsFinished(false);
+      if (audioRef.current) audioRef.current.pause();
   };
 
   const progress = (currentStep / steps.length) * 100;
@@ -92,7 +115,7 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
       </button>
 
       <button
-        onClick={() => setIsMusicOn(!isMusicOn)}
+        onClick={toggleMusic}
         className={`absolute top-4 right-4 p-3 rounded-full shadow-md transition-colors z-50 ${isMusicOn ? 'bg-teal-500 text-white hover:bg-teal-600' : 'bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
         title="開啟/關閉紓壓音樂"
       >
