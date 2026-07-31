@@ -45,23 +45,10 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
     return () => clearTimeout(timer);
   }, [isPlaying, timeLeft, currentStep]);
 
-  // Audio lifecycle
-  useEffect(() => {
-      audioRef.current = new Audio('/relaxing-music.mp3');
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.5;
-      
-      return () => {
-          if (audioRef.current) {
-              audioRef.current.pause();
-              audioRef.current.src = '';
-          }
-      };
-  }, []);
-
   // Play/Pause music when toggle or when playback state changes
   useEffect(() => {
       if (audioRef.current) {
+          audioRef.current.volume = 0.5;
           if (isMusicOn && isPlaying) {
               audioRef.current.play().catch(e => console.error("Audio play failed:", e));
           } else {
@@ -107,6 +94,7 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-teal-50 p-4">
+      <audio ref={audioRef} src="/relaxing-music.mp3" loop playsInline />
       <button 
         onClick={onBack}
         className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-md text-teal-600 hover:bg-teal-100 z-50 transition-colors"
