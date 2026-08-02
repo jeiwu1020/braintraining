@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, CheckCircle2, Music, Music2 } from 'lucide-react';
+import relaxingMusic from '../assets/relaxing-music.mp3';
 
 interface Props {
   onBack: () => void;
@@ -94,7 +95,7 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-teal-50 p-4">
-      <audio ref={audioRef} src="/relaxing-music.mp3" loop playsInline />
+      <audio ref={audioRef} src={relaxingMusic} loop playsInline />
       <button 
         onClick={onBack}
         className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-md text-teal-600 hover:bg-teal-100 z-50 transition-colors"
