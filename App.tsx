@@ -54,6 +54,13 @@ import MandalaGame from './components/MandalaGame';
 import AffirmationCardGame from './components/AffirmationCardGame';
 import StarryRippleGame from './components/StarryRippleGame';
 import MuscleRelaxationGame from './components/MuscleRelaxationGame';
+import GuessWhoGame from "./components/GuessWhoGame";
+import StoryCardsGame from "./components/StoryCardsGame";
+import ConditionalSnapGame from "./components/ConditionalSnapGame";
+import RevealPictureGame from "./components/RevealPictureGame";
+import MazeNavigatorGame from "./components/MazeNavigatorGame";
+import WordTileGame from "./components/WordTileGame";
+
 
 import { 
   Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
@@ -61,7 +68,7 @@ import {
   Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
   ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb,
   Map, Target, ArrowUpRight, Shield, Layers, ChevronRight, LayoutGrid, Headphones, PenTool, LayoutTemplate
-} from 'lucide-react';
+, SpellCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
@@ -85,6 +92,18 @@ const App: React.FC = () => {
         return <StarryRippleGame onBack={() => setGameState(GameState.MENU)} />;
       case GameState.MUSCLE_RELAXATION:
         return <MuscleRelaxationGame onBack={() => setGameState(GameState.MENU)} />;
+      case GameState.GUESS_WHO:
+        return <GuessWhoGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.STORY_CARDS:
+        return <StoryCardsGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.CONDITIONAL_SNAP:
+        return <ConditionalSnapGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.REVEAL_PICTURE:
+        return <RevealPictureGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.MAZE_NAVIGATOR:
+        return <MazeNavigatorGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.WORD_TILE:
+        return <WordTileGame onBack={() => setGameState(GameState.MENU)} isAdvanced={difficulty === "ADVANCED"} />;
       case GameState.SENTENCE:
         return <SentenceGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.FIND:
@@ -334,6 +353,30 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {selectedCategory === 'BOARD' && (
                         <>
+                            <MenuCard
+                            title="翻牌解謎"
+                            description="選號碼翻牌，拼湊出背後隱藏的圖案。"
+                            icon={<Search className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-emerald-600"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-emerald-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
+                            onClick={() => handleSelectGame(GameState.REVEAL_PICTURE)}
+                            />
+                            <MenuCard
+                            title="尋寶迷宮指路"
+                            description="發號施令指引方向，合作避開障礙物找到寶藏！"
+                            icon={<Map className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-indigo-600"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-indigo-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
+                            onClick={() => handleSelectGame(GameState.MAZE_NAVIGATOR)}
+                            />
+                            <MenuCard
+                            title="成語接龍棋盤"
+                            description="語文認知訓練，選出正確的字填入空格。"
+                            icon={<SpellCheck className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-orange-600"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-orange-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
+                            onClick={() => handleSelectGame(GameState.WORD_TILE)}
+                            />
                             <MenuCard
                             title="珠璣妙算"
                             description={isAdvanced ? "6種顏色，更長序列，考驗極致邏輯推理。" : "4種顏色，猜出正確排列，經典邏輯解謎。"}
@@ -605,6 +648,30 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
 
                     {selectedCategory === 'LUCK_CARD' && (
                         <>
+                            <MenuCard
+                            title="猜猜我是誰"
+                            description="邏輯排除法，根據特徵提問找出目標人物。"
+                            icon={<Users className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-blue-500"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
+                            onClick={() => handleSelectGame(GameState.GUESS_WHO)}
+                            />
+                            <MenuCard
+                            title="故事聯想卡"
+                            description="看圖說故事，發揮想像力將隨機物品串聯起來。"
+                            icon={<Lightbulb className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-amber-500"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
+                            onClick={() => handleSelectGame(GameState.STORY_CARDS)}
+                            />
+                            <MenuCard
+                            title="條件反應大挑戰"
+                            description="設定專屬規則，看到目標圖案快速反應！"
+                            icon={<Zap className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-rose-500"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-rose-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
+                            onClick={() => handleSelectGame(GameState.CONDITIONAL_SNAP)}
+                            />
                             <MenuCard
                             title="公開 21 點"
                             description="計算點數與風險評估，可選擇對抗莊家或分組對抗。"
