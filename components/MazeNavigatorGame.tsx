@@ -31,7 +31,14 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const [showRules, setShowRules] = useState(false);
 
   const [isListening, setIsListening] = useState(false);
+  const [recognizedText, setRecognizedText] = useState('');
+  const [voiceHint, setVoiceHint] = useState('');
+  const [voiceSupported, setVoiceSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  const moveRef = useRef<(dr: number, dc: number) => void>(() => {});
+  const isListeningRef = useRef(isListening);
+  const isWinRef = useRef(isWin);
+  const lastHandledIndexRef = useRef(-1);
 
   const generateMaze = useCallback(() => {
       const rCount = isAdvanced ? 9 : 7;
@@ -168,6 +175,20 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       });
   }, [isWin, ROWS, COLS, walls, treasures]);
 
+  // Keep a ref to the latest move() so the (long-lived) speech recognition
+  // instance always calls the current logic without needing to be recreated.
+  useEffect(() => {
+      moveRef.current = move;
+  }, [move]);
+
+  useEffect(() => {
+      isListeningRef.current = isListening;
+  }, [isListening]);
+
+  useEffect(() => {
+      isWinRef.current = isWin;
+  }, [isWin]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp') move(-1, 0);
@@ -180,56 +201,137 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [move]);
 
+  // Direction keywords, incl. common variants, so single-syllable words like
+  // "上/下/左/右" have a better chance of matching even with imperfect ASR.
+  const DIRECTIONS = [
+      { dr: -1, dc: 0, keywords: ['上', '往上', '上面', '上走', 'up'] },
+      { dr: 1, dc: 0, keywords: ['下', '往下', '下面', '下走', 'down'] },
+      { dr: 0, dc: -1, keywords: ['左', '往左', '左邊', '左走', 'left'] },
+      { dr: 0, dc: 1, keywords: ['右', '往右', '右邊', '右走', 'right'] },
+  ];
+
+  const matchDirection = (text: string) => {
+      const t = text.trim().toLowerCase();
+      if (!t) return null;
+      return DIRECTIONS.find(d => d.keywords.some(k => t.includes(k))) || null;
+  };
+
   useEffect(() => {
-      // Voice Control Setup
-      if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-          const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-          const recognition = new SpeechRecognition();
-          recognition.continuous = true;
-          recognition.interimResults = false;
-          recognition.lang = 'zh-TW';
+      // Voice Control Setup — created ONCE and kept alive for the whole
+      // component lifetime. The old implementation recreated the recognition
+      // instance every time move/isListening/isWin changed, which caused the
+      // mic to stop/restart constantly and feel laggy/unresponsive.
+      if (typeof window === 'undefined' || !('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+          setVoiceSupported(false);
+          return;
+      }
 
-          recognition.onresult = (event: any) => {
-              const last = event.results.length - 1;
-              const command = event.results[last][0].transcript.trim().toLowerCase();
-              
-              if (command.includes('上')) move(-1, 0);
-              else if (command.includes('下')) move(1, 0);
-              else if (command.includes('左')) move(0, -1);
-              else if (command.includes('右')) move(0, 1);
-          };
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      // Use interim (in-progress) results instead of waiting for a final
+      // result — for one-character commands like "上/下/左/右" this is what
+      // makes recognition feel instant instead of slow/unresponsive.
+      recognition.interimResults = true;
+      recognition.lang = 'zh-TW';
+      recognition.maxAlternatives = 3;
 
-          recognition.onend = () => {
-              if (isListening && !isWin) {
-                  try {
-                      recognition.start();
-                  } catch (e) {
-                      console.error(e);
+      recognition.onresult = (event: any) => {
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+              const result = event.results[i];
+              const primaryText = result[0].transcript.trim();
+
+              // Show whatever was just heard on screen, in real time.
+              setRecognizedText(primaryText);
+
+              // Check the top guess first, then fall back to alternative
+              // guesses — improves the hit rate for short directional words.
+              let dir = matchDirection(primaryText);
+              let matchedText = primaryText;
+              if (!dir) {
+                  for (let a = 1; a < result.length; a++) {
+                      const altText = result[a].transcript.trim();
+                      const altDir = matchDirection(altText);
+                      if (altDir) {
+                          dir = altDir;
+                          matchedText = altText;
+                          break;
+                      }
                   }
               }
-          };
 
-          recognitionRef.current = recognition;
-      }
-      
-      return () => {
-          if (recognitionRef.current) {
-              recognitionRef.current.stop();
+              if (dir) {
+                  // Only trigger once per spoken segment (result index), even
+                  // though interim results fire repeatedly while still
+                  // speaking — prevents the same word from moving twice.
+                  if (lastHandledIndexRef.current !== i) {
+                      lastHandledIndexRef.current = i;
+                      moveRef.current(dir.dr, dir.dc);
+                      setVoiceHint(`✅ 辨識到「${matchedText}」`);
+                  }
+              } else if (result.isFinal) {
+                  setVoiceHint(`❓ 沒聽清楚「${primaryText}」，請再說一次「上／下／左／右」`);
+              }
           }
       };
-  }, [move, isListening, isWin]);
+
+      recognition.onerror = (event: any) => {
+          if (event.error === 'no-speech' || event.error === 'aborted') {
+              // Not a real problem — just keep listening.
+              return;
+          }
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+              setVoiceHint('⚠️ 麥克風權限被拒絕，請至瀏覽器設定允許使用麥克風');
+              setIsListening(false);
+          } else {
+              setVoiceHint('⚠️ 語音辨識發生錯誤，正在重新啟動...');
+          }
+      };
+
+      recognition.onend = () => {
+          lastHandledIndexRef.current = -1;
+          if (isListeningRef.current && !isWinRef.current) {
+              try {
+                  recognition.start();
+              } catch (e) {
+                  // ignore — likely already starting
+              }
+          }
+      };
+
+      recognitionRef.current = recognition;
+
+      return () => {
+          recognition.onresult = null;
+          recognition.onerror = null;
+          recognition.onend = null;
+          try { recognition.stop(); } catch (e) { /* ignore */ }
+      };
+  }, []);
 
   useEffect(() => {
       if (isListening && recognitionRef.current) {
+          setRecognizedText('');
+          setVoiceHint('🎤 請說「上」、「下」、「左」或「右」...');
+          lastHandledIndexRef.current = -1;
           try {
               recognitionRef.current.start();
           } catch (e) {
-              console.error("Failed to start speech recognition", e);
+              // ignore — likely already started
           }
       } else if (!isListening && recognitionRef.current) {
-          recognitionRef.current.stop();
+          try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+          setRecognizedText('');
+          setVoiceHint('');
       }
   }, [isListening]);
+
+  // Voice control stops automatically once the maze is won.
+  useEffect(() => {
+      if (isWin) {
+          setIsListening(false);
+      }
+  }, [isWin]);
 
   const toggleListening = () => {
       setIsListening(!isListening);
@@ -259,7 +361,7 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           onClose={() => setShowRules(false)}
           rules={[
               "控制主角在迷宮中移動。",
-              "你可以點擊方向鍵，或者點擊麥克風後大喊「上」、「下」、「左」、「右」來移動。",
+              "你可以點擊方向鍵，或者點擊麥克風後大喊「上」、「下」、「左」、「右」來移動，畫面上會即時顯示辨識到的文字。",
               "迷宮中有 3 個寶箱，其中只有 1 個是真的鑽石，其他 2 個是石頭。",
               "避開障礙物，盡快找出真正的鑽石！",
               "計分方式：顯示你找到鑽石所花費的總秒數。"
@@ -278,6 +380,24 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                   {isListening ? <Mic size={28} /> : <MicOff size={28} />}
                   <span className="text-xs sm:text-sm font-bold">{isListening ? '收音中...' : '開啟聲控'}</span>
               </button>
+
+              {!voiceSupported && (
+                  <div className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-center">
+                      此瀏覽器不支援語音辨識，請改用 Chrome 開啟
+                  </div>
+              )}
+
+              {isListening && (
+                  <div className="bg-white rounded-2xl shadow-md border border-indigo-100 px-3 py-2 flex flex-col items-center gap-1 min-h-[3.5rem] justify-center">
+                      <span className="text-[10px] sm:text-xs text-slate-400 font-bold">辨識到的文字</span>
+                      <span className="text-sm sm:text-lg font-bold text-indigo-700 break-all text-center">
+                          {recognizedText || '...'}
+                      </span>
+                      {voiceHint && (
+                          <span className="text-[10px] sm:text-xs text-slate-500 text-center">{voiceHint}</span>
+                      )}
+                  </div>
+              )}
 
               {/* Always render controls, but disable when win */}
               <div className={`flex flex-col gap-2 transition-opacity duration-500 ${isWin ? 'opacity-30 pointer-events-none' : ''}`}>
