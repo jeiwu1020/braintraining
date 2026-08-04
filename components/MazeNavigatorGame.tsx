@@ -39,6 +39,7 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const isListeningRef = useRef(isListening);
   const isWinRef = useRef(isWin);
   const lastHandledIndexRef = useRef(-1);
+  const clearTextTimerRef = useRef<any>(null);
 
   const generateMaze = useCallback(() => {
       const rCount = isAdvanced ? 9 : 7;
@@ -201,19 +202,58 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [move]);
 
-  // Direction keywords, incl. common variants, so single-syllable words like
-  // "上/下/左/右" have a better chance of matching even with imperfect ASR.
+  // Direction keywords, incl. common variants and same-sound homophones, so
+  // words like "上/下/左/右" have a better chance of matching even with
+  // imperfect ASR (e.g. "右" is very often misheard as "又"/"幼"/"佑" since
+  // they share the exact same pronunciation yòu).
+  //
+  // Matching is deliberately two-tiered:
+  //  - exactWords: the ENTIRE utterance must equal the word. This is what
+  //    lets us safely accept homophones like "又" — since it only counts
+  //    when that's the whole thing the user said, it won't accidentally
+  //    fire from an unrelated sentence that happens to contain "又"/"有".
+  //  - phraseWords: matched anywhere inside a longer sentence, only used for
+  //    multi-character phrases ("往右"/"右邊") which already carry enough
+  //    context to be unambiguous.
   const DIRECTIONS = [
-      { dr: -1, dc: 0, keywords: ['上', '往上', '上面', '上走', 'up'] },
-      { dr: 1, dc: 0, keywords: ['下', '往下', '下面', '下走', 'down'] },
-      { dr: 0, dc: -1, keywords: ['左', '往左', '左邊', '左走', 'left'] },
-      { dr: 0, dc: 1, keywords: ['右', '往右', '右邊', '右走', 'right'] },
+      {
+          dr: -1, dc: 0,
+          exactWords: ['上', 'up'],
+          phraseWords: ['往上', '上面', '上走'],
+      },
+      {
+          dr: 1, dc: 0,
+          exactWords: ['下', 'down'],
+          phraseWords: ['往下', '下面', '下走'],
+      },
+      {
+          dr: 0, dc: -1,
+          exactWords: ['左', '佐', 'left'], // 佐 is a same-sound homophone of 左 (zuǒ)
+          phraseWords: ['往左', '左邊', '左走'],
+      },
+      {
+          dr: 0, dc: 1,
+          exactWords: ['右', '又', '幼', '佑', 'right'], // 又/幼/佑 are same-sound homophones of 右 (yòu)
+          phraseWords: ['往右', '右邊', '右走'],
+      },
   ];
 
   const matchDirection = (text: string) => {
       const t = text.trim().toLowerCase();
       if (!t) return null;
-      return DIRECTIONS.find(d => d.keywords.some(k => t.includes(k))) || null;
+      const exactHit = DIRECTIONS.find(d => d.exactWords.includes(t));
+      if (exactHit) return exactHit;
+      return DIRECTIONS.find(d => d.phraseWords.some(k => t.includes(k))) || null;
+  };
+
+  // Clears the on-screen caption a little while after the last update, so a
+  // previous command's text doesn't linger and get confused with the next
+  // one if there's a gap in recognition results.
+  const scheduleClearRecognizedText = () => {
+      if (clearTextTimerRef.current) clearTimeout(clearTextTimerRef.current);
+      clearTextTimerRef.current = setTimeout(() => {
+          setRecognizedText('');
+      }, 3000);
   };
 
   useEffect(() => {
@@ -241,8 +281,11 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               const result = event.results[i];
               const primaryText = result[0].transcript.trim();
 
-              // Show whatever was just heard on screen, in real time.
+              // Show whatever was just heard on screen, in real time. Reset
+              // the auto-clear timer each time so the caption stays visible
+              // while actively updating, but disappears once things go quiet.
               setRecognizedText(primaryText);
+              scheduleClearRecognizedText();
 
               // Check the top guess first, then fall back to alternative
               // guesses — improves the hit rate for short directional words.
@@ -275,6 +318,15 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           }
       };
 
+      // Fires as soon as the browser detects the user has started speaking
+      // again — wipe the previous line immediately so it can't be mistaken
+      // for the new command that's about to come in.
+      recognition.onspeechstart = () => {
+          if (clearTextTimerRef.current) clearTimeout(clearTextTimerRef.current);
+          setRecognizedText('');
+          setVoiceHint('👂 聆聽中...');
+      };
+
       recognition.onerror = (event: any) => {
           if (event.error === 'no-speech' || event.error === 'aborted') {
               // Not a real problem — just keep listening.
@@ -305,6 +357,8 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           recognition.onresult = null;
           recognition.onerror = null;
           recognition.onend = null;
+          recognition.onspeechstart = null;
+          if (clearTextTimerRef.current) clearTimeout(clearTextTimerRef.current);
           try { recognition.stop(); } catch (e) { /* ignore */ }
       };
   }, []);
@@ -321,6 +375,7 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           }
       } else if (!isListening && recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+          if (clearTextTimerRef.current) clearTimeout(clearTextTimerRef.current);
           setRecognizedText('');
           setVoiceHint('');
       }
