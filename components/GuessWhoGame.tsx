@@ -8,19 +8,129 @@ interface Props {
   isAdvanced?: boolean;
 }
 
-const CHARACTERS = [
-  { id: 1, name: '小明', emoji: '👦', features: ['男生', '短髮', '沒戴眼鏡'] },
-  { id: 2, name: '小華', emoji: '👩', features: ['女生', '長髮', '沒戴眼鏡'] },
-  { id: 3, name: '老王', emoji: '👴', features: ['男生', '白髮', '戴眼鏡'] },
-  { id: 4, name: '阿嬤', emoji: '👵', features: ['女生', '白髮', '戴眼鏡'] },
-  { id: 5, name: '大衛', emoji: '👱‍♂️', features: ['男生', '金髮', '沒戴眼鏡'] },
-  { id: 6, name: '莉莉', emoji: '👱‍♀️', features: ['女生', '金髮', '沒戴眼鏡'] },
-  { id: 7, name: '大叔', emoji: '🧔', features: ['男生', '有鬍子', '沒戴眼鏡'] },
-  { id: 8, name: '警長', emoji: '👮', features: ['男生', '戴帽子', '沒戴眼鏡'] },
-  { id: 9, name: '紅紅', emoji: '👩‍🦰', features: ['女生', '紅髮', '沒戴眼鏡'] },
-  { id: 10, name: '捲捲', emoji: '👨‍🦱', features: ['男生', '捲髮', '沒戴眼鏡'] },
-  { id: 11, name: '老師', emoji: '👩‍🏫', features: ['女生', '戴眼鏡', '長髮'] },
-  { id: 12, name: '廚師', emoji: '👨‍🍳', features: ['男生', '戴帽子', '有鬍子'] }
+const Avatar = ({ 
+  gender, 
+  hairStyle, 
+  hairColor, 
+  glasses, 
+  hat, 
+  beard 
+}: { 
+  gender: 'm'|'f', 
+  hairStyle: 'short'|'long'|'curly'|'bald_top', 
+  hairColor: string, 
+  glasses: boolean, 
+  hat: 'none'|'police'|'chef', 
+  beard: boolean 
+}) => {
+  return (
+    <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-sm">
+      {/* Shoulders */}
+      <path d="M 15 100 Q 50 70 85 100 Z" fill={gender === 'f' ? '#f472b6' : '#60a5fa'} />
+      
+      {/* Back Hair for Long Hair */}
+      {hairStyle === 'long' && (
+        <path d="M 25 40 L 15 85 L 85 85 L 75 40 Z" fill={hairColor} />
+      )}
+
+      {/* Face */}
+      <circle cx="50" cy="45" r="25" fill="#fcd5ce" />
+
+      {/* Front Hair */}
+      {hairStyle === 'short' && hat === 'none' && (
+        <path d="M 25 45 Q 25 15 50 15 Q 75 15 75 45 L 70 30 Q 50 20 30 30 Z" fill={hairColor} />
+      )}
+      {hairStyle === 'long' && hat === 'none' && (
+        <path d="M 25 45 Q 25 15 50 15 Q 75 15 75 45 L 70 25 Q 50 15 30 25 Z" fill={hairColor} />
+      )}
+      {hairStyle === 'curly' && hat === 'none' && (
+        <g fill={hairColor}>
+          <circle cx="50" cy="18" r="14" />
+          <circle cx="35" cy="22" r="12" />
+          <circle cx="65" cy="22" r="12" />
+          <circle cx="25" cy="32" r="12" />
+          <circle cx="75" cy="32" r="12" />
+          <circle cx="20" cy="45" r="10" />
+          <circle cx="80" cy="45" r="10" />
+        </g>
+      )}
+      {hairStyle === 'bald_top' && hat === 'none' && (
+        <path d="M 25 45 Q 20 30 25 25 L 30 25 Q 28 40 30 45 Z M 75 45 Q 80 30 75 25 L 70 25 Q 72 40 70 45 Z" fill={hairColor} />
+      )}
+
+      {/* Hair peeking under hat */}
+      {hat !== 'none' && (
+        <path d="M 25 45 Q 25 35 30 35 L 30 40 Z M 75 45 Q 75 35 70 35 L 70 40 Z" fill={hairColor} />
+      )}
+
+      {/* Eyes */}
+      <circle cx="40" cy="40" r="3" fill="#333" />
+      <circle cx="60" cy="40" r="3" fill="#333" />
+
+      {/* Glasses */}
+      {glasses && (
+        <g stroke="#333" strokeWidth="2.5" fill="none">
+          <rect x="30" y="34" width="14" height="12" rx="3" />
+          <rect x="56" y="34" width="14" height="12" rx="3" />
+          <line x1="44" y1="40" x2="56" y2="40" />
+          <line x1="22" y1="40" x2="30" y2="40" />
+          <line x1="70" y1="40" x2="78" y2="40" />
+        </g>
+      )}
+
+      {/* Mouth */}
+      <path d="M 45 55 Q 50 60 55 55" stroke="#333" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+
+      {/* Beard */}
+      {beard && (
+        <path d="M 28 48 Q 35 75 50 75 Q 65 75 72 48 Q 60 60 50 60 Q 40 60 28 48 Z" fill={hairColor} />
+      )}
+
+      {/* Hats */}
+      {hat === 'police' && (
+        <g>
+          <path d="M 18 25 Q 50 5 82 25 Z" fill="#1e3a8a" />
+          <path d="M 12 25 Q 50 35 88 25 L 82 20 Q 50 30 18 20 Z" fill="#111" />
+          <circle cx="50" cy="16" r="4" fill="#fbbf24" />
+        </g>
+      )}
+      {hat === 'chef' && (
+        <g fill="#fff" stroke="#d1d5db" strokeWidth="2">
+          <path d="M 25 20 C 10 -10, 40 -15, 50 5 C 60 -15, 90 -10, 75 20 Z" />
+          <rect x="25" y="15" width="50" height="12" rx="2" />
+        </g>
+      )}
+    </svg>
+  );
+};
+
+type CharacterDef = {
+  id: number;
+  name: string;
+  features: string[];
+  avatar: {
+    gender: 'm'|'f';
+    hairStyle: 'short'|'long'|'curly'|'bald_top';
+    hairColor: string;
+    glasses: boolean;
+    hat: 'none'|'police'|'chef';
+    beard: boolean;
+  }
+}
+
+const CHARACTERS: CharacterDef[] = [
+  { id: 1, name: '小明', features: ['男生', '短髮', '沒戴眼鏡'], avatar: { gender: 'm', hairStyle: 'short', hairColor: '#1f2937', glasses: false, hat: 'none', beard: false } },
+  { id: 2, name: '小華', features: ['女生', '長髮', '沒戴眼鏡'], avatar: { gender: 'f', hairStyle: 'long', hairColor: '#1f2937', glasses: false, hat: 'none', beard: false } },
+  { id: 3, name: '老王', features: ['男生', '白髮', '戴眼鏡'], avatar: { gender: 'm', hairStyle: 'bald_top', hairColor: '#9ca3af', glasses: true, hat: 'none', beard: false } },
+  { id: 4, name: '阿嬤', features: ['女生', '白髮', '戴眼鏡'], avatar: { gender: 'f', hairStyle: 'curly', hairColor: '#9ca3af', glasses: true, hat: 'none', beard: false } },
+  { id: 5, name: '大衛', features: ['男生', '金髮', '沒戴眼鏡'], avatar: { gender: 'm', hairStyle: 'short', hairColor: '#fcd34d', glasses: false, hat: 'none', beard: false } },
+  { id: 6, name: '莉莉', features: ['女生', '金髮', '沒戴眼鏡'], avatar: { gender: 'f', hairStyle: 'long', hairColor: '#fcd34d', glasses: false, hat: 'none', beard: false } },
+  { id: 7, name: '大叔', features: ['男生', '有鬍子', '沒戴眼鏡'], avatar: { gender: 'm', hairStyle: 'short', hairColor: '#1f2937', glasses: false, hat: 'none', beard: true } },
+  { id: 8, name: '警長', features: ['男生', '戴帽子', '沒戴眼鏡'], avatar: { gender: 'm', hairStyle: 'short', hairColor: '#1f2937', glasses: false, hat: 'police', beard: false } },
+  { id: 9, name: '紅紅', features: ['女生', '紅髮', '沒戴眼鏡'], avatar: { gender: 'f', hairStyle: 'long', hairColor: '#f87171', glasses: false, hat: 'none', beard: false } },
+  { id: 10, name: '捲捲', features: ['男生', '捲髮', '沒戴眼鏡'], avatar: { gender: 'm', hairStyle: 'curly', hairColor: '#1f2937', glasses: false, hat: 'none', beard: false } },
+  { id: 11, name: '老師', features: ['女生', '戴眼鏡', '長髮'], avatar: { gender: 'f', hairStyle: 'long', hairColor: '#1f2937', glasses: true, hat: 'none', beard: false } },
+  { id: 12, name: '廚師', features: ['男生', '戴帽子', '有鬍子'], avatar: { gender: 'm', hairStyle: 'short', hairColor: '#1f2937', glasses: false, hat: 'chef', beard: true } }
 ];
 
 const QUESTIONS = [
@@ -140,7 +250,7 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                                   : 'bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-md'
                       }`}
                   >
-                      <span className="text-4xl sm:text-5xl mb-1">{card.emoji}</span>
+                      <Avatar {...card.avatar} />
                       <span className="text-sm font-bold text-slate-700">{card.name}</span>
                   </button>
               ))}
