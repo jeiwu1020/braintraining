@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, RefreshCw, Trophy, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, RefreshCw, Trophy, Clock, Mic, MicOff, HelpCircle } from 'lucide-react';
 import { soundService } from '../services/soundService';
+import { RulesModal } from './RulesModal';
 
 interface Props {
   onBack: () => void;
@@ -27,8 +28,12 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const [isWin, setIsWin] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [endTime, setEndTime] = useState<number | null>(null);
+  const [showRules, setShowRules] = useState(false);
 
-  const generateMaze = () => {
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const generateMaze = useCallback(() => {
       const rCount = isAdvanced ? 9 : 7;
       const cCount = isAdvanced ? 13 : 9;
       setRows(rCount);
@@ -112,54 +117,122 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
 
       setTreasures(newTreasures);
       setStartTime(Date.now());
-  };
+  }, [isAdvanced]);
 
   useEffect(() => {
       generateMaze();
-  }, [isAdvanced]);
+  }, [generateMaze]);
 
-  const move = (dr: number, dc: number) => {
+  const move = useCallback((dr: number, dc: number) => {
       if (isWin) return;
       
-      const nextR = playerPos.r + dr;
-      const nextC = playerPos.c + dc;
-      
-      // Check bounds
-      if (nextR < 0 || nextR >= ROWS || nextC < 0 || nextC >= COLS) {
-          soundService.playWrong();
-          return;
-      }
-      
-      // Check walls
-      if (walls.some(w => w.r === nextR && w.c === nextC)) {
-          soundService.playWrong();
-          return;
-      }
-      
-      setPlayerPos({ r: nextR, c: nextC });
-      
-      const hitTreasure = treasures.find(t => t.r === nextR && t.c === nextC);
-      
-      if (hitTreasure) {
-          if (!hitTreasure.isOpen) {
-              const updated = treasures.map(t => 
-                  (t.r === hitTreasure.r && t.c === hitTreasure.c) ? { ...t, isOpen: true } : t
-              );
-              setTreasures(updated);
-              
-              if (hitTreasure.isReal) {
-                  soundService.playWin();
-                  setIsWin(true);
-                  setEndTime(Date.now());
+      setPlayerPos(prev => {
+          const nextR = prev.r + dr;
+          const nextC = prev.c + dc;
+          
+          // Check bounds
+          if (nextR < 0 || nextR >= ROWS || nextC < 0 || nextC >= COLS) {
+              soundService.playWrong();
+              return prev;
+          }
+          
+          // Check walls
+          if (walls.some(w => w.r === nextR && w.c === nextC)) {
+              soundService.playWrong();
+              return prev;
+          }
+
+          const hitTreasure = treasures.find(t => t.r === nextR && t.c === nextC);
+          
+          if (hitTreasure) {
+              if (!hitTreasure.isOpen) {
+                  const updated = treasures.map(t => 
+                      (t.r === hitTreasure.r && t.c === hitTreasure.c) ? { ...t, isOpen: true } : t
+                  );
+                  setTreasures(updated);
+                  
+                  if (hitTreasure.isReal) {
+                      soundService.playWin();
+                      setIsWin(true);
+                      setEndTime(Date.now());
+                  } else {
+                      soundService.playWrong(); // It's a stone
+                  }
               } else {
-                  soundService.playWrong(); // It's a stone
+                  soundService.playTone(400, 'sine', 0.1);
               }
           } else {
               soundService.playTone(400, 'sine', 0.1);
           }
-      } else {
-          soundService.playTone(400, 'sine', 0.1);
+          return { r: nextR, c: nextC };
+      });
+  }, [isWin, ROWS, COLS, walls, treasures]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp') move(-1, 0);
+      if (e.key === 'ArrowDown') move(1, 0);
+      if (e.key === 'ArrowLeft') move(0, -1);
+      if (e.key === 'ArrowRight') move(0, 1);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [move]);
+
+  useEffect(() => {
+      // Voice Control Setup
+      if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+          const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = false;
+          recognition.lang = 'zh-TW';
+
+          recognition.onresult = (event: any) => {
+              const last = event.results.length - 1;
+              const command = event.results[last][0].transcript.trim().toLowerCase();
+              
+              if (command.includes('上')) move(-1, 0);
+              else if (command.includes('下')) move(1, 0);
+              else if (command.includes('左')) move(0, -1);
+              else if (command.includes('右')) move(0, 1);
+          };
+
+          recognition.onend = () => {
+              if (isListening && !isWin) {
+                  try {
+                      recognition.start();
+                  } catch (e) {
+                      console.error(e);
+                  }
+              }
+          };
+
+          recognitionRef.current = recognition;
       }
+      
+      return () => {
+          if (recognitionRef.current) {
+              recognitionRef.current.stop();
+          }
+      };
+  }, [move, isListening, isWin]);
+
+  useEffect(() => {
+      if (isListening && recognitionRef.current) {
+          try {
+              recognitionRef.current.start();
+          } catch (e) {
+              console.error("Failed to start speech recognition", e);
+          }
+      } else if (!isListening && recognitionRef.current) {
+          recognitionRef.current.stop();
+      }
+  }, [isListening]);
+
+  const toggleListening = () => {
+      setIsListening(!isListening);
   };
 
   return (
@@ -171,10 +244,41 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
         <ArrowLeft size={20} />
       </button>
 
-      <div className="w-full h-full max-w-6xl flex flex-row items-center justify-center gap-4 sm:gap-10 p-4">
+      <div className="absolute top-4 right-4 flex gap-2 z-50">
+          <button 
+              onClick={() => setShowRules(true)}
+              className="p-2 sm:p-2 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors active:scale-95 flex items-center justify-center"
+              title="遊戲規則"
+          >
+              <HelpCircle size={24} />
+          </button>
+      </div>
+
+      <RulesModal 
+          isOpen={showRules} 
+          onClose={() => setShowRules(false)}
+          rules={[
+              "控制主角在迷宮中移動。",
+              "你可以點擊方向鍵，或者點擊麥克風後大喊「上」、「下」、「左」、「右」來移動。",
+              "迷宮中有 3 個寶箱，其中只有 1 個是真的鑽石，其他 2 個是石頭。",
+              "避開障礙物，盡快找出真正的鑽石！",
+              "計分方式：顯示你找到鑽石所花費的總秒數。"
+          ]}
+      />
+
+      <div className="w-full h-full max-w-6xl flex flex-row items-center justify-center gap-4 sm:gap-10 p-4 pt-12 sm:pt-4">
           
           {/* Controls Left */}
           <div className="flex flex-col gap-4 shrink-0 justify-center min-w-[140px] sm:min-w-[180px]">
+              {/* Voice Control Toggle */}
+              <button 
+                  onClick={toggleListening}
+                  className={`py-3 px-4 rounded-2xl shadow-md border flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isListening ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50'}`}
+              >
+                  {isListening ? <Mic size={28} /> : <MicOff size={28} />}
+                  <span className="text-xs sm:text-sm font-bold">{isListening ? '收音中...' : '開啟聲控'}</span>
+              </button>
+
               {/* Always render controls, but disable when win */}
               <div className={`flex flex-col gap-2 transition-opacity duration-500 ${isWin ? 'opacity-30 pointer-events-none' : ''}`}>
                   <div className="flex justify-center">

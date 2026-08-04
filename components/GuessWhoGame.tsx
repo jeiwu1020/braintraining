@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, RefreshCw, HelpCircle, Check, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, HelpCircle, Check, X, Info } from 'lucide-react';
 import { soundService } from '../services/soundService';
+import { RulesModal } from './RulesModal';
 
 interface Props {
   onBack: () => void;
@@ -44,6 +45,7 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const [isWin, setIsWin] = useState(false);
   const [score, setScore] = useState(100);
+  const [showRules, setShowRules] = useState(false);
 
   const targetCard = cards.find(c => c.id === targetId)!;
 
@@ -95,9 +97,28 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       </button>
 
       {/* Left side: Character Grid */}
-      <div className="flex-1 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-y-auto">
+      <div className="flex-1 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-y-auto relative">
+          <RulesModal 
+              isOpen={showRules} 
+              onClose={() => setShowRules(false)}
+              rules={[
+                  "系統會隨機選擇一個目標人物。",
+                  "點擊右側發問區的問題，系統會回答「是」或「否」。",
+                  "根據回答，找出不符合條件的人物，最後點擊正確的目標人物！",
+                  "問越少問題、猜錯越少次，分數越高！"
+              ]}
+          />
+          
           <div className="flex justify-between items-center mb-4 ml-10 sm:ml-0">
-              <h2 className="text-2xl font-bold text-blue-900">猜猜我是誰</h2>
+              <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-blue-900">猜猜我是誰</h2>
+                  <button 
+                      onClick={() => setShowRules(true)}
+                      className="p-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                  >
+                      <Info size={20} />
+                  </button>
+              </div>
               {isWin && (
                   <span className="text-xl font-bold text-green-600 animate-bounce">
                       答對了！得分：{score}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, HelpCircle, Lightbulb, Clock } from 'lucide-react';
 import { Difficulty } from '../types';
+import { soundService } from '../services/soundService';
 
 interface SetGameProps {
   onBack: () => void;
@@ -171,10 +172,11 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
   const showHint = () => {
       const sets = findSets(board);
       if (sets.length > 0) {
-          setMessage(`提示：畫面上還有 ${sets.length} 組解！`);
-          // Optionally highlight one card
-          if (selectedIds.length === 0) {
-             setSelectedIds([sets[0][0].id]);
+          const hintCardId = sets[0][Math.floor(Math.random() * 3)].id;
+          setMessage(`提示：我們幫你標示出其中一組的其中一張牌！`);
+          // Highlight one card
+          if (!selectedIds.includes(hintCardId)) {
+             setSelectedIds([hintCardId]);
           }
       } else {
           setMessage('畫面上沒有解了，自動補牌...');
@@ -199,6 +201,7 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
           if (isSet(c1, c2, c3)) {
               setMessage('找到了！得分！');
               setScore(s => s + 10);
+              soundService.playWin();
               
               // Remove matched cards
               let newBoard = board.filter(c => !newSelected.includes(c.id));
@@ -223,6 +226,7 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
           } else {
               setMessage('這三張不是組合喔！');
               setScore(s => Math.max(0, s - 2));
+              soundService.playWrong();
           }
           setTimeout(() => setSelectedIds([]), 500);
       } else {
@@ -367,8 +371,8 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                               onClick={() => {
                                   if (gameState === 'PLAYING') handleCardClick(card.id);
                               }}
-                              className={`w-[31%] h-[22%] sm:w-[23%] sm:h-[30%] landscape:w-[15%] landscape:h-[45%] bg-white rounded-lg sm:rounded-xl border-2 transition-all shadow-sm flex items-center justify-center
-                                  ${isSelected ? 'border-emerald-500 scale-95 shadow-inner bg-emerald-50' : 'border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'}`}
+                              className={`w-[31%] h-[22%] sm:w-[23%] sm:h-[30%] landscape:w-[15%] landscape:h-[45%] bg-white rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center justify-center
+                                  ${isSelected ? 'border-4 border-emerald-500 scale-95 shadow-inner bg-emerald-100 ring-2 ring-emerald-500 ring-offset-1' : 'border-2 border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'}`}
                           >
                               {renderShape(card)}
                           </button>
@@ -377,8 +381,8 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
               </div>
 
               {gameState === 'GAMEOVER' && (
-                  <div className="flex-1 w-full h-full flex items-center justify-center p-4 bg-white/90 animate-fade-in absolute inset-0 z-20">
-                      <div className="p-6 sm:p-8 bg-white rounded-3xl shadow-xl border border-slate-200 text-center w-full max-w-sm shrink-0">
+                  <div className="fixed inset-0 flex items-center justify-center p-4 bg-white/90 animate-fade-in z-50">
+                      <div className="p-4 sm:p-8 bg-white rounded-3xl shadow-xl border border-slate-200 text-center w-full max-w-sm shrink-0 max-h-[100dvh] overflow-y-auto">
                             <h3 className="text-2xl font-bold text-emerald-600 mb-6">挑戰結束！</h3>
                             
                             {finalScoreStats ? (
@@ -419,7 +423,7 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                       <p>目標是找出畫面上由 <strong>3 張牌</strong> 組成的「Set（組合）」。</p>
                       <p>每張牌有 {isAdvanced ? '4' : '3'} 種屬性：</p>
                       <ul className="list-disc pl-5">
-                          <li><strong>形狀</strong>：菱形、橢圓、方形</li>
+                          <li><strong>形狀</strong>：菱形、圓形、方形</li>
                           <li><strong>顏色</strong>：紅、綠、紫</li>
                           <li><strong>數量</strong>：1、2、3</li>
                           {isAdvanced && <li><strong>填色</strong>：實心、半透明、空心</li>}

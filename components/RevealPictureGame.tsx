@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, RefreshCw, HelpCircle } from 'lucide-react';
 import { soundService } from '../services/soundService';
+import { RulesModal } from './RulesModal';
 
 interface Props {
   onBack: () => void;
@@ -49,6 +50,7 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const [roundIndex, setRoundIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   
   const [target, setTarget] = useState(() => TARGETS[Math.floor(Math.random() * TARGETS.length)]);
   const [revealed, setRevealed] = useState<boolean[]>(Array(numTiles).fill(false));
@@ -90,7 +92,7 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       if (correct) {
           // Calculate score based on tiles NOT revealed. Max points for fewer reveals.
           const unrevealedCount = numTiles - revealedCount;
-          const points = Math.max(10, unrevealedCount * 10);
+          const points = 10 + (unrevealedCount * 10);
           setScore(points);
           setTotalScore(prev => prev + points);
           soundService.playWin();
@@ -159,9 +161,31 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
         <ArrowLeft size={24} />
       </button>
 
-      <div className="absolute top-4 right-4 text-emerald-800 font-bold text-lg sm:text-xl bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-100">
-          題數: {roundIndex + 1} / 10
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+          <div className="text-emerald-800 font-bold text-sm sm:text-xl bg-white px-3 sm:px-4 py-2 rounded-xl shadow-sm border border-emerald-100 flex items-center">
+              題數: {roundIndex + 1} / 10
+          </div>
+          <button 
+              onClick={() => setShowRules(true)}
+              className="p-2 sm:p-2 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors active:scale-95 flex items-center justify-center"
+              title="遊戲規則"
+          >
+              <HelpCircle size={24} />
+          </button>
       </div>
+
+      <RulesModal 
+          isOpen={showRules} 
+          onClose={() => setShowRules(false)}
+          rules={[
+              "點擊畫面上的方塊來翻開圖片的一小部分。",
+              "翻開的方塊越少，如果猜中答案，獲得的分數越高。",
+              "當你認為知道圖片是什麼時，點擊「揭曉答案」。",
+              "揭曉後選擇「答對」來得分，或「答錯」得 0 分。",
+              "每次得分為: 10分 + (未翻開方塊數 * 10分)。",
+              "共 10 題，看你能得幾分！"
+          ]}
+      />
 
       <div className="w-full h-full max-w-7xl flex flex-row items-center justify-center gap-2 sm:gap-6 py-2 px-1 sm:px-8 mt-12 sm:mt-0">
           

@@ -370,7 +370,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                             onClick={() => handleSelectGame(GameState.MAZE_NAVIGATOR)}
                             />
                             <MenuCard
-                            title="成語接龍棋盤"
+                            title="成語接龍拼圖"
                             description="語文認知訓練，選出正確的字填入空格。"
                             icon={<SpellCheck className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-orange-600"}`} />}
                             color={isAdvanced ? "bg-white" : "bg-orange-50"}
