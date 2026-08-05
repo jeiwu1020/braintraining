@@ -1,5 +1,6 @@
 {
   "name": "Copy of Mindful Garden超級金頭腦 綜合腦訓練 - OT Cognitive Games",
   "description": "A therapeutic puzzle game collection designed for psychiatric occupational therapy, focusing on memory, categorization, and relaxation.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

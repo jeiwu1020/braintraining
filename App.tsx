@@ -60,6 +60,11 @@ import ConditionalSnapGame from "./components/ConditionalSnapGame";
 import RevealPictureGame from "./components/RevealPictureGame";
 import MazeNavigatorGame from "./components/MazeNavigatorGame";
 import WordTileGame from "./components/WordTileGame";
+import MahjongMeldsGame from "./components/MahjongMeldsGame";
+import RummikubGame from "./components/RummikubGame";
+import QwirkleGame from "./components/QwirkleGame";
+import SevensGame from "./components/SevensGame";
+import ChineseTenGame from "./components/ChineseTenGame";
 
 
 import { 
@@ -185,6 +190,16 @@ const App: React.FC = () => {
         return <SetGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.PYRAMID:
         return <PyramidGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.MAHJONG_MELDS:
+        return <MahjongMeldsGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.RUMMIKUB:
+        return <RummikubGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.QWIRKLE:
+        return <QwirkleGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.SEVENS:
+        return <SevensGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.CHINESE_TEN:
+        return <ChineseTenGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
       default:
         return <MainMenu onSelectGame={setGameState} difficulty={difficulty} setDifficulty={setDifficulty} />;
     }
@@ -598,6 +613,22 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                             borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
                             onClick={() => handleSelectGame(GameState.SET)}
                             />
+                            <MenuCard
+                            title="繽紛形色棋"
+                            description={isAdvanced ? "六色大滿貫 Qwirkle 挑戰與進階排錯邏輯。" : "同色不同形、同形不同色，國際獲獎經典連線桌遊！"}
+                            icon={<Sparkles className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-500'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-cyan-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
+                            onClick={() => handleSelectGame(GameState.QWIRKLE)}
+                            />
+                            <MenuCard
+                            title="拉密魔術牌"
+                            description={isAdvanced ? "多牌組拆解與進階百搭笑臉牌替代邏輯。" : "同色順組、同數四色群組與百搭笑臉數字磚！"}
+                            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-600'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
+                            onClick={() => handleSelectGame(GameState.RUMMIKUB)}
+                            />
                         </>
                     )}
 
@@ -648,6 +679,46 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
 
                     {selectedCategory === 'LUCK_CARD' && (
                         <>
+                            <MenuCard
+                            title="麻將湊牌大師"
+                            description={isAdvanced ? "進階聽牌、吃碰與雀頭組合判定。" : "順子、刻子、將牌配對，熟悉的國粹摸牌樂趣！"}
+                            icon={<Crown className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-emerald-600'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-emerald-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
+                            onClick={() => handleSelectGame(GameState.MAHJONG_MELDS)}
+                            />
+                            <MenuCard
+                            title="拉密魔術牌"
+                            description={isAdvanced ? "多牌組拆解與進階百搭笑臉牌替代邏輯。" : "同色順組、同數四色群組與百搭笑臉數字磚！"}
+                            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-600'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
+                            onClick={() => handleSelectGame(GameState.RUMMIKUB)}
+                            />
+                            <MenuCard
+                            title="繽紛形色棋"
+                            description={isAdvanced ? "六色大滿貫 Qwirkle 挑戰與進階排錯邏輯。" : "同色不同形、同形不同色，國際獲獎經典連線桌遊！"}
+                            icon={<Sparkles className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-500'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-cyan-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
+                            onClick={() => handleSelectGame(GameState.QWIRKLE)}
+                            />
+                            <MenuCard
+                            title="歡樂排七接龍"
+                            description={isAdvanced ? "四花色全局速看與頂底端出牌推理。" : "黑桃、紅心、方塊、梅花以 7 為中心雙向接龍！"}
+                            icon={<ListOrdered className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
+                            onClick={() => handleSelectGame(GameState.SEVENS)}
+                            />
+                            <MenuCard
+                            title="經典撿紅點"
+                            description={isAdvanced ? "吃牌算分策略與紅心方塊高分最大化！" : "經典9湊1、8湊2、7湊3、10湊10，撿紅字吃高分！"}
+                            icon={<Heart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-600'}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-rose-50"}
+                            borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
+                            onClick={() => handleSelectGame(GameState.CHINESE_TEN)}
+                            />
                             <MenuCard
                             title="猜猜我是誰"
                             description="邏輯排除法，根據特徵提問找出目標人物。"

@@ -109,6 +109,42 @@ class SoundService {
     });
   }
 
+  playTilePlace() {
+    const ctx = this.getContext();
+    if (this.isMuted) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  }
+
+  playCardFlip() {
+    const ctx = this.getContext();
+    if (this.isMuted) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(750, now + 0.08);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  }
+
   // --- Game Specific Pattern Sounds (Longer & More Varieties) ---
 
   playGameSound(type: 'HIGH' | 'LOW' | 'RISE' | 'FALL' | 'ALARM' | 'GAME' | 'BOUNCE' | 'MAGIC' | 'TELEPHONE') {
