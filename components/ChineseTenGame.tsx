@@ -78,9 +78,9 @@ export const PlayingCard: React.FC<{
 
   // Fixed, non-deforming playing card aspect ratio (~2:3)
   const sizeClasses = {
-    sm: 'w-12 h-18 sm:w-14 sm:h-21 text-xs',
-    md: 'w-14 h-21 sm:w-17 sm:h-25 text-sm',
-    lg: 'w-16 h-24 sm:w-20 sm:h-29 text-base'
+    sm: 'w-12 h-18 sm:w-14 sm:h-21 lg:w-22 lg:h-33 xl:w-26 xl:h-39 text-xs lg:text-sm xl:text-base',
+    md: 'w-14 h-21 sm:w-17 sm:h-25 lg:w-26 lg:h-38 xl:w-30 xl:h-44 text-sm lg:text-base xl:text-lg',
+    lg: 'w-16 h-24 sm:w-20 sm:h-29 lg:w-30 lg:h-44 xl:w-36 xl:h-52 text-base lg:text-lg xl:text-xl'
   };
 
   return (
@@ -90,34 +90,34 @@ export const PlayingCard: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
-      className={`relative ${sizeClasses[size]} rounded-xl bg-white border-2 shadow-md flex flex-col justify-between p-1 sm:p-1.5 transition-all select-none overflow-hidden shrink-0
+      className={`relative ${sizeClasses[size]} rounded-xl bg-white border-2 lg:border-[3px] shadow-md flex flex-col justify-between p-1 sm:p-1.5 lg:p-2.5 transition-all select-none overflow-hidden shrink-0
         ${suitInfo.color}
-        ${selected ? 'ring-3 ring-amber-500 border-amber-600 -translate-y-1 shadow-lg bg-amber-50' : 'border-gray-300 hover:border-amber-400'}
-        ${highlight ? 'ring-3 ring-emerald-400 border-emerald-500 shadow-md shadow-emerald-500/30' : ''}
+        ${selected ? 'ring-3 lg:ring-4 ring-amber-500 border-amber-600 -translate-y-1 shadow-lg bg-amber-50' : 'border-gray-300 hover:border-amber-400'}
+        ${highlight ? 'ring-3 lg:ring-4 ring-emerald-400 border-emerald-500 shadow-md shadow-emerald-500/30' : ''}
         ${disabled ? 'opacity-90 cursor-default' : 'cursor-pointer'}
       `}
     >
       {/* Top Value & Suit */}
       <div className="flex items-center justify-between leading-none w-full px-0.5 pt-0.5">
-        <span className="font-black text-[11px] sm:text-xs leading-none">{rankLabel}</span>
-        <span className="text-[10px] sm:text-xs leading-none">{suitInfo.symbol}</span>
+        <span className="font-black text-[11px] sm:text-xs lg:text-base xl:text-lg leading-none">{rankLabel}</span>
+        <span className="text-[10px] sm:text-xs lg:text-base xl:text-lg leading-none">{suitInfo.symbol}</span>
       </div>
 
       {/* Center Big Symbol */}
-      <div className="text-lg sm:text-2xl font-black text-center my-auto leading-none select-none">
+      <div className="text-lg sm:text-2xl lg:text-4xl xl:text-5xl font-black text-center my-auto leading-none select-none">
         {suitInfo.symbol}
       </div>
 
       {/* Bottom Points Badge (Clean & Non-Overflowing) */}
       <div className="flex items-center justify-center leading-none w-full pb-0.5">
         {showPointsBadge && card.points > 0 ? (
-          <span className="text-[8px] sm:text-[9px] font-black bg-red-50 text-red-600 px-1 py-0.5 rounded border border-red-200 whitespace-nowrap leading-none">
+          <span className="text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-black bg-red-50 text-red-600 px-1 py-0.5 lg:px-2 lg:py-1 rounded border border-red-200 whitespace-nowrap leading-none">
             +{card.points}分
           </span>
         ) : showPointsBadge ? (
-          <span className="text-[8px] sm:text-[9px] text-gray-400 font-bold leading-none">0分</span>
+          <span className="text-[8px] sm:text-[9px] lg:text-xs xl:text-sm text-gray-400 font-bold leading-none">0分</span>
         ) : (
-          <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 leading-none">{suitInfo.name}</span>
+          <span className="text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-bold text-gray-400 leading-none">{suitInfo.name}</span>
         )}
       </div>
     </motion.button>
@@ -484,25 +484,25 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="經典撿紅點 規則與計分" rules={rules} />
 
       {/* Top Compact Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl mx-auto w-full shrink-0">
+      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-stone-800 hover:bg-stone-700 active:scale-95 text-amber-100 rounded-xl font-bold text-xs sm:text-sm transition shadow"
+          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-stone-800 hover:bg-stone-700 active:scale-95 text-amber-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
         >
-          <ArrowLeft size={15} />
+          <ArrowLeft size={16} />
           <span>返回</span>
         </button>
 
         {/* Title & Status */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] sm:text-xs font-black">
+          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-red-600 text-white rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
             {isAdv ? '進階精算' : '經典配對'}
           </span>
-          <h1 className="text-xs sm:text-base font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
+          <h1 className="text-xs sm:text-base lg:text-xl font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
             經典撿紅點
           </h1>
           {currentQ && (
-            <span className="text-[11px] sm:text-xs text-stone-400 font-bold hidden sm:inline">
+            <span className="text-[11px] sm:text-xs lg:text-sm text-stone-400 font-bold hidden sm:inline">
               ({currentIndex + 1}/{questions.length})
             </span>
           )}
@@ -511,79 +511,79 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
         {/* Live Timer & Score */}
         <div className="flex items-center gap-1 sm:gap-2">
           {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-red-950/80 border border-red-700/60 rounded-xl text-amber-300 text-xs font-bold shadow-inner">
-              <Clock size={13} className="text-red-400 animate-spin" />
+            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-red-950/80 border border-red-700/60 rounded-xl text-amber-300 text-xs lg:text-sm font-bold shadow-inner">
+              <Clock size={14} className="text-red-400 animate-spin" />
               <span>{elapsedTime.toFixed(1)}s</span>
             </div>
           )}
 
           {teamMode === 'TEAM' ? (
             <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-stone-800 text-stone-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-stone-800 text-stone-300'}`}>
                 A:{teamAScore}
               </span>
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'B' ? 'bg-red-500 text-white' : 'bg-stone-800 text-stone-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-red-500 text-white' : 'bg-stone-800 text-stone-300'}`}>
                 B:{teamBScore}
               </span>
             </div>
           ) : (
-            <div className="px-2 py-0.5 bg-stone-800 border border-stone-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm">
+            <div className="px-2 py-0.5 lg:px-3 lg:py-1 bg-stone-800 border border-stone-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm lg:text-base">
               {score}分
             </div>
           )}
 
           <button
             onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 rounded-xl font-bold text-xs transition shadow ${
+            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
               teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-stone-800 text-amber-200'
             }`}
             title="模式切換"
           >
-            <Users size={15} />
+            <Users size={16} />
           </button>
 
           <button
             onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
             title="規則說明"
           >
-            <HelpCircle size={15} />
+            <HelpCircle size={16} />
           </button>
 
           <button
             onClick={restart}
-            className="p-1 sm:p-1.5 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
             title="重新開始"
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={16} />
           </button>
         </div>
       </div>
 
       {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col justify-between my-1 bg-stone-900/90 border border-red-800/40 rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
+        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-stone-900/90 border border-red-800/40 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
           
           {/* Prompt Question */}
-          <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-1 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <span className="bg-red-900/80 text-amber-300 border border-red-500/50 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg whitespace-nowrap">
+          <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-1 lg:pb-2.5 shrink-0">
+            <div className="flex items-center gap-1.5 lg:gap-3">
+              <span className="bg-red-900/80 text-amber-300 border border-red-500/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-nowrap">
                 {currentQ.badge}
               </span>
-              <h2 className="text-xs sm:text-sm font-bold text-white leading-tight">
+              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
                 {currentQ.prompt}
               </h2>
             </div>
           </div>
 
           {/* Table Cards Display */}
-          <div className="my-auto py-1 flex flex-col items-center justify-center bg-stone-950/60 rounded-xl border border-stone-800/80 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs text-amber-400 font-bold mb-0.5 flex items-center gap-1">
-              <Flame size={13} className="text-red-500" />
+          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-stone-950/60 rounded-xl lg:rounded-2xl border border-stone-800/80 shadow-inner shrink-0">
+            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-amber-400 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
+              <Flame size={14} className="text-red-500" />
               <span>桌面牌況</span>
             </span>
 
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-5 xl:gap-6">
               {currentQ.tableCards.map((card, idx) => (
                 <PlayingCard key={card.id || idx} card={card} size="sm" disabled showPointsBadge />
               ))}
@@ -591,8 +591,8 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
           </div>
 
           {/* Hand Cards Options */}
-          <div className="shrink-0 flex flex-col items-center my-0.5">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 w-full max-w-lg justify-items-center">
+          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
               {currentQ.options.map(opt => {
                 const isSelected = selectedOptionId === opt.id;
                 const isOptCorrect = opt.id === currentQ.correctOptionId;
@@ -617,38 +617,38 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
           </div>
 
           {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] flex items-center">
+          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
             <AnimatePresence mode="wait">
               {isAnswered && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 rounded-xl flex items-center justify-between gap-2 shadow border text-xs shrink-0 ${
+                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
                     isCorrect
                       ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
                       : 'bg-rose-950/95 border-rose-500 text-rose-100'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
                     {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
                     )}
-                    <div className="truncate flex items-center gap-1">
+                    <div className="truncate flex items-center gap-1 lg:gap-2">
                       {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 rounded font-black text-[10px] whitespace-nowrap">
+                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
                           +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
                         </span>
                       )}
-                      <span className="font-bold truncate">{currentQ.explanation}</span>
+                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg text-xs sm:text-sm shadow active:scale-95 transition"
+                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
                   >
                     {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
                   </button>

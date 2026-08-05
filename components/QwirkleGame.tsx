@@ -47,7 +47,7 @@ const COLOR_CLASSES: Record<QwirkleColor, { fill: string; stroke: string; glow: 
   purple: { fill: 'fill-purple-400', stroke: 'stroke-purple-400', glow: 'drop-shadow-[0_0_6px_rgba(192,132,252,0.7)]', text: 'text-purple-400', bg: 'bg-purple-400' }
 };
 
-export const QwirkleShapeSVG: React.FC<{ shape: QwirkleShape; color: QwirkleColor; sizeClass?: string }> = ({ shape, color, sizeClass = 'w-6 h-6 sm:w-8 sm:h-8' }) => {
+export const QwirkleShapeSVG: React.FC<{ shape: QwirkleShape; color: QwirkleColor; sizeClass?: string }> = ({ shape, color, sizeClass = 'w-6 h-6 sm:w-8 sm:h-8 lg:w-14 lg:h-14 xl:w-16 xl:h-16' }) => {
   const c = COLOR_CLASSES[color];
 
   switch (shape) {
@@ -116,9 +116,9 @@ export const QwirkleTile: React.FC<{
   disabled?: boolean;
 }> = ({ tile, size = 'md', selected = false, highlight = false, onClick, disabled = false }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8 sm:w-10 sm:h-10 p-1',
-    md: 'w-10 h-10 sm:w-13 sm:h-13 p-1.5',
-    lg: 'w-12 h-12 sm:w-16 sm:h-16 p-2'
+    sm: 'w-8 h-8 sm:w-10 sm:h-10 lg:w-16 lg:h-16 xl:w-20 xl:h-20 p-1 lg:p-2',
+    md: 'w-10 h-10 sm:w-13 sm:h-13 lg:w-20 lg:h-20 xl:w-24 xl:h-24 p-1.5 lg:p-3',
+    lg: 'w-12 h-12 sm:w-16 sm:h-16 lg:w-24 lg:h-24 xl:w-28 xl:h-28 p-2 lg:p-4'
   };
 
   return (
@@ -128,9 +128,9 @@ export const QwirkleTile: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
-      className={`relative ${sizeClasses[size]} rounded-xl bg-zinc-900 border-2 shadow-md flex items-center justify-center transition-all select-none overflow-hidden
-        ${selected ? 'ring-3 ring-cyan-400 border-cyan-400 -translate-y-1 shadow-cyan-500/50 bg-zinc-800' : 'border-zinc-700 hover:border-zinc-500'}
-        ${highlight ? 'ring-3 ring-emerald-400 border-emerald-400 shadow-md shadow-emerald-500/30' : ''}
+      className={`relative ${sizeClasses[size]} rounded-xl lg:rounded-2xl bg-zinc-900 border-2 lg:border-[3px] shadow-md flex items-center justify-center transition-all select-none overflow-hidden
+        ${selected ? 'ring-3 lg:ring-4 ring-cyan-400 border-cyan-400 -translate-y-1 shadow-cyan-500/50 bg-zinc-800' : 'border-zinc-700 hover:border-zinc-500'}
+        ${highlight ? 'ring-3 lg:ring-4 ring-emerald-400 border-emerald-500 shadow-md shadow-emerald-500/30' : ''}
         ${disabled ? 'opacity-90 cursor-default' : 'cursor-pointer'}
       `}
     >
@@ -476,25 +476,25 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="繽紛形色棋 規則說明" rules={rules} />
 
       {/* Top Compact Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl mx-auto w-full shrink-0">
+      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-cyan-100 rounded-xl font-bold text-xs sm:text-sm transition shadow"
+          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-cyan-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
         >
-          <ArrowLeft size={15} />
+          <ArrowLeft size={16} />
           <span>返回</span>
         </button>
 
         {/* Title */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 bg-cyan-500 text-gray-950 rounded-full text-[10px] sm:text-xs font-black">
+          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-cyan-500 text-gray-950 rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
             {isAdv ? '進階交叉' : '經典形色'}
           </span>
-          <h1 className="text-xs sm:text-base font-black text-cyan-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
+          <h1 className="text-xs sm:text-base lg:text-xl font-black text-cyan-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
             繽紛形色棋
           </h1>
           {currentQ && (
-            <span className="text-[11px] sm:text-xs text-cyan-200 font-bold hidden sm:inline">
+            <span className="text-[11px] sm:text-xs lg:text-sm text-cyan-200 font-bold hidden sm:inline">
               ({currentIndex + 1}/{questions.length})
             </span>
           )}
@@ -503,94 +503,94 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
         {/* Live Timer & Score */}
         <div className="flex items-center gap-1 sm:gap-2">
           {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900 border border-cyan-700/60 rounded-xl text-cyan-300 text-xs font-bold shadow-inner">
-              <Clock size={13} className="text-cyan-400 animate-spin" />
+            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-zinc-900 border border-cyan-700/60 rounded-xl text-cyan-300 text-xs lg:text-sm font-bold shadow-inner">
+              <Clock size={14} className="text-cyan-400 animate-spin" />
               <span>{elapsedTime.toFixed(1)}s</span>
             </div>
           )}
 
           {teamMode === 'TEAM' ? (
             <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-zinc-800 text-zinc-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-zinc-800 text-zinc-300'}`}>
                 A:{teamAScore}
               </span>
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'B' ? 'bg-cyan-400 text-gray-950' : 'bg-zinc-800 text-zinc-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-cyan-400 text-gray-950' : 'bg-zinc-800 text-zinc-300'}`}>
                 B:{teamBScore}
               </span>
             </div>
           ) : (
-            <div className="px-2.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded-xl text-cyan-300 font-black text-xs sm:text-sm">
+            <div className="px-2.5 py-0.5 lg:px-3 lg:py-1 bg-zinc-800 border border-zinc-700 rounded-xl text-cyan-300 font-black text-xs sm:text-sm lg:text-base">
               {score}分
             </div>
           )}
 
           <button
             onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 rounded-xl font-bold text-xs transition shadow ${
+            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
               teamMode === 'TEAM' ? 'bg-cyan-500 text-gray-950' : 'bg-zinc-800 text-cyan-200'
             }`}
             title="模式切換"
           >
-            <Users size={15} />
+            <Users size={16} />
           </button>
 
           <button
             onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 bg-zinc-800 hover:bg-zinc-700 text-cyan-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-zinc-800 hover:bg-zinc-700 text-cyan-200 rounded-xl transition shadow"
             title="規則說明"
           >
-            <HelpCircle size={15} />
+            <HelpCircle size={16} />
           </button>
 
           <button
             onClick={restart}
-            className="p-1 sm:p-1.5 bg-zinc-800 hover:bg-zinc-700 text-cyan-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-zinc-800 hover:bg-zinc-700 text-cyan-200 rounded-xl transition shadow"
             title="重新開始"
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={16} />
           </button>
         </div>
       </div>
 
       {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col justify-between my-1 bg-zinc-900/90 border border-cyan-800/40 rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
+        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-zinc-900/90 border border-cyan-800/40 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
           
           {/* Question Prompt with 2-Char Line Break Badge */}
-          <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-1 shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="bg-cyan-900/90 text-cyan-300 border border-cyan-500/50 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-lg whitespace-pre-line text-center leading-tight">
+          <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-1 lg:pb-2.5 shrink-0">
+            <div className="flex items-center gap-2 lg:gap-3">
+              <span className="bg-cyan-900/90 text-cyan-300 border border-cyan-500/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-1.5 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-pre-line text-center leading-tight">
                 {currentQ.ruleTag}
               </span>
-              <h2 className="text-xs sm:text-sm font-bold text-white leading-tight">
+              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
                 {currentQ.prompt}
               </h2>
             </div>
           </div>
 
           {/* Table Line Display */}
-          <div className="my-auto py-1 flex flex-col items-center justify-center bg-black/60 rounded-xl border border-zinc-800 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs text-cyan-300 font-bold mb-0.5 flex items-center gap-1">
-              <Sparkles size={13} className="text-cyan-400" />
+          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-black/60 rounded-xl lg:rounded-2xl border border-zinc-800 shadow-inner shrink-0">
+            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-cyan-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
+              <Sparkles size={14} className="text-cyan-400" />
               <span>當前棋盤連線</span>
             </span>
 
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-6">
               {currentQ.line.map((tile, idx) => (
                 <QwirkleTile key={tile.id || idx} tile={tile} size="sm" disabled />
               ))}
 
               {/* Slot Placeholder */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-cyan-400 bg-cyan-500/10 flex flex-col items-center justify-center text-cyan-300 font-bold p-0.5 shadow-inner animate-pulse">
-                <span className="text-sm sm:text-base">❓</span>
-                <span className="text-[7px] sm:text-[8px] text-center font-bold text-cyan-200">接哪顆</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-xl lg:rounded-2xl border-2 lg:border-[3px] border-dashed border-cyan-400 bg-cyan-500/10 flex flex-col items-center justify-center text-cyan-300 font-bold p-0.5 shadow-inner animate-pulse">
+                <span className="text-sm sm:text-base lg:text-2xl">❓</span>
+                <span className="text-[7px] sm:text-[8px] lg:text-xs text-center font-bold text-cyan-200">接哪顆</span>
               </div>
             </div>
           </div>
 
           {/* Hand Cards Options */}
-          <div className="shrink-0 flex flex-col items-center my-0.5">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 w-full max-w-lg justify-items-center">
+          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
               {currentQ.options.map(opt => {
                 const isSelected = selectedOptionId === opt.id;
                 const isOptCorrect = opt.id === currentQ.correctOptionId;
@@ -614,38 +614,38 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
           </div>
 
           {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] flex items-center">
+          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
             <AnimatePresence mode="wait">
               {isAnswered && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 rounded-xl flex items-center justify-between gap-2 shadow border text-xs shrink-0 ${
+                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
                     isCorrect
                       ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
                       : 'bg-rose-950/95 border-rose-500 text-rose-100'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
                     {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
                     )}
-                    <div className="truncate flex items-center gap-1">
+                    <div className="truncate flex items-center gap-1 lg:gap-2">
                       {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-cyan-300 px-1 py-0.2 rounded font-black text-[10px] whitespace-nowrap">
+                        <span className="bg-emerald-800 text-cyan-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
                           +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
                         </span>
                       )}
-                      <span className="font-bold truncate">{currentQ.explanation}</span>
+                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 bg-cyan-400 hover:bg-cyan-300 text-gray-950 font-black rounded-lg text-xs sm:text-sm shadow active:scale-95 transition"
+                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-cyan-400 hover:bg-cyan-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
                   >
                     {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
                   </button>

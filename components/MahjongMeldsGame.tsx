@@ -31,9 +31,9 @@ export const MahjongTile: React.FC<{
 }> = ({ tile, size = 'md', selected = false, highlight = false, status = null, onClick, disabled = false }) => {
   // Rigid rectangular dimensions adhering strictly to classic Mahjong tile proportions (ratio ~ 7:10)
   const sizeClasses = {
-    sm: 'w-11 h-16 sm:w-13 sm:h-19 text-xs',
-    md: 'w-14 h-20 sm:w-16 sm:h-24 text-sm',
-    lg: 'w-16 h-24 sm:w-20 sm:h-29 text-base'
+    sm: 'w-11 h-16 sm:w-13 sm:h-19 lg:w-20 lg:h-28 xl:w-24 xl:h-34 text-xs lg:text-base xl:text-lg',
+    md: 'w-14 h-20 sm:w-16 sm:h-24 lg:w-24 lg:h-34 xl:w-28 xl:h-40 text-sm lg:text-lg xl:text-xl',
+    lg: 'w-16 h-24 sm:w-20 sm:h-29 lg:w-28 lg:h-40 xl:w-32 xl:h-46 text-base lg:text-xl xl:text-2xl'
   };
 
   const renderContent = () => {
@@ -42,10 +42,10 @@ export const MahjongTile: React.FC<{
     if (tile.suit === 'wan') {
       return (
         <div className="flex flex-col items-center justify-center leading-none select-none my-auto">
-          <span className="text-red-700 font-serif font-black text-sm sm:text-base tracking-tight leading-none">
+          <span className="text-red-700 font-serif font-black text-sm sm:text-base lg:text-2xl xl:text-3xl tracking-tight leading-none">
             {numNames[tile.value]}
           </span>
-          <span className="text-red-700 font-serif font-bold text-xs sm:text-sm tracking-tight leading-none mt-1">
+          <span className="text-red-700 font-serif font-bold text-xs sm:text-sm lg:text-lg xl:text-xl tracking-tight leading-none mt-1 lg:mt-2">
             萬
           </span>
         </div>
@@ -54,10 +54,10 @@ export const MahjongTile: React.FC<{
     if (tile.suit === 'tong') {
       return (
         <div className="flex flex-col items-center justify-center leading-none select-none my-auto">
-          <span className="text-blue-700 font-black text-sm sm:text-base leading-none">
+          <span className="text-blue-700 font-black text-sm sm:text-base lg:text-2xl xl:text-3xl leading-none">
             {tile.value}
           </span>
-          <span className="text-blue-900 font-extrabold text-xs sm:text-sm leading-none mt-1">
+          <span className="text-blue-900 font-extrabold text-xs sm:text-sm lg:text-lg xl:text-xl leading-none mt-1 lg:mt-2">
             筒
           </span>
         </div>
@@ -66,10 +66,10 @@ export const MahjongTile: React.FC<{
     if (tile.suit === 'tiao') {
       return (
         <div className="flex flex-col items-center justify-center leading-none select-none my-auto">
-          <span className="text-emerald-700 font-black text-sm sm:text-base leading-none">
+          <span className="text-emerald-700 font-black text-sm sm:text-base lg:text-2xl xl:text-3xl leading-none">
             {tile.value}
           </span>
-          <span className="text-emerald-900 font-extrabold text-xs sm:text-sm leading-none mt-1">
+          <span className="text-emerald-900 font-extrabold text-xs sm:text-sm lg:text-lg xl:text-xl leading-none mt-1 lg:mt-2">
             條
           </span>
         </div>
@@ -89,10 +89,10 @@ export const MahjongTile: React.FC<{
 
       return (
         <div className="flex flex-col items-center justify-center leading-none select-none my-auto">
-          <span className={`font-black text-sm sm:text-base tracking-tight leading-none ${zi.color}`}>
+          <span className={`font-black text-sm sm:text-base lg:text-2xl xl:text-3xl tracking-tight leading-none ${zi.color}`}>
             {zi.top}
           </span>
-          <span className={`font-bold text-xs sm:text-sm tracking-tight leading-none mt-1 ${zi.subColor}`}>
+          <span className={`font-bold text-xs sm:text-sm lg:text-lg xl:text-xl tracking-tight leading-none mt-1 lg:mt-2 ${zi.subColor}`}>
             {zi.bottom}
           </span>
         </div>
@@ -108,11 +108,11 @@ export const MahjongTile: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
-      className={`relative ${sizeClasses[size]} rounded-md border-x border-t bg-gradient-to-b from-[#fffff9] via-[#fcfbf4] to-[#f4f1e4] border-b-[4px] shadow-md flex flex-col items-center justify-center p-1 transition-all select-none overflow-hidden shrink-0
-        ${status === 'correct' ? 'border-emerald-500 border-b-emerald-700 ring-3 ring-emerald-400 bg-emerald-50/90 shadow-emerald-500/40' :
-          status === 'wrong' ? 'border-rose-500 border-b-rose-700 ring-3 ring-rose-500 bg-rose-50/90 shadow-rose-500/40' :
-          selected ? 'border-amber-600 border-b-amber-700 ring-3 ring-amber-500 -translate-y-1 shadow-lg bg-amber-100' :
-          highlight ? 'border-emerald-500 border-b-emerald-700 ring-3 ring-emerald-400 shadow-md shadow-emerald-500/30' :
+      className={`relative ${sizeClasses[size]} rounded-md border-x border-t bg-gradient-to-b from-[#fffff9] via-[#fcfbf4] to-[#f4f1e4] border-b-[4px] lg:border-b-[6px] shadow-md flex flex-col items-center justify-center p-1 lg:p-2 transition-all select-none overflow-hidden shrink-0
+        ${status === 'correct' ? 'border-emerald-500 border-b-emerald-700 ring-3 lg:ring-4 ring-emerald-400 bg-emerald-50/90 shadow-emerald-500/40' :
+          status === 'wrong' ? 'border-rose-500 border-b-rose-700 ring-3 lg:ring-4 ring-rose-500 bg-rose-50/90 shadow-rose-500/40' :
+          selected ? 'border-amber-600 border-b-amber-700 ring-3 lg:ring-4 ring-amber-500 -translate-y-1 shadow-lg bg-amber-100' :
+          highlight ? 'border-emerald-500 border-b-emerald-700 ring-3 lg:ring-4 ring-emerald-400 shadow-md shadow-emerald-500/30' :
           'border-[#d6cfb8] border-b-emerald-800 hover:border-amber-400'
         }
         ${disabled ? 'opacity-95 cursor-default' : 'cursor-pointer'}
@@ -125,7 +125,7 @@ export const MahjongTile: React.FC<{
       {/* Prominent Correct ⭕ / Wrong ❌ Visual Stamp */}
       {status === 'correct' && (
         <div className="absolute inset-0 bg-emerald-500/20 backdrop-blur-[0.5px] flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-2xl sm:text-3xl font-black text-emerald-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] leading-none animate-bounce">
+          <span className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-black text-emerald-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] leading-none animate-bounce">
             ⭕
           </span>
         </div>
@@ -133,7 +133,7 @@ export const MahjongTile: React.FC<{
 
       {status === 'wrong' && (
         <div className="absolute inset-0 bg-rose-500/25 backdrop-blur-[0.5px] flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-2xl sm:text-3xl font-black text-rose-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] leading-none animate-pulse">
+          <span className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-black text-rose-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] leading-none animate-pulse">
             ❌
           </span>
         </div>
@@ -468,25 +468,25 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="麻將湊牌大師 規則說明" rules={rulesList} />
 
       {/* Top Compact Navigation Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl mx-auto w-full shrink-0">
+      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-emerald-800 hover:bg-emerald-700 active:scale-95 text-emerald-100 rounded-xl font-bold text-xs sm:text-sm transition shadow"
+          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-emerald-800 hover:bg-emerald-700 active:scale-95 text-emerald-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
         >
-          <ArrowLeft size={15} />
+          <ArrowLeft size={16} />
           <span>返回</span>
         </button>
 
         {/* Title */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 bg-amber-500 text-gray-950 rounded-full text-[10px] sm:text-xs font-black">
+          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-amber-500 text-gray-950 rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
             {isAdv ? '進階聽牌' : '經典麻將'}
           </span>
-          <h1 className="text-xs sm:text-base font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
+          <h1 className="text-xs sm:text-base lg:text-xl font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
             麻將湊牌大師
           </h1>
           {currentQ && (
-            <span className="text-[11px] sm:text-xs text-emerald-300 font-bold hidden sm:inline">
+            <span className="text-[11px] sm:text-xs lg:text-sm text-emerald-300 font-bold hidden sm:inline">
               ({currentIndex + 1}/{questions.length})
             </span>
           )}
@@ -495,87 +495,87 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
         {/* Live Timer & Score */}
         <div className="flex items-center gap-1 sm:gap-2">
           {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-900/90 border border-emerald-600/70 rounded-xl text-amber-300 text-xs font-bold shadow-inner">
-              <Clock size={13} className="text-amber-400 animate-spin" />
+            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-emerald-900/90 border border-emerald-600/70 rounded-xl text-amber-300 text-xs lg:text-sm font-bold shadow-inner">
+              <Clock size={14} className="text-amber-400 animate-spin" />
               <span>{elapsedTime.toFixed(1)}s</span>
             </div>
           )}
 
           {teamMode === 'TEAM' ? (
             <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
                 A:{teamAScore}
               </span>
-              <span className={`px-2 py-0.5 rounded-lg font-bold text-xs ${currentTeam === 'B' ? 'bg-blue-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
+              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-blue-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
                 B:{teamBScore}
               </span>
             </div>
           ) : (
-            <div className="px-2 py-0.5 bg-emerald-900/90 border border-emerald-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm">
+            <div className="px-2 py-0.5 lg:px-3 lg:py-1 bg-emerald-900/90 border border-emerald-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm lg:text-base">
               {score}分
             </div>
           )}
 
           <button
             onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 rounded-xl font-bold text-xs transition shadow ${
+            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
               teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-emerald-800 text-emerald-200'
             }`}
             title="模式切換"
           >
-            <Users size={15} />
+            <Users size={16} />
           </button>
 
           <button
             onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
             title="規則說明"
           >
-            <HelpCircle size={15} />
+            <HelpCircle size={16} />
           </button>
 
           <button
             onClick={restartGame}
-            className="p-1 sm:p-1.5 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
+            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
             title="重新開始"
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={16} />
           </button>
         </div>
       </div>
 
       {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col justify-between my-1 bg-emerald-950/80 border border-emerald-700/50 rounded-2xl p-2 sm:p-3 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
+        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-emerald-950/80 border border-emerald-700/50 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
           
           {/* Question Banner */}
-          <div className="flex items-center justify-between gap-2 border-b border-emerald-800/80 pb-1 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <span className="bg-emerald-800 text-amber-300 border border-emerald-600/50 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg whitespace-nowrap">
+          <div className="flex items-center justify-between gap-2 border-b border-emerald-800/80 pb-1 lg:pb-2.5 shrink-0">
+            <div className="flex items-center gap-1.5 lg:gap-3">
+              <span className="bg-emerald-800 text-amber-300 border border-emerald-600/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-nowrap">
                 {currentQ.meldTypeLabel}
               </span>
-              <h2 className="text-xs sm:text-sm font-bold text-white leading-tight">
+              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
                 {currentQ.prompt}
               </h2>
             </div>
           </div>
 
           {/* Hand Tiles Display */}
-          <div className="my-auto py-1 flex flex-col items-center justify-center bg-emerald-900/40 rounded-xl border border-emerald-800/70 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs text-emerald-300 font-bold mb-0.5 flex items-center gap-1">
+          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-emerald-900/40 rounded-xl lg:rounded-2xl border border-emerald-800/70 shadow-inner shrink-0">
+            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-emerald-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
               <span>🀄 當前牌面</span>
             </span>
 
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-5 xl:gap-6">
               {currentQ.hand.map((tile, idx) => (
                 <MahjongTile key={tile.id || idx} tile={tile} size="sm" disabled />
               ))}
 
               {/* Missing Slot: Displays Question Placeholder or Placed Answer Tile with Stamp */}
               {!isAnswered || !selectedOption ? (
-                <div className="w-11 h-16 sm:w-13 sm:h-19 shrink-0 rounded-md border-x border-t border-dashed border-amber-400 bg-amber-500/15 border-b-[4px] border-b-amber-600 flex flex-col items-center justify-center text-amber-300 font-bold p-1 shadow-inner animate-pulse select-none">
-                  <span className="text-sm sm:text-base leading-none">❓</span>
-                  <span className="text-[9px] sm:text-[10px] text-center font-black text-amber-200 leading-none mt-1">缺此張</span>
+                <div className="w-11 h-16 sm:w-13 sm:h-19 lg:w-20 lg:h-28 xl:w-24 xl:h-34 shrink-0 rounded-md border-x border-t border-dashed border-amber-400 bg-amber-500/15 border-b-[4px] lg:border-b-[6px] border-b-amber-600 flex flex-col items-center justify-center text-amber-300 font-bold p-1 lg:p-2 shadow-inner animate-pulse select-none">
+                  <span className="text-sm sm:text-base lg:text-2xl xl:text-3xl leading-none">❓</span>
+                  <span className="text-[9px] sm:text-[10px] lg:text-xs xl:text-sm text-center font-black text-amber-200 leading-none mt-1 lg:mt-2">缺此張</span>
                 </div>
               ) : (
                 <motion.div
@@ -590,7 +590,7 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
                     disabled
                     status={isCorrect ? 'correct' : 'wrong'}
                   />
-                  <span className={`text-[8px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full mt-0.5 leading-none shadow-sm ${
+                  <span className={`text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-black px-1.5 py-0.2 lg:px-2.5 lg:py-0.5 rounded-full mt-0.5 lg:mt-1 leading-none shadow-sm ${
                     isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
                   }`}>
                     {isCorrect ? '⭕ 正確' : '❌ 錯誤'}
@@ -601,8 +601,8 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
           </div>
 
           {/* Option Tiles (Hand Selection) */}
-          <div className="shrink-0 flex flex-col items-center my-0.5">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 w-full max-w-lg justify-items-center">
+          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
               {currentQ.options.map(opt => {
                 const isSelected = selectedOptionId === opt.id;
                 const isOptCorrect = opt.id === currentQ.correctAnswerId;
@@ -628,7 +628,7 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
                       onClick={() => handleSelectOption(opt)}
                     />
                     {isAnswered && (
-                      <span className={`text-[8px] sm:text-[10px] font-black mt-1 leading-none text-center ${
+                      <span className={`text-[8px] sm:text-[10px] lg:text-xs xl:text-sm font-black mt-1 lg:mt-2 leading-none text-center ${
                         isSelected && isOptCorrect ? 'text-emerald-400' :
                         isSelected && !isOptCorrect ? 'text-rose-400' :
                         isOptCorrect ? 'text-emerald-300' : 'text-transparent'
@@ -645,38 +645,38 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
           </div>
 
           {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] flex items-center">
+          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
             <AnimatePresence mode="wait">
               {isAnswered && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 rounded-xl flex items-center justify-between gap-2 shadow border text-xs shrink-0 ${
+                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
                     isCorrect
                       ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
                       : 'bg-rose-950/95 border-rose-500 text-rose-100'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
                     {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
                     )}
-                    <div className="truncate flex items-center gap-1">
+                    <div className="truncate flex items-center gap-1 lg:gap-2">
                       {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 rounded font-black text-[10px] whitespace-nowrap">
+                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
                           +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
                         </span>
                       )}
-                      <span className="font-bold truncate">{currentQ.explanation}</span>
+                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg text-xs sm:text-sm shadow active:scale-95 transition"
+                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
                   >
                     {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
                   </button>
