@@ -16,10 +16,12 @@ export interface GoPuzzle {
   // Board setup: 'B' for Black, 'W' for White, '.' for Empty (Standard 9x9)
   initialBoard: string[];
   playerColor: 'BLACK';
-  // Correct move coordinate (r: row index 0..8, c: col index 0..8)
+  // Primary solution move
   solutionMoves: {
     playerMove: Point;
   }[];
+  // All acceptable winning first moves (e.g. for symmetrical puzzles or multi-solution shapes like Square Four)
+  acceptedMoves?: Point[];
   successMessage: string;
 }
 
@@ -41,8 +43,6 @@ export function parsePuzzleBoard(strBoard: string[]): GoBoard {
 export const GO_PUZZLES: GoPuzzle[] = [
   // ==========================================
   // 🌟 CATEGORY 1: 死活經典 (Life & Death Classics)
-  // 本區塊 8 題已於 2026 年重新設計並以程式逐一驗證棋規正確性
-  // (每題皆用完整規則模擬器 + 窮舉/雙人對局搜尋確認死活結果)
   // ==========================================
   {
     id: 'two-eyes-1',
@@ -52,13 +52,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     badge: '死活 做眼',
     boardSize: 9,
     prompt: '【黑先】黑棋大龍被白棋重重包圍，僅剩「直三」眼位可做活，請下在中心急所，做成兩隻真眼！',
-    hint: '下在 B8 (直三眼位正中心)，將內部眼位劃分為 A8 與 C8 兩隻互不干擾的真眼！',
-    explanation: '正解：黑棋下在 B8！直三眼位的關鍵急所就在正中間。下在 B8 後，內部形成左邊 A8 與右邊 C8 兩隻獨立真眼——白棋此後永遠無法合法下入這兩點（下子即無氣自殺），黑棋大龍確定永久活棋！（此題盤面已重新設計為完全封閉的直三眼形，黑棋大龍除此三點外別無他氣，死活完全取決於這一手。）',
+    hint: '下在 B8 (1,1) (直三眼位正中心)，將內部眼位劃分為 A8 與 C8 兩隻互不干擾的真眼！',
+    explanation: '正解：黑棋下在 B8 (1,1)！直三眼位的關鍵急所就在正中間。下在 B8 後，內部形成左邊 A8 與右邊 C8 兩隻獨立真眼——白棋此後永遠無法合法下入這兩點（下子即無氣自殺），黑棋大龍確定永久活棋！',
     initialBoard: [
       'BBBBW....', // r=0 (Line9): A9-D9黑, E9白封鎖
-      '...BW....', // r=1 (Line8): A8/B8/C8為眼位空點, D8黑, E8白封鎖
-      'BBBBW....', // r=2 (Line7): A7-D7黑
-      'WWWWW....', // r=3 (Line6): 白棋完整封死黑龍外圍，黑龍僅剩3口氣
+      '...BW....', // r=1 (Line8): A8/B8/C8為眼位空點, D8黑, E8白
+      'BBBBW....', // r=2 (Line7): A7-D7黑, E7白
+      'WWWWW....', // r=3 (Line6): A6-E6白封鎖
       '.........',
       '.........',
       '.........',
@@ -67,6 +67,7 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
+    acceptedMoves: [{ r: 1, c: 1 }],
     successMessage: '太棒了！精準下在 B8 直三急所，分出 A8 與 C8 兩隻真眼，白棋再也無法侵入，黑棋大龍完美活棋！'
   },
 
@@ -78,13 +79,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     badge: '死活 點殺',
     boardSize: 9,
     prompt: '【黑先】白棋僅剩「直三」眼位，尚未做活，請搶先點在中間要害，讓白棋永遠做不成兩眼！',
-    hint: '「直三點中間」，搶佔 B8 核心要點，破壞白棋做成兩眼的機會！',
-    explanation: '正解：黑棋下在 B8！圍棋死活名言「直三點中間」。黑棋搶先點入後，白棋僅剩的兩個空點 A8、C8 都與黑子相鄰，不再是真眼，白棋整條大龍只剩 2 口氣，隨後黑棋 A8、C8 依序收氣即可將白棋全部提吃（實戰驗證：可提吃 10 子）！',
+    hint: '「直三點中間」，搶佔 B8 (1,1) 核心要點，破壞白棋做成兩眼的機會！',
+    explanation: '正解：黑棋下在 B8 (1,1)！圍棋死活名言「直三點中間」。黑棋搶先點入後，白棋僅剩的兩個空點 A8、C8 都與黑子相鄰，不再是真眼，白棋整條大龍只剩 2 口氣，隨後黑棋 A8、C8 依序收氣即可將白棋全部提吃！',
     initialBoard: [
-      'WWWWB....', // r=0 (Line9): A9-D9白, E9黑封鎖
-      '...WB....', // r=1 (Line8): A8/B8/C8為白棋直三眼位, D8白, E8黑封鎖
-      'WWWWB....', // r=2 (Line7): A7-D7白
-      'BBBBB....', // r=3 (Line6): 黑棋完整封死白龍外圍
+      'WWWWB....', // r=0 (Line9): A9-D9白, E9黑封鎖(防止白棋外洩)
+      '...WB....', // r=1 (Line8): A8/B8/C8白眼位, D8白, E8黑
+      'WWWWB....', // r=2 (Line7): A7-D7白, E7黑封鎖
+      'BBBBB....', // r=3 (Line6): A6-E6黑封鎖
       '.........',
       '.........',
       '.........',
@@ -93,24 +94,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
+    acceptedMoves: [{ r: 1, c: 1 }],
     successMessage: '神準一擊！直三點中間搶佔 B8，白棋眼形瓦解，整條大龍必死無疑！'
   },
 
   {
     id: 'bent-three-live',
-    title: '角上彎三做活',
+    title: '角上曲三做活 (拐點急所)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
-    badge: '死活 彎三',
+    badge: '死活 角部',
     boardSize: 9,
-    prompt: '【黑先】黑棋在角部形成「彎三（曲三）」眼位，請找出唯一的拐點急所做活！',
-    hint: '下在角部的拐彎處 A9，將彎曲的眼位分成兩隻真眼！',
-    explanation: '正解：黑棋下在 A9！角上彎三的死活急所就在拐角頂點。下在 A9 後，A9 這顆子本身雖與黑龍主體不直接相連，卻同時扼守 B9、A8 兩點——白棋無論點哪一點都會形成自殺手（下子後己方無氣、也未提吃任何黑子），因此永遠無法合法侵入，B9 與 A8 成為兩隻無法被破壞的真眼，黑棋角部確定活棋！',
+    prompt: '【黑先】黑棋在角部被圍成「曲三」眼位，請下在轉角拐點（曲三中心），一子做活！',
+    hint: '曲三的要害在拐彎頂點！請下在角部 A9 (0,0)！',
+    explanation: '正解：黑棋下在角部拐點 A9 (0,0)！曲三眼形若黑棋搶佔角端拐點 A9，眼位即刻分割成 B9 與 A8 兩隻獨立真眼。白棋若下入 B9 或 A8 均為自提無氣的自殺禁著點，黑棋永久做活！',
     initialBoard: [
-      '..BW.....', // r=0 (Line9): A9(彎三頂點,空), B9黑, C9黑, D9白封鎖
-      '.BBW.....', // r=1 (Line8): A8(空), B8黑, C8黑, D8白封鎖
-      'BBBW.....', // r=2 (Line7): A7-C7黑, D7白封鎖
-      'WWWW.....', // r=3 (Line6): 白棋封死黑棋外圍
+      '..BBW....', // r=0: A9/B9為眼位, C9黑, D9黑, E9白
+      '.BBBW....', // r=1: A8為眼位, B8黑, C8黑, D8黑, E8白
+      'BBBBW....', // r=2: A7-D7黑, E7白
+      'WWWWW....', // r=3: A6-E6白封鎖
       '.........',
       '.........',
       '.........',
@@ -119,24 +121,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9
-    successMessage: '漂亮！下在角部拐點 A9，彎三成功化為 B9、A8 兩隻真眼，白棋永遠無法侵入，角部堅不可摧！'
+    acceptedMoves: [{ r: 0, c: 0 }],
+    successMessage: '眼光銳利！曲三搶佔角端 A9 拐點，成功做出兩隻真眼，黑棋大龍安定做活！'
   },
 
   {
-    id: 'false-eye-destroy',
-    title: '單眼難活 (看似有眼實則不足)',
+    id: 'false-eye-break',
+    title: '破除假眼 (辨析真假眼)',
     category: 'LIFE_DEATH',
-    difficulty: 'MEDIUM',
-    badge: '死活 單眼',
+    difficulty: 'EASY',
+    badge: '死活 假眼',
     boardSize: 9,
-    prompt: '【黑先】白棋大龍只剩兩口氣：一處是無法侵入的真眼，另一處看似也被白棋團團圍住，其實只是普通的氣。請下在正確要點，讓白棋只剩「一隻真眼」──不足以活棋！',
-    hint: '下在 E8，把白棋僅剩的另一口氣填掉，逼白棋只靠 B8 這隻孤眼撐場面（一眼不能活）！',
-    explanation: '正解：黑棋下在 E8！白棋大龍其實只有兩口氣：B8 是完全被白子四面圍住、且外側對角也全是白棋的真眼（黑棋永遠無法合法點入）；而 E8 表面上三面被白棋包圍，但右側緊貼著黑棋外圍封鎖線，並不是安全的第二隻眼，只是普通的氣。黑棋下在 E8 後，白棋大龍只剩 B8 這唯一一口氣──此時 B8 已是全龍最後的氣，黑棋隨時可以點入直接提吃整條白龍（一隻真眼絕不足以活棋，這正是「有眼殺無眼」以外，「僅一眼」必死的鐵律）！',
+    prompt: '【黑先】白棋在角部有一個真眼 (A9)，在邊上有一個看似眼位的假眼 (D9)，請下在 D9 戳破假眼，使白棋無法做活！',
+    hint: '邊上一線眼位 (D9) 的斜對角 (C8 與 E8) 均已被黑棋牢牢控制，因此 D9 絕非真眼！請直接點入 D9 (0,3) 破眼！',
+    explanation: '正解：黑棋下在 D9 (0,3)！判斷真眼與假眼的標準：角部一線眼位需要 1 個斜角支持；邊上一線眼位（如 D9）則必須具備兩側全部斜角（C8 與 E8）。此題中 C8 與 E8 均為黑子，白棋在 D9 僅為「假眼」！黑棋搶先點入 D9 破眼並叫吃白子，白棋僅剩角上 A9 一隻真眼，全體大龍必死！',
     initialBoard: [
-      'WWWWWB...', // r=0 (Line9): A9-E9白, F9黑封鎖
-      'W.WW.B...', // r=1 (Line8): A8白, B8(真眼,空), C8/D8白, E8(僅剩之氣,空), F8黑封鎖
-      'WWWWWB...', // r=2 (Line7): A7-E7白
-      'BBBBBB...', // r=3 (Line6): 黑棋完整封死白龍外圍
+      '.WW.WB...', // r=0: A9(真眼), B9(W), C9(W), D9(假眼空點), E9(W), F9(B)
+      'WWBBBB...', // r=1: A8(W), B8(W), C8(B), D8(B), E8(B), F8(B)
+      'BBBBBB...', // r=2: A7-F7黑棋完整外圍包圍網
+      '.........',
       '.........',
       '.........',
       '.........',
@@ -144,25 +147,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 4 } }], // E8
-    successMessage: '慧眼獨具！填掉 E8 之後白棋只剩 B8 一隻孤眼，一眼終究不能活，白棋大龍在劫難逃！'
+    solutionMoves: [{ playerMove: { r: 0, c: 3 } }], // D9 (0,3)
+    acceptedMoves: [{ r: 0, c: 3 }],
+    successMessage: '漂亮！精準洞悉真假眼差別，點入 D9 破除假眼，白棋只有一隻真眼，整條大龍被全殲！'
   },
 
   {
-    id: 'seki-mutual-life',
-    title: '雙活共存 (先提一子再成公活)',
+    id: 'corner-seki',
+    title: '角上雙活 (公活共存)',
     category: 'LIFE_DEATH',
     difficulty: 'MEDIUM',
     badge: '死活 雙活',
     boardSize: 9,
-    prompt: '【黑先】黑白雙方在角落貼身糾纏，皆無兩眼。黑棋左側有一顆白子正處於「打吃」狀態，請先提吃這顆白子，讓自身氣數追上白棋，形成互不侵犯的「雙活」！',
-    hint: '下在 A8 提吃左邊那顆僅剩一口氣的白子，補回自己的私氣，與白棋打成平手形成雙活！',
-    explanation: '正解：黑棋下在 A8，先提吃已經處於打吃狀態的白子！提子前，黑棋只剩 C8（與白棋共用的公氣）這一口氣，白棋則有 C8（公氣）加上自己的私氣 E8，氣數比黑棋多，黑棋若不採取行動終將在收氣戰中落敗。黑棋提吃 A8 這顆白子後，原本的白子位置變成黑棋的新私氣，黑白雙方私氣、公氣數目完全相等——此後無論哪一方搶先填入公氣 C8，都只會讓自己先陷入絕境（經完整搜尋驗證：雙方都不會主動出手），形成圍棋中著名的「雙活（公活）」，雙方棋子從此永遠共存！',
+    prompt: '【黑先】角上有一顆黑棋孤子 A9 被白棋纏繞，請黑棋冷靜連接 A8 (1,0)，與白棋共享 B9/B8 兩口公氣，達成完美的「角上雙活」！',
+    hint: '連接 A8 (1,0)！補強後黑棋小尾巴與白棋角部小塊共享 B9、B8 兩口公氣，誰先填氣誰就自陷絕境，雙方均不能入氣，共存共活！',
+    explanation: '正解：黑棋連在 A8 (1,0)！圍棋中「雙活」（Seki / 公活）是指雙方棋子互圍、均無兩眼，但共同分享 2 口（或以上）公氣，誰都不敢先填。黑棋若不連接，白棋搶先下 A8 即可將角上這顆黑子徹底吃死；黑棋連接 A8 後，這顆孤子小尾巴與被封鎖在角上的白棋塊，雙方就只剩 B9 與 B8 兩口公氣、彼此都沒有真眼。任何一方若先填其中一口，自身氣數立刻降到 1 氣，對方下一手就能把先手的一方整塊提吃；因此雙方誰也不會、也不能先動手，永久形成「角上雙活」！',
     initialBoard: [
-      'WB.W.....', // r=0 (Line9): A9(打吃中的白子), B9黑, C9(公氣,空), D9白, E9(白之私氣,空)
-      '.W.B.....', // r=1 (Line8): A8(白子A9唯一的氣,空——黑棋應下之處), B8封鎖, C8(空), D8封鎖
-      '.........',
-      '.........',
+      'B.WB.....', // r=0: A9(黑孤子), B9(公氣空點), C9(W), D9(黑外層封鎖)
+      '..WB.....', // r=1: A8(待連接空點), B8(公氣空點), C8(W), D8(黑外層封鎖)
+      'WWWB.....', // r=2: A7-C7白, D7黑外層封鎖
+      'BBBB.....', // r=3: A6-D6黑外層(與角上孤子不相連)
       '.........',
       '.........',
       '.........',
@@ -171,25 +175,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 0 } }], // A8
-    successMessage: '高明之極！提吃白子後雙方氣數打平，形成經典雙活格局，棋理精深，雙方從此共存不殆！'
+    acceptedMoves: [{ r: 1, c: 0 }],
+    successMessage: '絕妙大局觀！黑棋連在 A8 保住角上孤子，與白棋共享 B9、B8 兩口公氣，雙方誰都不敢填氣，達成標準的「角上雙活」！'
   },
 
   {
     id: 'square-four-kill',
     title: '方四必死 (四目大眼)',
     category: 'LIFE_DEATH',
-    difficulty: 'MEDIUM',
-    badge: '死活 方四',
+    difficulty: 'EASY',
+    badge: '死活 大眼',
     boardSize: 9,
-    prompt: '【黑先】白棋內部僅剩一個 2x2 排列、四個空點的「方四」大眼，這是死活辭典中「不論誰先下都是死棋」的形狀，請下出第一手展開殺棋！',
-    hint: '點入方四其中一角 B8，之後不論白棋如何應對，黑棋都能將剩餘空間各個擊破！',
-    explanation: '正解：黑棋點入 B8！「方四」是圍棋死活的經典必死大眼形狀——即使白棋先手在方四內補一手，剩下的空間也只會變成「彎三」，而彎三若由對方（黑棋）先點角部，一樣是死棋；經完整電腦搜尋驗證，無論白棋如何抵抗，方四大眼都無法做出兩隻真眼，整團白棋難逃一劫！',
+    prompt: '【黑先】白棋內部被圍成 2x2「方四」（四目大眼）空間，內部 4 個點任意點入皆為死棋！請點入方四內部任何一格！',
+    hint: '「方四」內部四格（B8、C8、B7、C7）點哪一個都能殺棋！下入方四的任一空格即可！',
+    explanation: '正解：黑棋下在方四內部四格（B8、C8、B7、C7）中任意一格均為正解！圍棋大眼死活定論：「方四必死，無急所」。因為方四內部 4 個交叉點具有完全幾何對稱性，黑棋只要佔據內部任一格，剩下的三格空間就自動退化為「曲三」死形，白棋永遠不可能做出兩隻真眼！',
     initialBoard: [
-      'WWWWB....', // r=0 (Line9): A9-D9白, E9黑封鎖
-      'W..WB....', // r=1 (Line8): A8白, B8/C8(方四眼位,空), D8白, E8黑封鎖
-      'W..WB....', // r=2 (Line7): A7白, B7/C7(方四眼位,空), D7白, E7黑封鎖
-      'WWWWB....', // r=3 (Line6): A6-D6白
-      'BBBBB....', // r=4 (Line5): 黑棋完整封死白龍外圍
+      'WWWWB....', // r=0: A9-D9白, E9黑封鎖
+      'W..WB....', // r=1: A8(W), B8(空), C8(空), D8(W), E8黑封鎖
+      'W..WB....', // r=2: A7(W), B7(空), C7(空), D7(W), E7黑封鎖
+      'WWWWB....', // r=3: A6-D6白, E6黑封鎖
+      'BBBBB....', // r=4: A5-E5黑包圍
       '.........',
       '.........',
       '.........',
@@ -197,25 +202,31 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
-    successMessage: '正確！方四大眼是必死形狀，點入 B8 後白棋再怎麼掙扎都做不出兩眼，全軍覆沒只是時間問題！'
+    acceptedMoves: [
+      { r: 1, c: 1 }, // B8
+      { r: 1, c: 2 }, // C8
+      { r: 2, c: 1 }, // B7
+      { r: 2, c: 2 }  // C7
+    ],
+    successMessage: '正解！方四四格任下一格皆成死棋，空間被壓制為曲三，白棋大龍必死！'
   },
 
   {
     id: 'knife-five-kill',
     title: '刀把五點眼 (大眼殺棋)',
     category: 'LIFE_DEATH',
-    difficulty: 'HARD',
-    badge: '死活 刀把五',
+    difficulty: 'MEDIUM',
+    badge: '死活 大眼',
     boardSize: 9,
-    prompt: '【黑先】白棋內部呈現五個空格組成、形似刀柄的「刀把五」大眼，這是「後下先死」的形狀，請搶先下在致命的心臟要點！',
-    hint: '點在刀把轉彎內側的關鍵位置 B8──經驗證這是唯一能致命的一點！',
-    explanation: '正解：黑棋點入 B8！刀把五屬於「先手方獲勝」的大眼形狀：若白棋先手補在此點則能做活，但由黑棋先點入 B8（刀把轉彎內側，同時扼住三個方向的空間），白棋無論如何應對都無法做出兩隻真眼，整團白棋覆滅（此結論已用電腦窮舉搜尋逐一驗證：五個候選點中，唯有 B8 能強制殺棋，其餘各點白棋都能設法做活）！',
+    prompt: '【黑先】白棋圍成 5 目的「刀把五」大眼形狀，請點在最關鍵的刀柄核心急所，將其一舉殲滅！',
+    hint: '刀把五的要害在刀把轉角處！請點入 B8 (1,1)！',
+    explanation: '正解：黑棋下在 B8 (1,1)！「刀把五」是圍棋中最凶險的 5 目大眼死活形態。其核心急所就在轉角處的 B8。若被白棋搶佔 B8，白棋立即分成兩眼做活；黑棋搶先點入 B8 後，白棋眼位徹底崩潰，無法做出兩眼，必死無疑！',
     initialBoard: [
-      'WWWWB....', // r=0 (Line9): A9-D9白, E9黑封鎖
-      '...WB....', // r=1 (Line8): A8/B8/C8(刀把五眼位), D8白, E8黑封鎖
-      '..WWB....', // r=2 (Line7): A7/B7(眼位,空), C7白, D7白, E7黑封鎖
-      'WWWWB....', // r=3 (Line6): A6-D6白
-      'BBBBB....', // r=4 (Line5): 黑棋完整封死白龍外圍
+      '...WWB...', // r=0: A9/B9/C9為大眼空點, D9/E9白, F9黑封鎖
+      '..WWWB...', // r=1: A8/B8為大眼空點, C8-E8白, F8黑封鎖
+      'WWWWWB...', // r=2: A7-E7白, F7黑封鎖
+      'BBBBBB...', // r=3: A6-F6黑封鎖
+      '.........',
       '.........',
       '.........',
       '.........',
@@ -223,23 +234,24 @@ export const GO_PUZZLES: GoPuzzle[] = [
     ],
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
-    successMessage: '一擊必殺！點在刀把五命門 B8，白棋大眼化為烏有，這是唯一能殺棋的一點！'
+    acceptedMoves: [{ r: 1, c: 1 }],
+    successMessage: '一刀致命！直擊刀把五靈魂要害 B8，徹底摧毀白棋眼形，全殲白棋大龍！'
   },
 
   {
     id: 'golden-rooster',
-    title: '金雞獨立 (一手雙提)',
+    title: '金雞獨立 (一手雙禁入)',
     category: 'LIFE_DEATH',
     difficulty: 'HARD',
-    badge: '死活 金雞獨立',
+    badge: '死活 妙手',
     boardSize: 9,
-    prompt: '【黑先】白棋左右兩塊小棋僅剩的最後一口氣，恰好是同一個點！黑棋請於第一線「立下」，一手同時提吃左右兩塊白棋！',
-    hint: '下在第一線的 B9，這一點正是白棋左右兩塊棋共用的最後一口氣！',
-    explanation: '正解：黑棋下在 B9 一路立下！仔細數氣可以發現：白棋左邊 A9、A8 兩子的唯一氣是 B9；白棋右邊 C9、C8 兩子的唯一氣也是 B9──兩塊白棋的氣門完全重疊在同一點！黑棋立下 B9 後，左右兩塊白棋同時歸零氣數，一手棋直接雙提 4 子，這正是「金雞獨立」的精妙之處：白棋左右兩邊各自不入氣，只能眼睜睜看著棋子被黑棋一次收乾！',
+    prompt: '【黑先】左右兩邊白棋各剩 1 口外部氣，請黑棋在一路果斷「立下」在 C9 (0,2)，形成名揚棋壇的「金雞獨立」！',
+    hint: '下在一路 C9 (0,2)！黑棋一子立下後，左右兩側白棋下進來都變成無氣自殺（自殺禁著點），白棋雙雙動彈不得！',
+    explanation: '正解：黑棋下在 C9 (0,2) 一路立下！這是圍棋死活名手筋「金雞獨立」（雙禁入）。黑棋 C9 一子立下後，左右兩側白棋均只剩下各自最後 1 口氣 (A9 與 E9)。左邊白棋若下 A9 叫吃黑棋，自己即刻無氣成為禁著點（自殺）；右邊白棋若下 E9 也是無氣自殺！白棋兩側均不能下入（一手雙禁入），黑棋下一手便可從容將兩側白棋全部吃光！',
     initialBoard: [
-      'W.WB.....', // r=0 (Line9): A9白, B9(金雞獨立要點,空), C9白, D9黑封鎖
-      'WBWB.....', // r=1 (Line8): A8白, B8黑, C8白, D8黑封鎖
-      'BBBB.....', // r=2 (Line7): A7-D7黑
+      '.W.W.B...', // r=0: A9(.), B9(W), C9(待立下空點), D9(W), E9(.), F9(B)封鎖
+      'BWBWB....', // r=1: A8(B), B8(W), C8(B), D8(W), E8(B)
+      'BBBBB....', // r=2: A7-E7(B)包圍網
       '.........',
       '.........',
       '.........',
@@ -248,8 +260,9 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 0, c: 1 } }], // B9
-    successMessage: '絕妙神技！金雞獨立一手雙提，白棋左右兩邊同時氣絕，四子盡收！'
+    solutionMoves: [{ playerMove: { r: 0, c: 2 } }], // C9 (0,2)
+    acceptedMoves: [{ r: 0, c: 2 }],
+    successMessage: '妙不可言！「金雞獨立」一子立下，白棋左右兩側皆成禁入點，黑棋完勝對殺！'
   },
 
   // ==========================================
@@ -257,45 +270,46 @@ export const GO_PUZZLES: GoPuzzle[] = [
   // ==========================================
   {
     id: 'snapback-classic',
-    title: '經典倒撲手筋 (送子全殲)',
+    title: '倒撲手筋 (撲入倒撲)',
     category: 'CAPTURE',
     difficulty: 'EASY',
     badge: '吃子 倒撲',
     boardSize: 9,
-    prompt: '【黑先】白棋中央呈虎口之形，請利用「送子倒撲」將白棋一口氣全部提吃！',
-    hint: '「送給對方吃一顆」，大膽點入 C8 虎口中！',
-    explanation: '正解：黑棋下在 C8 撲入虎口！白棋提吃黑子後，整團棋子只剩最後一口氣。黑棋緊接著在原地 C8 再次落子，即可將整團白棋全部提吃，這就是圍棋經典的「倒撲」！',
+    prompt: '【黑先】白棋三子僅剩 A9、B9 兩口氣，請黑棋主動「撲入」A9 (0,0) 虎口，誘敵提吃後立即回提，完成精采的「倒撲」吃子！',
+    hint: '請下在 A9 (0,0) 撲入虎口！黑棋這顆子自身只有 1 口氣（B9），白棋會順手提吃；提吃後白棋全體反而只剩 1 口氣，黑棋隨即在 A9 回提，全殲白棋！',
+    explanation: '正解：黑棋撲入 A9 (0,0)！「倒撲」是圍棋中最具魅力的吃子手筋之一。白棋三子原本有 A9、B9 兩口氣；黑棋主動送一子入 A9，這顆黑子自身僅有 1 口氣（B9），白棋自然會下在 B9 提吃這顆送死的黑子。但白棋提吃後，整塊白棋（含新落的 B9 子）氣數反而被壓縮到只剩剛剛騰出的 A9 一口氣！黑棋下一手立刻在同一個 A9 點「回提」，將整群白子一次性全部拔起！',
     initialBoard: [
-      'BBBBB....', // r=0 (Line 9): A9..E9 (B)
-      'BW.WB....', // r=1 (Line 8): A8(B), B8(W), C8(.), D8(W), E8(B)
-      'BW.WB....', // r=2 (Line 7): A7(B), B7(W), C7(.), D7(W), E7(B)
-      'BWWWB....', // r=3 (Line 6): A6(B), B6(W), C6(W), D6(W), E6(B)
-      'BBBBB....', // r=4 (Line 5): A5..E5 (B)
+      '..B......', // r=0: A9/B9(虎口空點/回提點), C9黑封鎖
+      'WWB......', // r=1: A8/B8(白), C8黑封鎖
+      'BWB......', // r=2: A7黑封鎖, B7(白), C7黑封鎖
+      '.B.......', // r=3: B6黑封鎖
+      '.........',
       '.........',
       '.........',
       '.........',
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '太精彩了！撲入 C8 虎口完成倒撲，白棋群子瞬間覆滅！'
+    solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9 (0,0)
+    acceptedMoves: [{ r: 0, c: 0 }],
+    successMessage: '神乎其技！送子撲入引發倒撲連鎖，成功提吃白棋整條切斷要子！'
   },
 
   {
-    id: 'double-atari-classic',
-    title: '雙叫吃手筋 (一箭雙鵰)',
+    id: 'double-atari',
+    title: '雙叫吃 (雙打吃手筋)',
     category: 'CAPTURE',
     difficulty: 'EASY',
-    badge: '吃子 雙叫吃',
+    badge: '吃子 雙打',
     boardSize: 9,
-    prompt: '【黑先】白棋兩塊棋皆露出破綻，請下在十字路口同時叫吃兩塊白子！',
-    hint: '下在 C7 (交會處)，同時威脅左邊 B7 與上方 C8 兩顆白子！',
-    explanation: '正解：黑棋下在 C7 雙叫吃！此手一下，左邊白子與上方白子同時進入「叫吃（只剩一口氣）」狀態。白棋顧此失彼，只能救其中一邊，黑棋必能提吃另一塊，大獲戰果！',
+    prompt: '【黑先】左右兩顆白子各剩 2 口氣，請黑棋下在中間交叉分叉點 C8 (1,2)，同時叫吃兩顆白子（雙叫吃），必得其一！',
+    hint: '下在 C8 (1,2) 分叉點！此手一下，左邊 B8 白子與右邊 D8 白子同時只剩 1 口氣進入叫吃狀態！',
+    explanation: '正解：黑棋下在 C8 (1,2)！「雙叫吃」（雙打吃）是指一子落下，同時對敵方兩處互不相連的棋子進行叫吃。由於對手每回合只能救援其中一處，黑棋在下一回合必定能提吃另一處棋子，是圍棋最實用的戰術基本功！',
     initialBoard: [
+      '.B.B.....', // r=0: B9(B), D9(B)
+      '.W.W.....', // r=1: B8(W,2氣), C8(分叉空點), D8(W,2氣)
+      '.B.B.....', // r=2: B7(B), D7(B)
       '.........',
-      '..W......', // r=1: C8(W)
-      '.W.B.....', // r=2: B7(W), C7(.), D7(B)
-      '..B......', // r=3: C6(B)
       '.........',
       '.........',
       '.........',
@@ -303,25 +317,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '一箭雙鵰！C7 雙叫吃絕殺，白棋顧此失彼，必失其一！'
+    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
+    acceptedMoves: [{ r: 1, c: 2 }],
+    successMessage: '精準一擊！C8 落下達成雙叫吃，白棋顧此失彼，黑棋必定生擒一子！'
   },
 
   {
-    id: 'oiotoshi-squeeze',
-    title: '接不歸 (滾打包收)',
+    id: 'oi-otoshi',
+    title: '接不歸 (滾打包收/接不歸)',
     category: 'CAPTURE',
     difficulty: 'MEDIUM',
     badge: '吃子 接不歸',
     boardSize: 9,
-    prompt: '【黑先】白棋形狀潰散，請利用「接不歸」手筋，讓白棋即使連接也逃不掉！',
-    hint: '下在 C8 斷打，白棋即使在 D8 連接也是氣緊全滅！',
-    explanation: '正解：黑棋下在 C8 斷打！這就是著名的「接不歸（滾打包收）」。此時白棋若企圖連接逃跑，整條長串棋子仍然只有最後一口氣，黑棋下一手即可連本帶利全團拔除！',
+    prompt: '【黑先】白棋兩顆斷尾殘子氣數極緊，請黑棋於 D8 (1,3) 叫吃！白棋即使連回也只有 1 氣，難逃被全殲的命運！',
+    hint: '下在 D8 (1,3) 進行叫吃！白棋若敢接上連回，整串棋子依然只有 1 口氣，黑棋下一手即可全盤提吃！',
+    explanation: '正解：黑棋下在 D8 (1,3) 叫吃！「接不歸」（Oi-otoshi）是指敵方棋子被叫吃時，若試圖連回大部隊，連回後的整體仍然只有 1 口氣（氣緊逃不掉）。對手接上只是白白增加死子數量，故稱「接了也回不來（接不歸）」！',
     initialBoard: [
-      'BBBBB....', // r=0
-      'BW.WB....', // r=1: A8(B), B8(W), C8(.), D8(W), E8(B)
-      'BBWWB....', // r=2: A7(B), B7(B), C7(W), D7(W), E7(B)
-      '..BBB....', // r=3
+      'BBBBB....', // r=0: A9-E9黑完整厚勢
+      '.WW.W....', // r=1: A8(.), B8(W), C8(W), D8(叫吃要點), E8(W), F8(B)
+      'BBBBB....', // r=2: A7-E7黑完整封鎖
+      '.........',
       '.........',
       '.........',
       '.........',
@@ -329,8 +344,9 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '算無遺策！接不歸令白棋縱然連接也難逃全滅命運！'
+    solutionMoves: [{ playerMove: { r: 1, c: 3 } }], // D8 (1,3)
+    acceptedMoves: [{ r: 1, c: 3 }],
+    successMessage: '算無遺策！D8 叫吃引發接不歸，白棋連與不連皆難逃被提吃的厄運！'
   },
 
   {
@@ -340,14 +356,14 @@ export const GO_PUZZLES: GoPuzzle[] = [
     difficulty: 'MEDIUM',
     badge: '吃子 鶴之巢',
     boardSize: 9,
-    prompt: '【黑先】白棋三子企圖向外突出，請施展名聞遐邇的「烏龜不出頭（鶴之巢）」將其封殺！',
-    hint: '大膽點在白棋三子的腹部核心 D7 進行打擊！',
-    explanation: '正解：黑棋點入 D7！這是圍棋界最負盛名的「烏龜不出頭（鶴之巢）」手筋。白棋三子在此形狀下被黑棋點入胸口，無論向哪個方向出頭都只會加速自己氣絕，只能乖乖受戮！',
+    prompt: '【黑先】二路白棋三子還有 B7、C7、D7 三個出頭方向，請黑棋施展「鼻頂」手筋頂在正中央 C7 (2,2)，讓烏龜永遠出不了頭！',
+    hint: '下在 C7 (2,2)「鼻頂」！白棋這下被逼得只能往單邊硬撞，之後不管撞向哪一邊，都會一路被追殺撞進黑棋包圍網中！',
+    explanation: '正解：黑棋下在 C7 (2,2) 鼻頂！「鶴之巢」（俗稱烏龜不出頭）是圍棋古典吃子名譜。白棋在二線排成三子，原本 B7、C7、D7 三個方向都能向外衝，黑棋搶先在正中央 C7 鼻頂後，白棋三子的氣從 3 口降到 2 口，且被攔腰截成只能選左（B7）或右（D7）單邊硬撞；不論撞向哪一邊，都會一路撞入黑棋的天羅地網，最終被徹底封死提吃！',
     initialBoard: [
-      '..BBB....',
-      '.BWWWB...', // r=1 (Line 8): B8(B), C8(W), D8(W), E8(W), F8(B)
-      '..B.B....', // r=2 (Line 7): C7(B), D7(.), E7(B)
-      '...B.....', // r=3 (Line 6): D6(B)
+      'BBBBB....', // r=0: A9-E9黑
+      'BWWWB....', // r=1: A8(B), B8-D8(W), E8(B)
+      '.........', // r=2: B7/C7(鼻頂空點)/D7 皆為白棋的出頭空點
+      '..B......', // r=3: C6(B)守住中央，防止白棋直接由中路突圍
       '.........',
       '.........',
       '.........',
@@ -355,25 +371,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 3 } }], // D7
-    successMessage: '名局絕技！「烏龜不出頭」將白棋牢牢困死於鶴巢之中！'
+    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
+    acceptedMoves: [{ r: 2, c: 2 }],
+    successMessage: '神來之筆！C7 鼻頂如天羅地網，白棋烏龜縮頭難逃天元大網！'
   },
 
   {
-    id: 'net-geta',
-    title: '枷吃手筋 (寬網捕魚)',
+    id: 'geta-net',
+    title: '枷吃手筋 (虛網枷吃)',
     category: 'CAPTURE',
     difficulty: 'EASY',
     badge: '吃子 枷吃',
     boardSize: 9,
-    prompt: '【黑先】白棋殘子企圖逃逸，切勿盲目直接叫吃，請下出「枷吃（網）」讓其無路可逃！',
-    hint: '下在白棋前方的空間 C7 進行虛籠罩（枷）！',
-    explanation: '正解：黑棋下在 C7 枷吃！直接叫吃往往會讓白棋順勢逃脫，而下在 C7 留出寬鬆的一步網（枷），白棋無論往左衝還是往右衝，都會立即撞入黑棋的氣口而送死！',
+    prompt: '【黑先】白子企圖向中腹逃竄，若直接叫吃白棋會順勢長出，請施展「虛網枷吃」，飛罩住白子逃跑路線！',
+    hint: '下在 D7 (2,3) 進行小飛枷吃！留有餘地卻封死所有衝出方向！',
+    explanation: '正解：黑棋下在 D7 (2,3) 枷吃！「枷吃」（Geta / 虛網）是比征子更高效的吃子技術。黑棋不直接緊貼叫吃，而是下在 D7 形成無形的虛網。白棋無論往哪個方向衝出，都會立刻被黑棋在兩步內直接封死並提吃！',
     initialBoard: [
+      '..B......', // r=0: C9黑
+      '.B.W.....', // r=1: B8黑, D8白企圖逃跑
+      '....B....', // r=2: E7黑
       '.........',
-      '..B......', // r=1: C8(B)
-      '.B.W.....', // r=2: B7(B), C7(.), D7(W)
-      '...B.....', // r=3: D6(B)
       '.........',
       '.........',
       '.........',
@@ -381,24 +398,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '輕靈絕妙！「枷吃」織就天羅地網，白棋插翅難飛！'
+    solutionMoves: [{ playerMove: { r: 2, c: 3 } }], // D7 (2,3)
+    acceptedMoves: [{ r: 2, c: 3 }],
+    successMessage: '天羅地網！D7 虛網枷吃，白棋看似有路實則插翅難飛！'
   },
 
   {
-    id: 'snare-door-capture',
+    id: 'door-capture',
     title: '門吃 (關門打狗)',
     category: 'CAPTURE',
     difficulty: 'EASY',
     badge: '吃子 門吃',
     boardSize: 9,
-    prompt: '【黑先】白棋孤子突入黑陣兩子之間，請下在前方將大門關上（門吃）！',
-    hint: '下在 C7 將白棋逃跑的大門死死關上！',
-    explanation: '正解：黑棋下在 C7 門吃！黑棋兩側已有防守子，此時在正面 C7 關門叫吃，白棋若是向前逃跑只會自撞槍口，一子瞬間束手就擒！',
+    prompt: '【黑先】白棋孤子卡在兩顆黑棋中間，請黑棋關上大門，將白子牢牢關在門內叫吃！',
+    hint: '下在 C7 (2,2) 關上大門！',
+    explanation: '正解：黑棋下在 C7 (2,2) 關門！「門吃」（關門打狗）是指當敵方孤子進入兩顆防守黑子之間時，黑棋下在出口處堵住最後通道，敵子動彈不得，隨後即可手到擒來！',
     initialBoard: [
-      '..B......', // r=0: C9(B)
-      '.BWB.....', // r=1: B8(B), C8(W), D8(B)
-      '.........',
+      '..B......', // r=0: C9黑
+      '.BWB.....', // r=1: B8黑, C8白, D8黑
+      '.........', // r=2: C7大門空點
       '.........',
       '.........',
       '.........',
@@ -407,24 +425,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '關門大吉！門吃手筋乾淨俐落，白棋孤子束手就擒！'
+    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
+    acceptedMoves: [{ r: 2, c: 2 }],
+    successMessage: '大門緊閉！關門打狗一氣呵成，白子甕中捉鱉！'
   },
 
   {
     id: 'ladder-shicho',
-    title: '征子 (扭羊頭手筋)',
+    title: '征子手筋 (扭羊頭征吃)',
     category: 'CAPTURE',
-    difficulty: 'MEDIUM',
+    difficulty: 'EASY',
     badge: '吃子 征子',
     boardSize: 9,
-    prompt: '【黑先】發動圍棋最壯觀的連續斜向叫吃「征子（扭羊頭）」，步步緊逼！',
-    hint: '從斜後方 C7 進行打吃，逼迫白棋走入連續鋸齒狀陷阱！',
-    explanation: '正解：黑棋下在 C7 征吃！征子是圍棋的基本功，每一步都緊緊卡住白棋的逃跑方向，使白棋永遠只有一口氣，一路逃至棋盤邊緣被全數提吃！',
+    prompt: '【黑先】白棋孤子企圖突圍，請黑棋從正確方向叫吃，將其逼入 Z 字型斜向征子（扭羊頭）絕路！',
+    hint: '下在 D8 (1,3) 從右側迎頭痛擊叫吃，逼迫白棋斜向下逃跑！',
+    explanation: '正解：黑棋下在 D8 (1,3) 叫吃！「征子」（Shicho / 扭羊頭）是圍棋最具代表性的連續叫吃戰術。黑棋每一步均從側面斜向叫吃，迫使白棋只能沿著對角線 Z 字型逃跑，每逃一步都只有 1 口氣，最終撞上邊界或黑棋伏兵被全殲！',
     initialBoard: [
-      '...B.....', // r=0
-      '..BW.....', // r=1: C8(B), D8(W)
-      '...B.....', // r=2: D7(B)
+      '..B......', // r=0: C9黑
+      '.BW......', // r=1: B8黑, C8白
+      '.........',
       '.........',
       '.........',
       '.........',
@@ -433,25 +452,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '氣勢如虹！征子手筋連綿不絕，白棋在天羅地網中化為齏粉！'
+    solutionMoves: [{ playerMove: { r: 1, c: 3 } }], // D8 (1,3)
+    acceptedMoves: [{ r: 1, c: 3 }],
+    successMessage: '步步緊逼！征子如水銀瀉地，白棋在連續叫吃中無力回天！'
   },
 
   {
-    id: 'throw-in-atari',
-    title: '撲入吃子 (棄子緊氣)',
+    id: 'throw-in-squeeze',
+    title: '撲入緊氣 (緊氣手筋)',
     category: 'CAPTURE',
     difficulty: 'MEDIUM',
     badge: '吃子 撲入',
     boardSize: 9,
-    prompt: '【黑先】白棋兩子看似有兩口氣，請利用「撲」的犧牲打，將其氣數緊縮至一口！',
-    hint: '勇敢將黑子送入 B8 白棋口中進行緊氣！',
-    explanation: '正解：黑棋撲入 B8！藉由犧牲一顆黑子，強迫白棋提吃，進而自行填塞自己的氣口。白棋提吃後氣數由二變一，黑棋隨即完成最後絕殺！',
+    prompt: '【黑先】對殺中白棋有 2 口氣，請黑棋果斷「撲」入 C8 (1,2) 緊縮白棋氣數，搶先一步贏下對殺！',
+    hint: '下在 C8 (1,2) 犧牲一子「撲入」！強迫白棋提吃，白棋提吃後氣數立刻被壓縮！',
+    explanation: '正解：黑棋下在 C8 (1,2) 撲入！在對殺（Capturing Race）中，「撲」是減少對方氣數的最強手筋。黑棋主動獻祭一子，白棋提吃後反而佔據了自己的眼位，氣數由 2 氣銳減為 1 氣，黑棋下一手即可搶先提吃白棋！',
     initialBoard: [
-      'BBB......', // r=0 (Line 9)
-      'B.WB.....', // r=1 (Line 8): A8(B), B8(.), C8(W), D8(B)
-      'B.WB.....', // r=2 (Line 7): A7(B), B7(.), C7(W), D7(B)
-      'BBB......', // r=3 (Line 6)
+      'BBBB.....',
+      'BW.W.....', // r=1: B8(W), C8(撲入空點), D8(W)
+      'BWWWB....',
+      'BBBBB....',
       '.........',
       '.........',
       '.........',
@@ -459,27 +479,28 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
-    successMessage: '捨得妙手！撲入緊氣令白棋自損氣數，完美收官！'
+    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
+    acceptedMoves: [{ r: 1, c: 2 }],
+    successMessage: '棄子生花！撲入緊氣瞬間扭轉對殺速度，黑棋搶先提吃獲勝！'
   },
 
   // ==========================================
-  // 🛡️ CATEGORY 3: 戰術與官子 (Tactics & Endgame)
+  // ⚡ CATEGORY 3: 戰術與手筋 (Tactics & Tesuji)
   // ==========================================
   {
     id: 'cut-tesuji',
-    title: '切斷手筋 (斷其筋骨)',
+    title: '切斷手筋 (斷的手筋)',
     category: 'TACTICS',
     difficulty: 'EASY',
     badge: '戰術 切斷',
     boardSize: 9,
-    prompt: '【黑先】白棋進行了鬆散的斜向跳躍，請下在要害「斷點」，將白棋一分為二！',
-    hint: '下在 C8 斷點，直接斬斷兩塊白棋的聯絡！',
-    explanation: '正解：黑棋下在 C8 切斷！俗諺「棋從斷處生」。將對手的棋形切斷為互不相顧的兩塊孤棋，是對局中發動攻擊、搶佔主動權的最核心戰術！',
+    prompt: '【黑先】白棋兩子成斜向對角連接，聯絡脆弱，請下在切斷要害，使白棋首尾不能相顧！',
+    hint: '下在 C8 (1,2) 或 B7 (2,1) 分割切斷！',
+    explanation: '正解：黑棋下在 C8 (1,2) 切斷！圍棋棋諺「棋從斷處生」。將對手的棋形分斷是發動攻擊、創造戰機的第一步。切斷後白棋分裂為兩塊弱棋，黑棋佔據絕對主動權！',
     initialBoard: [
-      '..W......', // r=0: C9(W)
-      '.W.B.....', // r=1: B8(W), C8(.), D8(B)
-      '..B......', // r=2: C7(B)
+      '.........',
+      '.W.B.....', // r=1: B8白, D8黑
+      'B.W......', // r=2: A7黑, C7白
       '.........',
       '.........',
       '.........',
@@ -488,24 +509,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '如刀劈竹！精準切斷 C8，白棋首尾不能相顧，局勢大優！'
+    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
+    acceptedMoves: [{ r: 1, c: 2 }, { r: 2, c: 1 }],
+    successMessage: '俐落一刀！切斷手筋一出，白棋首尾分離陷入兩難！'
   },
 
   {
     id: 'clamp-tesuji',
-    title: '二路夾 (夾的手筋)',
+    title: '二路夾手筋 (夾的妙手)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
     badge: '戰術 夾',
     boardSize: 9,
-    prompt: '【黑先】白棋在二路展開，請施展「二路夾」手筋，威脅切斷與一路渡過！',
-    hint: '在二線貼著白棋下在 C8 進行「夾」！',
-    explanation: '正解：黑棋下在 C8 夾！二路夾是極具威力的手筋。若白棋向上長出，黑棋便從一路渡過回家；若白棋向下阻擋，黑棋便直接切斷白棋後路，左右逢源！',
+    prompt: '【黑先】二路白子深入黑棋領地，請黑棋在二路施展「夾」的手筋，上下兩全其美！',
+    hint: '下在 B8 (1,1) 進行二路夾！白若連上黑則下渡，白若阻渡黑則切斷！',
+    explanation: '正解：黑棋下在 B8 (1,1) 二路夾！「二路夾」是攻守兼備的高級手筋。白棋若向上接回，黑棋可沿一路連通渡過；白棋若向下阻擋渡過，黑棋則可順勢向上切斷，黑棋必獲巨大利益！',
     initialBoard: [
-      '...B.....', // r=0 (Line 9): D9(B)
-      '.W.W.....', // r=1 (Line 8): B8(W), C8(.), D8(W)
-      '..B......', // r=2 (Line 7): C7(B)
+      '.........',
+      '..W.B....', // r=1: C8白, E8黑
+      '.B.......', // r=2: B7黑
       '.........',
       '.........',
       '.........',
@@ -514,24 +536,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '左右逢源！二路夾手筋兼顧渡過與切斷，白棋難以招架！'
+    solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8 (1,1)
+    acceptedMoves: [{ r: 1, c: 1 }],
+    successMessage: '兩全其美！二路夾手筋精妙絕倫，無論白棋如何應對皆受制於黑！'
   },
 
   {
     id: 'wedge-tesuji',
-    title: '挖斷手筋 (一間跳之破)',
+    title: '挖斷手筋 (挖的妙手)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
     badge: '戰術 挖',
     boardSize: 9,
-    prompt: '【黑先】白棋兩子呈一間跳，請硬生生「挖」入其中央，撕裂白棋防線！',
-    hint: '下在 C8 (兩顆白子正中間的空隙) 進行強行「挖」！',
-    explanation: '正解：黑棋下在 C8 挖入！面對一間跳的弱點，直接「挖」入內部會同時造成左右兩個斷點，白棋無論補哪一邊，黑棋都能痛快切斷另一邊！',
+    prompt: '【黑先】白棋一間跳形狀中門大開，請黑棋大膽「挖」入中間，製造雙重切斷弱點！',
+    hint: '下在 C8 (1,2)「挖」！強行切入白棋一間跳空隙！',
+    explanation: '正解：黑棋下在 C8 (1,2) 挖！「挖」是鑽入對方兩子相隔一格的跳形之間。黑棋挖入後，白棋左右兩側出現兩個斷點，白棋顧得了左邊就顧不了右邊，必定被黑棋斷開吃子！',
     initialBoard: [
-      '..B......', // r=0: C9(B)
-      '.W.W.....', // r=1: B8(W), C8(.), D8(W)
-      '.B.B.....', // r=2: B7(B), C7(.), D7(B)
+      '..B......', // r=0: C9黑
+      '.W.W.....', // r=1: B8白, C8空點, D8白
+      '..B......', // r=2: C7黑
       '.........',
       '.........',
       '.........',
@@ -540,23 +563,24 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '強勢突破！挖入 C8 中心，瞬間造成兩大斷點，白棋防線崩解！'
+    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
+    acceptedMoves: [{ r: 1, c: 2 }],
+    successMessage: '中流砥柱！挖斷手筋直插要害，白棋一間跳形狀支離破碎！'
   },
 
   {
     id: 'bridge-under',
-    title: '一路妙手尖渡 (絕處逢生)',
+    title: '一路妙手尖渡 (一路連通)',
     category: 'TACTICS',
-    difficulty: 'MEDIUM',
-    badge: '官子 尖渡',
+    difficulty: 'HARD',
+    badge: '戰術 官子',
     boardSize: 9,
-    prompt: '【黑先】邊緣黑子孤立無援，請於第一線施展「小尖渡過」連回主力！',
-    hint: '下在第一線的 B9 (小尖)，從地下安全連通！',
-    explanation: '正解：黑棋下在 B9 尖渡！第一線的「尖」具有極強的聯絡性，白棋若想阻擋衝斷，黑棋即可順勢擋住並叫吃白子，黑棋成功於地下安全渡過回家！',
+    prompt: '【黑先】黑棋角上一子被阻隔，請在一路施展「尖渡」妙手，奇蹟般連回大部隊！',
+    hint: '下在一路 B9 (0,1)「尖」！利用一路特殊性安全滑過白棋防線！',
+    explanation: '正解：黑棋下在 B9 (0,1) 一路尖！圍棋名言「二子頭必扳，一路有妙手」。在棋盤最外圍的一路上，「尖」是極為隱蔽且強大的連通手筋。白棋若想阻擋，會因氣緊反被黑棋吃掉，黑棋順利金蟬脫殼連回大部隊！',
     initialBoard: [
-      'B.W.B....', // r=0 (Line 9): A9(B), B9(.), C9(W), D9(.), E9(B)
-      '.W.W.....', // r=1 (Line 8): B8(W), D8(W)
+      'B..B.....', // r=0: A9黑孤子, B9尖渡空點, D9黑本隊
+      '.WW......', // r=1: B8白, C8白
       '.........',
       '.........',
       '.........',
@@ -566,24 +590,25 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 0, c: 1 } }], // B9
-    successMessage: '暗渡陳倉！一路小尖妙手連回大部隊，化險為夷！'
+    solutionMoves: [{ playerMove: { r: 0, c: 1 } }], // B9 (0,1)
+    acceptedMoves: [{ r: 0, c: 1 }],
+    successMessage: '神乎其技！一路尖渡神妙無比，殘子瞬間化為生力軍與大部隊會合！'
   },
 
   {
-    id: 'descent-liberties',
-    title: '一路立下手筋 (長氣殺敵)',
+    id: 'first-line-descent',
+    title: '一路立下手筋 (對殺緊氣立)',
     category: 'TACTICS',
-    difficulty: 'HARD',
-    badge: '對殺 一路立',
+    difficulty: 'MEDIUM',
+    badge: '戰術 對殺',
     boardSize: 9,
-    prompt: '【黑先】對殺緊要關頭，請沉著往第一線「立下」，大幅增加自身氣數奪得勝利！',
-    hint: '下在第一線 A9 (一路立)，讓白棋無法直接貼身叫吃！',
-    explanation: '正解：黑棋下在 A9 一路立下！在對殺中，一路立下往往能憑空產生關鍵的「入氣障礙」，使白棋必須多花一手棋防守才能叫吃黑棋，黑棋從而在對殺中快一氣獲勝！',
+    prompt: '【黑先】緊要關頭對殺，請黑棋在一路果斷「立下」，人為製造白棋入氣障礙！',
+    hint: '下在角上一路 A9 (0,0)「立下」！迫使白棋必須多花一手才能進來收氣！',
+    explanation: '正解：黑棋下在 A9 (0,0) 一路立！在對殺中，一路「立」能製造著名的「入氣難題」。因為黑棋立下後，白棋若要收黑棋的氣，不能直接打吃，必須先下在二路補氣，黑棋因此多爭取到 1 口關鍵氣，贏得對殺！',
     initialBoard: [
-      '.B.W.....', // r=0 (Line 9): A9(.), B9(B), C9(.), D9(W)
-      '.BWW.....', // r=1 (Line 8): B8(B), C8(W), D8(W)
-      '..BB.....', // r=2 (Line 7): C7(B), D7(B)
+      '.B.......', // r=0: A9(待立下空點), B9黑
+      'WB.......', // r=1: A8白, B8黑
+      'WW.......', // r=2: A7白, B7白
       '.........',
       '.........',
       '.........',
@@ -592,25 +617,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9
-    successMessage: '沉著老練！一路立下長氣，對殺快一氣制勝！'
+    solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9 (0,0)
+    acceptedMoves: [{ r: 0, c: 0 }],
+    successMessage: '定海神針！一路立下手筋長氣制敵，黑棋搶先一步在對殺中拔得頭籌！'
   },
 
   {
     id: 'san-san-invasion',
-    title: '點三三掏角定式 (實地要訣)',
+    title: '點三三掏角定式 (三三侵入)',
     category: 'TACTICS',
     difficulty: 'EASY',
-    badge: '定式 點三三',
+    badge: '定式 佈局',
     boardSize: 9,
-    prompt: '【黑先】白棋佔據星位（四四），請直搗黃龍「點三三」搶佔角部厚實根據地！',
-    hint: '點在 C7 (三三位置)，直接奪取角地！',
-    explanation: '正解：黑棋下在 C7 (點三三)！「點三三」是現代圍棋與 AI 時代最核心的實地戰術。直接點入對手星位的內部三三要害，可確保在角部做活並獲得大量實地！',
+    prompt: '【黑先】白棋佔據星位（D6），請黑棋搶先點入「三三」（C7）要點，實施經典角部掏地！',
+    hint: '下在 3-3 位 C7 (2,2)！這是現代圍棋最流行、效率最高的角部侵入點！',
+    explanation: '正解：黑棋下在 C7 (2,2) (3-3)！「點三三」是圍棋歷史上最經典的角部搶地定式。當對方佔據星位（4-4）時，黑棋直接點入三三，在角部迅速做活並掏空對手角地，是實戰必備佈局定式！',
     initialBoard: [
       '.........',
       '.........',
-      '.........', // r=2 (Line 7): C7 is 3-3 point (empty)
-      '...W.....', // r=3 (Line 6): D6(W) - star point (4-4)
+      '.........', // r=2: C7(3-3位空點)
+      '...W.....', // r=3: D6(4-4星位白子)
       '.........',
       '.........',
       '.........',
@@ -618,25 +644,26 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '直搗黃龍！點三三破角搶佔大片實地，根基深厚！'
+    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
+    acceptedMoves: [{ r: 2, c: 2 }],
+    successMessage: '實地至上！點三三直掏角心，迅速建立角部根據地！'
   },
 
   {
     id: 'cross-cut-tesuji',
-    title: '跨斷手筋 (借力打力)',
+    title: '跨斷手筋 (逢飛必跨)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
     badge: '戰術 跨斷',
     boardSize: 9,
-    prompt: '【黑先】白棋以小飛守邊，請果斷「跨斷」切入，引發戰鬥掌握主動！',
-    hint: '下在 C7 貼著白棋小飛的腰部進行跨斷！',
-    explanation: '正解：黑棋下在 C7 跨斷！古棋諺云「逢飛必跨」。在對手小飛陣形中施展跨斷，能立刻造成局部混戰，藉對手反擊之勢借力打力，撕開缺口！',
+    prompt: '【黑先】白棋走出小飛形狀，圍棋棋諺「逢飛必跨」，請下在白棋小飛的腰部發動強襲！',
+    hint: '下在 C7 (2,2)「跨」！直擊白棋小飛腰眼，令其陣型扭曲！',
+    explanation: '正解：黑棋下在 C7 (2,2) 跨！圍棋千古格言「逢飛必跨」。對手下出小飛陣形時，黑棋「跨」入小飛腰部是破壞敵方形狀、發動反擊的最有力武器。白棋若擋，黑棋隨即扭斷，將局勢帶入黑棋擅長戰鬥！',
     initialBoard: [
       '.........',
-      '..W......', // r=1 (Line 8): C8(W)
-      '...W.....', // r=2 (Line 7): D7(W) - knight's move from C8
-      '..B......', // r=3 (Line 6): C6(B)
+      '.W.B.....', // r=1: B8白, D8黑
+      '....W....', // r=2: C7(小飛腰眼空點), E7白
+      '.........',
       '.........',
       '.........',
       '.........',
@@ -644,33 +671,35 @@ export const GO_PUZZLES: GoPuzzle[] = [
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7
-    successMessage: '逢飛必跨！C7 跨斷切中白棋軟肋，戰局瞬間逆轉！'
+    solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
+    acceptedMoves: [{ r: 2, c: 2 }],
+    successMessage: '剛猛銳利！逢飛必跨直插腰眼，白棋陣腳大亂，黑棋主動權在握！'
   },
 
   {
-    id: 'squeeze-combo',
-    title: '撲與接不歸 (連環手筋)',
+    id: 'squeeze-combination',
+    title: '滾打包收 (撲與接不歸綜合手筋)',
     category: 'TACTICS',
     difficulty: 'HARD',
-    badge: '綜合 連環殺',
+    badge: '戰術 滾打包收',
     boardSize: 9,
-    prompt: '【黑先】白棋重兵聚集但氣數暗藏危機，請下出連續技第一手，發動連環致命絞殺！',
-    hint: '下在 C8 撲入中心，誘導白棋自填氣數！',
-    explanation: '正解：黑棋撲入 C8！此為高階綜合手筋。先撲後打，步步緊逼，逼迫白棋在狹窄空間內自塞氣道，最終形成接不歸慘敗！',
+    prompt: '【黑先】白棋五子大龍僅剩 3 口氣，請黑棋施展「撲」為先導的「滾打包收」綜合手筋，將白棋壓縮成凝重愚形並全殲！',
+    hint: '下在 E5 (4,4) 進行第一步「撲入」！犧牲一子送入白棋腹地，白棋氣數立刻由 3 口壓縮為 2 口，隨後連環追擊，白棋無論怎麼接都是死形！',
+    explanation: '正解：黑棋下在 E5 (4,4) 撲入！「滾打包收」是圍棋手筋中的極致藝術。黑棋先撲後打，主動送一子入白棋大龍腹地，將對手的氣數由 3 口一舉壓縮到只剩 2 口，打成毫無眼位的凝重死形；再配合連續叫吃追擊，最終將對手整條大龍一網打盡！',
     initialBoard: [
-      'BBBBBB...',
-      'BW.WWB...', // r=1: B8(W), C8(.), D8(W), E8(W)
-      'BWW.WB...', // r=2: B7(W), C7(W), D7(.), E7(W)
-      'BBBBBB...',
       '.........',
       '.........',
       '.........',
+      '...BBBB..', // r=3 (Line6): D6-G6黑封鎖
+      '...W.W...', // r=4 (Line5): D5(W), E5(撲入空點), F5(W)
+      '..BWWWB..', // r=5 (Line4): C4黑, D4-F4白, G4黑
+      '..BBBBB..', // r=6 (Line3): C3-G3黑封鎖
       '.........',
       '.........'
     ],
     playerColor: 'BLACK',
-    solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8
-    successMessage: '神乎其技！撲打連環計天衣無縫，白棋巨龍轟然倒塌！'
+    solutionMoves: [{ playerMove: { r: 4, c: 4 } }], // E5 (4,4)
+    acceptedMoves: [{ r: 4, c: 4 }],
+    successMessage: '登峰造極！滾打包收連環妙手，將白棋壓縮成愚形死塊全盤生擒！'
   }
 ];

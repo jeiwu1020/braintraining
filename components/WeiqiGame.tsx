@@ -40,6 +40,8 @@ import {
   TerritoryScore
 } from '../services/goEngine';
 import { GO_PUZZLES, GoPuzzle, parsePuzzleBoard, PuzzleCategory } from '../data/goPuzzles';
+import { WeiqiBoard } from './WeiqiBoard';
+import { WeiqiLandscapeLayout } from './WeiqiLandscapeLayout';
 
 interface Props {
   onBack: () => void;
@@ -117,6 +119,30 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [showRules, setShowRules] = useState<boolean>(false);
   const timerRef = useRef<any>(null);
+
+  // Mobile Landscape Detection (compact height in landscape)
+  const [isMobileLandscape, setIsMobileLandscape] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(orientation: landscape) and (max-height: 600px)').matches ||
+             (window.innerWidth > window.innerHeight && window.innerHeight <= 600);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkLandscape = () => {
+      const isLand = window.matchMedia('(orientation: landscape) and (max-height: 600px)').matches ||
+                     (window.innerWidth > window.innerHeight && window.innerHeight <= 600);
+      setIsMobileLandscape(isLand);
+    };
+    checkLandscape();
+    window.addEventListener('resize', checkLandscape);
+    window.addEventListener('orientationchange', checkLandscape);
+    return () => {
+      window.removeEventListener('resize', checkLandscape);
+      window.removeEventListener('orientationchange', checkLandscape);
+    };
+  }, []);
 
   // Filtered puzzles
   const filteredPuzzles = GO_PUZZLES.filter(
@@ -276,11 +302,11 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     setConsecutivePasses(0);
     setMoveCount(m => m + 1);
 
-    if (result.capturedStones > 0) {
+    if (result.capturedCount > 0) {
       if (color === 'BLACK') {
-        setBlackCaptures(prev => prev + result.capturedStones);
+        setBlackCaptures(prev => prev + result.capturedCount);
       } else {
-        setWhiteCaptures(prev => prev + result.capturedStones);
+        setWhiteCaptures(prev => prev + result.capturedCount);
       }
     }
 
@@ -390,10 +416,10 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   const handlePuzzleCellClick = (r: number, c: number) => {
     if (puzzleStatus === 'CORRECT' || !currentPuzzle) return;
 
-    const solution = currentPuzzle.solutionMoves[0];
-    if (!solution) return;
-
-    const isCorrectMove = solution.playerMove.r === r && solution.playerMove.c === c;
+    // Check if the move matches any acceptable winning move
+    const isCorrectMove =
+      (currentPuzzle.acceptedMoves && currentPuzzle.acceptedMoves.some(m => m.r === r && m.c === c)) ||
+      (currentPuzzle.solutionMoves && currentPuzzle.solutionMoves.some(sm => sm.playerMove.r === r && sm.playerMove.c === c));
 
     if (isCorrectMove) {
       // Execute Player Move on Puzzle Board
@@ -468,6 +494,173 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     '【做活與真眼】：棋子內部若擁有兩隻獨立的「真眼」，對手永遠無法將其完全填死，即為永久不敗的「活棋」。',
     '【終局與計分】：當雙方均無有利落子處連續「虛手」時終局，計算雙方圍得的地域（地盤）與活子數，多者獲勝！'
   ];
+
+  if (isMobileLandscape) {
+    return (
+      <>
+        <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="圍棋 規則與死活要點說明" rules={goRules} />
+        <WeiqiLandscapeLayout
+          onBack={onBack}
+          gameMode={gameMode}
+          setGameMode={setGameMode}
+          boardSize={boardSize}
+          setBoardSize={setBoardSize}
+          handicap={handicap}
+          setHandicap={setHandicap}
+          aiDifficulty={aiDifficulty}
+          setAiDifficulty={setAiDifficulty}
+          board={board}
+          currentTurn={currentTurn}
+          playerColor={playerColor}
+          blackCaptures={blackCaptures}
+          whiteCaptures={whiteCaptures}
+          koPoint={koPoint}
+          lastMove={lastMove}
+          moveCount={moveCount}
+          moveHistoryLength={moveHistory.length}
+          blackAtariGroups={blackAtariGroups}
+          whiteAtariGroups={whiteAtariGroups}
+          showTerritory={showTerritory}
+          territoryResult={territoryResult}
+          toggleTerritoryEstimation={toggleTerritoryEstimation}
+          gameOverResult={gameOverResult}
+          teamAScore={teamAScore}
+          teamBScore={teamBScore}
+          activeTeam={activeTeam}
+          isAiThinking={isAiThinking}
+          handleCellClick={handleCellClick}
+          handlePass={handlePass}
+          handleUndo={handleUndo}
+          handleResign={handleResign}
+          resetMatch={resetMatch}
+          elapsedTime={elapsedTime}
+          setShowRules={setShowRules}
+          hoveredPoint={hoveredPoint}
+          setHoveredPoint={setHoveredPoint}
+          puzzleFilter={puzzleFilter}
+          handleCategoryChange={handleCategoryChange}
+          filteredPuzzles={filteredPuzzles}
+          currentPuzzleIndex={currentPuzzleIndex}
+          currentPuzzle={currentPuzzle}
+          puzzleBoard={puzzleBoard}
+          puzzleStatus={puzzleStatus}
+          puzzleLastMove={puzzleLastMove}
+          puzzleScore={puzzleScore}
+          solvedPuzzleIds={solvedPuzzleIds}
+          loadPuzzle={loadPuzzle}
+          handlePuzzleCellClick={handlePuzzleCellClick}
+          setShowHintModal={setShowHintModal}
+          setShowSolutionModal={setShowSolutionModal}
+        />
+        {/* GAME OVER RESULT MODAL */}
+        {gameOverResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-stone-900 border-2 border-amber-500/80 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl text-amber-50 relative"
+            >
+              <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto mb-4 text-amber-300">
+                <Trophy size={36} />
+              </div>
+              <h2 className="text-2xl font-black text-amber-300 mb-2">
+                {gameOverResult.winner === 'BLACK' ? '黑方 獲勝！' : gameOverResult.winner === 'WHITE' ? '白方 獲勝！' : '和棋！'}
+              </h2>
+              <p className="text-sm text-stone-300 mb-4">{gameOverResult.reason}</p>
+              {territoryResult && (
+                <div className="bg-stone-950/80 border border-amber-800/60 rounded-2xl p-3 mb-4 text-xs text-left space-y-1.5">
+                  <div className="flex justify-between border-b border-stone-800 pb-1">
+                    <span className="font-bold text-amber-200">黑方總分:</span>
+                    <span className="font-black text-amber-400">
+                      {territoryResult.blackTotal} (子 {territoryResult.blackStones} + 空 {territoryResult.blackTerritory})
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-stone-800 pb-1">
+                    <span className="font-bold text-amber-200">白方總分:</span>
+                    <span className="font-black text-amber-400">
+                      {(territoryResult.whiteTotal ?? 0).toFixed(1)} (子 {territoryResult.whiteStones} + 空 {territoryResult.whiteTerritory} + 貼 {territoryResult.komi})
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setGameOverResult(null)}
+                  className="flex-1 py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl font-bold text-xs transition"
+                >
+                  查看棋盤
+                </button>
+                <button
+                  onClick={() => resetMatch(boardSize, handicap)}
+                  className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-xl font-black text-xs shadow transition"
+                >
+                  再對弈一局
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        {/* HINT MODAL */}
+        {showHintModal && currentPuzzle && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-stone-900 border border-amber-600 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl"
+            >
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center mx-auto mb-2 text-amber-300">
+                <Lightbulb size={20} />
+              </div>
+              <h3 className="text-base font-bold text-amber-300 mb-1.5">💡 題目提示</h3>
+              <p className="text-xs text-stone-200 mb-4 leading-relaxed">{currentPuzzle.hint}</p>
+              <button
+                onClick={() => setShowHintModal(false)}
+                className="w-full py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-black rounded-xl text-xs transition"
+              >
+                我知道了
+              </button>
+            </motion.div>
+          </div>
+        )}
+        {/* SOLUTION MODAL */}
+        {showSolutionModal && currentPuzzle && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-stone-900 border border-amber-600 rounded-2xl p-5 max-w-md w-full text-left shadow-2xl"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="text-amber-400" size={18} />
+                <h3 className="text-base font-bold text-amber-300">{currentPuzzle.title} - 棋理詳解</h3>
+              </div>
+              <p className="text-xs text-stone-200 mb-4 leading-relaxed bg-stone-950/80 p-3 rounded-xl border border-amber-900/60">
+                {currentPuzzle.explanation}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowSolutionModal(false);
+                    const firstMove = currentPuzzle.solutionMoves[0].playerMove;
+                    handlePuzzleCellClick(firstMove.r, firstMove.c);
+                  }}
+                  className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-black rounded-xl text-xs transition"
+                >
+                  自動演示正解
+                </button>
+                <button
+                  onClick={() => setShowSolutionModal(false)}
+                  className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-amber-200 font-bold rounded-xl text-xs transition"
+                >
+                  關閉
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <div
@@ -763,7 +956,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                         <span className="font-bold text-stone-200">白棋總計:</span>
                       </div>
                       <span className="font-black text-amber-400 text-xs">
-                        {territoryResult.whiteTotal.toFixed(1)} 目
+                        {(territoryResult.whiteTotal ?? 0).toFixed(1)} 目
                         <span className="text-[10px] text-stone-400 font-normal ml-1">
                           (子 {territoryResult.whiteStones} + 空 {territoryResult.whiteTerritory} + 貼 {territoryResult.komi})
                         </span>
@@ -774,235 +967,24 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
               )}
             </AnimatePresence>
 
-            {/* THE GO BOARD (WITH 4-SIDED COORDINATES: A, B, C... / 9, 8, 7...) */}
+            {/* THE GO BOARD */}
             <div className="flex-1 flex flex-col items-center justify-center p-0.5 min-h-0 w-full overflow-hidden">
-              <div
-                className="relative flex flex-col items-center justify-center w-full"
-                style={{
-                  maxWidth: 'min(92vw, min(calc(100dvh - 240px), 580px))',
-                  maxHeight: 'min(92vw, min(calc(100dvh - 240px), 580px))',
-                  aspectRatio: '1 / 1',
-                }}
-              >
-                {/* Coordinates Top: A, B, C, D, E, F, G, H, J... */}
-                <div className="w-full flex pl-3 sm:pl-4 pr-3 sm:pr-4 h-3.5 sm:h-4 shrink-0 items-center">
-                  {Array.from({ length: boardSize }).map((_, c) => (
-                    <div key={c} className="flex-1 text-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                      {GO_COLUMN_LABELS[c]}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Left Coordinates + Board Square + Right Coordinates */}
-                <div className="w-full flex-1 flex items-stretch min-h-0 min-w-0">
-                  {/* Left Coordinates: 9, 8, 7... 1 */}
-                  <div className="flex flex-col justify-between py-1 w-3 sm:w-4 shrink-0">
-                    {Array.from({ length: boardSize }).map((_, r) => (
-                      <div key={r} className="flex-1 flex items-center justify-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                        {boardSize - r}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Main Wood Board Square */}
-                  <div
-                    className="relative flex-1 aspect-square bg-gradient-to-br from-[#e8b571] via-[#dca358] to-[#c98e40] border-2 sm:border-4 border-[#522907] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
-                    style={{
-                      boxShadow: 'inset 0 0 15px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.7)',
-                    }}
-                  >
-                    {/* SVG Grid Lines with Resolution-Independent 0..1000 Coordinate System */}
-                    <svg
-                      viewBox="0 0 1000 1000"
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                      style={{ zIndex: 0 }}
-                    >
-                      {/* Border grid rectangle */}
-                      <rect
-                        x={1000 / (2 * boardSize)}
-                        y={1000 / (2 * boardSize)}
-                        width={1000 - 1000 / boardSize}
-                        height={1000 - 1000 / boardSize}
-                        fill="none"
-                        stroke="#4a2505"
-                        strokeWidth={boardSize === 19 ? 3 : 4.5}
-                      />
-                      {/* Interior Grid Lines */}
-                      {Array.from({ length: boardSize }).map((_, idx) => {
-                        const step = 1000 / boardSize;
-                        const pos = step * 0.5 + idx * step;
-                        const start = step * 0.5;
-                        const end = 1000 - step * 0.5;
-                        return (
-                          <g key={idx}>
-                            {/* Horizontal line */}
-                            <line
-                              x1={start}
-                              y1={pos}
-                              x2={end}
-                              y2={pos}
-                              stroke="#4a2505"
-                              strokeWidth={boardSize === 19 ? 1.5 : 2.5}
-                            />
-                            {/* Vertical line */}
-                            <line
-                              x1={pos}
-                              y1={start}
-                              x2={pos}
-                              y2={end}
-                              stroke="#4a2505"
-                              strokeWidth={boardSize === 19 ? 1.5 : 2.5}
-                            />
-                          </g>
-                        );
-                      })}
-
-                      {/* Star Points (星位) */}
-                      {getStarPoints(boardSize).map((star, sIdx) => {
-                        const step = 1000 / boardSize;
-                        const cx = step * 0.5 + star.c * step;
-                        const cy = step * 0.5 + star.r * step;
-                        return (
-                          <circle
-                            key={sIdx}
-                            cx={cx}
-                            cy={cy}
-                            r={boardSize === 19 ? 5.5 : boardSize === 13 ? 7 : 8.5}
-                            fill="#361701"
-                          />
-                        );
-                      })}
-                    </svg>
-
-                    {/* Intersection Interactive Cell Buttons */}
-                    <div
-                      className="absolute inset-0 grid w-full h-full"
-                      style={{
-                        gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
-                        gridTemplateRows: `repeat(${boardSize}, 1fr)`,
-                        zIndex: 1,
-                      }}
-                    >
-                      {board.map((row, r) =>
-                        row.map((cell, c) => {
-                          const isLast = lastMove && lastMove.r === r && lastMove.c === c;
-                          const isHovered = hoveredPoint && hoveredPoint.r === r && hoveredPoint.c === c && cell === 'EMPTY';
-                          const isKo = koPoint && koPoint.r === r && koPoint.c === c;
-                          const isAtari =
-                            (cell === 'BLACK' && blackAtariGroups.some(g => g.stones.some(st => st.r === r && st.c === c))) ||
-                            (cell === 'WHITE' && whiteAtariGroups.some(g => g.stones.some(st => st.r === r && st.c === c)));
-
-                          const territoryOwner =
-                            showTerritory && territoryResult ? territoryResult.territoryMap[r]?.[c] : null;
-
-                          return (
-                            <button
-                              key={`${r}-${c}`}
-                              id={`go-cell-${r}-${c}`}
-                              onClick={() => handleCellClick(r, c)}
-                              onMouseEnter={() => setHoveredPoint({ r, c })}
-                              onMouseLeave={() => setHoveredPoint(null)}
-                              className="relative flex items-center justify-center w-full h-full focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
-                              style={{ minWidth: 0, minHeight: 0 }}
-                              title={`${GO_COLUMN_LABELS[c]}${boardSize - r}`}
-                            >
-                              {/* Stone Render */}
-                              {cell === 'BLACK' && (
-                                <motion.div
-                                  initial={{ scale: 0.6, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-stone-700 via-stone-900 to-black shadow-md border border-stone-800 flex items-center justify-center relative"
-                                  style={{
-                                    boxShadow: '2px 3px 6px rgba(0,0,0,0.7), inset -2px -2px 4px rgba(0,0,0,0.8)'
-                                  }}
-                                >
-                                  {/* Top Shine */}
-                                  <div className="absolute top-1 left-1.5 w-1/3 h-1/3 bg-white/20 rounded-full blur-[0.5px]" />
-                                  {isLast && (
-                                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
-                                  )}
-                                  {isAtari && !isLast && (
-                                    <span className="absolute -inset-0.5 rounded-full ring-2 ring-rose-500 animate-pulse" />
-                                  )}
-                                </motion.div>
-                              )}
-
-                              {cell === 'WHITE' && (
-                                <motion.div
-                                  initial={{ scale: 0.6, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-white via-amber-50 to-stone-300 shadow-md border border-stone-300 flex items-center justify-center relative"
-                                  style={{
-                                    boxShadow: '2px 3px 6px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(0,0,0,0.3)'
-                                  }}
-                                >
-                                  {/* Top Shine */}
-                                  <div className="absolute top-1 left-1.5 w-1/3 h-1/3 bg-white rounded-full" />
-                                  {isLast && (
-                                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-600 ring-2 ring-stone-900 animate-pulse" />
-                                  )}
-                                  {isAtari && !isLast && (
-                                    <span className="absolute -inset-0.5 rounded-full ring-2 ring-rose-500 animate-pulse" />
-                                  )}
-                                </motion.div>
-                              )}
-
-                              {/* Hover Ghost Stone */}
-                              {isHovered && !isAiThinking && !gameOverResult && (
-                                <div
-                                  className={`w-[80%] h-[80%] rounded-full opacity-45 border-2 border-dashed pointer-events-none ${
-                                    currentTurn === 'BLACK' ? 'bg-black border-white' : 'bg-white border-black'
-                                  }`}
-                                />
-                              )}
-
-                              {/* Ko Forbidden Marker */}
-                              {isKo && cell === 'EMPTY' && (
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-dashed border-rose-500 rounded bg-rose-500/25 flex items-center justify-center pointer-events-none">
-                                  <span className="text-[8px] font-black text-rose-300">劫</span>
-                                </div>
-                              )}
-
-                              {/* Territory Overlay Marker */}
-                              {showTerritory && territoryOwner && territoryOwner !== 'STONE' && (
-                                <div
-                                  className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-sm flex items-center justify-center pointer-events-none shadow ${
-                                    territoryOwner === 'BLACK'
-                                      ? 'bg-stone-950/90 border border-amber-400 text-[8px] font-black text-amber-300'
-                                      : territoryOwner === 'WHITE'
-                                      ? 'bg-white/95 border border-stone-800 text-[8px] font-black text-stone-950'
-                                      : 'bg-amber-600/40 rounded-full w-2 h-2'
-                                  }`}
-                                >
-                                  {territoryOwner === 'BLACK' ? '黑' : territoryOwner === 'WHITE' ? '白' : ''}
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Coordinates: 9, 8, 7... 1 */}
-                  <div className="flex flex-col justify-between py-1 w-3 sm:w-4 shrink-0">
-                    {Array.from({ length: boardSize }).map((_, r) => (
-                      <div key={r} className="flex-1 flex items-center justify-center text-[9px] sm:text-[11px] font-black text-amber-300/70 leading-none">
-                        {boardSize - r}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Coordinates Bottom: A, B, C, D, E, F, G, H, J... */}
-                <div className="w-full flex pl-3 sm:pl-4 pr-3 sm:pr-4 h-3.5 sm:h-4 shrink-0 items-center mt-0.5">
-                  {Array.from({ length: boardSize }).map((_, c) => (
-                    <div key={c} className="flex-1 text-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                      {GO_COLUMN_LABELS[c]}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <WeiqiBoard
+                board={board}
+                boardSize={boardSize}
+                currentTurn={currentTurn}
+                lastMove={lastMove}
+                koPoint={koPoint}
+                blackAtariGroups={blackAtariGroups}
+                whiteAtariGroups={whiteAtariGroups}
+                showTerritory={showTerritory}
+                territoryResult={territoryResult}
+                hoveredPoint={hoveredPoint}
+                setHoveredPoint={setHoveredPoint}
+                onCellClick={handleCellClick}
+                isAiThinking={isAiThinking}
+                gameOverResult={gameOverResult}
+              />
             </div>
 
             {/* Bottom Actions Bar */}
@@ -1135,190 +1117,24 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
             {/* Responsive Container: On mobile landscape, splits board & side panel; on desktop/portrait, stacks cleanly */}
             <div className="flex-1 flex flex-col landscape:max-h-[560px]:flex-row max-h-[520px]:flex-row gap-2 min-h-0 w-full overflow-hidden items-center justify-center my-auto">
               
-              {/* THE PUZZLE GO BOARD (WITH 4-SIDED COORDINATES: A, B, C... / 9, 8, 7...) */}
+              {/* THE PUZZLE GO BOARD */}
               <div className="flex-1 flex flex-col items-center justify-center p-0.5 min-h-0 min-w-0 w-full overflow-hidden">
-                <div
-                  className="relative flex flex-col items-center justify-center w-full"
-                  style={{
-                    maxWidth: 'min(92vw, min(calc(100dvh - 240px), 560px))',
-                    maxHeight: 'min(92vw, min(calc(100dvh - 240px), 560px))',
-                    aspectRatio: '1 / 1',
-                  }}
-                >
-                  {/* Coordinates Top: A, B, C, D, E, F, G, H, J */}
-                  <div className="w-full flex pl-3 sm:pl-4 pr-3 sm:pr-4 h-3.5 sm:h-4 shrink-0 items-center">
-                    {Array.from({ length: currentPuzzle.boardSize }).map((_, c) => (
-                      <div key={c} className="flex-1 text-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                        {GO_COLUMN_LABELS[c]}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Left Coordinates + Board Square + Right Coordinates */}
-                  <div className="w-full flex-1 flex items-stretch min-h-0 min-w-0">
-                    {/* Left Coordinates: 9, 8, 7... 1 */}
-                    <div className="flex flex-col justify-between py-1 w-3 sm:w-4 shrink-0">
-                      {Array.from({ length: currentPuzzle.boardSize }).map((_, r) => (
-                        <div key={r} className="flex-1 flex items-center justify-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                          {currentPuzzle.boardSize - r}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Main Wood Board Square */}
-                    <div
-                      className="relative flex-1 aspect-square bg-gradient-to-br from-[#e8b571] via-[#dca358] to-[#c98e40] border-2 sm:border-4 border-[#522907] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
-                      style={{
-                        boxShadow: 'inset 0 0 15px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.7)',
-                      }}
-                    >
-                      {/* SVG Grid Lines */}
-                      <svg
-                        viewBox="0 0 1000 1000"
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        style={{ zIndex: 0 }}
-                      >
-                        {/* Border grid rectangle */}
-                        <rect
-                          x={1000 / (2 * currentPuzzle.boardSize)}
-                          y={1000 / (2 * currentPuzzle.boardSize)}
-                          width={1000 - 1000 / currentPuzzle.boardSize}
-                          height={1000 - 1000 / currentPuzzle.boardSize}
-                          fill="none"
-                          stroke="#4a2505"
-                          strokeWidth={currentPuzzle.boardSize >= 13 ? 3 : 4.5}
-                        />
-                        {/* Interior Grid Lines */}
-                        {Array.from({ length: currentPuzzle.boardSize }).map((_, idx) => {
-                          const step = 1000 / currentPuzzle.boardSize;
-                          const pos = step * 0.5 + idx * step;
-                          const start = step * 0.5;
-                          const end = 1000 - step * 0.5;
-                          return (
-                            <g key={idx}>
-                              <line
-                                x1={start}
-                                y1={pos}
-                                x2={end}
-                                y2={pos}
-                                stroke="#4a2505"
-                                strokeWidth={currentPuzzle.boardSize >= 13 ? 1.8 : 2.8}
-                              />
-                              <line
-                                x1={pos}
-                                y1={start}
-                                x2={pos}
-                                y2={end}
-                                stroke="#4a2505"
-                                strokeWidth={currentPuzzle.boardSize >= 13 ? 1.8 : 2.8}
-                              />
-                            </g>
-                          );
-                        })}
-
-                        {/* Star Points */}
-                        {getStarPoints(currentPuzzle.boardSize).map((star, sIdx) => {
-                          const step = 1000 / currentPuzzle.boardSize;
-                          const cx = step * 0.5 + star.c * step;
-                          const cy = step * 0.5 + star.r * step;
-                          return (
-                            <circle
-                              key={sIdx}
-                              cx={cx}
-                              cy={cy}
-                              r={currentPuzzle.boardSize >= 13 ? 6 : 8.5}
-                              fill="#361701"
-                            />
-                          );
-                        })}
-                      </svg>
-
-                      {/* Cells */}
-                      <div
-                        className="absolute inset-0 grid w-full h-full"
-                        style={{
-                          gridTemplateColumns: `repeat(${currentPuzzle.boardSize}, 1fr)`,
-                          gridTemplateRows: `repeat(${currentPuzzle.boardSize}, 1fr)`,
-                          zIndex: 1,
-                        }}
-                      >
-                        {puzzleBoard.map((row, r) =>
-                          row.map((cell, c) => {
-                            const isLast = puzzleLastMove && puzzleLastMove.r === r && puzzleLastMove.c === c;
-                            const isHovered = hoveredPoint && hoveredPoint.r === r && hoveredPoint.c === c && cell === 'EMPTY';
-
-                            return (
-                              <button
-                                key={`${r}-${c}`}
-                                id={`puzzle-cell-${r}-${c}`}
-                                onClick={() => handlePuzzleCellClick(r, c)}
-                                onMouseEnter={() => setHoveredPoint({ r, c })}
-                                onMouseLeave={() => setHoveredPoint(null)}
-                                className="relative flex items-center justify-center w-full h-full focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
-                                style={{ minWidth: 0, minHeight: 0 }}
-                                title={`${GO_COLUMN_LABELS[c]}${currentPuzzle.boardSize - r}`}
-                              >
-                                {cell === 'BLACK' && (
-                                  <motion.div
-                                    initial={{ scale: 0.6, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-stone-700 via-stone-900 to-black shadow-md border border-stone-800 flex items-center justify-center relative"
-                                    style={{
-                                      boxShadow: '2px 3px 6px rgba(0,0,0,0.7), inset -2px -2px 4px rgba(0,0,0,0.8)'
-                                    }}
-                                  >
-                                    <div className="absolute top-1 left-1.5 w-1/3 h-1/3 bg-white/20 rounded-full blur-[0.5px]" />
-                                    {isLast && (
-                                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
-                                    )}
-                                  </motion.div>
-                                )}
-
-                                {cell === 'WHITE' && (
-                                  <motion.div
-                                    initial={{ scale: 0.6, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-white via-amber-50 to-stone-300 shadow-md border border-stone-300 flex items-center justify-center relative"
-                                    style={{
-                                      boxShadow: '2px 3px 6px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(0,0,0,0.3)'
-                                    }}
-                                  >
-                                    <div className="absolute top-1 left-1.5 w-1/3 h-1/3 bg-white rounded-full" />
-                                    {isLast && (
-                                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-600 ring-2 ring-stone-900 animate-pulse" />
-                                    )}
-                                  </motion.div>
-                                )}
-
-                                {isHovered && puzzleStatus === 'UNSOLVED' && (
-                                  <div className="w-[80%] h-[80%] rounded-full opacity-45 border-2 border-dashed border-white bg-black/40 pointer-events-none" />
-                                )}
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right Coordinates: 9, 8, 7... 1 */}
-                    <div className="flex flex-col justify-between py-1 w-3 sm:w-4 shrink-0">
-                      {Array.from({ length: currentPuzzle.boardSize }).map((_, r) => (
-                        <div key={r} className="flex-1 flex items-center justify-center text-[9px] sm:text-[11px] font-black text-amber-300/70 leading-none">
-                          {currentPuzzle.boardSize - r}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Coordinates Bottom: A, B, C, D, E, F, G, H, J */}
-                  <div className="w-full flex pl-3 sm:pl-4 pr-3 sm:pr-4 h-3.5 sm:h-4 shrink-0 items-center mt-0.5">
-                    {Array.from({ length: currentPuzzle.boardSize }).map((_, c) => (
-                      <div key={c} className="flex-1 text-center text-[9px] sm:text-[11px] font-black text-amber-300/90 leading-none">
-                        {GO_COLUMN_LABELS[c]}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <WeiqiBoard
+                  board={puzzleBoard}
+                  boardSize={currentPuzzle.boardSize}
+                  currentTurn={currentPuzzle.playerColor}
+                  lastMove={puzzleLastMove}
+                  koPoint={null}
+                  blackAtariGroups={[]}
+                  whiteAtariGroups={[]}
+                  showTerritory={false}
+                  territoryResult={null}
+                  hoveredPoint={hoveredPoint}
+                  setHoveredPoint={setHoveredPoint}
+                  onCellClick={handlePuzzleCellClick}
+                  isAiThinking={false}
+                  gameOverResult={null}
+                />
               </div>
 
               {/* Side Info in Mobile Landscape */}
@@ -1500,7 +1316,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                 <div className="flex justify-between border-b border-stone-800 pb-1.5">
                   <span className="font-bold text-amber-200">白方總分 (含貼目):</span>
                   <span className="font-black text-amber-400">
-                    {territoryResult.whiteTotal.toFixed(1)} (子數 {territoryResult.whiteStones} + 圍地 {territoryResult.whiteTerritory} + 貼目 {territoryResult.komi})
+                    {(territoryResult.whiteTotal ?? 0).toFixed(1)} (子數 {territoryResult.whiteStones} + 圍地 {territoryResult.whiteTerritory} + 貼目 {territoryResult.komi})
                   </span>
                 </div>
                 {gameOverResult.scoreDiff !== undefined && (
