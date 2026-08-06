@@ -82,7 +82,7 @@ const HazardIdentificationGame: React.FC<Props> = ({ onBack, difficulty }) => {
                             情境 {currentIndex + 1} / {scenes.length}
                         </span>
                         <h2 className="text-lg sm:text-2xl md:text-4xl landscape:text-lg font-extrabold text-gray-800 mb-1 sm:mb-2 landscape:mb-0.5">{currentScene.title}</h2>
-                        <p className="text-sm sm:text-xl md:text-3xl landscape:text-base text-gray-600 font-medium">{currentScene.context}</p>
+                        <p className="text-sm sm:text-xl md:text-3xl landscape:text-base text-gray-600 font-medium">{currentScene.context || currentScene.description}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-2 sm:gap-4 md:gap-6 landscape:gap-1.5 flex-1 content-start relative pb-2 overflow-y-auto pr-1">

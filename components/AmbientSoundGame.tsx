@@ -382,7 +382,7 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
       setSounds(prev => {
           const next = { ...prev, [type]: { ...prev[type], active: !prev[type].active } };
           
-          if (!isPlaying && Object.values(next).some(s => s.active)) {
+          if (!isPlaying && (Object.values(next) as SoundState[]).some(s => s.active)) {
               // If activating a sound while paused, auto-play
               setTimeout(() => setIsPlaying(true), 0);
           }
@@ -443,7 +443,7 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
                         key={mins}
                         onClick={() => {
                             setTimeLeft(mins * 60);
-                            if (!isPlaying && Object.values(sounds).some(s => s.active)) {
+                            if (!isPlaying && (Object.values(sounds) as SoundState[]).some(s => s.active)) {
                                 setIsPlaying(true);
                             }
                         }}

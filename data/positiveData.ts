@@ -1,4 +1,5 @@
 import { ThoughtScenario } from '../types';
+export type { ThoughtScenario };
 
 export const normalThoughts: ThoughtScenario[] = [
   {

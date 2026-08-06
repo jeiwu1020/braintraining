@@ -1,4 +1,5 @@
 import { Scenario } from '../types';
+export type { Scenario };
 
 export const normalScenarios: Scenario[] = [
   {

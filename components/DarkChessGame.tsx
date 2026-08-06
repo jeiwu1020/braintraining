@@ -415,11 +415,18 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         // A player's turn is when:
         // 1. (playerColor === 'RED' && isRedTurn) OR (playerColor === 'BLACK' && !isRedTurn)
         // 2. OR firstFlipDone is false (before any color was assigned).
-        const lastPlayerStateIndex = newHistory.findLastIndex(s => 
+        let lastPlayerStateIndex = -1;
+        for (let i = newHistory.length - 1; i >= 0; i--) {
+          const s = newHistory[i];
+          if (
             !s.firstFlipDone || 
             (s.playerColor === 'RED' && s.isRedTurn) || 
             (s.playerColor === 'BLACK' && !s.isRedTurn)
-        );
+          ) {
+            lastPlayerStateIndex = i;
+            break;
+          }
+        }
 
         if (lastPlayerStateIndex !== -1) {
             targetState = newHistory[lastPlayerStateIndex];

@@ -1,4 +1,5 @@
 import { HazardScene } from '../types';
+export type { HazardScene };
 
 export const normalScenes: HazardScene[] = [
   {

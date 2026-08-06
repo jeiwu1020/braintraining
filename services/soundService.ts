@@ -24,7 +24,7 @@ class SoundService {
   }
 
   // Safe play wrapper
-  private playTone(freq: number, type: OscillatorType, duration: number, startTime: number = 0) {
+  playTone(freq: number, type: OscillatorType, duration: number, startTime: number = 0) {
     if (this.isMuted) return;
     try {
       const ctx = this.getContext();

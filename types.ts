@@ -28,6 +28,7 @@ export enum GameState {
   HAZARD_ID = 'HAZARD_ID',
   POSITIVE_THINKING = 'POSITIVE_THINKING',
   // Board Games
+  WEIQI = 'WEIQI',
   GOMOKU = 'GOMOKU',
   DARK_CHESS = 'DARK_CHESS',
   CONNECT_FOUR = 'CONNECT_FOUR',
@@ -187,3 +188,40 @@ export interface PuzzleLevel {
   targetImage: string[]; // Array of icons/colors in correct order
   scrambled: { id: number, content: string }[];
 }
+
+// 9. Mental & Social Scenarios
+export interface HazardItem {
+  text: string;
+  isHazard: boolean;
+  explanation: string;
+}
+
+export interface HazardScene {
+  id: number;
+  title: string;
+  context?: string;
+  description?: string;
+  items: HazardItem[];
+}
+
+export interface ThoughtScenario {
+  id: number;
+  event: string;
+  negativeThought: string;
+  reframes: string[];
+  situation: string;
+}
+
+export interface ScenarioOption {
+  text: string;
+  isCorrect: boolean;
+  feedback: string;
+}
+
+export interface Scenario {
+  id: number;
+  title: string;
+  description: string;
+  options: ScenarioOption[];
+}
+

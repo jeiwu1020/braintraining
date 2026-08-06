@@ -30,6 +30,7 @@ import SocialContextGame from './components/SocialContextGame';
 import HazardIdentificationGame from './components/HazardIdentificationGame';
 import PositiveReappraisalGame from './components/PositiveReappraisalGame';
 // Board Games
+import WeiqiGame from './components/WeiqiGame';
 import GomokuGame from './components/GomokuGame';
 import DarkChessGame from './components/DarkChessGame';
 import ConnectFourGame from './components/ConnectFourGame';
@@ -158,6 +159,8 @@ const App: React.FC = () => {
       case GameState.POSITIVE_THINKING:
         return <PositiveReappraisalGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       // Board Games
+      case GameState.WEIQI:
+        return <WeiqiGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
       case GameState.GOMOKU:
         return <GomokuGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       case GameState.DARK_CHESS:
@@ -215,6 +218,12 @@ const App: React.FC = () => {
 };
 
 type MenuCategory = 'BOARD' | 'COGNITIVE' | 'GROUP' | 'LUCK_CARD' | 'MENTAL' | 'RELAX';
+
+interface MenuProps {
+  onSelectGame: (game: GameState) => void;
+  difficulty: Difficulty;
+  setDifficulty: (difficulty: Difficulty) => void;
+}
 
 const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty }) => {
   const isAdvanced = difficulty === 'ADVANCED';
@@ -368,6 +377,14 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {selectedCategory === 'BOARD' && (
                         <>
+                            <MenuCard
+                            title="圍棋 (含死活出題)"
+                            description="經典圍棋對弈：人機對戰、AB組對決、死活與吃子手筋解謎。"
+                            icon={<Circle className={`w-8 h-8 ${isAdvanced ? "text-amber-500" : "text-amber-700"}`} />}
+                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
+                            borderColor={isAdvanced ? "border-amber-300" : "border-amber-300"}
+                            onClick={() => handleSelectGame(GameState.WEIQI)}
+                            />
                             <MenuCard
                             title="翻牌解謎"
                             description="選號碼翻牌，拼湊出背後隱藏的圖案。"

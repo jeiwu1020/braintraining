@@ -59,8 +59,9 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
 
   const toggleActive = (idx: number) => {
     if (zoomIndex !== null) return;
+    const isNowActive = !cards[idx]?.active;
     setCards(prev => prev.map((c, i) => i === idx ? { ...c, active: !c.active } : c));
-    soundService.playTone(c => c.active ? 400 : 600, 'sine', 0.1); 
+    soundService.playTone(isNowActive ? 600 : 400, 'sine', 0.1); 
   };
 
   return (
