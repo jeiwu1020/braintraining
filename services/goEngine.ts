@@ -1,3 +1,5 @@
+import { JOSEKI_BOOK, JosekiPoint, JosekiRole } from './josekiBook';
+
 export type GoColor = 'BLACK' | 'WHITE' | 'EMPTY';
 
 export interface Point {
@@ -316,6 +318,22 @@ function generateRankedCandidates(
   const opponentColor: 'BLACK' | 'WHITE' = color === 'BLACK' ? 'WHITE' : 'BLACK';
   const candidates: CandidateScore[] = [];
 
+  // Pre-pass: how many stones already sit in each board quadrant. During the
+  // opening this is used to nudge the AI toward spreading across the whole
+  // board instead of piling into whichever corner scored highest first -
+  // otherwise ties between symmetric corners are always broken the same way.
+  const mid = Math.floor(size / 2);
+  const quadrantCounts = [0, 0, 0, 0]; // TL, TR, BL, BR
+  let totalStones = 0;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (board[r][c] === 'EMPTY') continue;
+      totalStones++;
+      quadrantCounts[(r < mid ? 0 : 2) + (c < mid ? 0 : 1)]++;
+    }
+  }
+  const isOpeningPhase = totalStones < 16;
+
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       if (board[r][c] !== 'EMPTY') continue;
@@ -324,6 +342,13 @@ function generateRankedCandidates(
 
       let score = 0;
       score += moveRes.capturedCount * 50;
+
+      if (isOpeningPhase) {
+        const q = (r < mid ? 0 : 2) + (c < mid ? 0 : 1);
+        const count = quadrantCounts[q];
+        if (count === 0) score += 18; // untouched quadrant - stake it out
+        else if (count <= 2) score += 6;
+      }
 
       const ownGroup = getGroupAndLiberties(moveRes.nextBoard, r, c);
       const liberties = ownGroup.liberties.length;
@@ -445,6 +470,7 @@ function minimaxSearch(
   koPoint: Point | null,
   breadths: number[],
   useLifeDeath: boolean,
+  rootNoiseScale: number,
   alpha: number,
   beta: number
 ): SearchNode {
@@ -452,7 +478,13 @@ function minimaxSearch(
     return { move: null, score: evaluateBoardForColor(board, aiColor, useLifeDeath) };
   }
 
-  const candidates = generateRankedCandidates(board, toMove, koPoint, { includeLadderBonus: true, noiseScale: 0 });
+  // Only the root gets tie-break noise: deeper plies must stay deterministic for the
+  // search to be meaningful, but at the root, ties between symmetric options (e.g.
+  // several equally-scored empty corners) should not always resolve the same way.
+  const candidates = generateRankedCandidates(board, toMove, koPoint, {
+    includeLadderBonus: true,
+    noiseScale: depth === 0 ? rootNoiseScale : 0
+  });
   const breadth = breadths[depth] ?? 4;
   const limited = candidates.slice(0, breadth);
 
@@ -472,9 +504,13 @@ function minimaxSearch(
     const captureAdjust = (toMove === aiColor ? 1 : -1) * moveRes.capturedCount * 4;
     const child = minimaxSearch(
       moveRes.nextBoard, aiColor, nextColor, depth + 1, maxDepth,
-      moveRes.koPoint, breadths, useLifeDeath, alpha, beta
+      moveRes.koPoint, breadths, useLifeDeath, rootNoiseScale, alpha, beta
     );
-    const total = child.score + captureAdjust;
+    // Root-level tie-break jitter: symmetric options (e.g. all 4 corners on an empty
+    // board) often score EXACTLY equal after search, so without this the strict ">"
+    // comparison below would deterministically always keep the first one found.
+    const tieBreak = depth === 0 ? (Math.random() - 0.5) * rootNoiseScale : 0;
+    const total = child.score + captureAdjust + tieBreak;
 
     if (maximizing) {
       if (total > bestScore) { bestScore = total; bestMove = { r: cand.r, c: cand.c }; }
@@ -490,6 +526,95 @@ function minimaxSearch(
     return { move: null, score: evaluateBoardForColor(board, aiColor, useLifeDeath) };
   }
   return { move: bestMove, score: bestScore };
+}
+
+// ---------------------------------------------------------------------------
+// Joseki opening book
+// ---------------------------------------------------------------------------
+// JOSEKI_BOOK stores corner sequences relative to a single reference corner
+// (top-right) using role labels 'F'/'S' (whoever played first locally / second).
+// At runtime we check each of the board's 4 real corners under both possible
+// role assignments, so the same compact table works regardless of which
+// corner, and which color went first there.
+
+type CornerId = 'TR' | 'TL' | 'BR' | 'BL';
+const CORNERS: CornerId[] = ['TR', 'TL', 'BR', 'BL'];
+const JOSEKI_LOCAL_CAP = 8; // book entries only ever reference lines 0-8 from a corner
+const JOSEKI_MAX_LOCAL_STONES = 16; // corner too crowded/tactical -> book no longer applies
+
+function toLocalCorner(r: number, c: number, size: number, corner: CornerId): { top: number; right: number } {
+  switch (corner) {
+    case 'TR': return { top: r, right: size - 1 - c };
+    case 'TL': return { top: r, right: c };
+    case 'BR': return { top: size - 1 - r, right: size - 1 - c };
+    case 'BL': return { top: size - 1 - r, right: c };
+  }
+}
+
+function fromLocalCorner(top: number, right: number, size: number, corner: CornerId): Point {
+  switch (corner) {
+    case 'TR': return { r: top, c: size - 1 - right };
+    case 'TL': return { r: top, c: right };
+    case 'BR': return { r: size - 1 - top, c: size - 1 - right };
+    case 'BL': return { r: size - 1 - top, c: right };
+  }
+}
+
+const JOSEKI_MAP: Map<string, JosekiPoint> = new Map();
+for (const entry of JOSEKI_BOOK) {
+  const key = entry.prefix.map(p => `${p.role}:${p.top}:${p.right}`).sort().join('|');
+  if (!JOSEKI_MAP.has(key)) JOSEKI_MAP.set(key, entry.next);
+}
+
+// Looks for a matching corner joseki continuation for `aiColor` to play now.
+// Only applies to 13x13/19x19 (corner joseki don't meaningfully transfer to 9x9).
+function findJosekiMove(
+  board: GoBoard,
+  aiColor: 'BLACK' | 'WHITE',
+  opponentColor: 'BLACK' | 'WHITE',
+  koPoint: Point | null
+): Point | null {
+  const size = board.length;
+  if (size < 13) return null;
+
+  for (const corner of CORNERS) {
+    const localStones: { top: number; right: number; color: 'BLACK' | 'WHITE' }[] = [];
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const color = board[r][c];
+        if (color === 'EMPTY') continue;
+        const { top, right } = toLocalCorner(r, c, size, corner);
+        if (top > JOSEKI_LOCAL_CAP || right > JOSEKI_LOCAL_CAP) continue;
+        localStones.push({ top, right, color });
+      }
+    }
+
+    if (localStones.length === 0 || localStones.length > JOSEKI_MAX_LOCAL_STONES) continue;
+
+    // We don't track move history, so we don't actually know which color played
+    // first in this corner - try both assignments and use whichever matches the book.
+    for (const firstColorGuess of [aiColor, opponentColor] as const) {
+      const keyParts = localStones.map(s => {
+        const role: JosekiRole = s.color === firstColorGuess ? 'F' : 'S';
+        return `${role}:${s.top}:${s.right}`;
+      }).sort();
+      const next = JOSEKI_MAP.get(keyParts.join('|'));
+      if (!next) continue;
+
+      const nextColor: 'BLACK' | 'WHITE' = next.role === 'F'
+        ? firstColorGuess
+        : (firstColorGuess === 'BLACK' ? 'WHITE' : 'BLACK');
+      if (nextColor !== aiColor) continue; // book's next move is for the opponent, not us
+
+      const movePoint = fromLocalCorner(next.top, next.right, size, corner);
+      if (board[movePoint.r][movePoint.c] !== 'EMPTY') continue;
+      const res = playGoMove(board, movePoint.r, movePoint.c, aiColor, koPoint);
+      if (res.isLegal) return movePoint;
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -543,7 +668,14 @@ export function getGoAIMove(
     }
   }
 
-  // 3. Difficulty-specific move selection.
+  // 3. Joseki opening book - NORMAL/HARD only (EASY has no book knowledge, matching a
+  //    genuine beginner who doesn't know joseki and would deviate on their own).
+  if (difficulty !== 'EASY') {
+    const bookMove = findJosekiMove(board, aiColor, opponentColor, koPoint);
+    if (bookMove) return bookMove;
+  }
+
+  // 4. Difficulty-specific move selection.
   if (difficulty === 'EASY') {
     const candidates = generateRankedCandidates(board, aiColor, koPoint, {
       includeLadderBonus: false,
@@ -553,14 +685,14 @@ export function getGoAIMove(
   }
 
   if (difficulty === 'NORMAL') {
-    const result = minimaxSearch(board, aiColor, aiColor, 0, 2, koPoint, [8, 5], false, -Infinity, Infinity);
+    const result = minimaxSearch(board, aiColor, aiColor, 0, 2, koPoint, [8, 5], false, 4, -Infinity, Infinity);
     if (result.move) return result.move;
     const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 6 });
     return fallback.length > 0 ? { r: fallback[0].r, c: fallback[0].c } : null;
   }
 
   // HARD
-  const result = minimaxSearch(board, aiColor, aiColor, 0, 3, koPoint, [10, 6, 5], true, -Infinity, Infinity);
+  const result = minimaxSearch(board, aiColor, aiColor, 0, 3, koPoint, [10, 6, 5], true, 3, -Infinity, Infinity);
   if (result.move) return result.move;
   const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 3 });
   return fallback.length > 0 ? { r: fallback[0].r, c: fallback[0].c } : null;
