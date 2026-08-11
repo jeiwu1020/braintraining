@@ -293,88 +293,88 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
     <div className={`fixed inset-0 ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
       
       {/* Sidebar / Header Area */}
-      <div className="w-full sm:w-1/3 shrink-0 p-6 sm:p-8 md:p-12 flex flex-col justify-center items-center sm:items-start text-center sm:text-left z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent">
-        <div className="inline-flex items-center justify-center p-4 bg-white rounded-3xl shadow-lg mb-6 animate-fade-in">
-          {isAdvanced ? <Zap className="text-purple-600 w-10 h-10 mr-3" /> : <Sparkles className="text-emerald-500 w-10 h-10 mr-3" />}
-          <h1 className={`text-3xl md:text-4xl font-bold ${theme.titleColor} tracking-wide`}>綜合腦訓練</h1>
+      <div className="w-full sm:w-1/3 shrink-0 p-4 sm:p-6 md:p-12 landscape:p-3 landscape:py-2 flex flex-col justify-start sm:justify-center items-center sm:items-start text-center sm:text-left z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent overflow-y-auto max-h-full">
+        <div className="inline-flex items-center justify-center p-2.5 sm:p-4 landscape:p-2 bg-white rounded-2xl sm:rounded-3xl shadow-lg mb-3 sm:mb-6 landscape:mb-2 animate-fade-in shrink-0">
+          {isAdvanced ? <Zap className="text-purple-600 w-6 h-6 sm:w-10 sm:h-10 landscape:w-6 landscape:h-6 mr-2 sm:mr-3" /> : <Sparkles className="text-emerald-500 w-6 h-6 sm:w-10 sm:h-10 landscape:w-6 landscape:h-6 mr-2 sm:mr-3" />}
+          <h1 className={`text-xl sm:text-2xl md:text-4xl landscape:text-xl font-bold ${theme.titleColor} tracking-wide whitespace-nowrap`}>綜合腦訓練</h1>
         </div>
         
-        <h2 className={`text-xl md:text-2xl ${theme.subtitleColor} font-medium mb-4`}>
+        <h2 className={`text-sm sm:text-lg md:text-2xl landscape:text-sm ${theme.subtitleColor} font-medium mb-2 sm:mb-4 landscape:mb-2 shrink-0`}>
             {isAdvanced ? "進階認知挑戰" : "認知復健與放鬆"}
         </h2>
         
-        <p className="text-gray-600 text-base md:text-lg max-w-md leading-relaxed hidden sm:block mb-6">
+        <p className="text-gray-600 text-xs sm:text-sm md:text-base max-w-md leading-snug sm:leading-relaxed mb-2 sm:mb-4 shrink-0">
           {isAdvanced 
             ? "進階模式提供更具挑戰性的題目，適合想要進一步提升腦力的您。" 
             : "專為職能治療設計的互動遊戲，幫助您放鬆心情，活化大腦的每一天。"}
         </p>
 
         {/* Difficulty Toggle */}
-        <div className="flex items-center bg-white rounded-full p-1 shadow-md border border-gray-200 mb-6 sm:mb-0">
+        <div className="flex items-center bg-white rounded-full p-1 shadow-md border border-gray-200 mb-2 sm:mb-4 shrink-0">
             <button 
                 onClick={() => setDifficulty('NORMAL')}
-                className={`px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 ${!isAdvanced ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 landscape:px-3 landscape:py-1 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${!isAdvanced ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
             >
-                <Smile size={16} /> 一般
+                <Smile size={14} className="sm:w-4 sm:h-4" /> 一般
             </button>
             <button 
                 onClick={() => setDifficulty('ADVANCED')}
-                className={`px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 ${isAdvanced ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 landscape:px-3 landscape:py-1 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${isAdvanced ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
             >
-                <Zap size={16} /> 進階
+                <Zap size={14} className="sm:w-4 sm:h-4" /> 進階
             </button>
         </div>
 
-        <div className="mt-auto pt-8 text-gray-400 text-sm hidden sm:block">
+        <div className="mt-auto pt-2 sm:pt-4 text-gray-400 text-xs sm:text-sm shrink-0">
             Designed for Occupational Therapy
         </div>
       </div>
 
       {/* Cards Scroll Area */}
-      <div ref={scrollContainerRef} className="w-full sm:w-2/3 p-4 sm:p-6 md:p-12 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
+      <div ref={scrollContainerRef} className="w-full sm:w-2/3 p-3 sm:p-6 md:p-12 landscape:p-3 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
         
         {!selectedCategory ? (
             // CATEGORY LISTING
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto pb-20 sm:pb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 max-w-4xl mx-auto pb-16 sm:pb-8 landscape:grid-cols-1 md:landscape:grid-cols-2">
                 {categories.map((cat) => (
                     <button
                         key={cat.id}
                         onClick={() => handleSelectCategory(cat.id)}
-                        className={`${cat.color} border-2 ${cat.borderColor} rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex flex-col items-center sm:items-start sm:flex-row gap-4 group h-full`}
+                        className={`${cat.color} border-2 ${cat.borderColor} rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex flex-row items-center gap-3 sm:gap-4 group h-full w-full`}
                     >
-                        <div className="bg-white p-4 rounded-2xl shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0">
+                        <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-transform shrink-0 [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
                             {cat.icon}
                         </div>
-                        <div className="text-center sm:text-left">
-                            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">{cat.title}</h3>
-                            <p className="text-gray-600 text-sm sm:text-base leading-snug">{cat.description}</p>
+                        <div className="text-left min-w-0 flex-1">
+                            <h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">{cat.title}</h3>
+                            <p className="text-gray-600 text-xs sm:text-base leading-snug">{cat.description}</p>
                         </div>
                     </button>
                 ))}
             </div>
         ) : (
             // GAMES WITHIN SELECTED CATEGORY
-            <div className="max-w-4xl mx-auto pb-20 sm:pb-8">
+            <div className="max-w-4xl mx-auto pb-16 sm:pb-8">
                 
                 {/* Back Button and Header */}
-                <div className="flex items-center gap-4 mb-6 sticky top-0 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm z-10 border border-gray-100">
+                <div className="flex items-center gap-2.5 sm:gap-4 mb-3 sm:mb-6 sticky top-0 bg-white/80 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl shadow-sm z-10 border border-gray-100 landscape:p-2.5 landscape:mb-3">
                     <button 
                         onClick={() => handleSelectCategory(null)}
-                        className="p-2 bg-white rounded-full shadow-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
+                        className="p-1.5 sm:p-2 bg-white rounded-full shadow-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
                     >
-                        <ChevronRight className="w-6 h-6 rotate-180" />
+                        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 rotate-180" />
                     </button>
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white rounded-xl shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-1.5 sm:p-2 bg-white rounded-xl shadow-sm [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
                             {categories.find(c => c.id === selectedCategory)?.icon}
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800">
+                        <h2 className="text-base sm:text-2xl font-bold text-gray-800">
                             {categories.find(c => c.id === selectedCategory)?.title}
                         </h2>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 landscape:grid-cols-1 md:landscape:grid-cols-2">
                     {selectedCategory === 'BOARD' && (
                         <>
                             <MenuCard
@@ -897,14 +897,14 @@ const MenuCard: React.FC<CardProps> = ({ title, description, icon, color, border
   return (
     <button
       onClick={onClick}
-      className={`${color} border-2 ${borderColor} rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex items-start gap-3 sm:gap-4 group h-full`}
+      className={`${color} border-2 ${borderColor} rounded-2xl p-2.5 sm:p-5 landscape:p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex items-start gap-2 sm:gap-4 group h-full`}
     >
-      <div className="bg-white p-2 sm:p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform shrink-0">
+      <div className="bg-white p-2 sm:p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform shrink-0 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
         {icon}
       </div>
-      <div>
-        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1">{title}</h3>
-        <p className="text-gray-600 text-xs sm:text-sm leading-snug">{description}</p>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{title}</h3>
+        <p className="text-gray-600 text-[11px] sm:text-sm leading-tight sm:leading-snug">{description}</p>
       </div>
     </button>
   );
