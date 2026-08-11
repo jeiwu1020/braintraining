@@ -218,33 +218,50 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const DIRECTIONS = [
       {
           dr: -1, dc: 0,
-          exactWords: ['上', 'up'],
-          phraseWords: ['往上', '上面', '上走'],
+          label: '上',
+          words: ['上', 'up', '往上', '上面', '上走'],
       },
       {
           dr: 1, dc: 0,
-          exactWords: ['下', 'down'],
-          phraseWords: ['往下', '下面', '下走'],
+          label: '下',
+          words: ['下', 'down', '往下', '下面', '下走'],
       },
       {
           dr: 0, dc: -1,
-          exactWords: ['左', '佐', 'left'], // 佐 is a same-sound homophone of 左 (zuǒ)
-          phraseWords: ['往左', '左邊', '左走'],
+          label: '左',
+          words: ['左', '佐', 'left', '往左', '左邊', '左走'],
       },
       {
           dr: 0, dc: 1,
-          exactWords: ['右', '又', '幼', '佑', 'right'], // 又/幼/佑 are same-sound homophones of 右 (yòu)
-          phraseWords: ['往右', '右邊', '右走'],
+          label: '右',
+          words: ['右', '又', '幼', '佑', 'right', '往右', '右邊', '右走'],
       },
   ];
 
   const matchDirection = (text: string) => {
       const t = text.trim().toLowerCase();
       if (!t) return null;
-      const exactHit = DIRECTIONS.find(d => d.exactWords.includes(t));
-      if (exactHit) return exactHit;
-      return DIRECTIONS.find(d => d.phraseWords.some(k => t.includes(k))) || null;
+
+      let bestDir: typeof DIRECTIONS[0] | null = null;
+      let maxIdx = -1;
+
+      for (const d of DIRECTIONS) {
+          for (const w of d.words) {
+              const idx = t.lastIndexOf(w);
+              if (idx > maxIdx) {
+                  maxIdx = idx;
+                  bestDir = d;
+              }
+          }
+      }
+
+      if (bestDir && maxIdx >= 0) {
+          return { dir: bestDir, idx: maxIdx };
+      }
+      return null;
   };
+
+  const lastHandledTextRef = useRef('');
 
   // Clears the on-screen caption a little while after the last update, so a
   // previous command's text doesn't linger and get confused with the next
@@ -253,14 +270,13 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       if (clearTextTimerRef.current) clearTimeout(clearTextTimerRef.current);
       clearTextTimerRef.current = setTimeout(() => {
           setRecognizedText('');
-      }, 3000);
+          setVoiceHint('');
+      }, 1800);
   };
 
   useEffect(() => {
       // Voice Control Setup — created ONCE and kept alive for the whole
-      // component lifetime. The old implementation recreated the recognition
-      // instance every time move/isListening/isWin changed, which caused the
-      // mic to stop/restart constantly and feel laggy/unresponsive.
+      // component lifetime.
       if (typeof window === 'undefined' || !('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
           setVoiceSupported(false);
           return;
@@ -269,9 +285,6 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      // Use interim (in-progress) results instead of waiting for a final
-      // result — for one-character commands like "上/下/左/右" this is what
-      // makes recognition feel instant instead of slow/unresponsive.
       recognition.interimResults = true;
       recognition.lang = 'zh-TW';
       recognition.maxAlternatives = 3;
@@ -281,39 +294,35 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               const result = event.results[i];
               const primaryText = result[0].transcript.trim();
 
-              // Show whatever was just heard on screen, in real time. Reset
-              // the auto-clear timer each time so the caption stays visible
-              // while actively updating, but disappears once things go quiet.
-              setRecognizedText(primaryText);
-              scheduleClearRecognizedText();
-
-              // Check the top guess first, then fall back to alternative
-              // guesses — improves the hit rate for short directional words.
-              let dir = matchDirection(primaryText);
-              let matchedText = primaryText;
-              if (!dir) {
+              let match = matchDirection(primaryText);
+              if (!match) {
                   for (let a = 1; a < result.length; a++) {
                       const altText = result[a].transcript.trim();
-                      const altDir = matchDirection(altText);
-                      if (altDir) {
-                          dir = altDir;
-                          matchedText = altText;
+                      const altMatch = matchDirection(altText);
+                      if (altMatch) {
+                          match = altMatch;
                           break;
                       }
                   }
               }
 
-              if (dir) {
-                  // Only trigger once per spoken segment (result index), even
-                  // though interim results fire repeatedly while still
-                  // speaking — prevents the same word from moving twice.
-                  if (lastHandledIndexRef.current !== i) {
+              if (match) {
+                  const key = `${i}_${match.dir.label}_${match.idx}`;
+                  if (lastHandledTextRef.current !== key) {
+                      lastHandledTextRef.current = key;
                       lastHandledIndexRef.current = i;
-                      moveRef.current(dir.dr, dir.dc);
-                      setVoiceHint(`✅ 辨識到「${matchedText}」`);
+                      
+                      moveRef.current(match.dir.dr, match.dir.dc);
+                      setRecognizedText(match.dir.label);
+                      setVoiceHint(`✅ 辨識到「${match.dir.label}」`);
+                      scheduleClearRecognizedText();
                   }
-              } else if (result.isFinal) {
-                  setVoiceHint(`❓ 沒聽清楚「${primaryText}」，請再說一次「上／下／左／右」`);
+              } else {
+                  setRecognizedText(primaryText);
+                  scheduleClearRecognizedText();
+                  if (result.isFinal) {
+                      setVoiceHint(`❓ 沒聽清楚「${primaryText}」，請說「上／下／左／右」`);
+                  }
               }
           }
       };
@@ -342,6 +351,7 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
 
       recognition.onend = () => {
           lastHandledIndexRef.current = -1;
+          lastHandledTextRef.current = '';
           if (isListeningRef.current && !isWinRef.current) {
               try {
                   recognition.start();

@@ -18,6 +18,15 @@ export interface QwirkleTileData {
   id: string;
   shape: QwirkleShape;
   color: QwirkleColor;
+  scoreText?: string;
+  displayText?: string;
+}
+
+export interface CrossLineData {
+  leftHLine?: QwirkleTileData[];
+  rightHLine?: QwirkleTileData[];
+  topVLine?: QwirkleTileData[];
+  bottomVLine?: QwirkleTileData[];
 }
 
 const SHAPE_NAMES: Record<QwirkleShape, string> = {
@@ -48,7 +57,7 @@ const COLOR_CLASSES: Record<QwirkleColor, { fill: string; stroke: string; glow: 
 };
 
 export const QwirkleShapeSVG: React.FC<{ shape: QwirkleShape; color: QwirkleColor; sizeClass?: string }> = ({ shape, color, sizeClass = 'w-6 h-6 sm:w-8 sm:h-8 lg:w-14 lg:h-14 xl:w-16 xl:h-16' }) => {
-  const c = COLOR_CLASSES[color];
+  const c = COLOR_CLASSES[color] || COLOR_CLASSES.blue;
 
   switch (shape) {
     case 'circle':
@@ -116,9 +125,9 @@ export const QwirkleTile: React.FC<{
   disabled?: boolean;
 }> = ({ tile, size = 'md', selected = false, highlight = false, onClick, disabled = false }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8 sm:w-10 sm:h-10 lg:w-16 lg:h-16 xl:w-20 xl:h-20 p-1 lg:p-2',
-    md: 'w-10 h-10 sm:w-13 sm:h-13 lg:w-20 lg:h-20 xl:w-24 xl:h-24 p-1.5 lg:p-3',
-    lg: 'w-12 h-12 sm:w-16 sm:h-16 lg:w-24 lg:h-24 xl:w-28 xl:h-28 p-2 lg:p-4'
+    sm: 'w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 p-1 lg:p-1.5',
+    md: 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-15 lg:h-15 xl:w-18 xl:h-18 p-1 sm:p-1.5 lg:p-2',
+    lg: 'w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-18 lg:h-18 xl:w-22 xl:h-22 p-1.5 lg:p-2.5'
   };
 
   return (
@@ -143,19 +152,20 @@ export const QwirkleTile: React.FC<{
 
 interface QwirkleQuestion {
   id: number;
-  type: 'same_color' | 'same_shape' | 'qwirkle_finish' | 'cross_intersection';
+  type: 'same_color' | 'same_shape' | 'qwirkle_finish' | 'cross_intersection' | 'score_calc';
   title: string;
   prompt: string;
   line: QwirkleTileData[];
+  crossLine?: CrossLineData;
   options: QwirkleTileData[];
   correctOptionId: string;
   explanation: string;
   ruleTag: string; // 2-char wrapped tag
 }
 
-const generateQwirklePool = (isAdv: boolean): QwirkleQuestion[] => {
+const generateQwirkleQuestions = (isAdv: boolean): QwirkleQuestion[] => {
   const pool: QwirkleQuestion[] = [
-    // 1. 同色異形 (紅色)
+    // 1. 同色異形 (紅色系列)
     {
       id: 1,
       type: 'same_color',
@@ -239,7 +249,7 @@ const generateQwirklePool = (isAdv: boolean): QwirkleQuestion[] => {
       explanation: '【綠色圓形】完美融入圓形家族！',
       ruleTag: '同形\n異色'
     },
-    // 5. Qwirkle 滿貫大連線 (差最後一顆！)
+    // 5. Qwirkle 滿貫大連線 (黃色 5 顆)
     {
       id: 5,
       type: 'qwirkle_finish',
@@ -261,14 +271,123 @@ const generateQwirklePool = (isAdv: boolean): QwirkleQuestion[] => {
       correctOptionId: 'opt_17',
       explanation: '【黃色四葉草】補齊最後一塊拼圖，達成 6 顆滿貫 QWIRKLE 大獲全勝！🎉',
       ruleTag: '滿貫\n連線'
+    },
+    // 6. 綠色形狀連線
+    {
+      id: 6,
+      type: 'same_color',
+      title: '綠色形狀連線',
+      prompt: '桌面是【綠色】系列：【綠-圓形】【綠-菱形】【綠-星星】。手牌哪一顆可以合法連上？',
+      line: [
+        { id: 'l18', color: 'green', shape: 'circle' },
+        { id: 'l19', color: 'green', shape: 'diamond' },
+        { id: 'l20', color: 'green', shape: 'star' }
+      ],
+      options: [
+        { id: 'opt_21a', color: 'green', shape: 'cross' },
+        { id: 'opt_22a', color: 'green', shape: 'circle' },
+        { id: 'opt_23a', color: 'red', shape: 'cross' },
+        { id: 'opt_24a', color: 'blue', shape: 'star' }
+      ],
+      correctOptionId: 'opt_21a',
+      explanation: '【綠色十字】是全新的綠色型態，合法接上！',
+      ruleTag: '同色\n異形'
+    },
+    // 7. 正方形色彩家族
+    {
+      id: 7,
+      type: 'same_shape',
+      title: '正方形色彩家族',
+      prompt: '桌面已有【紅-正方形】【橘-正方形】【黃-正方形】【藍-正方形】。哪一顆可擴充該系列？',
+      line: [
+        { id: 'l21', color: 'red', shape: 'square' },
+        { id: 'l22', color: 'orange', shape: 'square' },
+        { id: 'l23', color: 'yellow', shape: 'square' },
+        { id: 'l24', color: 'blue', shape: 'square' }
+      ],
+      options: [
+        { id: 'opt_25a', color: 'purple', shape: 'square' },
+        { id: 'opt_26a', color: 'red', shape: 'square' },
+        { id: 'opt_27a', color: 'purple', shape: 'circle' },
+        { id: 'opt_28a', color: 'green', shape: 'star' }
+      ],
+      correctOptionId: 'opt_25a',
+      explanation: '【紫色正方形】顏色不重複，順利放入正方形家族！',
+      ruleTag: '同形\n異色'
+    },
+    // 8. 紫色形狀連線
+    {
+      id: 8,
+      type: 'same_color',
+      title: '紫色形狀連線',
+      prompt: '桌面是【紫色】系列：【紫-星星】【紫-四葉草】【紫-十字】。哪一顆可以接上？',
+      line: [
+        { id: 'l25', color: 'purple', shape: 'star' },
+        { id: 'l26', color: 'purple', shape: 'clover' },
+        { id: 'l27', color: 'purple', shape: 'cross' }
+      ],
+      options: [
+        { id: 'opt_29a', color: 'purple', shape: 'square' },
+        { id: 'opt_30a', color: 'purple', shape: 'star' },
+        { id: 'opt_31a', color: 'yellow', shape: 'square' },
+        { id: 'opt_32a', color: 'blue', shape: 'clover' }
+      ],
+      correctOptionId: 'opt_29a',
+      explanation: '【紫色正方形】補上未重複的形狀，完美接上！',
+      ruleTag: '同色\n異形'
+    },
+    // 9. 四葉草色彩家族
+    {
+      id: 9,
+      type: 'same_shape',
+      title: '四葉草色彩家族',
+      prompt: '桌面已有【藍-四葉草】【黃-四葉草】【紫-四葉草】【綠-四葉草】。手牌哪一顆可加入？',
+      line: [
+        { id: 'l28', color: 'blue', shape: 'clover' },
+        { id: 'l29', color: 'yellow', shape: 'clover' },
+        { id: 'l30', color: 'purple', shape: 'clover' },
+        { id: 'l31', color: 'green', shape: 'clover' }
+      ],
+      options: [
+        { id: 'opt_33a', color: 'red', shape: 'clover' },
+        { id: 'opt_34a', color: 'blue', shape: 'clover' },
+        { id: 'opt_35a', color: 'red', shape: 'circle' },
+        { id: 'opt_36a', color: 'orange', shape: 'star' }
+      ],
+      correctOptionId: 'opt_33a',
+      explanation: '【紅色四葉草】未重複且同形，順利加入！',
+      ruleTag: '同形\n異色'
+    },
+    // 10. 六色十字 Qwirkle 大滿貫
+    {
+      id: 10,
+      type: 'qwirkle_finish',
+      title: '🌟 十字家族 6 色大滿貫！',
+      prompt: '【十字】家族已有：紅、橘、黃、綠、藍 5 色！差最後哪一色完成 6 色大滿貫？',
+      line: [
+        { id: 'l32', color: 'red', shape: 'cross' },
+        { id: 'l33', color: 'orange', shape: 'cross' },
+        { id: 'l34', color: 'yellow', shape: 'cross' },
+        { id: 'l35', color: 'green', shape: 'cross' },
+        { id: 'l36', color: 'blue', shape: 'cross' }
+      ],
+      options: [
+        { id: 'opt_37a', color: 'purple', shape: 'cross' },
+        { id: 'opt_38a', color: 'purple', shape: 'circle' },
+        { id: 'opt_39a', color: 'red', shape: 'cross' },
+        { id: 'opt_40a', color: 'yellow', shape: 'star' }
+      ],
+      correctOptionId: 'opt_37a',
+      explanation: '【紫色十字】完成 6 色十字 Qwirkle 滿貫大勝！',
+      ruleTag: '滿貫\n連線'
     }
   ];
 
   if (isAdv) {
     pool.push(
-      // 進階 1: 菱形六色大滿貫
+      // 進階 1: 六色菱形滿貫
       {
-        id: 6,
+        id: 11,
         type: 'qwirkle_finish',
         title: '進階 菱形六色大滿貫',
         prompt: '【菱形】家族已有：紅、橘、黃、藍、紫 5 色！差最後哪一色菱形完成六色 Qwirkle？',
@@ -289,17 +408,25 @@ const generateQwirklePool = (isAdv: boolean): QwirkleQuestion[] => {
         explanation: '【綠色菱形】完成 6 色菱形 Qwirkle 大滿貫！',
         ruleTag: '六色\n滿貫'
       },
-      // 進階 2: 十字交叉十字路口交叉判定
+      // 進階 2: 十字路口雙向交會 (直排正方形 x 橫排綠色)
       {
-        id: 7,
+        id: 12,
         type: 'cross_intersection',
         title: '進階 雙向十字路口交叉放置',
-        prompt: '橫向連線是【綠色系列】，縱向連線是【正方形系列】。交叉點唯有哪一顆能同時滿足兩條線？',
-        line: [
-          { id: 'l23', color: 'green', shape: 'circle' },
-          { id: 'l24', color: 'green', shape: 'star' },
-          { id: 'l25', color: 'green', shape: 'cross' }
-        ],
+        prompt: '橫向連線是【綠色系列】，縱向連線是【正方形系列】。交叉點❓唯有哪一顆能同時滿足縱橫兩條線？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl1', color: 'green', shape: 'circle' },
+            { id: 'hl2', color: 'green', shape: 'clover' },
+            { id: 'hl3', color: 'green', shape: 'cross' }
+          ],
+          topVLine: [
+            { id: 'vl1', color: 'blue', shape: 'square' },
+            { id: 'vl2', color: 'yellow', shape: 'square' },
+            { id: 'vl3', color: 'purple', shape: 'square' }
+          ]
+        },
         options: [
           { id: 'opt_25', color: 'green', shape: 'square' },
           { id: 'opt_26', color: 'blue', shape: 'square' },
@@ -307,34 +434,239 @@ const generateQwirklePool = (isAdv: boolean): QwirkleQuestion[] => {
           { id: 'opt_28', color: 'purple', shape: 'circle' }
         ],
         correctOptionId: 'opt_25',
-        explanation: '【綠色正方形】既是綠色(滿足橫線)，又是正方形(滿足直線)，完美交會！',
+        explanation: '【綠色正方形】既是綠色(滿足橫線)，又是正方形(滿足直線)，雙向完美交會！',
         ruleTag: '雙向\n交叉'
       },
-      // 進階 3: 紫色嚴格排錯
+      // 進階 3: 雙向連線計分計算 (橫4顆 + 縱3顆 = 7分)
       {
-        id: 8,
-        type: 'same_color',
-        title: '進階 紫色複雜排錯',
-        prompt: '紫色連線已有【紫-十字】【紫-菱形】【紫-星星】。手牌哪一顆可以合法放置？',
-        line: [
-          { id: 'l26', color: 'purple', shape: 'cross' },
-          { id: 'l27', color: 'purple', shape: 'diamond' },
-          { id: 'l28', color: 'purple', shape: 'star' }
-        ],
+        id: 13,
+        type: 'score_calc',
+        title: '進階 縱橫雙向得分計算',
+        prompt: '放上【紅色星星】至交叉點❓，同時完成【橫向4顆紅色線】與【縱向3顆星星線】。這一步總共可獲得幾分？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl4', color: 'red', shape: 'circle' },
+            { id: 'hl5', color: 'red', shape: 'square' },
+            { id: 'hl6', color: 'red', shape: 'clover' }
+          ],
+          topVLine: [
+            { id: 'vl4', color: 'blue', shape: 'star' },
+            { id: 'vl5', color: 'yellow', shape: 'star' }
+          ]
+        },
         options: [
-          { id: 'opt_29', color: 'purple', shape: 'square' },
-          { id: 'opt_30', color: 'purple', shape: 'cross' },
-          { id: 'opt_31', color: 'blue', shape: 'square' },
-          { id: 'opt_32', color: 'orange', shape: 'clover' }
+          { id: 'opt_29', color: 'red', shape: 'star', scoreText: '7 分' },
+          { id: 'opt_30', color: 'red', shape: 'circle', scoreText: '4 分' },
+          { id: 'opt_31', color: 'blue', shape: 'star', scoreText: '3 分' },
+          { id: 'opt_32', color: 'orange', shape: 'clover', scoreText: '10 分' }
         ],
         correctOptionId: 'opt_29',
-        explanation: '【紫色正方形】完美接續，形狀與顏色皆無衝突！',
-        ruleTag: '精準\n邏輯'
+        explanation: '出【紅色星星】單步奪 7 分！(橫向4顆得4分 + 縱向3顆得3分 = 4+3=7分！)',
+        ruleTag: '雙向\n計分'
+      },
+      // 進階 4: 滿貫加成爆分 (橫向6顆Qwirkle得12分 + 縱向3顆得3分 = 15分)
+      {
+        id: 14,
+        type: 'score_calc',
+        title: '進階 滿貫加成爆高分',
+        prompt: '橫向已有5顆黃色棋(差1顆滿貫)，縱向有2顆四葉草。將【黃色四葉草】放到交叉點❓可狂拿幾分？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl7', color: 'yellow', shape: 'circle' },
+            { id: 'hl8', color: 'yellow', shape: 'square' },
+            { id: 'hl9', color: 'yellow', shape: 'diamond' },
+            { id: 'hl10', color: 'yellow', shape: 'star' },
+            { id: 'hl11', color: 'yellow', shape: 'cross' }
+          ],
+          topVLine: [
+            { id: 'vl6', color: 'blue', shape: 'clover' },
+            { id: 'vl7', color: 'purple', shape: 'clover' }
+          ]
+        },
+        options: [
+          { id: 'opt_33', color: 'yellow', shape: 'clover', scoreText: '15 分' },
+          { id: 'opt_34', color: 'yellow', shape: 'circle', scoreText: '12 分' },
+          { id: 'opt_35', color: 'red', shape: 'clover', scoreText: '9 分' },
+          { id: 'opt_36', color: 'purple', shape: 'star', scoreText: '6 分' }
+        ],
+        correctOptionId: 'opt_33',
+        explanation: '一舉勇奪 15 分！(橫向完成6顆Qwirkle得6分+6分獎勵=12分，縱向3顆得3分，合計12+3=15分！)',
+        ruleTag: '滿貫\n爆分'
+      },
+      // 進階 5: 防守卡位戰術 (不餵球給對手Qwirkle)
+      {
+        id: 15,
+        type: 'same_color',
+        title: '進階 觀念題：防守開闢新線',
+        prompt: '防守戰術：桌上已有 4 顆藍色棋。若你手中沒有第 6 顆藍棋，為避免下家直接拿 Qwirkle 大滿貫，首選戰術為何？',
+        line: [
+          { id: 'l30', color: 'blue', shape: 'circle' },
+          { id: 'l31', color: 'blue', shape: 'square' },
+          { id: 'l32', color: 'blue', shape: 'diamond' },
+          { id: 'l33', color: 'blue', shape: 'star' }
+        ],
+        options: [
+          { id: 'opt_37', color: 'orange', shape: 'cross', displayText: '另闢新線' },
+          { id: 'opt_38', color: 'blue', shape: 'cross', displayText: '硬接第5顆' },
+          { id: 'opt_39', color: 'blue', shape: 'circle', displayText: '出重複藍棋' },
+          { id: 'opt_40', color: 'red', shape: 'diamond', displayText: '跳過不出' }
+        ],
+        correctOptionId: 'opt_37',
+        explanation: '選擇【另闢新線】！若貿然接第5顆藍棋，下家有第6顆藍棋就能直接端走12分滿貫！',
+        ruleTag: '防守\n戰術'
+      },
+      // 進階 6: 雙向十字路口 (藍色系列 ╳ 星星系列)
+      {
+        id: 16,
+        type: 'cross_intersection',
+        title: '進階 藍色 ╳ 星星十字交會',
+        prompt: '橫向連線是【藍色系列】，縱向連線是【星星系列】。哪一顆棋子放入交叉點❓可同時符合雙向規則？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl12', color: 'blue', shape: 'circle' },
+            { id: 'hl13', color: 'blue', shape: 'square' },
+            { id: 'hl14', color: 'blue', shape: 'clover' }
+          ],
+          topVLine: [
+            { id: 'vl8', color: 'red', shape: 'star' },
+            { id: 'vl9', color: 'yellow', shape: 'star' }
+          ]
+        },
+        options: [
+          { id: 'opt_41b', color: 'blue', shape: 'star' },
+          { id: 'opt_42b', color: 'blue', shape: 'circle' },
+          { id: 'opt_43b', color: 'green', shape: 'star' },
+          { id: 'opt_44b', color: 'purple', shape: 'square' }
+        ],
+        correctOptionId: 'opt_41b',
+        explanation: '【藍色星星】既是藍色又是星星，雙向完美吻合！',
+        ruleTag: '雙向\n交叉'
+      },
+      // 進階 7: 雙向得分計算 (橫3顆黃色 + 縱4顆十字 = 7分)
+      {
+        id: 17,
+        type: 'score_calc',
+        title: '進階 縱橫連線雙重算分',
+        prompt: '放上【黃色十字】至交叉點❓，同時完成【橫向3顆黃色線】與【縱向4顆十字線】。這一步總共獲得幾分？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl15', color: 'yellow', shape: 'circle' },
+            { id: 'hl16', color: 'yellow', shape: 'square' }
+          ],
+          topVLine: [
+            { id: 'vl10', color: 'red', shape: 'cross' },
+            { id: 'vl11', color: 'blue', shape: 'cross' },
+            { id: 'vl12', color: 'purple', shape: 'cross' }
+          ]
+        },
+        options: [
+          { id: 'opt_45b', color: 'yellow', shape: 'cross', scoreText: '7 分' },
+          { id: 'opt_46b', color: 'yellow', shape: 'cross', scoreText: '5 分' },
+          { id: 'opt_47b', color: 'yellow', shape: 'cross', scoreText: '3 分' },
+          { id: 'opt_48b', color: 'yellow', shape: 'cross', scoreText: '12 分' }
+        ],
+        correctOptionId: 'opt_45b',
+        explanation: '獲得 7 分！(橫向3顆得3分 + 縱向4顆得4分 = 3+4=7分！)',
+        ruleTag: '雙向\n計分'
+      },
+      // 進階 8: 雙向四向交叉點
+      {
+        id: 18,
+        type: 'score_calc',
+        title: '進階 四向十字中心點算分',
+        prompt: '橫向為【紅色系列】(左2右1)，縱向為【星星系列】(上2下1)。放上【紅色星星】於正中央交叉點❓，總共可拿幾分？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl17', color: 'red', shape: 'circle' },
+            { id: 'hl18', color: 'red', shape: 'square' }
+          ],
+          rightHLine: [
+            { id: 'hl19', color: 'red', shape: 'clover' }
+          ],
+          topVLine: [
+            { id: 'vl13', color: 'blue', shape: 'star' },
+            { id: 'vl14', color: 'yellow', shape: 'star' }
+          ],
+          bottomVLine: [
+            { id: 'vl15', color: 'purple', shape: 'star' }
+          ]
+        },
+        options: [
+          { id: 'opt_49b', color: 'red', shape: 'star', scoreText: '8 分' },
+          { id: 'opt_50b', color: 'red', shape: 'star', scoreText: '6 分' },
+          { id: 'opt_51b', color: 'red', shape: 'star', scoreText: '4 分' },
+          { id: 'opt_52b', color: 'red', shape: 'star', scoreText: '12 分' }
+        ],
+        correctOptionId: 'opt_49b',
+        explanation: '獲得 8 分！(橫向共4顆得4分 + 縱向共4顆得4分 = 4+4=8分！)',
+        ruleTag: '四向\n爆分'
+      },
+      // 進階 9: 觀念題：開局首碰選擇
+      {
+        id: 19,
+        type: 'score_calc',
+        title: '進階 觀念題：開局首碰得分',
+        prompt: '遊戲剛開始桌上只有【黃色圓形】1顆。你手牌有【黃色正方形】與【藍色圓形】，打出其中1顆第一步最多可得幾分？',
+        line: [
+          { id: 'l34', color: 'yellow', shape: 'circle' }
+        ],
+        options: [
+          { id: 'opt_53b', color: 'yellow', shape: 'square', scoreText: '2 分' },
+          { id: 'opt_54b', color: 'blue', shape: 'circle', scoreText: '1 分' },
+          { id: 'opt_55b', color: 'red', shape: 'star', scoreText: '3 分' },
+          { id: 'opt_56b', color: 'green', shape: 'clover', scoreText: '0 分' }
+        ],
+        correctOptionId: 'opt_53b',
+        explanation: '打出【黃色正方形】接在【黃色圓形】旁，形成 2 顆連線，獲得 2 分！',
+        ruleTag: '開局\n首碰'
+      },
+      // 進階 10: 雙滿貫神乎其技爆分 (橫6顆 + 縱6顆)
+      {
+        id: 20,
+        type: 'score_calc',
+        title: '進階 雙 Qwirkle 滿貫雙爆分',
+        prompt: '橫向已連5顆黃色棋，縱向已連5顆菱形棋！將【黃色菱形】放入中央交叉點❓同時解鎖雙 Qwirkle 滿貫，總共狂拿幾分？',
+        line: [],
+        crossLine: {
+          leftHLine: [
+            { id: 'hl20', color: 'yellow', shape: 'circle' },
+            { id: 'hl21', color: 'yellow', shape: 'square' },
+            { id: 'hl22', color: 'yellow', shape: 'clover' },
+            { id: 'hl23', color: 'yellow', shape: 'star' },
+            { id: 'hl24', color: 'yellow', shape: 'cross' }
+          ],
+          topVLine: [
+            { id: 'vl16', color: 'red', shape: 'diamond' },
+            { id: 'vl17', color: 'blue', shape: 'diamond' },
+            { id: 'vl18', color: 'purple', shape: 'diamond' },
+            { id: 'vl19', color: 'orange', shape: 'diamond' },
+            { id: 'vl20', color: 'green', shape: 'diamond' }
+          ]
+        },
+        options: [
+          { id: 'opt_57b', color: 'yellow', shape: 'diamond', scoreText: '24 分' },
+          { id: 'opt_58b', color: 'yellow', shape: 'diamond', scoreText: '18 分' },
+          { id: 'opt_59b', color: 'yellow', shape: 'diamond', scoreText: '12 分' },
+          { id: 'opt_60b', color: 'yellow', shape: 'diamond', scoreText: '30 分' }
+        ],
+        correctOptionId: 'opt_57b',
+        explanation: '狂拿 24 分！(橫向6顆得6分+6分獎勵=12分；縱向6顆得6分+6分獎勵=12分，12+12=24分！超強爆分！)',
+        ruleTag: '雙滿貫\n神技'
       }
     );
   }
 
-  return pool.sort(() => Math.random() - 0.5);
+  return pool
+    .map(q => ({
+      ...q,
+      options: [...q.options].sort(() => Math.random() - 0.5)
+    }))
+    .sort(() => Math.random() - 0.5);
 };
 
 const calculateTimeScore = (seconds: number): { score: number; label: string; icon: string } => {
@@ -393,7 +725,7 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
 
   const restart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const list = generateQwirklePool(isAdv);
+    const list = generateQwirkleQuestions(isAdv);
     setQuestions(list);
     setCurrentIndex(0);
     setSelectedOptionId(null);
@@ -552,106 +884,221 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
         </div>
       </div>
 
-      {/* Main Single Page Layout with Min-h-0 & Compact Height */}
+      {/* Main Single Page Split Layout with No Scrollbars */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-zinc-900/90 border border-cyan-800/40 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
+        <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col sm:flex-row landscape:flex-row gap-2 sm:gap-3 lg:gap-4 my-1 bg-zinc-900/90 border border-cyan-800/40 rounded-2xl p-2 sm:p-3 lg:p-4 shadow-xl backdrop-blur-md overflow-hidden min-h-0 h-full">
           
-          {/* Question Prompt with 2-Char Line Break Badge */}
-          <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-1 lg:pb-2.5 shrink-0">
-            <div className="flex items-center gap-2 lg:gap-3">
-              <span className="bg-cyan-900/90 text-cyan-300 border border-cyan-500/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-1.5 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-pre-line text-center leading-tight">
+          {/* LEFT COLUMN: Question Banner + Board Area */}
+          <div className="flex-1 sm:w-7/12 landscape:w-7/12 lg:w-8/12 flex flex-col min-h-0 overflow-hidden bg-zinc-950/60 p-2 sm:p-3 rounded-xl border border-zinc-800/80">
+            
+            {/* Question Prompt */}
+            <div className="flex items-center gap-2 lg:gap-3 border-b border-zinc-800 pb-1.5 shrink-0">
+              <span className="bg-cyan-900/90 text-cyan-300 border border-cyan-500/50 text-[10px] sm:text-xs lg:text-sm font-black px-1.5 py-0.5 lg:px-2.5 lg:py-1 rounded-lg whitespace-pre-line text-center leading-tight shrink-0">
                 {currentQ.ruleTag}
               </span>
-              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
+              <h2 className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-white leading-tight">
                 {currentQ.prompt}
               </h2>
             </div>
-          </div>
 
-          {/* Table Line Display */}
-          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-black/60 rounded-xl lg:rounded-2xl border border-zinc-800 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-cyan-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
-              <Sparkles size={14} className="text-cyan-400" />
-              <span>當前棋盤連線</span>
-            </span>
+            {/* Board Display Area */}
+            <div className="flex-1 my-1 py-1 px-1 flex flex-col items-center justify-center bg-black/70 rounded-xl border border-zinc-800/80 shadow-inner overflow-hidden min-h-0">
+              {currentQ.crossLine ? (
+                <div className="flex flex-col items-center justify-center w-full h-full min-h-0">
+                  <span className="text-[10px] sm:text-xs text-cyan-300 font-bold mb-1 flex items-center gap-1 shrink-0">
+                    <Sparkles size={13} className="text-cyan-400" />
+                    <span>雙向交叉棋盤 (直排 ╳ 橫排)</span>
+                  </span>
 
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-6">
-              {currentQ.line.map((tile, idx) => (
-                <QwirkleTile key={tile.id || idx} tile={tile} size="sm" disabled />
-              ))}
+                  {(() => {
+                    const topV = currentQ.crossLine.topVLine || [];
+                    const bottomV = currentQ.crossLine.bottomVLine || [];
+                    const leftH = currentQ.crossLine.leftHLine || [];
+                    const rightH = currentQ.crossLine.rightHLine || [];
+                    const L = leftH.length;
+                    const R = rightH.length;
 
-              {/* Slot Placeholder */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-xl lg:rounded-2xl border-2 lg:border-[3px] border-dashed border-cyan-400 bg-cyan-500/10 flex flex-col items-center justify-center text-cyan-300 font-bold p-0.5 shadow-inner animate-pulse">
-                <span className="text-sm sm:text-base lg:text-2xl">❓</span>
-                <span className="text-[7px] sm:text-[8px] lg:text-xs text-center font-bold text-cyan-200">接哪顆</span>
-              </div>
-            </div>
-          </div>
+                    return (
+                      <div className="flex-1 flex items-center justify-center w-full min-h-0 overflow-auto py-1">
+                        <div
+                          className="grid gap-1 sm:gap-1.5 items-center justify-center my-auto p-1 max-w-full"
+                          style={{
+                            gridTemplateColumns: `repeat(${L + 1 + R}, minmax(0, auto))`
+                          }}
+                        >
+                          {/* Top Vertical Column */}
+                          {topV.map((tile, vIdx) => (
+                            <React.Fragment key={`topV_${vIdx}`}>
+                              {Array.from({ length: L }).map((_, i) => (
+                                <div key={`topV_${vIdx}_L_${i}`} className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 pointer-events-none" />
+                              ))}
+                              <QwirkleTile tile={tile} size="sm" disabled />
+                              {Array.from({ length: R }).map((_, i) => (
+                                <div key={`topV_${vIdx}_R_${i}`} className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 pointer-events-none" />
+                              ))}
+                            </React.Fragment>
+                          ))}
 
-          {/* Hand Cards Options */}
-          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
-              {currentQ.options.map(opt => {
-                const isSelected = selectedOptionId === opt.id;
-                const isOptCorrect = opt.id === currentQ.correctOptionId;
-                let highlight = false;
-                if (isAnswered && isOptCorrect) highlight = true;
+                          {/* Middle Horizontal Row */}
+                          {leftH.map((tile, idx) => (
+                            <QwirkleTile key={tile.id || `leftH_${idx}`} tile={tile} size="sm" disabled />
+                          ))}
 
-                return (
-                  <div key={opt.id} className="flex flex-col items-center">
-                    <QwirkleTile
-                      tile={opt}
-                      size="md"
-                      selected={isSelected}
-                      highlight={highlight}
-                      disabled={isAnswered}
-                      onClick={() => handleSelect(opt)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                          {/* Intersection Question Mark Slot */}
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 flex flex-col items-center justify-center text-amber-300 font-bold p-0.5 shadow-lg shadow-amber-500/20 animate-pulse shrink-0">
+                            <span className="text-[10px] sm:text-xs md:text-sm font-black text-amber-300">❓</span>
+                            <span className="text-[5px] sm:text-[6px] md:text-[7px] text-center font-bold text-amber-200 leading-none">交叉位</span>
+                          </div>
 
-          {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
-            <AnimatePresence mode="wait">
-              {isAnswered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
-                    isCorrect
-                      ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
-                      : 'bg-rose-950/95 border-rose-500 text-rose-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
-                    {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
-                    )}
-                    <div className="truncate flex items-center gap-1 lg:gap-2">
-                      {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-cyan-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
-                          +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
-                        </span>
-                      )}
-                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
+                          {rightH.map((tile, idx) => (
+                            <QwirkleTile key={tile.id || `rightH_${idx}`} tile={tile} size="sm" disabled />
+                          ))}
+
+                          {/* Bottom Vertical Column */}
+                          {bottomV.map((tile, vIdx) => (
+                            <React.Fragment key={`bottomV_${vIdx}`}>
+                              {Array.from({ length: L }).map((_, i) => (
+                                <div key={`bottomV_${vIdx}_L_${i}`} className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 pointer-events-none" />
+                              ))}
+                              <QwirkleTile tile={tile} size="sm" disabled />
+                              {Array.from({ length: R }).map((_, i) => (
+                                <div key={`bottomV_${vIdx}_R_${i}`} className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 pointer-events-none" />
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full h-full min-h-0">
+                  <span className="text-[10px] sm:text-xs text-cyan-300 font-bold mb-2 flex items-center gap-1 shrink-0">
+                    <Sparkles size={13} className="text-cyan-400" />
+                    <span>當前棋盤連線</span>
+                  </span>
+
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 my-auto overflow-auto p-1 max-w-full">
+                    {currentQ.line.map((tile, idx) => (
+                      <QwirkleTile key={tile.id || idx} tile={tile} size="sm" disabled />
+                    ))}
+
+                    {/* Slot Placeholder */}
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 rounded-xl border-2 border-dashed border-cyan-400 bg-cyan-500/10 flex flex-col items-center justify-center text-cyan-300 font-bold p-0.5 shadow-inner animate-pulse shrink-0">
+                      <span className="text-[10px] sm:text-xs md:text-sm">❓</span>
+                      <span className="text-[5px] sm:text-[6px] md:text-[7px] text-center font-bold text-cyan-200 leading-none">接哪顆</span>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-cyan-400 hover:bg-cyan-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
-                  >
-                    {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
-                  </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Hand Cards / Answer Options + Feedback/Next Button */}
+          <div className="shrink-0 sm:w-5/12 landscape:w-5/12 lg:w-4/12 flex flex-col justify-between min-h-0 overflow-hidden bg-zinc-950/60 p-2 sm:p-3 rounded-xl border border-zinc-800/80">
+            
+            {/* Header */}
+            <div className="border-b border-zinc-800 pb-1 text-center shrink-0">
+              <span className="text-xs font-bold text-cyan-300 tracking-wide">
+                🎯 請選擇答案 / 出牌選項
+              </span>
+            </div>
+
+            {/* Options Stack / Grid */}
+            <div className="flex-1 flex flex-col items-center justify-center my-1 overflow-y-auto p-1 min-h-0">
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2.5 w-full justify-items-center items-center my-auto">
+                {currentQ.options.map(opt => {
+                  const isSelected = selectedOptionId === opt.id;
+                  const isOptCorrect = opt.id === currentQ.correctOptionId;
+                  let highlight = false;
+                  if (isAnswered && isOptCorrect) highlight = true;
+
+                  return (
+                    <div key={opt.id} className="w-full flex justify-center">
+                      {opt.scoreText || opt.displayText ? (
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          disabled={isAnswered}
+                          onClick={() => handleSelect(opt)}
+                          className={`w-full py-1.5 px-1 rounded-xl border-2 flex flex-col items-center justify-center font-black text-center shadow transition ${
+                            highlight
+                              ? 'bg-emerald-600 border-emerald-300 text-white shadow-emerald-500/50 ring-2 ring-emerald-400'
+                              : isSelected
+                              ? 'bg-cyan-500 border-cyan-200 text-gray-950 shadow-cyan-500/50 ring-2 ring-cyan-300'
+                              : 'bg-zinc-800/90 border-zinc-600 text-cyan-300 hover:border-cyan-400 hover:bg-zinc-700'
+                          }`}
+                        >
+                          <span className="text-xs sm:text-sm lg:text-base font-black tracking-wide">
+                            {opt.scoreText || opt.displayText}
+                          </span>
+                          {opt.scoreText && (
+                            <span className="text-[8px] sm:text-[9px] text-cyan-200 font-bold">點擊選擇</span>
+                          )}
+                        </motion.button>
+                      ) : (
+                        <QwirkleTile
+                          tile={opt}
+                          size="md"
+                          selected={isSelected}
+                          highlight={highlight}
+                          disabled={isAnswered}
+                          onClick={() => handleSelect(opt)}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bottom Feedback Banner / Action Area */}
+            <div className="shrink-0 min-h-[40px] flex flex-col justify-end pt-1 border-t border-zinc-800/80">
+              <AnimatePresence mode="wait">
+                {isAnswered ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className={`w-full p-1.5 sm:p-2 rounded-xl flex flex-col gap-1 shadow border text-xs shrink-0 ${
+                      isCorrect
+                        ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
+                        : 'bg-rose-950/95 border-rose-500 text-rose-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 overflow-hidden">
+                        {isCorrect ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        )}
+                        {isCorrect && lastSpeedInfo && (
+                          <span className="bg-emerald-800 text-cyan-300 px-1 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
+                            +{lastEarnedScore}分 {lastSpeedInfo.icon}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={handleNext}
+                        className="shrink-0 px-2.5 py-1 bg-cyan-400 hover:bg-cyan-300 text-gray-950 font-black rounded-lg text-xs shadow active:scale-95 transition"
+                      >
+                        {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
+                      </button>
+                    </div>
+
+                    <div className="text-[10px] sm:text-[11px] leading-tight font-bold opacity-90 line-clamp-2">
+                      {currentQ.explanation}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="text-center text-[10px] sm:text-xs text-zinc-400 font-bold py-0.5">
+                    點擊作答選項完成題目
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       ) : (

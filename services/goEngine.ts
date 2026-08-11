@@ -306,6 +306,35 @@ interface CandidateScore { r: number; c: number; score: number; capturedCount: n
 interface CandidateOptions {
   includeLadderBonus: boolean;
   noiseScale: number;
+  lastMove?: Point | null;
+}
+
+type CornerId = 'TR' | 'TL' | 'BR' | 'BL';
+
+// Helper to find distinct group keys adjacent to a point
+function getAdjacentGroupKeys(
+  board: GoBoard,
+  r: number,
+  c: number,
+  targetColor: 'BLACK' | 'WHITE'
+): { keys: Set<string>; minLiberties: number } {
+  const size = board.length;
+  const neighbors = getAdjacentPoints(r, c, size);
+  const keys = new Set<string>();
+  let minLiberties = Infinity;
+
+  for (const n of neighbors) {
+    if (board[n.r][n.c] === targetColor) {
+      const g = getGroupAndLiberties(board, n.r, n.c);
+      const groupKey = `${g.stones[0].r},${g.stones[0].c}`;
+      keys.add(groupKey);
+      if (g.liberties.length < minLiberties) {
+        minLiberties = g.liberties.length;
+      }
+    }
+  }
+
+  return { keys, minLiberties: minLiberties === Infinity ? 0 : minLiberties };
 }
 
 function generateRankedCandidates(
@@ -318,10 +347,6 @@ function generateRankedCandidates(
   const opponentColor: 'BLACK' | 'WHITE' = color === 'BLACK' ? 'WHITE' : 'BLACK';
   const candidates: CandidateScore[] = [];
 
-  // Pre-pass: how many stones already sit in each board quadrant. During the
-  // opening this is used to nudge the AI toward spreading across the whole
-  // board instead of piling into whichever corner scored highest first -
-  // otherwise ties between symmetric corners are always broken the same way.
   const mid = Math.floor(size / 2);
   const quadrantCounts = [0, 0, 0, 0]; // TL, TR, BL, BR
   let totalStones = 0;
@@ -332,7 +357,61 @@ function generateRankedCandidates(
       quadrantCounts[(r < mid ? 0 : 2) + (c < mid ? 0 : 1)]++;
     }
   }
-  const isOpeningPhase = totalStones < 16;
+  const isOpeningPhase = totalStones < (size === 19 ? 32 : size === 13 ? 20 : 12);
+
+  // Pre-analyze corner occupancy for fuseki heuristics
+  const cornerDefs: { corner: CornerId; minR: number; maxR: number; minC: number; maxC: number }[] = [
+    { corner: 'TL', minR: 0, maxR: 5, minC: 0, maxC: 5 },
+    { corner: 'TR', minR: 0, maxR: 5, minC: size - 6, maxC: size - 1 },
+    { corner: 'BL', minR: size - 6, maxR: size - 1, minC: 0, maxC: 5 },
+    { corner: 'BR', minR: size - 6, maxR: size - 1, minC: size - 6, maxC: size - 1 },
+  ];
+
+  const cornerState = cornerDefs.map(def => {
+    let myStones = 0;
+    let oppStones = 0;
+    const myPoints: Point[] = [];
+    const oppPoints: Point[] = [];
+
+    for (let r = Math.max(0, def.minR); r <= Math.min(size - 1, def.maxR); r++) {
+      for (let c = Math.max(0, def.minC); c <= Math.min(size - 1, def.maxC); c++) {
+        if (board[r][c] === color) {
+          myStones++;
+          myPoints.push({ r, c });
+        } else if (board[r][c] === opponentColor) {
+          oppStones++;
+          oppPoints.push({ r, c });
+        }
+      }
+    }
+    return { ...def, myStones, oppStones, myPoints, oppPoints };
+  });
+
+  // Key corner target coordinates
+  const starOffset = size === 9 ? 2 : 3;
+  const keyCornerPoints: Point[] = [
+    { r: starOffset, c: starOffset },
+    { r: starOffset, c: size - 1 - starOffset },
+    { r: size - 1 - starOffset, c: starOffset },
+    { r: size - 1 - starOffset, c: size - 1 - starOffset },
+  ];
+  if (size >= 13) {
+    keyCornerPoints.push(
+      { r: 2, c: 3 }, { r: 3, c: 2 },
+      { r: 2, c: size - 4 }, { r: 3, c: size - 3 },
+      { r: size - 3, c: 2 }, { r: size - 4, c: 3 },
+      { r: size - 3, c: size - 4 }, { r: size - 4, c: size - 3 },
+      { r: 2, c: 2 }, { r: 2, c: size - 3 },
+      { r: size - 3, c: 2 }, { r: size - 3, c: size - 3 }
+    );
+  } else if (size === 9) {
+    keyCornerPoints.push(
+      { r: 1, c: 2 }, { r: 2, c: 1 },
+      { r: 1, c: 6 }, { r: 2, c: 7 },
+      { r: 6, c: 1 }, { r: 7, c: 2 },
+      { r: 6, c: 6 }, { r: 7, c: 7 }
+    );
+  }
 
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
@@ -343,50 +422,310 @@ function generateRankedCandidates(
       let score = 0;
       score += moveRes.capturedCount * 50;
 
-      if (isOpeningPhase) {
-        const q = (r < mid ? 0 : 2) + (c < mid ? 0 : 1);
-        const count = quadrantCounts[q];
-        if (count === 0) score += 18; // untouched quadrant - stake it out
-        else if (count <= 2) score += 6;
-      }
-
       const ownGroup = getGroupAndLiberties(moveRes.nextBoard, r, c);
       const liberties = ownGroup.liberties.length;
 
+      // Capped liberty evaluation to avoid endless clumping for liberties alone
       if (liberties === 1 && moveRes.capturedCount === 0) {
-        score -= 130;
+        // Test if this is a working snapback (倒撲)
+        let isWorkingSnapback = false;
+        if (ownGroup.stones.length === 1) {
+          const oppReply = playGoMove(moveRes.nextBoard, ownGroup.liberties[0].r, ownGroup.liberties[0].c, opponentColor, moveRes.koPoint);
+          if (oppReply.isLegal && oppReply.capturedCount > 0) {
+            const oppCapGroup = getGroupAndLiberties(oppReply.nextBoard, ownGroup.liberties[0].r, ownGroup.liberties[0].c);
+            if (oppCapGroup.liberties.length === 1) {
+              isWorkingSnapback = true;
+            }
+          }
+        }
+        if (!isWorkingSnapback) {
+          score -= 5000; // Strict suicide / self-atari penalty!
+        }
+      } else if (liberties === 2) {
+        score -= 10;
+      } else if (liberties === 3) {
+        score += 8;
       } else {
-        score += liberties * 5;
+        score += 15;
+      }
+
+      // Check if filling own real eye (填自眼)
+      if (moveRes.capturedCount === 0 && isRealEye(board, r, c, color)) {
+        score -= 5000; // Fatal penalty for filling own real eye!
       }
 
       const distR = Math.min(r, size - 1 - r);
       const distC = Math.min(c, size - 1 - c);
       const edgeDist = Math.min(distR, distC);
 
-      if (edgeDist === 0) score -= 10;
-      else if (edgeDist === 1) score += 3;
-      else if (edgeDist === 2 || edgeDist === 3) score += 12;
+      // Line Penalties / Bonuses in Opening (角 > 邊 > 腹)
+      if (isOpeningPhase) {
+        if (edgeDist === 0) {
+          score -= 80; // Line 1 is bad in opening
+        } else if (edgeDist === 1) {
+          score -= 35; // Line 2 is bad in opening
+        } else if (edgeDist === 2 || edgeDist === 3) {
+          score += 15; // Golden 3rd and 4th lines
+        } else if (edgeDist >= 4 && totalStones < 12 && !(size === 9 && r === 4 && c === 4)) {
+          score -= 12; // Avoid deep center early
+        }
 
-      if (size === 9) {
-        if ((r === 2 || r === 6) && (c === 2 || c === 6)) score += 15;
-        if (r === 4 && c === 4) score += 10;
-      } else if (size === 13) {
-        if ((r === 3 || r === 9) && (c === 3 || c === 9)) score += 15;
-        if (r === 6 && c === 6) score += 10;
-      } else if (size === 19) {
-        if ((r === 3 || r === 15) && (c === 3 || c === 15)) score += 20;
-        if ((r === 2 || r === 16) && (c === 2 || c === 16)) score += 12;
+        // Quadrant distribution bonus
+        const q = (r < mid ? 0 : 2) + (c < mid ? 0 : 1);
+        const count = quadrantCounts[q];
+        if (count === 0) score += 18;
+        else if (count <= 2) score += 6;
+
+        // Corner heuristics (佔角、守角、掛角)
+        for (const cs of cornerState) {
+          if (r >= cs.minR && r <= cs.maxR && c >= cs.minC && c <= cs.maxC) {
+            if (cs.myStones === 0 && cs.oppStones === 0) {
+              const isKeyCorner = keyCornerPoints.some(p => p.r === r && p.c === c);
+              if (isKeyCorner) {
+                score += 65; // Very high priority: occupying empty corner
+              } else {
+                score += 20;
+              }
+            } else if (cs.myStones === 1 && cs.oppStones === 0) {
+              const myStone = cs.myPoints[0];
+              const mDist = Math.abs(r - myStone.r) + Math.abs(c - myStone.c);
+              if ((mDist === 3 || mDist === 4) && r !== myStone.r && c !== myStone.c) {
+                score += 45; // Corner Enclosure (守角)
+              }
+            } else if (cs.myStones === 0 && cs.oppStones === 1) {
+              const oppStone = cs.oppPoints[0];
+              const mDist = Math.abs(r - oppStone.r) + Math.abs(c - oppStone.c);
+              if ((mDist === 3 || mDist === 4) && r !== oppStone.r && c !== oppStone.c) {
+                score += 46; // Corner Approach (掛角)
+              }
+            }
+          }
+        }
+
+        // Side Extension (拆邊)
+        if ((edgeDist === 2 || edgeDist === 3) && size >= 13) {
+          const isSideMiddle = (distR >= 5 && distC <= 3) || (distC >= 5 && distR <= 3);
+          if (isSideMiddle) {
+            score += 28;
+          }
+        }
+      } else {
+        if (edgeDist === 0) score -= 10;
+        else if (edgeDist === 1) score += 3;
+        else if (edgeDist === 2 || edgeDist === 3) score += 12;
       }
 
+      // Adjacent stone relationships
       const neighbors = getAdjacentPoints(r, c, size);
-      let friendNeighbors = 0;
-      let oppNeighbors = 0;
-      for (const n of neighbors) {
-        if (board[n.r][n.c] === color) friendNeighbors++;
-        else if (board[n.r][n.c] === opponentColor) oppNeighbors++;
+      const directFriends = neighbors.filter(n => board[n.r][n.c] === color);
+      const directOpps = neighbors.filter(n => board[n.r][n.c] === opponentColor);
+
+      // Distinguish genuine connection of separate groups vs heavy dumpling clumping vs defending weak groups
+      const friendGroupInfo = getAdjacentGroupKeys(board, r, c, color);
+      let isDefendingWeakGroup = false;
+      let minLibertiesBefore = Infinity;
+      let maxLibertiesBefore = 0;
+      let maxRealEyesBefore = 0;
+
+      for (const key of friendGroupInfo.keys) {
+        const [gr, gc] = key.split(',').map(Number);
+        const g = getGroupAndLiberties(board, gr, gc);
+        if (g.liberties.length < minLibertiesBefore) minLibertiesBefore = g.liberties.length;
+        if (g.liberties.length > maxLibertiesBefore) maxLibertiesBefore = g.liberties.length;
+        const eyes = countRealEyes(board, g.stones, color);
+        if (eyes > maxRealEyesBefore) maxRealEyesBefore = eyes;
       }
-      score += friendNeighbors * 6;
-      score += oppNeighbors * 4;
+
+      // 1. Defending weak friendly groups (救/伸長弱棋)
+      if (minLibertiesBefore === 1) {
+        if (liberties >= 3 || moveRes.capturedCount > 0) {
+          score += 65; // Great escape from Atari
+          isDefendingWeakGroup = true;
+        }
+      } else if (minLibertiesBefore === 2) {
+        if (liberties >= 3) {
+          score += 50; // Critical extension/rescue of group with 2 liberties
+          isDefendingWeakGroup = true;
+        }
+      } else if (minLibertiesBefore === 3) {
+        if (liberties >= 4) {
+          score += 25; // Reinforcing a 3-liberty group
+          isDefendingWeakGroup = true;
+        }
+      }
+
+      // Eye creation & Making Life evaluation for friendly groups (做活 / 作眼急點 / 騰挪)
+      if (friendGroupInfo.keys.size > 0) {
+        const resultingGroup = getGroupAndLiberties(moveRes.nextBoard, r, c);
+        const eyesAfter = countRealEyes(moveRes.nextBoard, resultingGroup.stones, color);
+
+        if (maxRealEyesBefore < 2 && eyesAfter >= 2) {
+          score += 95; // CRITICAL MAKES FULL LIFE (做活成功！完成雙眼存活)
+          isDefendingWeakGroup = true;
+        } else if (maxRealEyesBefore === 0 && eyesAfter === 1) {
+          score += 40; // Creating first real eye (做第一個真實眼位)
+          isDefendingWeakGroup = true;
+        }
+
+        // Sabaki (騰挪靠托/二路下立/小飛作眼位) when friendly group is weak or invading
+        if (minLibertiesBefore <= 3) {
+          // Contact attachment in opponent territory (靠/托)
+          if (directOpps.length >= 1) {
+            score += 42; // 騰挪靠托尋求做活
+          }
+          // 2nd line descent/extension near edge (二路立/飛擴大眼位)
+          const distToEdge = Math.min(r, c, size - 1 - r, size - 1 - c);
+          if (distToEdge === 1) {
+            score += 38; // 二路下立/小飛作眼位與渡過
+          }
+        }
+      } else {
+        // Deep invasion into opponent territory (打入與騰挪)
+        const distToEdge = Math.min(r, c, size - 1 - r, size - 1 - c);
+        let oppNeighborsCount = 0;
+        for (const n of neighbors) {
+          if (board[n.r][n.c] === opponentColor) oppNeighborsCount++;
+        }
+        if (oppNeighborsCount >= 1 && distToEdge >= 1 && distToEdge <= 3) {
+          score += 28; // Sabaki invasion point
+        }
+      }
+
+      if (friendGroupInfo.keys.size >= 2) {
+        // Genuine connection of 2+ separate friendly groups (補斷 / 聯絡)
+        if (minLibertiesBefore <= 3) {
+          score += 40; // Critical rescue/connection of weak group
+        } else {
+          score += 22; // Good strategic connection
+        }
+      } else if (friendGroupInfo.keys.size === 1) {
+        if (directFriends.length >= 2) {
+          // 2+ friendly neighbors that ALREADY belong to the same group!
+          // Playing here creates a heavy dumpling / empty triangle shape (愚木/凝形)
+          if (minLibertiesBefore >= 3 && moveRes.capturedCount === 0) {
+            score -= 35; // Heavy clumping penalty!
+          }
+        } else {
+          score += 2; // Simple solid attachment to 1 stone
+        }
+      }
+
+      // Cutting distinct opponent groups (切斷)
+      const oppGroupInfo = getAdjacentGroupKeys(board, r, c, opponentColor);
+      if (oppGroupInfo.keys.size >= 2) {
+        score += 35; // Cut opponent stones!
+      }
+
+      // Flexible jumping shapes (一間跳, 小飛, 大飛)
+      const oneSpaceJumps = [
+        { dr: 2, dc: 0, mr: 1, mc: 0 }, { dr: -2, dc: 0, mr: -1, mc: 0 },
+        { dr: 0, dc: 2, mr: 0, mc: 1 }, { dr: 0, dc: -2, mr: 0, mc: -1 }
+      ];
+      let jumpCount = 0;
+      for (const j of oneSpaceJumps) {
+        const tr = r + j.dr, tc = c + j.dc;
+        const mr = r + j.mr, mc = c + j.mc;
+        if (tr >= 0 && tr < size && tc >= 0 && tc < size) {
+          if (board[tr][tc] === color && board[mr][mc] === 'EMPTY') jumpCount++;
+        }
+      }
+      if (jumpCount > 0) score += jumpCount * 20;
+
+      const knightJumps = [
+        { dr: 2, dc: 1 }, { dr: 2, dc: -1 }, { dr: -2, dc: 1 }, { dr: -2, dc: -1 },
+        { dr: 1, dc: 2 }, { dr: 1, dc: -2 }, { dr: -1, dc: 2 }, { dr: -1, dc: -2 }
+      ];
+      let knightCount = 0;
+      for (const k of knightJumps) {
+        const tr = r + k.dr, tc = c + k.dc;
+        if (tr >= 0 && tr < size && tc >= 0 && tc < size) {
+          if (board[tr][tc] === color) knightCount++;
+        }
+      }
+      if (knightCount > 0) score += Math.min(knightCount, 2) * 15;
+
+      // 2. Penalize UNNECESSARY DEFENSE (過度防守 / 贅手 / 廢棋)
+      // If adjacent friendly group is ALREADY safe (>=4 liberties or >=2 real eyes),
+      // and this move is not cutting, capturing, jumping, or attacking:
+      if (friendGroupInfo.keys.size > 0 && !isDefendingWeakGroup) {
+        const isAlreadySafe = maxLibertiesBefore >= 4 || maxRealEyesBefore >= 2;
+        if (isAlreadySafe) {
+          const isCutting = oppGroupInfo.keys.size >= 2;
+          const isCapturing = moveRes.capturedCount > 0;
+          const isJumping = jumpCount > 0 || knightCount > 0;
+          let isAttackingOpp = false;
+          for (const n of neighbors) {
+            if (board[n.r][n.c] === opponentColor) {
+              const oppG = getGroupAndLiberties(board, n.r, n.c);
+              if (oppG.liberties.length <= 3) isAttackingOpp = true;
+            }
+          }
+          if (!isCutting && !isCapturing && !isJumping && !isAttackingOpp) {
+            score -= 45; // Penalize unnecessary passive defense near safe group
+          }
+        }
+      }
+
+      // 3. LOCAL RESPONSE to opponent's last move (局部應手)
+      if (options.lastMove) {
+        const distToLast = Math.abs(r - options.lastMove.r) + Math.abs(c - options.lastMove.c);
+        if (distToLast <= 2) {
+          // Check if opponent's last move attacked an AI group nearby
+          let attackedNearbyGroup = false;
+          const lastMoveNeighbors = getAdjacentPoints(options.lastMove.r, options.lastMove.c, size);
+          for (const lmn of lastMoveNeighbors) {
+            if (board[lmn.r][lmn.c] === color) {
+              const g = getGroupAndLiberties(board, lmn.r, lmn.c);
+              if (g.liberties.length <= 3) {
+                attackedNearbyGroup = true;
+                break;
+              }
+            }
+          }
+
+          if (attackedNearbyGroup && (isDefendingWeakGroup || liberties >= 3)) {
+            score += 40; // Direct urgent local response to opponent's attack!
+          } else {
+            score += 12; // General local combat engagement
+          }
+        }
+      }
+
+      if (isOpeningPhase) {
+        // In opening phase, penalize unnecessary contact moves against strong isolated opponent stones ("開局切忌貼身靠打")
+        let oppAtariOrWeak = false;
+        for (const n of neighbors) {
+          if (board[n.r][n.c] === opponentColor) {
+            const oppG = getGroupAndLiberties(board, n.r, n.c);
+            if (oppG.liberties.length <= 2) oppAtariOrWeak = true;
+          }
+        }
+        if (!oppAtariOrWeak) {
+          score -= directOpps.length * 25; // Heavily penalize bad opening contact moves
+        }
+      } else {
+        score += directOpps.length * 4;
+      }
+
+      // Tactical shape: Hane at head of two opponent stones (二子頭必打)
+      if (directOpps.length > 0) {
+        for (const n of neighbors) {
+          if (board[n.r][n.c] === opponentColor) {
+            const dr = n.r - r;
+            const dc = n.c - c;
+            const nextR = n.r + dr;
+            const nextC = n.c + dc;
+            if (nextR >= 0 && nextR < size && nextC >= 0 && nextC < size && board[nextR][nextC] === opponentColor) {
+              score += 22;
+            }
+          }
+        }
+      }
+
+      // Tactical shape: Avoid jumping into opponent tiger mouth
+      if (directOpps.length >= 3 && moveRes.capturedCount === 0) {
+        score -= 40;
+      }
 
       // Pressure on opponent groups, with ladder-awareness for tactical bonuses.
       for (const n of neighbors) {
@@ -396,11 +735,11 @@ function generateRankedCandidates(
           score += 25; // Atari
           if (options.includeLadderBonus) {
             const captured = simulateLadderChase(moveRes.nextBoard, n.r, n.c, color, opponentColor, 40);
-            if (captured) score += 90; // this atari actually ladders to a kill
+            if (captured) score += 90;
           }
         } else if (oppG.liberties.length === 2 && options.includeLadderBonus) {
           const captured = simulateLadderChase(moveRes.nextBoard, n.r, n.c, color, opponentColor, 40);
-          if (captured) score += 40; // sets up a ladder even though not atari yet
+          if (captured) score += 40;
         }
       }
 
@@ -433,13 +772,13 @@ function lifeDeathAdjustment(board: GoBoard, color: 'BLACK' | 'WHITE'): number {
       const group = getGroupAndLiberties(board, r, c);
       group.stones.forEach(s => visited.add(`${s.r},${s.c}`));
 
-      if (group.liberties.length <= 3) {
-        const eyes = countRealEyes(board, group.stones, color);
-        if (eyes >= 2) {
-          adjustment += 4; // secure group
-        } else if (group.liberties.length <= 2) {
-          adjustment -= group.stones.length * 3; // vulnerable, weighted by group size
-        }
+      const eyes = countRealEyes(board, group.stones, color);
+      if (eyes >= 2) {
+        adjustment += 10 + group.stones.length; // fully alive group reward
+      } else if (eyes === 1 && group.liberties.length >= 3) {
+        adjustment += 4; // 1 solid eye with decent liberties
+      } else if (eyes === 0 && group.liberties.length <= 2) {
+        adjustment -= group.stones.length * 4; // vulnerable eyeless group
       }
     }
   }
@@ -472,18 +811,17 @@ function minimaxSearch(
   useLifeDeath: boolean,
   rootNoiseScale: number,
   alpha: number,
-  beta: number
+  beta: number,
+  lastMove: Point | null = null
 ): SearchNode {
   if (depth >= maxDepth) {
     return { move: null, score: evaluateBoardForColor(board, aiColor, useLifeDeath) };
   }
 
-  // Only the root gets tie-break noise: deeper plies must stay deterministic for the
-  // search to be meaningful, but at the root, ties between symmetric options (e.g.
-  // several equally-scored empty corners) should not always resolve the same way.
   const candidates = generateRankedCandidates(board, toMove, koPoint, {
     includeLadderBonus: true,
-    noiseScale: depth === 0 ? rootNoiseScale : 0
+    noiseScale: depth === 0 ? rootNoiseScale : 0,
+    lastMove: depth === 0 ? lastMove : null
   });
   const breadth = breadths[depth] ?? 4;
   const limited = candidates.slice(0, breadth);
@@ -494,6 +832,43 @@ function minimaxSearch(
 
   const maximizing = toMove === aiColor;
   const nextColor: 'BLACK' | 'WHITE' = toMove === 'BLACK' ? 'WHITE' : 'BLACK';
+
+  if (depth === 0) {
+    const scoredNodes: { move: Point; score: number }[] = [];
+    let maxScore = -Infinity;
+
+    for (const cand of limited) {
+      const moveRes = playGoMove(board, cand.r, cand.c, toMove, koPoint);
+      if (!moveRes.isLegal) continue;
+
+      const captureAdjust = (toMove === aiColor ? 1 : -1) * moveRes.capturedCount * 4;
+      const child = minimaxSearch(
+        moveRes.nextBoard, aiColor, nextColor, depth + 1, maxDepth,
+        moveRes.koPoint, breadths, useLifeDeath, rootNoiseScale, alpha, beta,
+        { r: cand.r, c: cand.c }
+      );
+      const total = child.score + captureAdjust + cand.score * 0.25;
+      scoredNodes.push({ move: { r: cand.r, c: cand.c }, score: total });
+      if (total > maxScore) maxScore = total;
+    }
+
+    if (scoredNodes.length === 0) {
+      return { move: null, score: evaluateBoardForColor(board, aiColor, useLifeDeath) };
+    }
+
+    let totalStones = 0;
+    for (let r = 0; r < board.length; r++) {
+      for (let c = 0; c < board.length; c++) {
+        if (board[r][c] !== 'EMPTY') totalStones++;
+      }
+    }
+    const isOpening = totalStones < (board.length === 19 ? 32 : board.length === 13 ? 20 : 12);
+    const margin = isOpening ? 2.5 : 1.2;
+    const topNodes = scoredNodes.filter(n => maxScore - n.score <= margin);
+    const chosen = topNodes[Math.floor(Math.random() * topNodes.length)];
+    return { move: chosen.move, score: chosen.score };
+  }
+
   let bestScore = maximizing ? -Infinity : Infinity;
   let bestMove: Point | null = null;
 
@@ -504,13 +879,10 @@ function minimaxSearch(
     const captureAdjust = (toMove === aiColor ? 1 : -1) * moveRes.capturedCount * 4;
     const child = minimaxSearch(
       moveRes.nextBoard, aiColor, nextColor, depth + 1, maxDepth,
-      moveRes.koPoint, breadths, useLifeDeath, rootNoiseScale, alpha, beta
+      moveRes.koPoint, breadths, useLifeDeath, rootNoiseScale, alpha, beta,
+      { r: cand.r, c: cand.c }
     );
-    // Root-level tie-break jitter: symmetric options (e.g. all 4 corners on an empty
-    // board) often score EXACTLY equal after search, so without this the strict ">"
-    // comparison below would deterministically always keep the first one found.
-    const tieBreak = depth === 0 ? (Math.random() - 0.5) * rootNoiseScale : 0;
-    const total = child.score + captureAdjust + tieBreak;
+    const total = child.score + captureAdjust;
 
     if (maximizing) {
       if (total > bestScore) { bestScore = total; bestMove = { r: cand.r, c: cand.c }; }
@@ -531,16 +903,10 @@ function minimaxSearch(
 // ---------------------------------------------------------------------------
 // Joseki opening book
 // ---------------------------------------------------------------------------
-// JOSEKI_BOOK stores corner sequences relative to a single reference corner
-// (top-right) using role labels 'F'/'S' (whoever played first locally / second).
-// At runtime we check each of the board's 4 real corners under both possible
-// role assignments, so the same compact table works regardless of which
-// corner, and which color went first there.
 
-type CornerId = 'TR' | 'TL' | 'BR' | 'BL';
 const CORNERS: CornerId[] = ['TR', 'TL', 'BR', 'BL'];
-const JOSEKI_LOCAL_CAP = 8; // book entries only ever reference lines 0-8 from a corner
-const JOSEKI_MAX_LOCAL_STONES = 16; // corner too crowded/tactical -> book no longer applies
+const JOSEKI_LOCAL_CAP = 8;
+const JOSEKI_MAX_LOCAL_STONES = 16;
 
 function toLocalCorner(r: number, c: number, size: number, corner: CornerId): { top: number; right: number } {
   switch (corner) {
@@ -566,18 +932,30 @@ for (const entry of JOSEKI_BOOK) {
   if (!JOSEKI_MAP.has(key)) JOSEKI_MAP.set(key, entry.next);
 }
 
-// Looks for a matching corner joseki continuation for `aiColor` to play now.
-// Only applies to 13x13/19x19 (corner joseki don't meaningfully transfer to 9x9).
+function getCornerOfPoint(p: Point, size: number): CornerId | null {
+  const localCap = size >= 19 ? JOSEKI_LOCAL_CAP : size >= 13 ? 6 : 4;
+  if (p.r <= localCap && p.c >= size - 1 - localCap) return 'TR';
+  if (p.r <= localCap && p.c <= localCap) return 'TL';
+  if (p.r >= size - 1 - localCap && p.c <= localCap) return 'BL';
+  if (p.r >= size - 1 - localCap && p.c >= size - 1 - localCap) return 'BR';
+  return null;
+}
+
 function findJosekiMove(
   board: GoBoard,
   aiColor: 'BLACK' | 'WHITE',
   opponentColor: 'BLACK' | 'WHITE',
-  koPoint: Point | null
+  koPoint: Point | null,
+  priorityCorner: CornerId | null = null
 ): Point | null {
   const size = board.length;
-  if (size < 13) return null;
+  const localCap = size >= 19 ? JOSEKI_LOCAL_CAP : size >= 13 ? 6 : 4;
 
-  for (const corner of CORNERS) {
+  const orderedCorners: CornerId[] = priorityCorner
+    ? [priorityCorner, ...CORNERS.filter(c => c !== priorityCorner)]
+    : CORNERS;
+
+  for (const corner of orderedCorners) {
     const localStones: { top: number; right: number; color: 'BLACK' | 'WHITE' }[] = [];
 
     for (let r = 0; r < size; r++) {
@@ -585,15 +963,13 @@ function findJosekiMove(
         const color = board[r][c];
         if (color === 'EMPTY') continue;
         const { top, right } = toLocalCorner(r, c, size, corner);
-        if (top > JOSEKI_LOCAL_CAP || right > JOSEKI_LOCAL_CAP) continue;
+        if (top > localCap || right > localCap) continue;
         localStones.push({ top, right, color });
       }
     }
 
     if (localStones.length === 0 || localStones.length > JOSEKI_MAX_LOCAL_STONES) continue;
 
-    // We don't track move history, so we don't actually know which color played
-    // first in this corner - try both assignments and use whichever matches the book.
     for (const firstColorGuess of [aiColor, opponentColor] as const) {
       const keyParts = localStones.map(s => {
         const role: JosekiRole = s.color === firstColorGuess ? 'F' : 'S';
@@ -605,16 +981,206 @@ function findJosekiMove(
       const nextColor: 'BLACK' | 'WHITE' = next.role === 'F'
         ? firstColorGuess
         : (firstColorGuess === 'BLACK' ? 'WHITE' : 'BLACK');
-      if (nextColor !== aiColor) continue; // book's next move is for the opponent, not us
+      if (nextColor !== aiColor) continue;
 
       const movePoint = fromLocalCorner(next.top, next.right, size, corner);
       if (board[movePoint.r][movePoint.c] !== 'EMPTY') continue;
       const res = playGoMove(board, movePoint.r, movePoint.c, aiColor, koPoint);
-      if (res.isLegal) return movePoint;
+      if (res.isLegal) {
+        return movePoint;
+      }
     }
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Local Stability / Defense (局部定型與安全)
+// ---------------------------------------------------------------------------
+function findLocalDefenseMove(
+  board: GoBoard,
+  aiColor: 'BLACK' | 'WHITE',
+  opponentColor: 'BLACK' | 'WHITE',
+  koPoint: Point | null,
+  lastMove: Point | null
+): Point | null {
+  if (!lastMove) return null;
+  const size = board.length;
+
+  // 1. Check if AI has a group near lastMove (distance <= 2) with 2 or 3 liberties that needs local extension/defense
+  let urgentGroup: { stones: Point[]; liberties: Point[] } | null = null;
+  let minLiberties = Infinity;
+
+  for (let dr = -2; dr <= 2; dr++) {
+    for (let dc = -2; dc <= 2; dc++) {
+      const r = lastMove.r + dr;
+      const c = lastMove.c + dc;
+      if (r >= 0 && r < size && c >= 0 && c < size) {
+        if (board[r][c] === aiColor) {
+          const group = getGroupAndLiberties(board, r, c);
+          if (group.liberties.length >= 2 && group.liberties.length <= 3 && group.liberties.length < minLiberties) {
+            minLiberties = group.liberties.length;
+            urgentGroup = group;
+          }
+        }
+      }
+    }
+  }
+
+  if (urgentGroup && urgentGroup.liberties.length > 0) {
+    let bestMove: Point | null = null;
+    let maxLibGain = -1;
+
+    for (const lib of urgentGroup.liberties) {
+      const res = playGoMove(board, lib.r, lib.c, aiColor, koPoint);
+      if (!res.isLegal) continue;
+      const newGroup = getGroupAndLiberties(res.nextBoard, lib.r, lib.c);
+
+      // Do not play self-atari
+      if (newGroup.liberties.length <= 1 && res.capturedCount === 0) continue;
+
+      const libGain = newGroup.liberties.length - urgentGroup.liberties.length + res.capturedCount * 5;
+      if (libGain > maxLibGain) {
+        maxLibGain = libGain;
+        bestMove = lib;
+      }
+    }
+    if (bestMove && maxLibGain > 0) {
+      return bestMove;
+    }
+  }
+
+  // 2. If opponent played a direct contact attachment (貼/托/切) against an AI stone, reply locally
+  let contactedAiStone: Point | null = null;
+  const dX = [-1, 1, 0, 0];
+  const dY = [0, 0, -1, 1];
+  for (let i = 0; i < 4; i++) {
+    const nr = lastMove.r + dX[i];
+    const nc = lastMove.c + dY[i];
+    if (nr >= 0 && nr < size && nc >= 0 && nc < size && board[nr][nc] === aiColor) {
+      contactedAiStone = { r: nr, c: nc };
+      break;
+    }
+  }
+
+  if (contactedAiStone) {
+    const myGroup = getGroupAndLiberties(board, contactedAiStone.r, contactedAiStone.c);
+    if (myGroup.liberties.length <= 4) {
+      for (const lib of myGroup.liberties) {
+        const res = playGoMove(board, lib.r, lib.c, aiColor, koPoint);
+        if (!res.isLegal) continue;
+        const afterG = getGroupAndLiberties(res.nextBoard, lib.r, lib.c);
+        if (afterG.liberties.length >= 2 || res.capturedCount > 0) {
+          return lib; // Stay local to resolve contact fight!
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Opening Fuseki (佔空角 -> 拆邊 -> 定式 Joseki)
+// ---------------------------------------------------------------------------
+function findOpeningFusekiMove(
+  board: GoBoard,
+  aiColor: 'BLACK' | 'WHITE',
+  opponentColor: 'BLACK' | 'WHITE',
+  koPoint: Point | null,
+  lastMove: Point | null = null
+): Point | null {
+  const size = board.length;
+  const priorityCorner = lastMove ? getCornerOfPoint(lastMove, size) : null;
+
+  // Check empty corners first
+  const cap = size >= 19 ? 5 : size >= 13 ? 4 : 2;
+  const cornerDefs: { corner: CornerId; minR: number; maxR: number; minC: number; maxC: number }[] = [
+    { corner: 'TR', minR: 0, maxR: cap, minC: size - 1 - cap, maxC: size - 1 },
+    { corner: 'TL', minR: 0, maxR: cap, minC: 0, maxC: cap },
+    { corner: 'BL', minR: size - 1 - cap, maxR: size - 1, minC: 0, maxC: cap },
+    { corner: 'BR', minR: size - 1 - cap, maxR: size - 1, minC: size - 1 - cap, maxC: size - 1 },
+  ];
+
+  const emptyCorners: CornerId[] = [];
+  const cornerStonesCount: Record<CornerId, number> = { TR: 0, TL: 0, BL: 0, BR: 0 };
+
+  for (const def of cornerDefs) {
+    let stoneCount = 0;
+    for (let r = def.minR; r <= def.maxR; r++) {
+      for (let c = def.minC; c <= def.maxC; c++) {
+        if (board[r][c] !== 'EMPTY') stoneCount++;
+      }
+    }
+    cornerStonesCount[def.corner] = stoneCount;
+    if (stoneCount === 0) emptyCorners.push(def.corner);
+  }
+
+  // 1. If priorityCorner exists AND it has an active Joseki sequence in progress (>= 2 stones OR emptyCorners is empty):
+  //    Complete the active local sequence FIRST!
+  if (priorityCorner) {
+    const priorityStones = cornerStonesCount[priorityCorner];
+    if (priorityStones >= 2 || emptyCorners.length === 0) {
+      const localJoseki = findJosekiMove(board, aiColor, opponentColor, koPoint, priorityCorner);
+      if (localJoseki) return localJoseki;
+    }
+  }
+
+  // 2. Occupy empty corners (佔空角: #1 Rule of Go Opening)
+  if (emptyCorners.length > 0) {
+    const corner = emptyCorners[Math.floor(Math.random() * emptyCorners.length)];
+    const starOffset = size === 19 ? 3 : size === 13 ? 3 : 2;
+    const candidatesRelative = [
+      { top: starOffset, right: starOffset },     // Star point 4-4 (70% probability)
+      { top: starOffset - 1, right: starOffset }, // Komoku 3-4 (15% probability)
+      { top: starOffset, right: starOffset - 1 }, // Komoku 4-3 (15% probability)
+    ];
+    const rand = Math.random();
+    const choice = rand < 0.70 ? candidatesRelative[0] : rand < 0.85 ? candidatesRelative[1] : candidatesRelative[2];
+    const pt = fromLocalCorner(choice.top, choice.right, size, corner);
+    const res = playGoMove(board, pt.r, pt.c, aiColor, koPoint);
+    if (res.isLegal) return pt;
+  }
+
+  // 3. Side Big Points (拆邊 / 佔邊)
+  const mid = Math.floor(size / 2);
+  const sideOffset = size === 19 ? 3 : size === 13 ? 3 : 2;
+  const sidePoints: Point[] = [
+    { r: sideOffset, c: mid },
+    { r: mid, c: sideOffset },
+    { r: size - 1 - sideOffset, c: mid },
+    { r: mid, c: size - 1 - sideOffset },
+  ];
+
+  const emptySides = sidePoints.filter(p => {
+    if (board[p.r][p.c] !== 'EMPTY') return false;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = p.r + dr, nc = p.c + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+          if (board[nr][nc] !== 'EMPTY') return false;
+        }
+      }
+    }
+    return true;
+  });
+
+  let totalBoardStones = 0;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (board[r][c] !== 'EMPTY') totalBoardStones++;
+    }
+  }
+
+  if (emptySides.length > 0 && totalBoardStones < (size === 19 ? 24 : size === 13 ? 16 : 10)) {
+    const choice = emptySides[Math.floor(Math.random() * emptySides.length)];
+    const res = playGoMove(board, choice.r, choice.c, aiColor, koPoint);
+    if (res.isLegal) return choice;
+  }
+
+  // 4. Joseki opening book for any other occupied corners (Approaches / Enclosures)
+  return findJosekiMove(board, aiColor, opponentColor, koPoint, priorityCorner);
 }
 
 // ---------------------------------------------------------------------------
@@ -629,17 +1195,27 @@ export function getGoAIMove(
   board: GoBoard,
   aiColor: 'BLACK' | 'WHITE',
   difficulty: 'EASY' | 'NORMAL' | 'HARD',
-  koPoint: Point | null = null
+  koPoint: Point | null = null,
+  lastMove: Point | null = null
 ): Point | null {
   const opponentColor: 'BLACK' | 'WHITE' = aiColor === 'BLACK' ? 'WHITE' : 'BLACK';
+  const size = board.length;
 
-  // 1. Always take a free capture if one is on the board.
+  // 1. Always take a free capture if one is on the board (excluding snapback traps).
   const oppAtari = findGroupsInAtari(board, opponentColor);
   if (oppAtari.length > 0) {
     oppAtari.sort((a, b) => b.stones.length - a.stones.length);
     for (const item of oppAtari) {
       const res = playGoMove(board, item.liberty.r, item.liberty.c, aiColor, koPoint);
       if (res.isLegal && res.capturedCount > 0) {
+        // Quality check: avoid snapback trap (倒撲陷阱)
+        const resultingGroup = getGroupAndLiberties(res.nextBoard, item.liberty.r, item.liberty.c);
+        if (resultingGroup.liberties.length === 1 && item.stones.length === 1) {
+          const oppReply = playGoMove(res.nextBoard, resultingGroup.liberties[0].r, resultingGroup.liberties[0].c, opponentColor, res.koPoint);
+          if (oppReply.isLegal && oppReply.capturedCount > 1) {
+            continue; // Skip snapback trap!
+          }
+        }
         return item.liberty;
       }
     }
@@ -654,6 +1230,30 @@ export function getGoAIMove(
         const res = playGoMove(board, item.liberty.r, item.liberty.c, aiColor, koPoint);
         if (!res.isLegal) continue;
         const afterGroup = getGroupAndLiberties(res.nextBoard, item.liberty.r, item.liberty.c);
+
+        // Quality check for 1-stone group escape
+        if (item.stones.length === 1) {
+          // If escaping a single stone leaves it with only 2 liberties and no captures made:
+          if (afterGroup.liberties.length < 3 && res.capturedCount === 0) {
+            // Check if opponent can immediately put it back in atari with 1 move
+            let canOppAtariAgain = false;
+            for (const lib of afterGroup.liberties) {
+              const testOpp = playGoMove(res.nextBoard, lib.r, lib.c, opponentColor, res.koPoint);
+              if (testOpp.isLegal) {
+                const oppG = getGroupAndLiberties(testOpp.nextBoard, item.liberty.r, item.liberty.c);
+                if (oppG.liberties.length === 1) {
+                  canOppAtariAgain = true;
+                  break;
+                }
+              }
+            }
+            if (canOppAtariAgain) {
+              // Futile 1-stone escape (送子 / 越救死越多). Skip forced escape!
+              continue;
+            }
+          }
+        }
+
         if (afterGroup.liberties.length > 1 || res.capturedCount > 0) {
           // HARD double-checks: is this escape actually a ladder that dies anyway?
           if (difficulty === 'HARD' && afterGroup.liberties.length === 2) {
@@ -668,33 +1268,52 @@ export function getGoAIMove(
     }
   }
 
-  // 3. Joseki opening book - NORMAL/HARD only (EASY has no book knowledge, matching a
-  //    genuine beginner who doesn't know joseki and would deviate on their own).
+  // 3. Local Stability / Defense (著重局部安全、防守與穩定) - NORMAL and HARD
+  if (difficulty !== 'EASY' && lastMove) {
+    const localDefense = findLocalDefenseMove(board, aiColor, opponentColor, koPoint, lastMove);
+    if (localDefense) return localDefense;
+  }
+
+  // 4. Opening Fuseki (佔空角 -> 拆邊 -> 定式 Joseki) - NORMAL/HARD
   if (difficulty !== 'EASY') {
-    const bookMove = findJosekiMove(board, aiColor, opponentColor, koPoint);
-    if (bookMove) return bookMove;
+    const fusekiMove = findOpeningFusekiMove(board, aiColor, opponentColor, koPoint, lastMove);
+    if (fusekiMove) return fusekiMove;
+  } else {
+    // EASY occupies empty corner 80% of the time if any empty corners exist
+    if (Math.random() < 0.8) {
+      const fusekiMove = findOpeningFusekiMove(board, aiColor, opponentColor, koPoint, lastMove);
+      if (fusekiMove) return fusekiMove;
+    }
   }
 
   // 4. Difficulty-specific move selection.
   if (difficulty === 'EASY') {
     const candidates = generateRankedCandidates(board, aiColor, koPoint, {
       includeLadderBonus: false,
-      noiseScale: 25
+      noiseScale: 25,
+      lastMove
     });
     return candidates.length > 0 ? { r: candidates[0].r, c: candidates[0].c } : null;
   }
 
   if (difficulty === 'NORMAL') {
-    const result = minimaxSearch(board, aiColor, aiColor, 0, 2, koPoint, [8, 5], false, 4, -Infinity, Infinity);
+    const result = minimaxSearch(board, aiColor, aiColor, 0, 2, koPoint, [8, 5], false, 4, -Infinity, Infinity, lastMove);
     if (result.move) return result.move;
-    const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 6 });
+    const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 6, lastMove });
     return fallback.length > 0 ? { r: fallback[0].r, c: fallback[0].c } : null;
   }
 
-  // HARD
-  const result = minimaxSearch(board, aiColor, aiColor, 0, 3, koPoint, [10, 6, 5], true, 3, -Infinity, Infinity);
+  // HARD LEVEL - High tactical competence tailored to 9x9, 13x13, 19x19
+  const hardDepth = size <= 9 ? 4 : 3;
+  const hardBreadths = size <= 9 ? [14, 10, 6, 4] : size <= 13 ? [12, 8, 5] : [10, 6, 4];
+  const rootNoise = 0; // Deterministic precision for HARD level
+
+  const result = minimaxSearch(
+    board, aiColor, aiColor, 0, hardDepth, koPoint, hardBreadths, true, rootNoise, -Infinity, Infinity, lastMove
+  );
   if (result.move) return result.move;
-  const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 3 });
+
+  const fallback = generateRankedCandidates(board, aiColor, koPoint, { includeLadderBonus: true, noiseScale: 0, lastMove });
   return fallback.length > 0 ? { r: fallback[0].r, c: fallback[0].c } : null;
 }
 

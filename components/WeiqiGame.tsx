@@ -178,7 +178,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     ) {
       setIsAiThinking(true);
       const timer = setTimeout(() => {
-        const aiMove = getGoAIMove(board, currentTurn, aiDifficulty, koPoint);
+        const aiMove = getGoAIMove(board, currentTurn, aiDifficulty, koPoint, lastMove);
         if (aiMove) {
           executeMove(aiMove.r, aiMove.c, currentTurn, true);
         } else {

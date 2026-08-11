@@ -262,7 +262,12 @@ const generateSevensPool = (isAdv: boolean): SevensQuestion[] => {
     );
   }
 
-  return pool.sort(() => Math.random() - 0.5);
+  return pool
+    .map(q => ({
+      ...q,
+      options: [...q.options].sort(() => Math.random() - 0.5)
+    }))
+    .sort(() => Math.random() - 0.5);
 };
 
 const calculateTimeScore = (seconds: number): { score: number; label: string; icon: string } => {

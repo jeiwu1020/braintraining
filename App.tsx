@@ -630,22 +630,6 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                             borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
                             onClick={() => handleSelectGame(GameState.SET)}
                             />
-                            <MenuCard
-                            title="繽紛形色棋"
-                            description={isAdvanced ? "六色大滿貫 Qwirkle 挑戰與進階排錯邏輯。" : "同色不同形、同形不同色，國際獲獎經典連線桌遊！"}
-                            icon={<Sparkles className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-cyan-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
-                            onClick={() => handleSelectGame(GameState.QWIRKLE)}
-                            />
-                            <MenuCard
-                            title="拉密魔術牌"
-                            description={isAdvanced ? "多牌組拆解與進階百搭笑臉牌替代邏輯。" : "同色順組、同數四色群組與百搭笑臉數字磚！"}
-                            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-                            onClick={() => handleSelectGame(GameState.RUMMIKUB)}
-                            />
                         </>
                     )}
 
