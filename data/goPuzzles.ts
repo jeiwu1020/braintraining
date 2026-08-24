@@ -25,9 +25,17 @@ export interface GoPuzzle {
   acceptedMoves?: Point[];
   successMessage: string;
   verification: {
-    method: 'RULE_ENGINE';
+    method: 'RULE_ENGINE' | 'SOURCE_SGF';
     checkedAt: string;
     note: string;
+  };
+  /** Attribution for material imported from an external problem collection. */
+  source?: {
+    collection: string;
+    authors: string;
+    url: string;
+    license: 'CC BY-NC-SA 4.0';
+    originalId: string;
   };
 }
 
@@ -389,43 +397,75 @@ export const GO_PUZZLES: GoPuzzle[] = [
   }
 ];
 
-/** Only verified material is available to players. Deprecated entries remain for audit history. */
-const PUBLISHED_BASE_PUZZLES = GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED');
-
-function transformPuzzle(
-  puzzle: GoPuzzle,
-  suffix: string,
-  transformBoard: (rows: string[]) => string[],
-  transformPoint: (point: Point, size: number) => Point
-): GoPuzzle {
-  const size = puzzle.boardSize;
-  return {
-    ...puzzle,
-    id: `${puzzle.id}-${suffix}`,
-    title: `${puzzle.title}（${suffix === 'mirror' ? '反向' : '轉角'}）`,
-    initialBoard: transformBoard(puzzle.initialBoard),
-    solutionMoves: puzzle.solutionMoves.map(item => ({ playerMove: transformPoint(item.playerMove, size) })),
-    acceptedMoves: puzzle.acceptedMoves?.map(point => transformPoint(point, size)),
-    verification: { ...puzzle.verification, note: `${puzzle.verification.note} 此題為已驗證基本形的對稱轉換。` }
-  };
+/** Convert SGF coordinates to the board format used by the game. */
+function createSgfSetup(black: string[], white: string[]): string[] {
+  const board = Array.from({ length: 19 }, () => Array(19).fill('.'));
+  const add = (coordinates: string[], stone: 'B' | 'W') => coordinates.forEach(coordinate => {
+    const c = coordinate.charCodeAt(0) - 97;
+    const r = coordinate.charCodeAt(1) - 97;
+    board[r][c] = stone;
+  });
+  add(black, 'B');
+  add(white, 'W');
+  return board.map(row => row.join(''));
 }
 
-const mirrorPuzzle = (puzzle: GoPuzzle) => transformPuzzle(
-  puzzle,
-  'mirror',
-  rows => rows.map(row => row.split('').reverse().join('')),
-  (point, size) => ({ r: point.r, c: size - 1 - point.c })
-);
+function sgfPoint(coordinate: string): Point {
+  return { c: coordinate.charCodeAt(0) - 97, r: coordinate.charCodeAt(1) - 97 };
+}
 
-const rotatePuzzle = (puzzle: GoPuzzle) => transformPuzzle(
-  puzzle,
-  'rotate',
-  rows => rows[0].split('').map((_, c) => rows.map(row => row[c]).reverse().join('')),
-  (point, size) => ({ r: point.c, c: size - 1 - point.r })
-);
+const GOGAMEGURU_SOURCE = {
+  collection: 'GoGameGuru Weekly Go Problems',
+  authors: 'An Younggil 8p、David Ormerod',
+  url: 'https://github.com/gogameguru/go-problems',
+  license: 'CC BY-NC-SA 4.0' as const,
+};
 
+const SOURCE_PUZZLE_SETUPS = [
+  ['01', 'op,pp,qp,rp,sp,mq,oq,nr,qs', 'pq,qq,sq,or,qr,sr,os', 'rs'],
+  ['02', 'qo,ro,so,qp,nq,oq,pq,nr,ns,qs', 'rp,qq,sq,or,pr,qr,sr,os', 'rs'],
+  ['03', 'po,ro,np,pp,rp,oq,qq,or,os', 'qp,pq,rq,sq,pr,rr,ps', 'ss'],
+  ['04', 'pq,rq,sq,pr,ps', 'op,pp,qp,rp,sp,oq,or,os', 'rs'],
+  ['05', 'sr,oq,or,os,qr,rr,ss', 'ns,nr,nq,np,op,pp,qq,rp,rs', 'pq'],
+  ['06', 'np,nq,nr,ns,op,po,qo,rp,rq,os', 'oq,or,pp,qq,qr,rr,sr,qs,ps', 'pq'],
+  ['07', 'rq,or,pr,qr,os,qs,ss', 'qp,rp,sp,mq,oq,pq,nr,rr', 'qq'],
+  ['08', 'pq,or,pr,rr,sr', 'op,pp,qp,rp,mq,oq,rq,sq,nr', 'qq'],
+  ['09', 'pq,rq,pr,rr,ps', 'op,pp,qp,rp,sp,oq,or,os', 'rs'],
+  ['10', 'pp,oq,qq,nr,or,qr,rr,rs', 'qn,po,np,op,qp,rp,lq,nq,rq,mr,sr', 'ps'],
+  ['11', 'or,pr,qr,os,rs', 'rp,sp,nq,oq,pq,qq,nr,ps', 'sr'],
+  ['12', 'rp,sp,rq,pr,rr,ps', 'po,qo,ro,so,oq,pq,sq,or,os,rs', 'qr'],
+] as const;
+
+/**
+ * Distinct source problems. Each answer is the first move on a branch explicitly
+ * marked "Correct" in the original SGF; the board setup remains 19x19 as authored.
+ */
+export const GOGAMEGURU_PUZZLES: GoPuzzle[] = SOURCE_PUZZLE_SETUPS.map(([number, black, white, answer]) => ({
+  id: `ggg-easy-${number}`,
+  status: 'VERIFIED',
+  title: `GoGameGuru 死活練習 ${number}`,
+  category: 'LIFE_DEATH',
+  difficulty: 'EASY',
+  badge: '死活 來源題',
+  boardSize: 19,
+  prompt: '【黑先】請找出本題的第一手急所。',
+  hint: '先看被包圍棋塊的眼位、氣與角部空間，再決定第一手。',
+  explanation: '本題依原始 SGF 中標記為「Correct」的變化，採用其第一手作為練習答案。可按「題庫來源」查看作者、授權與原始題庫。',
+  initialBoard: createSgfSetup(black.split(','), white.split(',')),
+  playerColor: 'BLACK',
+  solutionMoves: [{ playerMove: sgfPoint(answer) }],
+  acceptedMoves: [sgfPoint(answer)],
+  successMessage: '答對了！你找到了原始 SGF 標記為正解變化的第一手。',
+  verification: {
+    method: 'SOURCE_SGF',
+    checkedAt: '2026-08-24',
+    note: '初始棋形與正解首手取自原始 SGF；首手另經專案規則引擎確認為合法著。'
+  },
+  source: { ...GOGAMEGURU_SOURCE, originalId: `ggg-easy-${number}` }
+}));
+
+/** Only verified material is available to players. Deprecated entries remain for audit history. */
 export const PUBLISHED_GO_PUZZLES = [
-  ...PUBLISHED_BASE_PUZZLES,
-  ...PUBLISHED_BASE_PUZZLES.map(mirrorPuzzle),
-  ...PUBLISHED_BASE_PUZZLES.map(rotatePuzzle)
+  ...GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED'),
+  ...GOGAMEGURU_PUZZLES,
 ];

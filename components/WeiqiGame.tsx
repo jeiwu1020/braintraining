@@ -111,6 +111,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   const [solvedPuzzleIds, setSolvedPuzzleIds] = useState<Set<string>>(new Set());
   const [showHintModal, setShowHintModal] = useState<boolean>(false);
   const [showSolutionModal, setShowSolutionModal] = useState<boolean>(false);
+  const [showPuzzleSourceModal, setShowPuzzleSourceModal] = useState<boolean>(false);
   const [puzzleLastMove, setPuzzleLastMove] = useState<Point | null>(null);
   const [puzzleScore, setPuzzleScore] = useState<number>(0);
 
@@ -1242,6 +1243,13 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                       <Eye size={13} />
                       <span>解說</span>
                     </button>
+                    <button
+                      onClick={() => setShowPuzzleSourceModal(true)}
+                      className="py-1.5 px-2 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-xl font-bold flex items-center justify-center"
+                      aria-label="題庫來源與使用聲明"
+                    >
+                      ⓘ
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1324,6 +1332,12 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                       >
                         <Eye size={14} />
                         <span>解說</span>
+                      </button>
+                      <button
+                        onClick={() => setShowPuzzleSourceModal(true)}
+                        className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-xl text-xs font-bold transition shadow"
+                      >
+                        題庫來源
                       </button>
                     </div>
                   </div>
@@ -1452,6 +1466,47 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                 關閉
               </button>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* PUZZLE SOURCE / LICENSE NOTICE */}
+      {showPuzzleSourceModal && currentPuzzle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-stone-900 border border-amber-600 rounded-2xl p-5 max-w-md w-full text-left shadow-2xl"
+          >
+            <h3 className="text-lg font-bold text-amber-300 mb-3">題庫來源與使用聲明</h3>
+            {currentPuzzle.source ? (
+              <>
+                <p className="text-sm text-stone-200 leading-relaxed mb-3">
+                  本題改編自 {currentPuzzle.source.collection}，作者 {currentPuzzle.source.authors}，原始題號 {currentPuzzle.source.originalId}。
+                </p>
+                <p className="text-xs text-amber-100 bg-amber-950/50 border border-amber-800/60 rounded-xl p-3 leading-relaxed mb-3">
+                  依 {currentPuzzle.source.license} 使用及改編。本功能限院內非商業治療／教學活動使用；若分享本題的改編內容，須保留姓名標示並以相同授權條款釋出。原始 SGF 棋形與正解第一手的來源已在題庫資料中保留。
+                </p>
+                <a
+                  href={currentPuzzle.source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-amber-300 underline hover:text-amber-200"
+                >
+                  查看原始題庫與授權來源
+                </a>
+              </>
+            ) : (
+              <p className="text-sm text-stone-200 leading-relaxed">
+                此題為專案內既有題目，已通過棋盤格式與首手合法性檢查；不屬於外部 CC BY-NC-SA 題庫。
+              </p>
+            )}
+            <button
+              onClick={() => setShowPuzzleSourceModal(false)}
+              className="w-full mt-5 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-black rounded-xl text-sm transition"
+            >
+              我知道了
+            </button>
           </motion.div>
         </div>
       )}

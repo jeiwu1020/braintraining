@@ -10,6 +10,14 @@ describe('Go puzzle catalogue', () => {
     expect(PUBLISHED_GO_PUZZLES.map(puzzle => puzzle.id)).not.toContain('cross-cut-tesuji');
     expect(validatePuzzleDefinitions(PUBLISHED_GO_PUZZLES)).toEqual([]);
   });
+
+  it('uses distinct, attributed SGF source problems instead of transformed duplicates', () => {
+    const imported = PUBLISHED_GO_PUZZLES.filter(puzzle => puzzle.source?.originalId.startsWith('ggg-easy-'));
+
+    expect(imported).toHaveLength(12);
+    expect(imported.every(puzzle => puzzle.source?.license === 'CC BY-NC-SA 4.0')).toBe(true);
+    expect(PUBLISHED_GO_PUZZLES.some(puzzle => /-(mirror|rotate)$/.test(puzzle.id))).toBe(false);
+  });
 });
 
 describe('High-level Go AI', () => {
