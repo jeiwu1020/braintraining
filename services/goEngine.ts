@@ -1211,8 +1211,15 @@ function findOpeningFusekiMove(
  * play. Hard mode must evaluate the whole board first, otherwise a matching
  * local shape can override a tactically urgent move elsewhere.
  */
-export function shouldUseOpeningBook(difficulty: 'EASY' | 'NORMAL' | 'HARD'): boolean {
-  return difficulty !== 'HARD';
+export function shouldUseOpeningBook(
+  difficulty: 'EASY' | 'NORMAL' | 'HARD',
+  board?: GoBoard
+): boolean {
+  if (difficulty !== 'HARD') return true;
+  if (!board) return false;
+  const stones = board.flat().filter(stone => stone !== 'EMPTY').length;
+  const openingLimit = board.length === 9 ? 8 : board.length === 13 ? 14 : 20;
+  return stones < openingLimit;
 }
 
 export function getGoAIMove(
@@ -1299,7 +1306,7 @@ export function getGoAIMove(
   }
 
   // 4. Opening Fuseki (佔空角 -> 拆邊 -> 定式 Joseki) - NORMAL/HARD
-  if (difficulty !== 'EASY' && shouldUseOpeningBook(difficulty)) {
+  if (difficulty !== 'EASY' && shouldUseOpeningBook(difficulty, board)) {
     const fusekiMove = findOpeningFusekiMove(board, aiColor, opponentColor, koPoint, lastMove);
     if (fusekiMove) return fusekiMove;
   } else if (difficulty === 'EASY') {

@@ -5,7 +5,7 @@ import { removeGoGroup } from '../services/goEngine';
 
 describe('Go puzzle catalogue', () => {
   it('contains only verified, legal first-move solutions', () => {
-    expect(PUBLISHED_GO_PUZZLES.length).toBeGreaterThan(0);
+    expect(PUBLISHED_GO_PUZZLES.length).toBeGreaterThanOrEqual(20);
     expect(PUBLISHED_GO_PUZZLES.map(puzzle => puzzle.id)).not.toContain('wedge-tesuji');
     expect(PUBLISHED_GO_PUZZLES.map(puzzle => puzzle.id)).not.toContain('cross-cut-tesuji');
     expect(validatePuzzleDefinitions(PUBLISHED_GO_PUZZLES)).toEqual([]);
@@ -13,8 +13,13 @@ describe('Go puzzle catalogue', () => {
 });
 
 describe('High-level Go AI', () => {
-  it('does not force a hand-written joseki before evaluating the position', () => {
-    expect(shouldUseOpeningBook('HARD')).toBe(false);
+  it('uses opening priorities only during the early game', () => {
+    const emptyBoard = Array.from({ length: 9 }, () => Array(9).fill('EMPTY')) as any;
+    const midGameBoard = emptyBoard.map((row: string[]) => [...row]);
+    for (let i = 0; i < 10; i++) midGameBoard[Math.floor(i / 9)][i % 9] = i % 2 ? 'WHITE' : 'BLACK';
+
+    expect(shouldUseOpeningBook('HARD', emptyBoard)).toBe(true);
+    expect(shouldUseOpeningBook('HARD', midGameBoard)).toBe(false);
   });
 });
 

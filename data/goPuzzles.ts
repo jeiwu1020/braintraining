@@ -390,4 +390,42 @@ export const GO_PUZZLES: GoPuzzle[] = [
 ];
 
 /** Only verified material is available to players. Deprecated entries remain for audit history. */
-export const PUBLISHED_GO_PUZZLES = GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED');
+const PUBLISHED_BASE_PUZZLES = GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED');
+
+function transformPuzzle(
+  puzzle: GoPuzzle,
+  suffix: string,
+  transformBoard: (rows: string[]) => string[],
+  transformPoint: (point: Point, size: number) => Point
+): GoPuzzle {
+  const size = puzzle.boardSize;
+  return {
+    ...puzzle,
+    id: `${puzzle.id}-${suffix}`,
+    title: `${puzzle.title}（${suffix === 'mirror' ? '反向' : '轉角'}）`,
+    initialBoard: transformBoard(puzzle.initialBoard),
+    solutionMoves: puzzle.solutionMoves.map(item => ({ playerMove: transformPoint(item.playerMove, size) })),
+    acceptedMoves: puzzle.acceptedMoves?.map(point => transformPoint(point, size)),
+    verification: { ...puzzle.verification, note: `${puzzle.verification.note} 此題為已驗證基本形的對稱轉換。` }
+  };
+}
+
+const mirrorPuzzle = (puzzle: GoPuzzle) => transformPuzzle(
+  puzzle,
+  'mirror',
+  rows => rows.map(row => row.split('').reverse().join('')),
+  (point, size) => ({ r: point.r, c: size - 1 - point.c })
+);
+
+const rotatePuzzle = (puzzle: GoPuzzle) => transformPuzzle(
+  puzzle,
+  'rotate',
+  rows => rows[0].split('').map((_, c) => rows.map(row => row[c]).reverse().join('')),
+  (point, size) => ({ r: point.c, c: size - 1 - point.r })
+);
+
+export const PUBLISHED_GO_PUZZLES = [
+  ...PUBLISHED_BASE_PUZZLES,
+  ...PUBLISHED_BASE_PUZZLES.map(mirrorPuzzle),
+  ...PUBLISHED_BASE_PUZZLES.map(rotatePuzzle)
+];
