@@ -51,6 +51,8 @@ interface WeiqiLandscapeLayoutProps {
   territoryResult: TerritoryScore | null;
   toggleTerritoryEstimation: () => void;
   gameOverResult: any;
+  isScoringReview: boolean;
+  finishScoringReview: () => void;
   teamAScore: number;
   teamBScore: number;
   activeTeam: 'A' | 'B';
@@ -106,6 +108,8 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
   territoryResult,
   toggleTerritoryEstimation,
   gameOverResult,
+  isScoringReview,
+  finishScoringReview,
   teamAScore,
   teamBScore,
   activeTeam,
@@ -402,7 +406,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
               </button>
 
               <button
-                onClick={toggleTerritoryEstimation}
+                onClick={isScoringReview ? finishScoringReview : toggleTerritoryEstimation}
                 className={`py-1 px-1.5 border rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition shadow ${
                   showTerritory
                     ? 'bg-amber-500 border-amber-400 text-stone-950'
@@ -410,7 +414,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                 }`}
               >
                 <Eye size={12} />
-                <span>形勢</span>
+                <span>{isScoringReview ? '確認數目' : '形勢'}</span>
               </button>
 
               <button

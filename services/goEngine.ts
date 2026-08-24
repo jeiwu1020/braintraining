@@ -74,6 +74,21 @@ export function getGroupAndLiberties(board: GoBoard, r: number, c: number): { st
   return { stones, liberties };
 }
 
+/** Removes one connected group during the players' final dead-stone review. */
+export function removeGoGroup(
+  board: GoBoard,
+  r: number,
+  c: number
+): { board: GoBoard; removedColor: GoColor; removedCount: number } {
+  const removedColor = board[r]?.[c] ?? 'EMPTY';
+  if (removedColor === 'EMPTY') return { board, removedColor, removedCount: 0 };
+
+  const nextBoard = cloneBoard(board);
+  const group = getGroupAndLiberties(board, r, c);
+  for (const stone of group.stones) nextBoard[stone.r][stone.c] = 'EMPTY';
+  return { board: nextBoard, removedColor, removedCount: group.stones.length };
+}
+
 // Execute a move on the board
 export function playGoMove(
   board: GoBoard,
@@ -1191,6 +1206,15 @@ function findOpeningFusekiMove(
 //   HARD   : ladder-aware heuristic + 3-ply alpha-beta search + simplified life/death
 //            evaluation (AI -> opponent -> AI), low noise, sets up tactical traps
 // ---------------------------------------------------------------------------
+/**
+ * The compact local book is useful as coaching for beginner and intermediate
+ * play. Hard mode must evaluate the whole board first, otherwise a matching
+ * local shape can override a tactically urgent move elsewhere.
+ */
+export function shouldUseOpeningBook(difficulty: 'EASY' | 'NORMAL' | 'HARD'): boolean {
+  return difficulty !== 'HARD';
+}
+
 export function getGoAIMove(
   board: GoBoard,
   aiColor: 'BLACK' | 'WHITE',
@@ -1275,10 +1299,10 @@ export function getGoAIMove(
   }
 
   // 4. Opening Fuseki (佔空角 -> 拆邊 -> 定式 Joseki) - NORMAL/HARD
-  if (difficulty !== 'EASY') {
+  if (difficulty !== 'EASY' && shouldUseOpeningBook(difficulty)) {
     const fusekiMove = findOpeningFusekiMove(board, aiColor, opponentColor, koPoint, lastMove);
     if (fusekiMove) return fusekiMove;
-  } else {
+  } else if (difficulty === 'EASY') {
     // EASY occupies empty corner 80% of the time if any empty corners exist
     if (Math.random() < 0.8) {
       const fusekiMove = findOpeningFusekiMove(board, aiColor, opponentColor, koPoint, lastMove);

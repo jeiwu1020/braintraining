@@ -34,12 +34,13 @@ import {
   Point,
   createEmptyBoard,
   playGoMove,
+  removeGoGroup,
   getGoAIMove,
   findGroupsInAtari,
   estimateTerritory,
   TerritoryScore
 } from '../services/goEngine';
-import { GO_PUZZLES, GoPuzzle, parsePuzzleBoard, PuzzleCategory } from '../data/goPuzzles';
+import { PUBLISHED_GO_PUZZLES, GoPuzzle, isLegalPuzzleSolutionMove, parsePuzzleBoard, PuzzleCategory } from '../data/goPuzzles';
 import { WeiqiBoard } from './WeiqiBoard';
 import { WeiqiLandscapeLayout } from './WeiqiLandscapeLayout';
 
@@ -91,6 +92,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     reason: string;
     scoreDiff?: number;
   } | null>(null);
+  const [isScoringReview, setIsScoringReview] = useState<boolean>(false);
 
   // PVP / Team Mode
   const [teamAScore, setTeamAScore] = useState<number>(0);
@@ -104,7 +106,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   // Puzzle Mode State
   const [puzzleFilter, setPuzzleFilter] = useState<PuzzleCategory | 'ALL'>('ALL');
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState<number>(0);
-  const [puzzleBoard, setPuzzleBoard] = useState<GoBoard>(() => parsePuzzleBoard(GO_PUZZLES[0].initialBoard));
+  const [puzzleBoard, setPuzzleBoard] = useState<GoBoard>(() => parsePuzzleBoard(PUBLISHED_GO_PUZZLES[0].initialBoard));
   const [puzzleStatus, setPuzzleStatus] = useState<'UNSOLVED' | 'CORRECT' | 'WRONG'>('UNSOLVED');
   const [solvedPuzzleIds, setSolvedPuzzleIds] = useState<Set<string>>(new Set());
   const [showHintModal, setShowHintModal] = useState<boolean>(false);
@@ -145,10 +147,10 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   }, []);
 
   // Filtered puzzles
-  const filteredPuzzles = GO_PUZZLES.filter(
+  const filteredPuzzles = PUBLISHED_GO_PUZZLES.filter(
     p => puzzleFilter === 'ALL' || p.category === puzzleFilter
   );
-  const currentPuzzle: GoPuzzle = filteredPuzzles[currentPuzzleIndex] || GO_PUZZLES[0];
+  const currentPuzzle: GoPuzzle = filteredPuzzles[currentPuzzleIndex] || PUBLISHED_GO_PUZZLES[0];
 
   // Timer loop
   useEffect(() => {
@@ -194,7 +196,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   // Load a Puzzle
   const loadPuzzle = (index: number) => {
     const validIndex = Math.max(0, Math.min(filteredPuzzles.length - 1, index));
-    const puzzle = filteredPuzzles[validIndex] || GO_PUZZLES[0];
+    const puzzle = filteredPuzzles[validIndex] || PUBLISHED_GO_PUZZLES[0];
     setCurrentPuzzleIndex(validIndex);
     setPuzzleBoard(parsePuzzleBoard(puzzle.initialBoard));
     setPuzzleStatus('UNSOLVED');
@@ -206,7 +208,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   // Change Puzzle Category Filter
   const handleCategoryChange = (cat: PuzzleCategory | 'ALL') => {
     setPuzzleFilter(cat);
-    const newFiltered = GO_PUZZLES.filter(p => cat === 'ALL' || p.category === cat);
+    const newFiltered = PUBLISHED_GO_PUZZLES.filter(p => cat === 'ALL' || p.category === cat);
     if (newFiltered.length > 0) {
       setCurrentPuzzleIndex(0);
       setPuzzleBoard(parsePuzzleBoard(newFiltered[0].initialBoard));
@@ -261,6 +263,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     setShowTerritory(false);
     setTerritoryResult(null);
     setGameOverResult(null);
+    setIsScoringReview(false);
     setIsAiThinking(false);
     setElapsedTime(0);
     setActiveTeam('A');
@@ -324,9 +327,27 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
 
   // Handle Board Cell Click in Match Mode
   const handleCellClick = (r: number, c: number) => {
+    if (isScoringReview) {
+      if (board[r][c] === 'EMPTY') return;
+      const result = removeGoGroup(board, r, c);
+      setBoard(result.board);
+      setTerritoryResult(estimateTerritory(result.board, 6.5));
+      return;
+    }
     if (gameMode === 'AI' && currentTurn !== playerColor) return;
     if (isAiThinking || gameOverResult) return;
     executeMove(r, c, currentTurn, false);
+  };
+
+  const finishScoringReview = () => {
+    const finalScore = estimateTerritory(board, 6.5);
+    setTerritoryResult(finalScore);
+    setIsScoringReview(false);
+    setGameOverResult({
+      winner: finalScore.leadColor === 'TIE' ? 'DRAW' : finalScore.leadColor,
+      reason: '終局死子確認完成，已依確認後棋盤結算。',
+      scoreDiff: finalScore.leadMargin
+    });
   };
 
   // Handle Pass (虛手)
@@ -417,13 +438,11 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
     if (puzzleStatus === 'CORRECT' || !currentPuzzle) return;
 
     // Check if the move matches any acceptable winning move
-    const isCorrectMove =
-      (currentPuzzle.acceptedMoves && currentPuzzle.acceptedMoves.some(m => m.r === r && m.c === c)) ||
-      (currentPuzzle.solutionMoves && currentPuzzle.solutionMoves.some(sm => sm.playerMove.r === r && sm.playerMove.c === c));
+    const moveRes = playGoMove(puzzleBoard, r, c, currentPuzzle.playerColor);
+    const isCorrectMove = moveRes.isLegal && isLegalPuzzleSolutionMove(currentPuzzle, { r, c });
 
     if (isCorrectMove) {
       // Execute Player Move on Puzzle Board
-      const moveRes = playGoMove(puzzleBoard, r, c, currentPuzzle.playerColor);
       soundService.playTilePlace();
       soundService.playWin();
       setPuzzleBoard(moveRes.nextBoard);
@@ -524,6 +543,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
           territoryResult={territoryResult}
           toggleTerritoryEstimation={toggleTerritoryEstimation}
           gameOverResult={gameOverResult}
+          isScoringReview={isScoringReview}
+          finishScoringReview={finishScoringReview}
           teamAScore={teamAScore}
           teamBScore={teamBScore}
           activeTeam={activeTeam}
@@ -585,10 +606,13 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
               )}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setGameOverResult(null)}
+                  onClick={() => {
+                    setGameOverResult(null);
+                    setIsScoringReview(true);
+                  }}
                   className="flex-1 py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl font-bold text-xs transition"
                 >
-                  查看棋盤
+                  標記死子
                 </button>
                 <button
                   onClick={() => resetMatch(boardSize, handicap)}
@@ -785,6 +809,23 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
 
                 {gameMode === 'AI' && (
                   <>
+                    <span className="text-amber-300 font-bold ml-1 hidden sm:inline">執子:</span>
+                    <div className="flex items-center bg-stone-900 border border-amber-800/60 rounded-lg p-0.5">
+                      {(['BLACK', 'WHITE'] as const).map(color => (
+                        <button
+                          key={color}
+                          onClick={() => {
+                            setPlayerColor(color);
+                            resetMatch(boardSize, handicap);
+                          }}
+                          className={`px-2 py-0.5 rounded text-xs font-bold transition ${
+                            playerColor === color ? 'bg-amber-500 text-stone-950 shadow' : 'text-amber-300 hover:bg-stone-800'
+                          }`}
+                        >
+                          {color === 'BLACK' ? '黑' : '白'}
+                        </button>
+                      ))}
+                    </div>
                     <span className="text-amber-300 font-bold ml-1 hidden sm:inline">難度:</span>
                     <div className="flex items-center bg-stone-900 border border-amber-800/60 rounded-lg p-0.5">
                       {(['EASY', 'NORMAL', 'HARD'] as const).map(diff => (
@@ -989,6 +1030,12 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
 
             {/* Bottom Actions Bar */}
             <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-amber-900/60 shrink-0">
+              {isScoringReview && (
+                <div className="w-full flex items-center justify-between gap-2 rounded-xl border border-emerald-600 bg-emerald-950/80 px-3 py-2 text-xs text-emerald-100">
+                  <span className="font-bold">終局確認中：點選整塊死子移除，再按確認數目。</span>
+                  <button onClick={finishScoringReview} className="shrink-0 rounded-lg bg-emerald-500 px-3 py-1 font-black text-stone-950">確認數目</button>
+                </div>
+              )}
               <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   id="weiqi-undo-btn"
@@ -1329,10 +1376,13 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setGameOverResult(null)}
+                onClick={() => {
+                  setGameOverResult(null);
+                  setIsScoringReview(true);
+                }}
                 className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl font-bold text-sm transition"
               >
-                查看棋盤
+                標記死子
               </button>
               <button
                 onClick={() => resetMatch(boardSize, handicap)}

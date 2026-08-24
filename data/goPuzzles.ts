@@ -1,10 +1,11 @@
-import { Point, GoBoard, createEmptyBoard } from '../services/goEngine';
+import { Point, GoBoard, createEmptyBoard, playGoMove } from '../services/goEngine';
 
 export type PuzzleCategory = 'LIFE_DEATH' | 'CAPTURE' | 'TACTICS';
 export type PuzzleDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface GoPuzzle {
   id: string;
+  status: 'VERIFIED' | 'DEPRECATED';
   title: string;
   category: PuzzleCategory;
   difficulty: PuzzleDifficulty;
@@ -23,6 +24,11 @@ export interface GoPuzzle {
   // All acceptable winning first moves (e.g. for symmetrical puzzles or multi-solution shapes like Square Four)
   acceptedMoves?: Point[];
   successMessage: string;
+  verification: {
+    method: 'RULE_ENGINE';
+    checkedAt: string;
+    note: string;
+  };
 }
 
 // Helper to convert string array into GoBoard
@@ -40,12 +46,50 @@ export function parsePuzzleBoard(strBoard: string[]): GoBoard {
   return board;
 }
 
+/** Validate catalogue structure and every published first-move answer. */
+export function validatePuzzleDefinitions(puzzles: GoPuzzle[]): string[] {
+  const issues: string[] = [];
+
+  for (const puzzle of puzzles) {
+    if (puzzle.initialBoard.length !== puzzle.boardSize || puzzle.initialBoard.some(row => row.length !== puzzle.boardSize || /[^BW.]/.test(row))) {
+      issues.push(`${puzzle.id}: 棋盤資料格式不正確`);
+      continue;
+    }
+    if (!puzzle.verification?.checkedAt || !puzzle.verification.note) {
+      issues.push(`${puzzle.id}: 缺少驗證紀錄`);
+    }
+
+    const answers = puzzle.acceptedMoves?.length ? puzzle.acceptedMoves : puzzle.solutionMoves.map(move => move.playerMove);
+    if (answers.length === 0) {
+      issues.push(`${puzzle.id}: 缺少正解`);
+      continue;
+    }
+
+    const board = parsePuzzleBoard(puzzle.initialBoard);
+    for (const move of answers) {
+      if (!playGoMove(board, move.r, move.c, puzzle.playerColor).isLegal) {
+        issues.push(`${puzzle.id}: 正解 ${move.r},${move.c} 為非法著`);
+      }
+    }
+  }
+
+  return issues;
+}
+
+/** A puzzle answer is only accepted when it is both listed and legal. */
+export function isLegalPuzzleSolutionMove(puzzle: GoPuzzle, move: Point): boolean {
+  const answers = puzzle.acceptedMoves?.length ? puzzle.acceptedMoves : puzzle.solutionMoves.map(item => item.playerMove);
+  const isListedAnswer = answers.some(answer => answer.r === move.r && answer.c === move.c);
+  return isListedAnswer && playGoMove(parsePuzzleBoard(puzzle.initialBoard), move.r, move.c, puzzle.playerColor).isLegal;
+}
+
 export const GO_PUZZLES: GoPuzzle[] = [
   // ==========================================
   // 🌟 CATEGORY 1: 死活經典 (Life & Death Classics)
   // ==========================================
   {
     id: 'two-eyes-1',
+    status: 'VERIFIED',
     title: '分眼做活 (兩眼自活)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
@@ -68,11 +112,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
     acceptedMoves: [{ r: 1, c: 1 }],
-    successMessage: '太棒了！精準下在 B8 直三急所，分出 A8 與 C8 兩隻真眼，白棋再也無法侵入，黑棋大龍完美活棋！'
+    successMessage: '太棒了！精準下在 B8 直三急所，分出 A8 與 C8 兩隻真眼，白棋再也無法侵入，黑棋大龍完美活棋！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '基本直三眼形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   {
     id: 'straight-three-kill',
+    status: 'VERIFIED',
     title: '直三點殺 (殺棋急所)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
@@ -95,11 +141,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 1 } }], // B8
     acceptedMoves: [{ r: 1, c: 1 }],
-    successMessage: '神準一擊！直三點中間搶佔 B8，白棋眼形瓦解，整條大龍必死無疑！'
+    successMessage: '神準一擊！直三點中間搶佔 B8，白棋眼形瓦解，整條大龍必死無疑！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '基本直三殺形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   {
     id: 'bent-three-live',
+    status: 'VERIFIED',
     title: '角上曲三做活 (拐點急所)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
@@ -122,11 +170,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9
     acceptedMoves: [{ r: 0, c: 0 }],
-    successMessage: '眼光銳利！曲三搶佔角端 A9 拐點，成功做出兩隻真眼，黑棋大龍安定做活！'
+    successMessage: '眼光銳利！曲三搶佔角端 A9 拐點，成功做出兩隻真眼，黑棋大龍安定做活！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '角部曲三基本形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   {
     id: 'bent-three-kill',
+    status: 'VERIFIED',
     title: '曲三點殺 (角部要點)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
@@ -149,11 +199,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 0, c: 0 } }], // A9 (0,0)
     acceptedMoves: [{ r: 0, c: 0 }],
-    successMessage: '妙手點殺！搶佔曲三角端拐點 A9，白棋眼形瓦解，整條大龍必死無疑！'
+    successMessage: '妙手點殺！搶佔曲三角端 A9，白棋眼形瓦解，整條大龍必死無疑！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '角部曲三殺形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   {
     id: 'square-four-kill',
+    status: 'VERIFIED',
     title: '方四必死 (四目大眼)',
     category: 'LIFE_DEATH',
     difficulty: 'EASY',
@@ -181,7 +233,8 @@ export const GO_PUZZLES: GoPuzzle[] = [
       { r: 2, c: 1 }, // B7
       { r: 2, c: 2 }  // C7
     ],
-    successMessage: '正解！方四四格任下一格皆成死棋，空間被壓制為曲三，白棋大龍必死！'
+    successMessage: '正解！方四四格任下一格皆成死棋，空間被壓制為曲三，白棋大龍必死！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '方四基本形；四個候選首手均由專案規則引擎驗證為合法著。' }
   },
 
   // ==========================================
@@ -189,6 +242,7 @@ export const GO_PUZZLES: GoPuzzle[] = [
   // ==========================================
   {
     id: 'double-atari',
+    status: 'VERIFIED',
     title: '雙叫吃 (雙打吃手筋)',
     category: 'CAPTURE',
     difficulty: 'EASY',
@@ -211,7 +265,8 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
     acceptedMoves: [{ r: 1, c: 2 }],
-    successMessage: '精準一擊！C8 落下達成雙叫吃，白棋顧此失彼，黑棋必定生擒一子！'
+    successMessage: '精準一擊！C8 落下達成雙叫吃，白棋顧此失彼，黑棋必定生擒一子！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '雙叫吃基本形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   // ==========================================
@@ -219,6 +274,7 @@ export const GO_PUZZLES: GoPuzzle[] = [
   // ==========================================
   {
     id: 'wedge-tesuji',
+    status: 'DEPRECATED',
     title: '挖斷手筋 (挖的妙手)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
@@ -241,11 +297,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 1, c: 2 } }], // C8 (1,2)
     acceptedMoves: [{ r: 1, c: 2 }],
-    successMessage: '中流砥柱！挖斷手筋直插要害，白棋一間跳形狀支離破碎！'
+    successMessage: '中流砥柱！挖斷手筋直插要害，白棋一間跳形狀支離破碎！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '已停用：此題首手為非法著，不應提供給玩家。' }
   },
 
   {
     id: 'first-line-descent',
+    status: 'VERIFIED',
     title: '一路立下手筋 (對殺緊氣立)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
@@ -268,11 +326,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
     acceptedMoves: [{ r: 2, c: 2 }],
-    successMessage: '算無遺策！先封住能向外延伸的那口氣，白棋兩側都被鎖死，黑棋在對殺中拔得頭籌！'
+    successMessage: '算無遺策！先封住能向外延伸的那口氣，白棋兩側都被鎖死，黑棋在對殺中拔得頭籌！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '局部緊氣基本形；首手已由專案規則引擎驗證為合法著。' }
   },
 
   {
     id: 'san-san-invasion',
+    status: 'VERIFIED',
     title: '點三三掏角定式 (三三侵入)',
     category: 'TACTICS',
     difficulty: 'EASY',
@@ -295,11 +355,13 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
     acceptedMoves: [{ r: 2, c: 2 }],
-    successMessage: '實地至上！點三三直掏角心，迅速建立角部根據地！'
+    successMessage: '實地至上！點三三直掏角心，迅速建立角部根據地！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '4-4 對 3-3 的基本侵入選點；不宣稱唯一實戰最佳。' }
   },
 
   {
     id: 'cross-cut-tesuji',
+    status: 'DEPRECATED',
     title: '跨斷手筋 (逢飛必跨)',
     category: 'TACTICS',
     difficulty: 'MEDIUM',
@@ -322,6 +384,10 @@ export const GO_PUZZLES: GoPuzzle[] = [
     playerColor: 'BLACK',
     solutionMoves: [{ playerMove: { r: 2, c: 2 } }], // C7 (2,2)
     acceptedMoves: [{ r: 2, c: 2 }],
-    successMessage: '剛猛銳利！逢飛必跨直插腰眼，白棋陣腳大亂，黑棋主動權在握！'
+    successMessage: '剛猛銳利！逢飛必跨直插腰眼，白棋陣腳大亂，黑棋主動權在握！',
+    verification: { method: 'RULE_ENGINE', checkedAt: '2026-08-24', note: '已停用：棋諺不能作為不含變化條件的唯一正解。' }
   }
 ];
+
+/** Only verified material is available to players. Deprecated entries remain for audit history. */
+export const PUBLISHED_GO_PUZZLES = GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED');
