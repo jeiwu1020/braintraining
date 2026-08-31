@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Check, RotateCcw, HelpCircle, Clock } from 'lucide-react';
 import { Difficulty } from '../types';
+import { getMastermindConfig } from '../services/mastermind';
 
 interface MastermindGameProps {
   onBack: () => void;
   difficulty: Difficulty;
 }
-
-const COLORS_NORMAL = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500'];
-const COLORS_ADVANCED = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-orange-500'];
-
-const CODE_LENGTH = 4;
 
 type Feedback = 'CORRECT_POS' | 'WRONG_POS' | 'NONE';
 
@@ -21,11 +17,11 @@ interface Guess {
 
 const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) => {
   const isAdvanced = difficulty === 'ADVANCED';
-  const availableColors = isAdvanced ? COLORS_ADVANCED : COLORS_NORMAL;
+  const { codeLength, colors: availableColors } = getMastermindConfig(difficulty);
   
   const [secretCode, setSecretCode] = useState<string[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
-  const [currentGuess, setCurrentGuess] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const [currentGuess, setCurrentGuess] = useState<string[]>(Array(codeLength).fill(''));
   const [gameState, setGameState] = useState<'SETUP' | 'PLAYING' | 'GAMEOVER'>('SETUP');
   const [gameWon, setGameWon] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -70,12 +66,12 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
   };
 
   const startGame = () => {
-    const newCode = Array.from({ length: CODE_LENGTH }, () => 
+    const newCode = Array.from({ length: codeLength }, () =>
       availableColors[Math.floor(Math.random() * availableColors.length)]
     );
     setSecretCode(newCode);
     setGuesses([]);
-    setCurrentGuess(Array(CODE_LENGTH).fill(''));
+    setCurrentGuess(Array(codeLength).fill(''));
     setGameWon(false);
     setMessage('');
     setScore(0);
@@ -113,7 +109,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
     const guessCopy = [...currentGuess];
     
     // First pass: correct position and color
-    for (let i = 0; i < CODE_LENGTH; i++) {
+    for (let i = 0; i < codeLength; i++) {
       if (guessCopy[i] === secretCopy[i]) {
         feedback.push('CORRECT_POS');
         secretCopy[i] = 'X';
@@ -122,7 +118,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
     }
     
     // Second pass: correct color, wrong position
-    for (let i = 0; i < CODE_LENGTH; i++) {
+    for (let i = 0; i < codeLength; i++) {
       if (guessCopy[i] !== 'Y') {
         const secretIndex = secretCopy.indexOf(guessCopy[i]);
         if (secretIndex !== -1) {
@@ -139,10 +135,10 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
         return 0;
     });
 
-    const isWin = feedback.length === CODE_LENGTH && feedback.every(f => f === 'CORRECT_POS');
+    const isWin = feedback.length === codeLength && feedback.every(f => f === 'CORRECT_POS');
     const newGuesses = [...guesses, { code: currentGuess, feedback }];
     setGuesses(newGuesses);
-    setCurrentGuess(Array(CODE_LENGTH).fill(''));
+    setCurrentGuess(Array(codeLength).fill(''));
 
     if (isWin) {
       handleGameOver(true, false, newGuesses.length);
@@ -180,7 +176,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
 
   const renderFeedback = (feedback: Feedback[]) => {
     const dots = [];
-    for (let i = 0; i < CODE_LENGTH; i++) {
+    for (let i = 0; i < codeLength; i++) {
         if (i < feedback.length) {
             const f = feedback[i];
             dots.push(
@@ -372,7 +368,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
               <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
                   <h2 className="text-2xl font-bold text-gray-800 mb-4">遊戲規則</h2>
                   <div className="space-y-3 text-gray-600 mb-6">
-                      <p>嘗試猜出隱藏的顏色密碼排列！</p>
+                      <p>嘗試猜出隱藏的顏色密碼排列！本局共有 <strong>{codeLength} 個格子、{availableColors.length} 種顏色</strong>。</p>
                       <ul className="list-disc pl-5 space-y-2">
                           <li>每次猜測後，系統會給予提示：</li>
                           <li><span className="inline-block w-3 h-3 bg-black rounded-full mr-1"></span> <strong>黑色提示</strong>：顏色與位置都正確。</li>
@@ -380,6 +376,15 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
                           <li>注意：提示的順序不代表密碼的順序！</li>
                           <li>密碼中允許出現重複的顏色。</li>
                       </ul>
+                      <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 text-indigo-950">
+                          <h3 className="font-bold mb-2">解題技巧</h3>
+                          <ul className="list-disc pl-5 space-y-2 text-sm">
+                              <li>先用同一種顏色填滿所有格子；提示點的總數能告訴你這個顏色在密碼中出現幾次。依序測試各色，可先找出有哪些顏色。</li>
+                              <li>已確定顏色後，再調整排列。黑色提示代表該格可以先固定；白色提示則表示顏色要保留，但需要換到其他位置。</li>
+                              <li>每次只交換或更動一、兩個格子，並和前一次的提示比較；一次改太多會很難看出是哪個變動帶來線索。</li>
+                              <li>提示點不對應特定格子，所以先看黑、白提示的「數量」，再用排除法決定下一步。</li>
+                          </ul>
+                      </div>
                   </div>
                   <button onClick={() => setShowRules(false)} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700">
                       我瞭解了
