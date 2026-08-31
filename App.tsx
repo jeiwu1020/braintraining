@@ -411,7 +411,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                             />
                             <MenuCard
                             title="珠璣妙算"
-                            description={isAdvanced ? "6種顏色，更長序列，考驗極致邏輯推理。" : "4種顏色，猜出正確排列，經典邏輯解謎。"}
+                            description={isAdvanced ? "4 個格子、4 種顏色，考驗進階邏輯推理。" : "3 個格子、3 種顏色，輕鬆體驗經典邏輯解謎。"}
                             icon={<Brain className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
                             color="bg-purple-50"
                             borderColor="border-purple-300"

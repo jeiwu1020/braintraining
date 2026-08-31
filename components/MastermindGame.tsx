@@ -371,8 +371,8 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
                       <p>嘗試猜出隱藏的顏色密碼排列！本局共有 <strong>{codeLength} 個格子、{availableColors.length} 種顏色</strong>。</p>
                       <ul className="list-disc pl-5 space-y-2">
                           <li>每次猜測後，系統會給予提示：</li>
-                          <li><span className="inline-block w-3 h-3 bg-black rounded-full mr-1"></span> <strong>黑色提示</strong>：顏色與位置都正確。</li>
-                          <li><span className="inline-block w-3 h-3 bg-white border border-gray-400 rounded-full mr-1"></span> <strong>白色提示</strong>：顏色正確但位置不對。</li>
+                          <li><span className="inline-block w-3 h-3 bg-black rounded-full mr-1"></span> <strong>黑色提示</strong>：有一個顏色與位置都正確。</li>
+                          <li><span className="inline-block w-3 h-3 bg-white border border-gray-400 rounded-full mr-1"></span> <strong>白色提示</strong>：有一個顏色正確但位置不對。</li>
                           <li>注意：提示的順序不代表密碼的順序！</li>
                           <li>密碼中允許出現重複的顏色。</li>
                       </ul>
@@ -380,7 +380,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
                           <h3 className="font-bold mb-2">解題技巧</h3>
                           <ul className="list-disc pl-5 space-y-2 text-sm">
                               <li>先用同一種顏色填滿所有格子；提示點的總數能告訴你這個顏色在密碼中出現幾次。依序測試各色，可先找出有哪些顏色。</li>
-                              <li>已確定顏色後，再調整排列。黑色提示代表該格可以先固定；白色提示則表示顏色要保留，但需要換到其他位置。</li>
+                              <li>黑、白提示都不會指出對應哪一格。若只更動一個格子後黑色提示變多，才可推測這次更動讓某個位置更接近答案；再用下一次猜測驗證。</li>
                               <li>每次只交換或更動一、兩個格子，並和前一次的提示比較；一次改太多會很難看出是哪個變動帶來線索。</li>
                               <li>提示點不對應特定格子，所以先看黑、白提示的「數量」，再用排除法決定下一步。</li>
                           </ul>
