@@ -1,6 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GameState, Difficulty } from './types';
+import {
+  GAME_CATEGORIES,
+  getGameDescription,
+  getGamesByCategory,
+  parseGameCategoryId,
+} from './data/gameCatalog';
+import type { GameCategoryId, GameDefinition } from './data/gameCatalog';
 import SortingGame from './components/SortingGame';
 import MemoryGame from './components/MemoryGame';
 import BreathingExercise from './components/BreathingExercise';
@@ -68,13 +75,22 @@ import SevensGame from "./components/SevensGame";
 import ChineseTenGame from "./components/ChineseTenGame";
 
 
-import { 
-  Brain, Smile, Wind, Sparkles, Type, Eye, ShoppingCart, ListChecks, 
-  Sun, Palette, MousePointer2, Heart, Zap, Shapes, Clock, HelpCircle, 
-  Volume2, Grid, Grid3x3, Scroll, ArrowDownToLine, Circle, Square, Gem, Swords, Crown, Search,
-  ZoomIn, MessageCircle, Link, ListOrdered, DollarSign, Users, TriangleAlert, Lightbulb,
-  Map, Target, ArrowUpRight, Shield, Layers, ChevronRight, LayoutGrid, Headphones, PenTool, LayoutTemplate
-, SpellCheck } from 'lucide-react';
+import {
+  Brain,
+  ChevronRight,
+  Clock,
+  Grid3x3,
+  Heart,
+  Layers,
+  MessageCircle,
+  Shapes,
+  Smile,
+  Sparkles,
+  TriangleAlert,
+  Volume2,
+  Wind,
+  Zap,
+} from 'lucide-react';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
@@ -217,7 +233,62 @@ const App: React.FC = () => {
   );
 };
 
-type MenuCategory = 'BOARD' | 'COGNITIVE' | 'GROUP' | 'LUCK_CARD' | 'MENTAL' | 'RELAX';
+type MenuCategory = GameCategoryId;
+
+interface CategoryPresentation {
+  icon: React.ReactNode;
+  color: string;
+  borderColor: string;
+  iconColor: string;
+}
+
+const CATEGORY_PRESENTATION: Record<GameCategoryId, CategoryPresentation> = {
+  COGNITIVE: {
+    icon: <Brain className="w-10 h-10 text-indigo-500" />,
+    color: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
+    iconColor: 'text-indigo-600',
+  },
+  STRATEGY: {
+    icon: <Grid3x3 className="w-10 h-10 text-emerald-600" />,
+    color: 'bg-emerald-50',
+    borderColor: 'border-emerald-200',
+    iconColor: 'text-emerald-700',
+  },
+  TABLETOP: {
+    icon: <Layers className="w-10 h-10 text-amber-500" />,
+    color: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+    iconColor: 'text-amber-600',
+  },
+  LIFE_SOCIAL: {
+    icon: <Heart className="w-10 h-10 text-rose-500" />,
+    color: 'bg-rose-50',
+    borderColor: 'border-rose-200',
+    iconColor: 'text-rose-600',
+  },
+  RELAX: {
+    icon: <Wind className="w-10 h-10 text-sky-500" />,
+    color: 'bg-sky-50',
+    borderColor: 'border-sky-200',
+    iconColor: 'text-sky-600',
+  },
+};
+
+const getGameIcon = (game: GameDefinition): React.ReactNode => {
+  const iconClass = `w-8 h-8 ${CATEGORY_PRESENTATION[game.category].iconColor}`;
+
+  if (game.tags.includes('AUDITORY')) return <Volume2 className={iconClass} />;
+  if (game.tags.includes('LANGUAGE')) return <MessageCircle className={iconClass} />;
+  if (game.tags.includes('MEMORY')) return <Smile className={iconClass} />;
+  if (game.tags.includes('VISUOSPATIAL')) return <Shapes className={iconClass} />;
+  if (game.tags.includes('DAILY_LIVING')) return <Clock className={iconClass} />;
+  if (game.tags.includes('SAFETY')) return <TriangleAlert className={iconClass} />;
+  if (game.tags.includes('RELAXATION')) return <Sparkles className={iconClass} />;
+  if (game.tags.includes('CARD') || game.tags.includes('TABLETOP')) return <Layers className={iconClass} />;
+  if (game.tags.includes('STRATEGY')) return <Grid3x3 className={iconClass} />;
+  return <Brain className={iconClass} />;
+};
 
 interface MenuProps {
   onSelectGame: (game: GameState) => void;
@@ -232,8 +303,11 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
 
   useEffect(() => {
     const savedCategory = sessionStorage.getItem('menuSelectedCategory');
-    if (savedCategory) {
-        setSelectedCategory(savedCategory as MenuCategory);
+    const restoredCategory = parseGameCategoryId(savedCategory);
+    if (restoredCategory) {
+      setSelectedCategory(restoredCategory);
+    } else if (savedCategory) {
+      sessionStorage.removeItem('menuSelectedCategory');
     }
     const savedScroll = sessionStorage.getItem('menuScrollPos');
     if (savedScroll) {
@@ -280,14 +354,12 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
       iconColor: "text-emerald-500",
   };
 
-  const categories = [
-    { id: 'COGNITIVE' as MenuCategory, title: '認知訓練', description: '記憶、邏輯、視覺空間與注意力', icon: <Brain className="w-10 h-10 text-indigo-500" />, color: 'bg-indigo-50', borderColor: 'border-indigo-200' },
-    { id: 'BOARD' as MenuCategory, title: '益智棋藝', description: '經典對弈與益智邏輯，考驗策略與佈局', icon: <Grid3x3 className="w-10 h-10 text-emerald-600" />, color: 'bg-emerald-50', borderColor: 'border-emerald-200' },
-    { id: 'LUCK_CARD' as MenuCategory, title: '牌類與運氣遊戲', description: '撲克牌、尋寶與機率挑戰', icon: <Layers className="w-10 h-10 text-amber-500" />, color: 'bg-amber-50', borderColor: 'border-amber-200' },
-    { id: 'GROUP' as MenuCategory, title: '團體口語活動', description: '適合多人參與的表達與互動遊戲', icon: <MessageCircle className="w-10 h-10 text-pink-500" />, color: 'bg-pink-50', borderColor: 'border-pink-200' },
-    { id: 'MENTAL' as MenuCategory, title: '心理與社交情境', description: '情緒辨識、安全應對與轉念練習', icon: <Heart className="w-10 h-10 text-rose-500" />, color: 'bg-rose-50', borderColor: 'border-rose-200' },
-    { id: 'RELAX' as MenuCategory, title: '放鬆與舒緩', description: '呼吸律動，緩解焦慮', icon: <Wind className="w-10 h-10 text-sky-500" />, color: 'bg-sky-50', borderColor: 'border-sky-200' }
-  ];
+  const categories = GAME_CATEGORIES.map(category => ({
+    ...category,
+    ...CATEGORY_PRESENTATION[category.id],
+  }));
+  const activeCategory = categories.find(category => category.id === selectedCategory);
+  const categoryGames = selectedCategory ? getGamesByCategory(selectedCategory) : [];
 
   return (
     <div className={`fixed inset-0 ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
@@ -313,13 +385,15 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
         <div className="flex items-center bg-white rounded-full p-1 shadow-md border border-gray-200 mb-2 sm:mb-4 shrink-0">
             <button 
                 onClick={() => setDifficulty('NORMAL')}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 landscape:px-3 landscape:py-1 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${!isAdvanced ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                aria-pressed={!isAdvanced}
+                className={`min-h-11 px-3 py-1.5 sm:px-4 landscape:px-3 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${!isAdvanced ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
             >
                 <Smile size={14} className="sm:w-4 sm:h-4" /> 一般
             </button>
             <button 
                 onClick={() => setDifficulty('ADVANCED')}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 landscape:px-3 landscape:py-1 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${isAdvanced ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                aria-pressed={isAdvanced}
+                className={`min-h-11 px-3 py-1.5 sm:px-4 landscape:px-3 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 ${isAdvanced ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
             >
                 <Zap size={14} className="sm:w-4 sm:h-4" /> 進階
             </button>
@@ -360,522 +434,36 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                 <div className="flex items-center gap-2.5 sm:gap-4 mb-3 sm:mb-6 sticky top-0 bg-white/80 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl shadow-sm z-10 border border-gray-100 landscape:p-2.5 landscape:mb-3">
                     <button 
                         onClick={() => handleSelectCategory(null)}
-                        className="p-1.5 sm:p-2 bg-white rounded-full shadow-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
+                        aria-label="返回分類列表"
+                        className="w-11 h-11 flex items-center justify-center bg-white rounded-full shadow-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
                     >
                         <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 rotate-180" />
                     </button>
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div className="p-1.5 sm:p-2 bg-white rounded-xl shadow-sm [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
-                            {categories.find(c => c.id === selectedCategory)?.icon}
+                            {activeCategory?.icon}
                         </div>
                         <h2 className="text-base sm:text-2xl font-bold text-gray-800">
-                            {categories.find(c => c.id === selectedCategory)?.title}
+                            {activeCategory?.title}
                         </h2>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 landscape:grid-cols-1 md:landscape:grid-cols-2">
-                    {selectedCategory === 'BOARD' && (
-                        <>
+                    {categoryGames.map(game => {
+                        const presentation = CATEGORY_PRESENTATION[game.category];
+                        return (
                             <MenuCard
-                            title="圍棋 (含死活出題)"
-                            description="經典圍棋對弈：人機對戰、AB組對決、死活與吃子手筋解謎。"
-                            icon={<Circle className={`w-8 h-8 ${isAdvanced ? "text-amber-500" : "text-amber-700"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-amber-300" : "border-amber-300"}
-                            onClick={() => handleSelectGame(GameState.WEIQI)}
+                                key={game.id}
+                                title={game.title}
+                                description={getGameDescription(game.id, difficulty)}
+                                icon={getGameIcon(game)}
+                                color={isAdvanced ? 'bg-white' : presentation.color}
+                                borderColor={isAdvanced ? 'border-indigo-200' : presentation.borderColor}
+                                onClick={() => handleSelectGame(game.id)}
                             />
-                            <MenuCard
-                            title="翻牌解謎"
-                            description="選號碼翻牌，拼湊出背後隱藏的圖案。"
-                            icon={<Search className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-emerald-600"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-emerald-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
-                            onClick={() => handleSelectGame(GameState.REVEAL_PICTURE)}
-                            />
-                            <MenuCard
-                            title="尋寶迷宮指路"
-                            description="發號施令指引方向，合作避開障礙物找到寶藏！"
-                            icon={<Map className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-indigo-600"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-indigo-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
-                            onClick={() => handleSelectGame(GameState.MAZE_NAVIGATOR)}
-                            />
-                            <MenuCard
-                            title="成語接龍拼圖"
-                            description="語文認知訓練，選出正確的字填入空格。"
-                            icon={<SpellCheck className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-orange-600"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-orange-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-                            onClick={() => handleSelectGame(GameState.WORD_TILE)}
-                            />
-                            <MenuCard
-                            title="珠璣妙算"
-                            description={isAdvanced ? "4 個格子、4 種顏色，考驗進階邏輯推理。" : "3 個格子、3 種顏色，輕鬆體驗經典邏輯解謎。"}
-                            icon={<Brain className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
-                            color="bg-purple-50"
-                            borderColor="border-purple-300"
-                            onClick={() => handleSelectGame(GameState.MASTERMIND)}
-                            />
-                            <MenuCard
-                            title="五子棋"
-                            description="經典連線遊戲，率先連成五子者勝。"
-                            icon={<Grid3x3 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-gray-700'}`} />}
-                            color="bg-white"
-                            borderColor="border-gray-300"
-                            onClick={() => handleSelectGame(GameState.GOMOKU)}
-                            />
-                            <MenuCard
-                            title="點格棋"
-                            description="連線圍地，考驗佈局與前瞻思考。"
-                            icon={<Square className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-600'}`} />}
-                            color="bg-rose-50"
-                            borderColor="border-rose-300"
-                            onClick={() => handleSelectGame(GameState.DOTS_BOXES)}
-                            />
-                            <MenuCard
-                            title="播棋 (寶石棋)"
-                            description="非洲古老智慧，運算與分配的藝術。"
-                            icon={<Gem className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-600'}`} />}
-                            color="bg-cyan-50"
-                            borderColor="border-cyan-300"
-                            onClick={() => handleSelectGame(GameState.MANCALA)}
-                            />
-                            <MenuCard
-                            title="象棋暗棋"
-                            description="運氣與策略並重，翻棋吃子對決。"
-                            icon={<Scroll className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-700'}`} />}
-                            color="bg-amber-50"
-                            borderColor="border-amber-300"
-                            onClick={() => handleSelectGame(GameState.DARK_CHESS)}
-                            />
-                            <MenuCard
-                            title="四子棋"
-                            description="重力連線，垂直水平斜向皆可。"
-                            icon={<ArrowDownToLine className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
-                            color="bg-blue-50"
-                            borderColor="border-blue-300"
-                            onClick={() => handleSelectGame(GameState.CONNECT_FOUR)}
-                            />
-                            <MenuCard
-                            title="黑白棋"
-                            description="翻轉對手棋子，佔領盤面最多者勝。"
-                            icon={<Circle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-emerald-700'}`} />}
-                            color="bg-emerald-50"
-                            borderColor="border-emerald-300"
-                            onClick={() => handleSelectGame(GameState.OTHELLO)}
-                            />
-                            <MenuCard
-                            title="西洋跳棋"
-                            description="斜向跳吃，策略走位，衝向底線。"
-                            icon={<Swords className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-700'}`} />}
-                            color="bg-slate-100"
-                            borderColor="border-slate-300"
-                            onClick={() => handleSelectGame(GameState.CHECKERS)}
-                            />
-                            <MenuCard
-                            title="奇雞連連"
-                            description="大吃小，套娃版的進階井字遊戲。"
-                            icon={<Crown className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
-                            color="bg-orange-50"
-                            borderColor="border-orange-300"
-                            onClick={() => handleSelectGame(GameState.GOBBLET)}
-                            />
-                        </>
-                    )}
-
-                    {selectedCategory === 'COGNITIVE' && (
-                        <>
-                            <MenuCard
-                            title="分類大師"
-                            description={isAdvanced ? "抽象概念與多層次分類。" : "訓練邏輯與執行力，將物品正確歸類。"}
-                            icon={<Brain className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-orange-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-                            onClick={() => handleSelectGame(GameState.SORTING)}
-                            />
-                            <MenuCard
-                            title="圖像記憶配對"
-                            description={isAdvanced ? "相似圖案辨識，挑戰記憶極限。" : "翻牌配對 (附座標)，增強記憶與口語。"}
-                            icon={<Smile className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-indigo-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-indigo-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
-                            onClick={() => handleSelectGame(GameState.MEMORY)}
-                            />
-                            <MenuCard
-                            title="造句拼拼樂"
-                            description={isAdvanced ? "長句重組，強化語法結構。" : "重組句子，訓練語言組織與邏輯。"}
-                            icon={<Type className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-pink-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-                            onClick={() => handleSelectGame(GameState.SENTENCE)}
-                            />
-                            <MenuCard
-                            title="眼明手快"
-                            description={isAdvanced ? "高度相似物品的視覺搜尋。" : "視覺掃描訓練，找出獨特的圖案。"}
-                            icon={<Eye className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-yellow-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-                            onClick={() => handleSelectGame(GameState.FIND)}
-                            />
-                            <MenuCard
-                            title="快樂市集"
-                            description={isAdvanced ? "複雜計算與預算控制。" : "生活算術與金錢管理訓練。"}
-                            icon={<ShoppingCart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-green-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-                            onClick={() => handleSelectGame(GameState.MARKET)}
-                            />
-                            <MenuCard
-                            title="生活步驟"
-                            description={isAdvanced ? "繁複生活任務的順序執行。" : "將生活任務依照正確順序排列。"}
-                            icon={<ListChecks className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-purple-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-purple-200"}
-                            onClick={() => handleSelectGame(GameState.STEPS)}
-                            />
-                            <MenuCard
-                            title="影子猜猜看"
-                            description={isAdvanced ? "辨識細微差異的剪影。" : "觀察剪影，找出原本的物品。"}
-                            icon={<Sun className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-slate-100"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-slate-300"}
-                            onClick={() => handleSelectGame(GameState.SHADOW)}
-                            />
-                            <MenuCard
-                            title="顏色陷阱"
-                            description={isAdvanced ? "更快的速度與更強的干擾抑制。" : "抑制衝動訓練：字意與顏色不符時的判斷。"}
-                            icon={<Palette className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-rose-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
-                            onClick={() => handleSelectGame(GameState.STROOP)}
-                            />
-                            <MenuCard
-                            title="方塊在哪裡"
-                            description={isAdvanced ? "更多的方塊與更短的記憶時間。" : "視覺空間記憶：記住並回想方塊位置。"}
-                            icon={<MousePointer2 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-cyan-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
-                            onClick={() => handleSelectGame(GameState.DOTS)}
-                            />
-                            <MenuCard
-                            title="情緒氣象台"
-                            description={isAdvanced ? "解讀複雜與混合的社交情緒。" : "社交認知：辨識表情與情緒情境。"}
-                            icon={<Heart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-pink-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-                            onClick={() => handleSelectGame(GameState.EMOTION)}
-                            />
-                            <MenuCard
-                            title="圖形推理王"
-                            description={isAdvanced ? "多重規則與抽象符號推理。" : "觀察規律，找出下一個圖案。"}
-                            icon={<Shapes className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-                            onClick={() => handleSelectGame(GameState.PATTERN)}
-                            />
-                            <MenuCard
-                            title="時間管家"
-                            description={isAdvanced ? "時間計算與行程規劃。" : "認識時鐘，建立時間觀念。"}
-                            icon={<Clock className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-slate-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-slate-200"}
-                            onClick={() => handleSelectGame(GameState.TIME)}
-                            />
-                            <MenuCard
-                            title="誰是異類"
-                            description={isAdvanced ? "抽象功能與屬性的差異判斷。" : "找出類別不同的物品。"}
-                            icon={<HelpCircle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-orange-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-                            onClick={() => handleSelectGame(GameState.ODD_ONE)}
-                            />
-                            <MenuCard
-                            title="聽音辨位"
-                            description={isAdvanced ? "相似聲音辨識與背景音干擾。" : "專心聆聽，找出對應的聲音圖片。"}
-                            icon={<Volume2 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-indigo-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-indigo-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-indigo-200"}
-                            onClick={() => handleSelectGame(GameState.SOUND)}
-                            />
-                            <MenuCard
-                            title="拼圖達人"
-                            description={isAdvanced ? "九宮格圖像還原與空間對應。" : "簡單的圖片位置還原。"}
-                            icon={<Grid className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-teal-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-teal-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-teal-200"}
-                            onClick={() => handleSelectGame(GameState.PUZZLE)}
-                            />
-                            <MenuCard
-                            title="數獨挑戰"
-                            description={isAdvanced ? "9x9 經典數獨，考驗邏輯與推理。" : "4x4 迷你數獨，輕鬆入門邏輯思考。"}
-                            icon={<Grid3x3 className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-fuchsia-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-fuchsia-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-fuchsia-200"}
-                            onClick={() => handleSelectGame(GameState.SUDOKU)}
-                            />
-                            <MenuCard
-                            title="大家來找碴"
-                            description={isAdvanced ? "4x4 圖案陣列，找出 3 個不同之處。" : "3x3 圖案陣列，找出 1 個不同之處。"}
-                            icon={<Search className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-                            onClick={() => handleSelectGame(GameState.SPOT_DIFF)}
-                            />
-                            <MenuCard
-                            title="神奇形色牌"
-                            description={isAdvanced ? "尋找形狀、顏色、數量與填色的完美組合。" : "尋找三張屬性完全相同或完全不同的牌。"}
-                            icon={<LayoutGrid className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-emerald-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-emerald-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
-                            onClick={() => handleSelectGame(GameState.SET)}
-                            />
-                        </>
-                    )}
-
-                    {selectedCategory === 'GROUP' && (
-                        <>
-                            <MenuCard
-                            title="局部猜全貌"
-                            description={isAdvanced ? "超高倍率放大，考驗想像力與視覺完形。" : "放大物品局部，大家一起猜猜看。"}
-                            icon={<ZoomIn className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-                            onClick={() => handleSelectGame(GameState.ZOOM)}
-                            />
-                            <MenuCard
-                            title="記憶翻牌 (口語版)"
-                            description={isAdvanced ? "20張牌挑戰，需要更強的短期記憶。" : "大數字編號，適合團體一起喊號碼翻牌。"}
-                            icon={<MessageCircle className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-pink-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-pink-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-pink-200"}
-                            onClick={() => handleSelectGame(GameState.VERBAL_MEMORY)}
-                            />
-                            <MenuCard
-                            title="語意聯想"
-                            description={isAdvanced ? "特定情境的聯想，如「去海邊會帶的東西」、「放在冰箱裡的東西」。" : "明確的條件限制，如「紅色的食物」、「四隻腳的動物」。"}
-                            icon={<Link className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-green-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-                            onClick={() => handleSelectGame(GameState.WORD_CHAIN)}
-                            />
-                            <MenuCard
-                            title="順序記憶"
-                            description={isAdvanced ? "更長的順序與更快的速度。" : "記住顏色亮起的順序，並大聲說出來。"}
-                            icon={<ListOrdered className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-orange-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-orange-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-orange-200"}
-                            onClick={() => handleSelectGame(GameState.SIMON_SAYS)}
-                            />
-                            <MenuCard
-                            title="價格估算"
-                            description={isAdvanced ? "高單價物品與生活規費估算。" : "日常用品與小吃，猜猜看多少錢。"}
-                            icon={<DollarSign className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-yellow-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-                            onClick={() => handleSelectGame(GameState.PRICE_ESTIMATION)}
-                            />
-                        </>
-                    )}
-
-                    {selectedCategory === 'LUCK_CARD' && (
-                        <>
-                            <MenuCard
-                            title="麻將湊牌大師"
-                            description={isAdvanced ? "進階聽牌、吃碰與雀頭組合判定。" : "順子、刻子、將牌配對，熟悉的國粹摸牌樂趣！"}
-                            icon={<Crown className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-emerald-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-emerald-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-emerald-200"}
-                            onClick={() => handleSelectGame(GameState.MAHJONG_MELDS)}
-                            />
-                            <MenuCard
-                            title="拉密魔術牌"
-                            description={isAdvanced ? "多牌組拆解與進階百搭笑臉牌替代邏輯。" : "同色順組、同數四色群組與百搭笑臉數字磚！"}
-                            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-                            onClick={() => handleSelectGame(GameState.RUMMIKUB)}
-                            />
-                            <MenuCard
-                            title="繽紛形色棋"
-                            description={isAdvanced ? "六色大滿貫 Qwirkle 挑戰與進階排錯邏輯。" : "同色不同形、同形不同色，國際獲獎經典連線桌遊！"}
-                            icon={<Sparkles className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-cyan-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-cyan-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-cyan-200"}
-                            onClick={() => handleSelectGame(GameState.QWIRKLE)}
-                            />
-                            <MenuCard
-                            title="歡樂排七接龍"
-                            description={isAdvanced ? "四花色全局速看與頂底端出牌推理。" : "黑桃、紅心、方塊、梅花以 7 為中心雙向接龍！"}
-                            icon={<ListOrdered className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-                            onClick={() => handleSelectGame(GameState.SEVENS)}
-                            />
-                            <MenuCard
-                            title="經典撿紅點"
-                            description={isAdvanced ? "吃牌算分策略與紅心方塊高分最大化！" : "經典9湊1、8湊2、7湊3、10湊10，撿紅字吃高分！"}
-                            icon={<Heart className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-rose-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-rose-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
-                            onClick={() => handleSelectGame(GameState.CHINESE_TEN)}
-                            />
-                            <MenuCard
-                            title="猜猜我是誰"
-                            description="邏輯排除法，根據特徵提問找出目標人物。"
-                            icon={<Users className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-blue-500"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-                            onClick={() => handleSelectGame(GameState.GUESS_WHO)}
-                            />
-                            <MenuCard
-                            title="故事聯想卡"
-                            description="看圖說故事，發揮想像力將隨機物品串聯起來。"
-                            icon={<Lightbulb className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-amber-500"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-                            onClick={() => handleSelectGame(GameState.STORY_CARDS)}
-                            />
-                            <MenuCard
-                            title="條件反應大挑戰"
-                            description="設定專屬規則，看到目標圖案快速反應！"
-                            icon={<Zap className={`w-8 h-8 ${isAdvanced ? "text-indigo-500" : "text-rose-500"}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-rose-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-rose-200"}
-                            onClick={() => handleSelectGame(GameState.CONDITIONAL_SNAP)}
-                            />
-                            <MenuCard
-                            title="公開 21 點"
-                            description="計算點數與風險評估，可選擇對抗莊家或分組對抗。"
-                            icon={<Shield className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-slate-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-slate-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-slate-200"}
-                            onClick={() => handleSelectGame(GameState.BLACKJACK)}
-                            />
-                            <MenuCard
-                            title="邏輯猜牌"
-                            description="透過發問與排除法，找出目標卡牌。"
-                            icon={<Layers className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-blue-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-blue-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-blue-200"}
-                            onClick={() => handleSelectGame(GameState.GUESS_CARD)}
-                            />
-                            <MenuCard
-                            title="金字塔接龍"
-                            description={isAdvanced ? "隱藏部分卡牌，更考驗記憶與運算。" : "兩張牌相加為13即可消除，清空金字塔！"}
-                            icon={<Target className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-yellow-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-                            onClick={() => handleSelectGame(GameState.PYRAMID)}
-                            />
-                            <MenuCard
-                            title="尋寶大冒險"
-                            description={isAdvanced ? "更大的地圖與隱藏的炸彈陷阱！" : "大家一起喊出位置，看看誰能挖到寶藏！"}
-                            icon={<Map className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-yellow-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-yellow-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-yellow-200"}
-                            onClick={() => handleSelectGame(GameState.TREASURE)}
-                            />
-                            <MenuCard
-                            title="命運轉盤"
-                            description={isAdvanced ? "更多選項與雙倍計分，大膽預測！" : "猜猜轉盤會停在哪裡？充滿歡樂與運氣！"}
-                            icon={<Target className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-red-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
-                            onClick={() => handleSelectGame(GameState.ROULETTE)}
-                            />
-                            <MenuCard
-                            title="步步高升"
-                            description={isAdvanced ? "猜大小，連續猜對獲得更高分！" : "比大小！下一張牌會更大還是更小？"}
-                            icon={<ArrowUpRight className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-green-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-green-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-green-200"}
-                            onClick={() => handleSelectGame(GameState.HIGHER_LOWER)}
-                            />
-                        </>
-                    )}
-
-                    {selectedCategory === 'MENTAL' && (
-                        <>
-                            <MenuCard
-                            title="情境應對"
-                            description={isAdvanced ? "職場與複雜衝突情境處理。" : "日常人際互動與社交禮儀問答。"}
-                            icon={<Users className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-purple-600'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-purple-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-purple-200"}
-                            onClick={() => handleSelectGame(GameState.SOCIAL_CONTEXT)}
-                            />
-                            <MenuCard
-                            title="安全辨識"
-                            description={isAdvanced ? "戶外與長照情境的安全隱患。" : "居家與日常生活危險情境尋找。"}
-                            icon={<TriangleAlert className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-red-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-red-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-red-200"}
-                            onClick={() => handleSelectGame(GameState.HAZARD_ID)}
-                            />
-                            <MenuCard
-                            title="轉念練習"
-                            description={isAdvanced ? "深度認知重塑與自我對話。" : "將負面想法轉化為正向或客觀思考。"}
-                            icon={<Lightbulb className={`w-8 h-8 ${isAdvanced ? 'text-indigo-500' : 'text-amber-500'}`} />}
-                            color={isAdvanced ? "bg-white" : "bg-amber-50"}
-                            borderColor={isAdvanced ? "border-indigo-200" : "border-amber-200"}
-                            onClick={() => handleSelectGame(GameState.POSITIVE_THINKING)}
-                            />
-                        </>
-                    )}
-
-                    {selectedCategory === 'RELAX' && (
-                        <>
-                            <MenuCard
-                            title="呼吸律動"
-                            description="跟隨 4-7-8 呼吸引導，平靜思緒。"
-                            icon={<Wind className="w-8 h-8 text-sky-500" />}
-                            color="bg-sky-50"
-                            borderColor="border-sky-200"
-                            onClick={() => handleSelectGame(GameState.BREATHING)}
-                            />
-                            <MenuCard
-                            title="環境白噪音"
-                            description="聆聽雨聲、海浪與微風，幫助放鬆與專注。"
-                            icon={<Headphones className="w-8 h-8 text-indigo-500" />}
-                            color="bg-indigo-50"
-                            borderColor="border-indigo-200"
-                            onClick={() => handleSelectGame(GameState.AMBIENT_SOUND)}
-                            />
-                            <MenuCard
-                            title="紓壓聲繪"
-                            description="結合語音與塗鴉，用聲音的大小與頻率繪出心靈畫作。"
-                            icon={<PenTool className="w-8 h-8 text-purple-500" />}
-                            color="bg-purple-50"
-                            borderColor="border-purple-200"
-                            onClick={() => handleSelectGame(GameState.MANDALA)}
-                            />
-                            <MenuCard
-                            title="正向肯定小卡"
-                            description="抽取充滿感恩與正能量的話語，溫暖每一天。"
-                            icon={<Heart className="w-8 h-8 text-pink-500" />}
-                            color="bg-pink-50"
-                            borderColor="border-pink-200"
-                            onClick={() => handleSelectGame(GameState.AFFIRMATION)}
-                            />
-                            <MenuCard
-                            title="指尖星空"
-                            description="輕觸螢幕，創造屬於你的療癒水波與星空。"
-                            icon={<Sparkles className="w-8 h-8 text-blue-500" />}
-                            color="bg-blue-50"
-                            borderColor="border-blue-200"
-                            onClick={() => handleSelectGame(GameState.STARRY_RIPPLE)}
-                            />
-                            <MenuCard
-                            title="漸進式放鬆"
-                            description="跟隨引導放鬆全身肌肉，釋放深層壓力。"
-                            icon={<Smile className="w-8 h-8 text-teal-500" />}
-                            color="bg-teal-50"
-                            borderColor="border-teal-200"
-                            onClick={() => handleSelectGame(GameState.MUSCLE_RELAXATION)}
-                            />
-                        </>
-                    )}
+                        );
+                    })}
                 </div>
             </div>
         )}
@@ -897,14 +485,14 @@ const MenuCard: React.FC<CardProps> = ({ title, description, icon, color, border
   return (
     <button
       onClick={onClick}
-      className={`${color} border-2 ${borderColor} rounded-2xl p-2.5 sm:p-5 landscape:p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex items-start gap-2 sm:gap-4 group h-full`}
+      className={`${color} border-2 ${borderColor} rounded-2xl p-3 sm:p-5 landscape:p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex items-start gap-3 sm:gap-4 group h-full min-h-[84px]`}
     >
       <div className="bg-white p-2 sm:p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform shrink-0 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
         <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{title}</h3>
-        <p className="text-gray-600 text-[11px] sm:text-sm leading-tight sm:leading-snug">{description}</p>
+        <p className="text-gray-600 text-xs sm:text-sm leading-snug">{description}</p>
       </div>
     </button>
   );

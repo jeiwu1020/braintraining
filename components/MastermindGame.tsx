@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Check, RotateCcw, HelpCircle, Clock } from 'lucide-react';
+import { Check, RotateCcw, HelpCircle, Clock } from 'lucide-react';
 import { Difficulty } from '../types';
 import { getMastermindConfig } from '../services/mastermind';
+import GameShell from './game-ui/GameShell';
 
 interface MastermindGameProps {
   onBack: () => void;
@@ -190,25 +191,39 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 text-slate-800">
-      <div className="flex justify-between items-center p-4 bg-white shadow-sm shrink-0">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-          <ArrowLeft className="w-6 h-6 text-gray-700" />
-        </button>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            珠璣妙算 {isAdvanced && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">進階</span>}
-        </h1>
-        <div className="flex gap-2">
-            <button onClick={() => setShowRules(true)} className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
-                <HelpCircle className="w-6 h-6" />
-            </button>
-            <button onClick={initGame} className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors">
-            <RotateCcw className="w-6 h-6" />
-            </button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-hidden flex flex-col w-full relative">
+    <GameShell
+      title="珠璣妙算"
+      subtitle={`${codeLength} 個格子・${availableColors.length} 種顏色`}
+      onBack={onBack}
+      className="bg-slate-50 text-slate-800"
+      contentClassName="relative flex flex-col"
+      status={(
+        <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-700">
+          {isAdvanced ? '進階' : '一般'}
+        </span>
+      )}
+      actions={(
+        <>
+          <button
+            type="button"
+            onClick={() => setShowRules(true)}
+            aria-label="查看玩法與解題技巧"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
+          >
+            <HelpCircle aria-hidden="true" className="h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            onClick={initGame}
+            aria-label="重新設定遊戲"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300"
+          >
+            <RotateCcw aria-hidden="true" className="h-6 w-6" />
+          </button>
+        </>
+      )}
+    >
+      <div className="flex h-full w-full flex-col overflow-hidden">
         {gameState === 'SETUP' ? (
             <div className="flex-1 w-full h-full flex items-center justify-center p-4 bg-slate-50/90 animate-fade-in">
                 <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm w-full max-h-full overflow-y-auto">
@@ -336,7 +351,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
                                 <button 
                                     key={i} 
                                     onClick={() => handleColorClick(c)}
-                                    className={`w-12 h-12 landscape:w-10 landscape:h-10 rounded-full shadow-md hover:scale-110 active:scale-95 transition-transform ${c}`}
+                                    className={`w-12 h-12 landscape:w-11 landscape:h-11 rounded-full shadow-md hover:scale-110 active:scale-95 transition-transform ${c}`}
                                 ></button>
                             ))}
                         </div>
@@ -392,7 +407,7 @@ const MastermindGame: React.FC<MastermindGameProps> = ({ onBack, difficulty }) =
               </div>
           </div>
       )}
-    </div>
+    </GameShell>
   );
 };
 

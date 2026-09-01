@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Trophy, Users, User, Crown, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import { applyGobbletMove, type GobbletPiece } from '../services/gobblet';
 
 interface Props {
   onBack: () => void;
@@ -10,11 +11,7 @@ interface Props {
 }
 
 type Size = 0 | 1 | 2;
-interface Piece {
-    player: 1 | 2;
-    size: Size;
-    id: string;
-}
+type Piece = GobbletPiece;
 
 const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [board, setBoard] = useState<Piece[][]>(Array(9).fill([]));
@@ -52,16 +49,6 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       setIsWinModalOpen(false);
       setSelectedPiece(null);
       setHistory([]);
-  };
-
-  const checkWin = (b: Piece[][]) => {
-      const topPieces = b.map(stack => stack.length > 0 ? stack[stack.length-1] : null);
-      const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      for(const line of lines) {
-          const p0 = topPieces[line[0]], p1 = topPieces[line[1]], p2 = topPieces[line[2]];
-          if (p0 && p1 && p2 && p0.player === p1.player && p1.player === p2.player) return p0.player;
-      }
-      return null;
   };
 
   const canPlace = (boardIdx: number, piece: Piece, currentBoard: Piece[][]) => {
@@ -108,22 +95,24 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           turn
       }]);
 
-      const newBoard = board.map(s => [...s]);
-      let piece: Piece;
+      let moveSource: { kind: 'board'; index: number } | { kind: 'supply'; piece: Piece };
       if (from.source === 'inv') {
           const inv = turn === 1 ? p1Inv : p2Inv;
-          piece = inv[from.index];
+          const piece = inv[from.index];
+          moveSource = { kind: 'supply', piece };
           const newInv = [...inv];
           newInv.splice(from.index, 1);
           if (turn === 1) setP1Inv(newInv); else setP2Inv(newInv);
       } else {
-          piece = newBoard[from.index].pop()!;
+          moveSource = { kind: 'board', index: from.index };
       }
-      newBoard[toIdx].push(piece);
+
+      const moveResult = applyGobbletMove(board, moveSource, toIdx, turn);
+      const newBoard = moveResult.board;
       setBoard(newBoard);
       setSelectedPiece(null);
       soundService.playGameSound('BOUNCE');
-      const w = checkWin(newBoard);
+      const w = moveResult.winner;
       if (w) { setWinner(w); setIsWinModalOpen(true); soundService.playWin(); }
       else setTurn(turn === 1 ? 2 : 1);
   };
@@ -176,9 +165,13 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   for (const p of playerInv) {
                       for (let b = 0; b < 9; b++) {
                           if (canPlace(b, p, currentB)) {
-                              const temp = currentB.map(s => [...s]);
-                              temp[b].push(p);
-                              if (checkWin(temp) === 1) return true;
+                              const result = applyGobbletMove(
+                                  currentB,
+                                  { kind: 'supply', piece: p },
+                                  b,
+                                  1,
+                              );
+                              if (result.winner === 1) return true;
                           }
                       }
                   }
@@ -189,11 +182,13 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                           const p = stack[stack.length - 1];
                           for (let b = 0; b < 9; b++) {
                               if (i !== b && canPlace(b, p, currentB)) {
-                                  const temp = currentB.map(s => [...s]);
-                                  temp[i].pop();
-                                  if (checkWin(temp) === 1) return true; // Win by uncovering
-                                  temp[b].push(p);
-                                  if (checkWin(temp) === 1) return true; // Win by moving
+                                  const result = applyGobbletMove(
+                                      currentB,
+                                      { kind: 'board', index: i },
+                                      b,
+                                      1,
+                                  );
+                                  if (result.winner === 1) return true;
                               }
                           }
                       }
@@ -218,27 +213,23 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
               for (const m of possibleMoves) {
                   let score = 0;
-                  const tempBoard = board.map(s => [...s]);
-                  const tempInv = [...p2Inv];
-                  
-                  // 1. Simulate Move
-                  if (m.source === 'board') {
-                      const afterLiftBoard = board.map(s => [...s]);
-                      afterLiftBoard[m.index].pop();
-                      if (checkWin(afterLiftBoard) === 1) score -= 5000000; // Immediate suicide by uncovering
-                      tempBoard[m.index].pop();
-                  } else {
-                      tempInv.splice(m.index, 1);
-                  }
-
-                  const targetStack = tempBoard[m.target];
+                  const targetStack = board[m.target];
                   const isGobbling = targetStack.length > 0 && targetStack[targetStack.length-1].player === 1;
                   const gobbledSize = isGobbling ? targetStack[targetStack.length-1].size : -1;
-                  tempBoard[m.target].push(m.piece);
-
-                  const winState = checkWin(tempBoard);
+                  const result = applyGobbletMove(
+                      board,
+                      m.source === 'board'
+                          ? { kind: 'board', index: m.index }
+                          : { kind: 'supply', piece: m.piece },
+                      m.target,
+                      2,
+                  );
+                  const tempBoard = result.board;
+                  const winState = result.winner;
                   if (winState === 2) {
                       score += 10000000; // Immediate Win
+                  } else if (winState === 1) {
+                      score -= 8000000; // The move leaves an opponent line visible
                   } else {
                       // 2. Defensive Look-ahead: Can player win after this?
                       if (canPlayerWinNext(tempBoard, p1Inv)) {
@@ -396,7 +387,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         <li><b>放置規則：</b>你可以將場外自己顏色的圈圈放入棋盤上的空位。</li>
                         <li><b>吃掉（覆蓋）規則：</b>你可以將自己「較大」的圈圈，蓋在棋盤上任何「較小」的圈圈（不論敵我）上方。且你可以移動棋盤上自己已經下的圈圈去蓋別人！</li>
                         <li><b>勝利條件：</b>先將自己顏色的3個圈圈連成一線（橫、豎、斜皆可）者獲勝！</li>
-                        <li><b>注意：</b>當你移動棋盤上自己的圈圈時，可能會露出下面原本被蓋住的對方圈圈。如果對方因此連成一線，對方會立刻獲勝！</li>
+                        <li><b>露子規則：</b>移開棋子後若露出對方三連線，你必須把拿起的棋子蓋住該連線中另外一枚較小棋子，破壞連線；否則即使你的落點也形成三連線，仍由對方獲勝。</li>
                     </ul>
                     <button 
                         onClick={() => setShowRules(false)} 

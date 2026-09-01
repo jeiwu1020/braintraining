@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Trophy, CheckCircle } from 'lucide-react';
 import { MarketLevel, Difficulty } from '../types';
 import { generateMarketLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import SplitChoiceLayout from './game-ui/SplitChoiceLayout';
 
 interface Props {
   onBack: () => void;
@@ -90,7 +92,13 @@ const MarketGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 p-4 animate-fade-in">
+      <GameShell
+        title="快樂市集"
+        subtitle={difficulty === 'ADVANCED' ? '進階金錢管理' : '生活算術與採購練習'}
+        onBack={onBack}
+        className="bg-green-50"
+        contentClassName="flex items-center justify-center p-3"
+      >
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-green-200">
               <Trophy className="w-20 h-20 text-green-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-green-900 mb-2">採購完成！</h2>
@@ -113,44 +121,56 @@ const MarketGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-green-50">
-        <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
-        <p className="text-green-800">準備市集中...</p>
-      </div>
+      <GameShell
+        title="快樂市集"
+        subtitle={difficulty === 'ADVANCED' ? '進階金錢管理' : '生活算術與採購練習'}
+        onBack={onBack}
+        className="bg-green-50"
+        contentClassName="flex items-center justify-center"
+      >
+        <div role="status" aria-live="polite" className="flex flex-col items-center">
+          <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-green-600" />
+          <p className="text-green-800">準備市集中...</p>
+        </div>
+      </GameShell>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-green-50 overflow-hidden relative">
-      {/* Header */}
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-green-800 shadow-sm hover:bg-green-100">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-4">
-            {difficulty === 'ADVANCED' && <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-             <div className="px-3 py-1 bg-green-100 rounded-full text-green-800 font-bold text-sm">
-                第 {round} / {TOTAL_ROUNDS} 題
-             </div>
-             <div className="flex items-center bg-green-100 px-3 py-1 rounded-full text-green-800 font-bold">
-                <Trophy size={16} className="mr-2"/> {score}
-             </div>
+    <GameShell
+      title="快樂市集"
+      subtitle={difficulty === 'ADVANCED' ? '進階金錢管理' : '生活算術與採購練習'}
+      onBack={onBack}
+      className="bg-green-50"
+      contentClassName="relative"
+      status={(
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {difficulty === 'ADVANCED' && (
+            <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">進階</span>
+          )}
+          <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-800 sm:px-3 sm:text-sm">
+            第 {round}/{TOTAL_ROUNDS} 題
+          </span>
+          <span className="flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-800 sm:px-3 sm:text-sm">
+            <Trophy aria-hidden="true" className="mr-1 h-4 w-4" /> {score}
+          </span>
         </div>
-      </div>
-
-      {/* Main Content: Flex-col portrait, Flex-row landscape */}
-      <div className="flex-1 flex flex-col sm:flex-row items-center p-2 sm:p-4 max-w-4xl mx-auto w-full gap-4 sm:gap-6 overflow-hidden">
-        
-        {/* Question Area - Left in Landscape */}
-        <div className="flex-none sm:flex-1 w-full sm:h-full bg-white rounded-3xl p-4 sm:p-6 shadow-lg border-2 border-green-100 flex flex-col items-center justify-center animate-fade-in-up overflow-y-auto max-h-[45vh] sm:max-h-none">
+      )}
+    >
+      <SplitChoiceLayout
+        className="mx-auto max-w-5xl"
+        questionClassName="flex flex-col items-center justify-center rounded-3xl border-2 border-green-100 bg-white p-3 shadow-lg sm:p-5"
+        choicesClassName="flex flex-col justify-center gap-3 pr-1 sm:gap-4"
+        question={(
+          <>
             <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-4 text-center sticky top-0 bg-white/95 py-2 z-10">{level.question}</h2>
-            
+
             <div className="flex flex-wrap justify-center gap-4 mb-2 w-full">
                 {level.items.map((item, idx) => (
                     <div key={idx} className="flex flex-col items-center p-2 bg-green-50 rounded-xl border border-green-200 w-24 sm:w-28 shrink-0">
@@ -162,16 +182,16 @@ const MarketGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </div>
                 ))}
             </div>
-        </div>
-
-        {/* Options Area - Right in Landscape */}
-        <div className="flex-none sm:flex-1 w-full sm:h-full flex flex-col justify-center gap-3 sm:gap-4 overflow-y-auto">
+          </>
+        )}
+        choices={(
+          <>
             {level.options.map((opt, idx) => (
                 <button
                     key={idx}
                     onClick={() => handleOptionClick(opt)}
                     className={`
-                        w-full py-4 sm:py-6 rounded-2xl text-2xl sm:text-3xl font-bold shadow-md border-2 transition-all active:scale-95 flex items-center justify-center shrink-0
+                        w-full py-4 sm:py-6 landscape:py-3 md:landscape:py-4 rounded-2xl text-2xl sm:text-3xl font-bold shadow-md border-2 transition-all active:scale-95 flex items-center justify-center shrink-0
                         ${feedback === 'correct' && opt === level.correctAnswer ? 'bg-green-500 text-white border-green-600' : ''}
                         ${feedback === 'wrong' && opt === wrongOption ? 'bg-gray-100 text-gray-400 border-gray-200 shake' : ''}
                         ${!feedback || (feedback === 'wrong' && opt !== wrongOption) ? 'bg-white text-green-800 border-green-200 hover:bg-green-50 hover:border-green-300' : ''}
@@ -182,16 +202,13 @@ const MarketGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     {feedback === 'correct' && opt === level.correctAnswer && <CheckCircle className="ml-3 w-6 h-6 animate-bounce" />}
                 </button>
             ))}
-        </div>
-
-        {/* Feedback Message */}
-        {feedback === 'wrong' && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-100 text-red-600 px-6 py-3 rounded-full font-bold shadow-xl animate-bounce-short border-2 border-red-200 whitespace-nowrap z-50 pointer-events-none">
-                算錯囉，再試一次！
-            </div>
+          </>
         )}
-      </div>
-    </div>
+        feedback={feedback === 'wrong' ? (
+          <span className="whitespace-nowrap text-red-600">算錯囉，再試一次！</span>
+        ) : undefined}
+      />
+    </GameShell>
   );
 };
 

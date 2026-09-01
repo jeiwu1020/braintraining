@@ -1,0 +1,644 @@
+import { Difficulty, GameState } from '../types';
+
+export type GameCategoryId = 'COGNITIVE' | 'STRATEGY' | 'TABLETOP' | 'LIFE_SOCIAL' | 'RELAX';
+export type PlayerMode = 'SOLO' | 'GROUP' | 'FACILITATED';
+export type GameLayoutPreset =
+  | 'SPLIT_CHOICE'
+  | 'BOARD_SIDEBAR'
+  | 'GRID_FOCUS'
+  | 'FACILITATOR'
+  | 'IMMERSIVE';
+
+export type GameTag =
+  | 'ATTENTION'
+  | 'MEMORY'
+  | 'LANGUAGE'
+  | 'EXECUTIVE_FUNCTION'
+  | 'VISUOSPATIAL'
+  | 'LOGIC'
+  | 'DAILY_LIVING'
+  | 'SOCIAL_COGNITION'
+  | 'SAFETY'
+  | 'WELLBEING'
+  | 'STRATEGY'
+  | 'CARD'
+  | 'TABLETOP'
+  | 'AUDITORY'
+  | 'RELAXATION'
+  | 'CHANCE';
+
+export interface GameCategoryDefinition {
+  id: GameCategoryId;
+  title: string;
+  description: string;
+}
+
+export interface GameDefinition {
+  id: GameState;
+  title: string;
+  category: GameCategoryId;
+  normalDescription: string;
+  advancedDescription?: string;
+  tags: readonly GameTag[];
+  playerModes: readonly PlayerMode[];
+  layoutPreset: GameLayoutPreset;
+}
+
+export const GAME_CATEGORIES: readonly GameCategoryDefinition[] = [
+  { id: 'COGNITIVE', title: '認知訓練', description: '注意力、記憶、語言、視覺空間與邏輯' },
+  { id: 'STRATEGY', title: '棋盤與策略', description: '經典對弈、佈局與前瞻思考' },
+  { id: 'TABLETOP', title: '卡牌與桌遊', description: '牌組、數字磚、機率與團體桌遊' },
+  { id: 'LIFE_SOCIAL', title: '生活、情緒與社交', description: '生活功能、情緒辨識、安全與人際應對' },
+  { id: 'RELAX', title: '放鬆與舒緩', description: '呼吸、感官調節與身心放鬆' },
+];
+
+export const GAME_CATALOG: readonly GameDefinition[] = [
+  {
+    id: GameState.REVEAL_PICTURE,
+    title: '翻牌解謎',
+    category: 'COGNITIVE',
+    normalDescription: '選號碼翻牌，拼湊出背後隱藏的圖案。',
+    tags: ['MEMORY', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.MAZE_NAVIGATOR,
+    title: '尋寶迷宮指路',
+    category: 'COGNITIVE',
+    normalDescription: '發號施令指引方向，合作避開障礙物找到寶藏！',
+    tags: ['EXECUTIVE_FUNCTION', 'VISUOSPATIAL', 'LANGUAGE'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.WORD_TILE,
+    title: '成語接龍拼圖',
+    category: 'COGNITIVE',
+    normalDescription: '語文認知訓練，選出正確的字填入空格。',
+    tags: ['LANGUAGE', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.MASTERMIND,
+    title: '珠璣妙算',
+    category: 'COGNITIVE',
+    normalDescription: '3 個格子、3 種顏色，輕鬆體驗經典邏輯解謎。',
+    advancedDescription: '4 個格子、4 種顏色，考驗進階邏輯推理。',
+    tags: ['LOGIC', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.SORTING,
+    title: '分類大師',
+    category: 'COGNITIVE',
+    normalDescription: '訓練邏輯與執行力，將物品正確歸類。',
+    advancedDescription: '抽象概念與多層次分類。',
+    tags: ['EXECUTIVE_FUNCTION', 'LOGIC'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.MEMORY,
+    title: '圖像記憶配對',
+    category: 'COGNITIVE',
+    normalDescription: '翻牌配對（附座標），增強記憶與口語。',
+    advancedDescription: '相似圖案辨識，挑戰記憶極限。',
+    tags: ['MEMORY', 'ATTENTION'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SENTENCE,
+    title: '造句拼拼樂',
+    category: 'COGNITIVE',
+    normalDescription: '重組句子，訓練語言組織與邏輯。',
+    advancedDescription: '長句重組，強化語法結構。',
+    tags: ['LANGUAGE', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.FIND,
+    title: '眼明手快',
+    category: 'COGNITIVE',
+    normalDescription: '視覺掃描訓練，找出獨特的圖案。',
+    advancedDescription: '高度相似物品的視覺搜尋。',
+    tags: ['ATTENTION', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SHADOW,
+    title: '影子猜猜看',
+    category: 'COGNITIVE',
+    normalDescription: '觀察剪影，找出原本的物品。',
+    advancedDescription: '辨識細微差異的剪影。',
+    tags: ['ATTENTION', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.STROOP,
+    title: '顏色陷阱',
+    category: 'COGNITIVE',
+    normalDescription: '抑制衝動訓練：字意與顏色不符時的判斷。',
+    advancedDescription: '更快的速度與更強的干擾抑制。',
+    tags: ['ATTENTION', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.DOTS,
+    title: '方塊在哪裡',
+    category: 'COGNITIVE',
+    normalDescription: '視覺空間記憶：記住並回想方塊位置。',
+    advancedDescription: '更多的方塊與更短的記憶時間。',
+    tags: ['MEMORY', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.PATTERN,
+    title: '圖形推理王',
+    category: 'COGNITIVE',
+    normalDescription: '觀察規律，找出下一個圖案。',
+    advancedDescription: '多重規則與抽象符號推理。',
+    tags: ['LOGIC', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.ODD_ONE,
+    title: '誰是異類',
+    category: 'COGNITIVE',
+    normalDescription: '找出類別不同的物品。',
+    advancedDescription: '抽象功能與屬性的差異判斷。',
+    tags: ['LOGIC', 'ATTENTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SOUND,
+    title: '聽音辨位',
+    category: 'COGNITIVE',
+    normalDescription: '專心聆聽，找出對應的聲音圖片。',
+    advancedDescription: '相似聲音辨識與背景音干擾。',
+    tags: ['AUDITORY', 'ATTENTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.PUZZLE,
+    title: '拼圖達人',
+    category: 'COGNITIVE',
+    normalDescription: '簡單的圖片位置還原。',
+    advancedDescription: '九宮格圖像還原與空間對應。',
+    tags: ['VISUOSPATIAL', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SUDOKU,
+    title: '數獨挑戰',
+    category: 'COGNITIVE',
+    normalDescription: '4×4 迷你數獨，輕鬆入門邏輯思考。',
+    advancedDescription: '9×9 經典數獨，考驗邏輯與推理。',
+    tags: ['LOGIC', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.SPOT_DIFF,
+    title: '大家來找碴',
+    category: 'COGNITIVE',
+    normalDescription: '3×3 圖案陣列，找出 1 個不同之處。',
+    advancedDescription: '4×4 圖案陣列，找出 3 個不同之處。',
+    tags: ['ATTENTION', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SET,
+    title: '神奇形色牌',
+    category: 'COGNITIVE',
+    normalDescription: '尋找三張屬性完全相同或完全不同的牌。',
+    advancedDescription: '尋找形狀、顏色、數量與填色的完美組合。',
+    tags: ['LOGIC', 'ATTENTION', 'CARD'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.ZOOM,
+    title: '局部猜全貌',
+    category: 'COGNITIVE',
+    normalDescription: '放大物品局部，大家一起猜猜看。',
+    advancedDescription: '超高倍率放大，考驗想像力與視覺完形。',
+    tags: ['VISUOSPATIAL', 'ATTENTION'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.VERBAL_MEMORY,
+    title: '記憶翻牌（口語版）',
+    category: 'COGNITIVE',
+    normalDescription: '大數字編號，適合團體一起喊號碼翻牌。',
+    advancedDescription: '20 張牌挑戰，需要更強的短期記憶。',
+    tags: ['MEMORY', 'LANGUAGE'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.WORD_CHAIN,
+    title: '語意聯想',
+    category: 'COGNITIVE',
+    normalDescription: '明確的條件限制，如「紅色的食物」、「四隻腳的動物」。',
+    advancedDescription: '特定情境的聯想，如「去海邊會帶的東西」、「放在冰箱裡的東西」。',
+    tags: ['LANGUAGE', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.SIMON_SAYS,
+    title: '順序記憶',
+    category: 'COGNITIVE',
+    normalDescription: '記住顏色亮起的順序，並大聲說出來。',
+    advancedDescription: '更長的順序與更快的速度。',
+    tags: ['MEMORY', 'ATTENTION'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.GUESS_WHO,
+    title: '猜猜我是誰',
+    category: 'COGNITIVE',
+    normalDescription: '邏輯排除法，根據特徵提問找出目標人物。',
+    tags: ['LOGIC', 'LANGUAGE'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.STORY_CARDS,
+    title: '故事聯想卡',
+    category: 'COGNITIVE',
+    normalDescription: '看圖說故事，發揮想像力將隨機物品串聯起來。',
+    tags: ['LANGUAGE', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.CONDITIONAL_SNAP,
+    title: '條件反應大挑戰',
+    category: 'COGNITIVE',
+    normalDescription: '設定專屬規則，看到目標圖案快速反應！',
+    tags: ['ATTENTION', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+
+  {
+    id: GameState.WEIQI,
+    title: '圍棋（含死活出題）',
+    category: 'STRATEGY',
+    normalDescription: '經典圍棋對弈：人機對戰、AB 組對決、死活與吃子手筋解謎。',
+    tags: ['STRATEGY', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.GOMOKU,
+    title: '五子棋',
+    category: 'STRATEGY',
+    normalDescription: '經典連線遊戲，率先連成五子者勝。',
+    tags: ['STRATEGY', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.DOTS_BOXES,
+    title: '點格棋',
+    category: 'STRATEGY',
+    normalDescription: '連線圍地，考驗佈局與前瞻思考。',
+    tags: ['STRATEGY', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.MANCALA,
+    title: '播棋（寶石棋）',
+    category: 'STRATEGY',
+    normalDescription: '非洲古老智慧，運算與分配的藝術。',
+    tags: ['STRATEGY', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.DARK_CHESS,
+    title: '象棋暗棋',
+    category: 'STRATEGY',
+    normalDescription: '運氣與策略並重，翻棋吃子對決。',
+    tags: ['STRATEGY', 'CHANCE'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.CONNECT_FOUR,
+    title: '四子棋',
+    category: 'STRATEGY',
+    normalDescription: '重力連線，垂直、水平、斜向皆可。',
+    tags: ['STRATEGY', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.OTHELLO,
+    title: '黑白棋',
+    category: 'STRATEGY',
+    normalDescription: '翻轉對手棋子，佔領盤面最多者勝。',
+    tags: ['STRATEGY', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.CHECKERS,
+    title: '西洋跳棋',
+    category: 'STRATEGY',
+    normalDescription: '斜向跳吃，策略走位，衝向底線。',
+    tags: ['STRATEGY', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+  {
+    id: GameState.GOBBLET,
+    title: '奇雞連連',
+    category: 'STRATEGY',
+    normalDescription: '大吃小，套娃版的進階井字遊戲。',
+    tags: ['STRATEGY', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'BOARD_SIDEBAR',
+  },
+
+  {
+    id: GameState.MAHJONG_MELDS,
+    title: '麻將湊牌大師',
+    category: 'TABLETOP',
+    normalDescription: '順子、刻子、將牌配對，熟悉的國粹摸牌樂趣！',
+    advancedDescription: '進階聽牌、吃碰與雀頭組合判定。',
+    tags: ['TABLETOP', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.RUMMIKUB,
+    title: '拉密魔術牌',
+    category: 'TABLETOP',
+    normalDescription: '同色順組、同數四色群組與百搭笑臉數字磚！',
+    advancedDescription: '多牌組拆解與進階百搭笑臉牌替代邏輯。',
+    tags: ['TABLETOP', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.QWIRKLE,
+    title: '繽紛形色棋',
+    category: 'TABLETOP',
+    normalDescription: '同色不同形、同形不同色，國際獲獎經典連線桌遊！',
+    advancedDescription: '六色大滿貫 Qwirkle 挑戰與進階排錯邏輯。',
+    tags: ['TABLETOP', 'LOGIC', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.SEVENS,
+    title: '歡樂排七接龍',
+    category: 'TABLETOP',
+    normalDescription: '黑桃、紅心、方塊、梅花以 7 為中心雙向接龍！',
+    advancedDescription: '四花色全局速看與頂底端出牌推理。',
+    tags: ['CARD', 'STRATEGY'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.CHINESE_TEN,
+    title: '經典撿紅點',
+    category: 'TABLETOP',
+    normalDescription: '經典 9 湊 1、8 湊 2、7 湊 3、10 湊 10，撿紅字吃高分！',
+    advancedDescription: '吃牌算分策略與紅心方塊高分最大化！',
+    tags: ['CARD', 'STRATEGY'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.BLACKJACK,
+    title: '公開 21 點',
+    category: 'TABLETOP',
+    normalDescription: '計算點數與風險評估，可選擇對抗莊家或分組對抗。',
+    tags: ['CARD', 'STRATEGY', 'CHANCE'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.GUESS_CARD,
+    title: '邏輯猜牌',
+    category: 'TABLETOP',
+    normalDescription: '透過發問與排除法，找出目標卡牌。',
+    tags: ['CARD', 'LOGIC', 'LANGUAGE'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.PYRAMID,
+    title: '金字塔接龍',
+    category: 'TABLETOP',
+    normalDescription: '兩張牌相加為 13 即可消除，清空金字塔！',
+    advancedDescription: '隱藏部分卡牌，更考驗記憶與運算。',
+    tags: ['CARD', 'LOGIC'],
+    playerModes: ['SOLO', 'GROUP'],
+    layoutPreset: 'GRID_FOCUS',
+  },
+  {
+    id: GameState.TREASURE,
+    title: '尋寶大冒險',
+    category: 'TABLETOP',
+    normalDescription: '大家一起喊出位置，看看誰能挖到寶藏！',
+    advancedDescription: '更大的地圖與隱藏的炸彈陷阱！',
+    tags: ['TABLETOP', 'CHANCE', 'VISUOSPATIAL'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.ROULETTE,
+    title: '命運轉盤',
+    category: 'TABLETOP',
+    normalDescription: '猜猜轉盤會停在哪裡？充滿歡樂與運氣！',
+    advancedDescription: '更多選項與雙倍計分，大膽預測！',
+    tags: ['TABLETOP', 'CHANCE'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.HIGHER_LOWER,
+    title: '步步高升',
+    category: 'TABLETOP',
+    normalDescription: '比大小！下一張牌會更大還是更小？',
+    advancedDescription: '猜大小，連續猜對獲得更高分！',
+    tags: ['CARD', 'CHANCE'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+
+  {
+    id: GameState.MARKET,
+    title: '快樂市集',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '生活算術與金錢管理訓練。',
+    advancedDescription: '複雜計算與預算控制。',
+    tags: ['DAILY_LIVING', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.STEPS,
+    title: '生活步驟',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '將生活任務依照正確順序排列。',
+    advancedDescription: '繁複生活任務的順序執行。',
+    tags: ['DAILY_LIVING', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.EMOTION,
+    title: '情緒氣象台',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '社交認知：辨識表情與情緒情境。',
+    advancedDescription: '解讀複雜與混合的社交情緒。',
+    tags: ['SOCIAL_COGNITION', 'WELLBEING'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.TIME,
+    title: '時間管家',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '認識時鐘，建立時間觀念。',
+    advancedDescription: '時間計算與行程規劃。',
+    tags: ['DAILY_LIVING', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.PRICE_ESTIMATION,
+    title: '價格估算',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '日常用品與小吃，猜猜看多少錢。',
+    advancedDescription: '高單價物品與生活規費估算。',
+    tags: ['DAILY_LIVING', 'EXECUTIVE_FUNCTION'],
+    playerModes: ['GROUP', 'FACILITATED'],
+    layoutPreset: 'FACILITATOR',
+  },
+  {
+    id: GameState.SOCIAL_CONTEXT,
+    title: '情境應對',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '日常人際互動與社交禮儀問答。',
+    advancedDescription: '職場與複雜衝突情境處理。',
+    tags: ['SOCIAL_COGNITION', 'LANGUAGE'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.HAZARD_ID,
+    title: '安全辨識',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '居家與日常生活危險情境尋找。',
+    advancedDescription: '戶外與長照情境的安全隱患。',
+    tags: ['SAFETY', 'DAILY_LIVING'],
+    playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+  {
+    id: GameState.POSITIVE_THINKING,
+    title: '轉念練習',
+    category: 'LIFE_SOCIAL',
+    normalDescription: '將負面想法轉化為正向或客觀思考。',
+    advancedDescription: '深度認知重塑與自我對話。',
+    tags: ['WELLBEING', 'SOCIAL_COGNITION'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'SPLIT_CHOICE',
+  },
+
+  {
+    id: GameState.BREATHING,
+    title: '呼吸律動',
+    category: 'RELAX',
+    normalDescription: '跟隨 4-7-8 呼吸引導，平靜思緒。',
+    tags: ['RELAXATION', 'WELLBEING'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+  {
+    id: GameState.AMBIENT_SOUND,
+    title: '環境白噪音',
+    category: 'RELAX',
+    normalDescription: '聆聽雨聲、海浪與微風，幫助放鬆與專注。',
+    tags: ['RELAXATION', 'AUDITORY'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+  {
+    id: GameState.MANDALA,
+    title: '紓壓聲繪',
+    category: 'RELAX',
+    normalDescription: '結合語音與塗鴉，用聲音的大小與頻率繪出心靈畫作。',
+    tags: ['RELAXATION', 'AUDITORY'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+  {
+    id: GameState.AFFIRMATION,
+    title: '正向肯定小卡',
+    category: 'RELAX',
+    normalDescription: '抽取充滿感恩與正能量的話語，溫暖每一天。',
+    tags: ['RELAXATION', 'WELLBEING'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+  {
+    id: GameState.STARRY_RIPPLE,
+    title: '指尖星空',
+    category: 'RELAX',
+    normalDescription: '輕觸螢幕，創造屬於你的療癒水波與星空。',
+    tags: ['RELAXATION', 'VISUOSPATIAL'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+  {
+    id: GameState.MUSCLE_RELAXATION,
+    title: '漸進式放鬆',
+    category: 'RELAX',
+    normalDescription: '跟隨引導放鬆全身肌肉，釋放深層壓力。',
+    tags: ['RELAXATION', 'WELLBEING'],
+    playerModes: ['SOLO', 'FACILITATED'],
+    layoutPreset: 'IMMERSIVE',
+  },
+];
+
+export const getGamesByCategory = (category: GameCategoryId): readonly GameDefinition[] =>
+  GAME_CATALOG.filter(game => game.category === category);
+
+export const parseGameCategoryId = (value: string | null): GameCategoryId | null =>
+  GAME_CATEGORIES.some(category => category.id === value) ? (value as GameCategoryId) : null;
+
+export const getGameDefinition = (id: GameState): GameDefinition | undefined =>
+  GAME_CATALOG.find(game => game.id === id);
+
+export const getGameDescription = (id: GameState, difficulty: Difficulty): string => {
+  const game = getGameDefinition(id);
+  if (!game) return '';
+  return difficulty === 'ADVANCED' && game.advancedDescription
+    ? game.advancedDescription
+    : game.normalDescription;
+};
