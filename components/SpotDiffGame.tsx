@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, CheckCircle2, Search, Timer, Trophy, XCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle2, Search, XCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -113,111 +114,50 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
-      {/* Header */}
-      <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={24} />
+    <GridFocusScreen
+      title="大家來找碴"
+      subtitle={`找出 ${numDifferences} 個不同的圖案`}
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className={isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'}
+      statusClassName={isAdvanced ? 'bg-indigo-100 text-indigo-800' : 'bg-emerald-100 text-emerald-800'}
+      advancedClassName="bg-indigo-600"
+      playfieldLabel="找碴雙圖比較區"
+      playfieldClassName="flex items-center justify-center overflow-auto"
+      actions={(
+        <button type="button" onClick={initGame} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200">
+          <RefreshCw size={22} />
         </button>
-        <div className="text-center">
-          <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>大家來找碴</h2>
-          <p className="text-xs text-gray-500">
-            {isAdvanced ? `找出 ${numDifferences} 個不同的圖案` : `找出 ${numDifferences} 個不同的圖案`}
-          </p>
-        </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
-          <RefreshCw size={24} />
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
-        
-        {/* Stats Bar */}
-        <div className="w-full max-w-5xl flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
-          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
-            <Timer className="text-blue-500" />
-            第 {round} / {TOTAL_ROUNDS} 關
-          </div>
-          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
-            <Trophy className="text-yellow-500" />
-            分數: {score}
-          </div>
-        </div>
-
-        {isComplete && (
-          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-4 border-green-200">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mb-2" />
-            <h3 className="text-2xl font-bold text-green-600 mb-2">挑戰完成！</h3>
-            <p className="text-xl text-gray-700 font-bold">總得分：{score} 分</p>
-          </div>
-        )}
-
-        <div className={`flex flex-col landscape:flex-row lg:flex-row gap-4 lg:gap-8 items-center justify-center w-full max-w-5xl ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
-          
-          {/* Original Grid (Left) */}
-          <div className="flex flex-col items-center w-full max-w-[70vw] landscape:max-w-[40vh] lg:max-w-md">
-            <div className="mb-2 font-bold text-gray-600 bg-white px-4 py-1 rounded-full shadow-sm">原圖 (A)</div>
-            <div 
-              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'} w-full`}
-            >
-              <div 
-                className="grid gap-2 landscape:gap-1 lg:gap-4 w-full"
-                style={{ 
-                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
-                }}
-              >
+      )}
+      playfield={(
+        <div className={`flex h-full w-full max-w-5xl flex-col items-center justify-center gap-2 landscape:flex-row sm:gap-4 ${isComplete ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className="flex min-h-0 flex-col items-center">
+            <div className="mb-1 rounded-full bg-white px-4 py-1 font-bold text-gray-600 shadow-sm">原圖 (A)</div>
+            <div className={`h-full max-h-64 aspect-square rounded-2xl border-4 bg-white p-2 shadow-lg ${isAdvanced ? 'border-indigo-200' : 'border-emerald-200'}`}>
+              <div className="grid h-full w-full gap-1 sm:gap-2" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
                 {originalGrid.map((emoji, idx) => (
-                  <div 
-                    key={`orig-${idx}`}
-                    className="aspect-square flex items-center justify-center text-4xl landscape:text-2xl lg:text-6xl bg-gray-50 rounded-xl border border-gray-100 shadow-sm"
-                  >
-                    {emoji}
-                  </div>
+                  <div key={`orig-${idx}`} className="flex aspect-square items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-2xl shadow-sm sm:text-4xl">{emoji}</div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Modified Grid (Right) */}
-          <div className="flex flex-col items-center w-full max-w-[70vw] landscape:max-w-[40vh] lg:max-w-md">
-            <div className="mb-2 font-bold text-blue-600 bg-blue-50 px-4 py-1 rounded-full shadow-sm border border-blue-200 flex items-center gap-2">
-              <Search size={16} /> 找不同 (B)
-            </div>
-            <div 
-              className={`bg-white p-3 rounded-2xl shadow-lg border-4 ${isAdvanced ? 'border-indigo-400' : 'border-emerald-400'} w-full`}
-            >
-              <div 
-                className="grid gap-2 landscape:gap-1 lg:gap-4 w-full"
-                style={{ 
-                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
-                }}
-              >
+          <div className="flex min-h-0 flex-col items-center">
+            <div className="mb-1 flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1 font-bold text-blue-600 shadow-sm"><Search size={16} /> 找不同 (B)</div>
+            <div className={`h-full max-h-64 aspect-square rounded-2xl border-4 bg-white p-2 shadow-lg ${isAdvanced ? 'border-indigo-400' : 'border-emerald-400'}`}>
+              <div className="grid h-full w-full gap-1 sm:gap-2" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
                 {modifiedGrid.map((emoji, idx) => {
                   const isFound = foundIndices.includes(idx);
                   const isWrong = wrongIndices.includes(idx);
                   return (
-                    <button 
-                      key={`mod-${idx}`}
-                      onClick={() => handleCellClick(idx)}
-                      disabled={isComplete || isFound}
-                      className={`
-                        relative aspect-square flex items-center justify-center text-4xl landscape:text-2xl lg:text-6xl rounded-xl border shadow-sm transition-all duration-300
-                        ${isFound ? 'bg-green-100 border-green-400 ring-4 ring-green-300 scale-105' : 'bg-gray-50 border-gray-100 hover:bg-blue-50 hover:border-blue-200 active:scale-95'}
-                      `}
-                    >
-                      <span className="absolute top-0 left-0 bg-blue-600 text-white text-[8px] sm:text-xs md:text-sm font-bold w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center rounded-br-lg rounded-tl-lg shadow-sm z-10 leading-none">{idx + 1}</span>
+                    <button key={`mod-${idx}`} onClick={() => handleCellClick(idx)} disabled={isComplete || isFound} className={`relative flex aspect-square items-center justify-center rounded-lg border text-2xl shadow-sm transition-all active:scale-95 sm:text-4xl ${isFound ? 'scale-105 border-green-400 bg-green-100 ring-4 ring-green-300' : 'border-gray-100 bg-gray-50 hover:bg-blue-50'}`}>
+                      <span className="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded-br-lg rounded-tl-lg bg-blue-600 text-[8px] font-bold leading-none text-white sm:h-5 sm:w-5 sm:text-xs">{idx + 1}</span>
                       {emoji}
-                      {isFound && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 rounded-xl">
-                          <CheckCircle2 className="w-1/2 h-1/2 text-green-600 opacity-80" />
-                        </div>
-                      )}
-                      {isWrong && !isFound && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-red-500/10 rounded-xl">
-                          <XCircle className="w-1/2 h-1/2 text-red-500 opacity-80" />
-                        </div>
-                      )}
+                      {isFound && <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-green-500/20"><CheckCircle2 className="h-1/2 w-1/2 text-green-600 opacity-80" /></div>}
+                      {isWrong && !isFound && <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-red-500/10"><XCircle className="h-1/2 w-1/2 text-red-500 opacity-80" /></div>}
                     </button>
                   );
                 })}
@@ -225,20 +165,15 @@ const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </div>
           </div>
 
+          <div aria-label="已找到差異數" className="flex gap-2 landscape:flex-col">
+            {Array.from({ length: numDifferences }).map((_, index) => (
+              <div key={index} className={`h-4 w-4 rounded-full ${index < foundIndices.length ? 'bg-green-500' : 'bg-gray-300'}`} />
+            ))}
+          </div>
         </div>
-
-        {/* Progress Indicator */}
-        <div className="mt-8 flex gap-2">
-          {Array.from({ length: numDifferences }).map((_, i) => (
-            <div 
-              key={i} 
-              className={`w-4 h-4 rounded-full ${i < foundIndices.length ? 'bg-green-500' : 'bg-gray-300'}`}
-            />
-          ))}
-        </div>
-
-      </div>
-    </div>
+      )}
+      feedback={isComplete ? <span className="text-green-700">挑戰完成！總得分：{score} 分</span> : wrongIndices.length > 0 ? <span className="text-red-700">這一格相同，再仔細比較看看</span> : undefined}
+    />
   );
 };
 

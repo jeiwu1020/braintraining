@@ -32,4 +32,18 @@ describe('SplitChoiceLayout', () => {
     expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain('答錯了，再試一次');
   });
+
+  it('reserves a separate grid row for feedback instead of overlaying choices', () => {
+    const markup = renderToStaticMarkup(
+      <SplitChoiceLayout
+        question="題目"
+        choices={<button type="button">第三個答案</button>}
+        feedback="再想想看"
+      />,
+    );
+
+    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).toContain('split-choice-layout__feedback');
+    expect(markup).not.toContain('pointer-events-none absolute bottom-3');
+  });
 });

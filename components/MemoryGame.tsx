@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Footprints, X } from 'lucide-react';
+import { RefreshCw, Trophy, Footprints } from 'lucide-react';
 import { MemoryCard, Difficulty } from '../types';
 import { generateEncouragement } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface Props {
   onBack: () => void;
@@ -137,65 +139,49 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-indigo-50 overflow-hidden relative">
-        {/* Header */}
-      <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10">
-        <button 
-          onClick={onBack}
-          className="p-2 bg-gray-100 rounded-full text-indigo-600 hover:bg-indigo-100"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-2">
-            {difficulty === 'ADVANCED' && <span className="bg-indigo-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-            <div className="flex items-center bg-indigo-100 px-4 py-1 rounded-full text-indigo-800 font-bold">
-                <Footprints className="w-4 h-4 mr-2" />
-                步數: {moves}
-            </div>
-        </div>
-        <button 
-          onClick={initializeGame}
-          className="p-2 bg-gray-100 rounded-full text-indigo-600 hover:bg-indigo-100"
-        >
-          <RefreshCw size={20} />
-        </button>
-      </div>
-
-      {/* Main Content: Flex Row on landscape, Flex Col on portrait */}
-      <div className="flex-1 flex flex-col sm:flex-row overflow-hidden relative landscape:flex-row">
-        
-        {/* Game Area - Centered & Scrollable */}
-        <div className="flex-1 flex items-center justify-center p-2 landscape:p-1 overflow-y-auto">
-            <div className="relative">
+    <GameShell
+      title="圖像記憶配對"
+      subtitle="翻開卡片，找出相同圖案"
+      onBack={onBack}
+      className="bg-indigo-50"
+      status={<div className="flex items-center rounded-full bg-indigo-100 px-3 py-1 font-bold text-indigo-800">{difficulty === 'ADVANCED' && <span className="mr-2 rounded-full bg-indigo-600 px-2 py-0.5 text-xs text-white">進階</span>}<Footprints className="mr-1 h-4 w-4" />步數 {moves}</div>}
+      actions={<button onClick={initializeGame} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-gray-100 text-indigo-600 hover:bg-indigo-100"><RefreshCw size={20} /></button>}
+    >
+      <>
+        <GridFocusLayout
+          playfieldLabel="記憶配對矩陣"
+          supportLabel="未配對操作"
+          playfieldClassName="flex items-center justify-center overflow-hidden"
+          supportClassName="flex items-center justify-center overflow-hidden"
+          playfield={(
+            <div className="relative flex h-full max-h-[30rem] aspect-square flex-col">
                 {/* Column Labels (A-D) */}
-                <div className="flex mb-1 pl-8">
+                <div className="mb-0 flex pl-6">
                     {['A', 'B', 'C', 'D'].map(label => (
-                        <div key={label} className="flex-1 text-center font-bold text-indigo-400 text-lg md:text-xl">
+                        <div key={label} className="flex-1 text-center text-sm font-bold leading-none text-indigo-400 sm:text-base">
                             {label}
                         </div>
                     ))}
                 </div>
 
-                <div className="flex">
+                <div className="flex min-h-0 flex-1">
                     {/* Row Labels (1-4) */}
-                    <div className="flex flex-col w-8 justify-around pr-2">
+                    <div className="flex w-6 flex-col justify-around pr-0.5">
                         {[1, 2, 3, 4].map(label => (
-                            <div key={label} className="flex-1 flex items-center justify-center font-bold text-indigo-400 text-lg md:text-xl">
+                            <div key={label} className="flex flex-1 items-center justify-center text-sm font-bold text-indigo-400 sm:text-base">
                                 {label}
                             </div>
                         ))}
                     </div>
 
                     {/* Grid - Adjusted for landscape (limit height) */}
-                    <div className="grid grid-cols-4 gap-2 md:gap-3 
-                        w-[80vw] max-w-[400px] aspect-square
-                        sm:h-[75vh] sm:w-[75vh] sm:max-w-none sm:max-h-none
-                    ">
+                    <div className="grid h-full flex-1 grid-cols-4 gap-1 sm:gap-2">
                         {cards.map((card, index) => (
-                        <div
+                        <button
                             key={card.id}
                             onClick={() => handleCardClick(index)}
-                            className={`relative cursor-pointer perspective-1000 w-full h-full`}
+                            disabled={isProcessing || isMismatchWaiting || card.isFlipped || card.isMatched}
+                            className="relative min-h-11 w-full cursor-pointer perspective-1000 disabled:cursor-default"
                         >
                             {/* Card Inner */}
                             <div className={`
@@ -214,19 +200,14 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                                     {(card.isFlipped || card.isMatched) ? card.content : ''}
                                 </div>
                             </div>
-                        </div>
+                        </button>
                         ))}
                     </div>
                 </div>
             </div>
-        </div>
-
-        {/* Side Panel / Overlay Action Area (For Reset Button) 
-            Use Absolute positioning to prevent layout shifts on the grid.
-        */}
-        {isMismatchWaiting && (
-            <div className="absolute inset-x-0 bottom-4 flex justify-center z-20 pointer-events-none sm:inset-y-0 sm:right-4 sm:left-auto sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
-                <div className="pointer-events-auto bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-indigo-100 flex flex-row sm:flex-col items-center gap-4 animate-fade-in-up">
+          )}
+          support={isMismatchWaiting ? (
+                <div className="flex flex-col items-center gap-4 rounded-2xl border border-indigo-100 bg-white/90 p-4 shadow-xl backdrop-blur-sm">
                     <div className="text-center text-gray-600 font-bold whitespace-nowrap">
                         沒配對成功<br className="hidden sm:block"/>請記住位置
                     </div>
@@ -238,10 +219,9 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         蓋上卡片
                     </button>
                 </div>
-            </div>
-        )}
-
-      </div>
+          ) : undefined}
+          feedback={isMismatchWaiting ? <span className="text-indigo-700">這兩張沒有配對，記住位置後再蓋上</span> : undefined}
+        />
 
       {isWon && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -267,7 +247,8 @@ const MemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         </div>
       )}
-    </div>
+      </>
+    </GameShell>
   );
 };
 

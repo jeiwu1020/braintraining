@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, Sun, CheckCircle } from 'lucide-react';
+import { Loader2, Sun, CheckCircle } from 'lucide-react';
 import { ShadowLevel, Difficulty } from '../types';
 import { generateShadowLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import CognitiveChoiceScreen from './game-ui/CognitiveChoiceScreen';
+import GameShell from './game-ui/GameShell';
 
 interface Props {
   onBack: () => void;
@@ -95,7 +97,8 @@ const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4 animate-fade-in">
+      <GameShell title="影子猜猜看" subtitle="從輪廓找出正確物件" onBack={onBack} className="bg-slate-100">
+       <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-slate-300">
               <Sun className="w-20 h-20 text-slate-800 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-slate-900 mb-2">觀察入微！</h2>
@@ -118,16 +121,19 @@ const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+       </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
-        <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
-        <p className="text-slate-800">準備影子中...</p>
-      </div>
+      <GameShell title="影子猜猜看" subtitle="從輪廓找出正確物件" onBack={onBack} className="bg-slate-50">
+        <div role="status" className="flex h-full flex-col items-center justify-center">
+          <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
+          <p className="text-slate-800">準備影子中...</p>
+        </div>
+      </GameShell>
     );
   }
 
@@ -139,51 +145,38 @@ const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const isAdvanced = level.options.length > 4;
   const gridColsClass = isAdvanced ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2';
   
-  // Option container width strategy
-  // Advanced needs more width in landscape to fit 3 cols comfortably
-  const optionsContainerClass = isAdvanced 
-    ? 'w-full sm:w-[50vw] max-w-2xl' 
-    : 'w-full sm:w-auto max-w-md';
-
   return (
-    <div className="flex flex-col h-screen bg-slate-100 overflow-hidden relative">
-      {/* Header */}
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-slate-800 shadow-sm hover:bg-slate-100">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-4">
-            {difficulty === 'ADVANCED' && <span className="bg-slate-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-             <div className="px-3 py-1 bg-slate-200 rounded-full text-slate-800 font-bold text-sm">
-                第 {round} / {TOTAL_ROUNDS} 題
-             </div>
-             <div className="flex items-center bg-slate-200 px-3 py-1 rounded-full text-slate-800 font-bold">
-                <Trophy size={16} className="mr-2"/> {score}
-             </div>
-        </div>
-      </div>
-
-      {/* Main Content: Flex-col on portrait, Flex-row on landscape/large screens */}
-      {/* Added max-h constraint and overflow handling for landscape mobile */}
-      <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-2 sm:p-4 gap-4 md:gap-8 overflow-y-auto w-full max-w-5xl mx-auto">
-        
-        {/* Target Area (Left on Landscape) */}
-        <div className="flex-none sm:flex-1 bg-white p-4 md:p-8 rounded-[2rem] shadow-xl border-4 border-white ring-4 ring-slate-200 flex flex-col items-center justify-center w-full sm:w-auto h-auto min-h-[160px] sm:h-full max-h-[35vh] sm:max-h-[60vh]">
+    <CognitiveChoiceScreen
+      title="影子猜猜看"
+      subtitle="從輪廓找出正確物件"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className="bg-slate-100"
+      statusClassName="bg-slate-200 text-slate-800"
+      advancedClassName="bg-slate-700"
+      questionLabel="影子題目區"
+      choicesLabel="影子作答區"
+      questionClassName="flex items-center justify-center rounded-3xl border-2 border-slate-200 bg-white p-3 shadow-lg sm:p-5"
+      choicesClassName="flex items-center justify-center pr-1"
+      question={(
+        <div className="flex flex-col items-center justify-center">
              <div className="text-7xl sm:text-8xl md:text-9xl filter drop-shadow-lg mb-2 animate-bounce-short">
                  {level.target}
              </div>
              <p className="text-slate-500 font-bold text-base md:text-lg text-center">它的影子是哪一個？</p>
         </div>
-
-        {/* Options Area (Right on Landscape) */}
-        <div className={`flex-none sm:flex-[1.5] ${optionsContainerClass} min-h-0`}>
-            <div className={`grid ${gridColsClass} gap-3 sm:gap-4 w-full h-full`}>
+      )}
+      choices={(
+            <div className={`grid ${gridColsClass} w-full gap-3 sm:gap-4`}>
                 {level.options.map((opt, idx) => (
                     <button
                         key={idx}
                         onClick={() => handleOptionClick(idx)}
                         className={`
-                            w-full h-full min-h-[80px] sm:min-h-[100px] rounded-2xl flex flex-col items-center justify-center relative transition-all duration-200 p-2 border-2
+                            w-full min-h-[76px] sm:min-h-[96px] rounded-2xl flex flex-col items-center justify-center relative transition-all duration-200 p-2 border-2
                             ${feedback === 'correct' && idx === level.correctIndex ? 'bg-green-100 border-green-500 scale-105 z-10' : ''}
                             ${feedback === 'wrong' && idx === wrongIndex ? 'bg-red-100 border-red-400 shake' : 'border-transparent'}
                             ${!feedback || (feedback === 'wrong' && idx !== wrongIndex) ? 'bg-white shadow-md hover:bg-slate-50 hover:shadow-xl hover:-translate-y-1' : ''}
@@ -215,17 +208,9 @@ const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </button>
                 ))}
             </div>
-        </div>
-
-        {/* Error Feedback Text (Fixed Position) */}
-        {showErrorMsg && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-100 text-red-600 px-8 py-4 rounded-2xl font-bold shadow-2xl animate-bounce-short text-xl whitespace-nowrap z-50 border-2 border-red-200 pointer-events-none">
-                再看清楚一點喔！
-            </div>
-        )}
-
-      </div>
-    </div>
+      )}
+      feedback={showErrorMsg ? '再看清楚一點喔！' : feedback === 'correct' ? '找到了！' : undefined}
+    />
   );
 };
 

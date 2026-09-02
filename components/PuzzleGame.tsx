@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
+import { Loader2, Trophy, ArrowRight } from 'lucide-react';
 import { PuzzleLevel, Difficulty } from '../types';
 import { generatePuzzleLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -108,7 +110,8 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-teal-50 p-4 animate-fade-in">
+      <GameShell title="拼圖達人" subtitle="本回合完成" onBack={onBack} className="bg-teal-50">
+       <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 animate-fade-in">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-teal-200">
           <Trophy className="w-20 h-20 text-teal-500 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-teal-900 mb-2">拼圖大師！</h2>
@@ -119,12 +122,13 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <button onClick={handleRestart} className="flex-1 py-3 bg-teal-500 text-white rounded-xl font-bold hover:bg-teal-600 shadow-lg">再玩一次</button>
           </div>
         </div>
-      </div>
+       </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-    return <div className="min-h-screen bg-teal-50 flex items-center justify-center"><Loader2 className="animate-spin text-teal-500 w-12 h-12" /></div>;
+    return <GameShell title="拼圖達人" subtitle="交換方塊還原目標圖片" onBack={onBack} className="bg-teal-50"><div role="status" className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-teal-500 w-12 h-12" /></div></GameShell>;
   }
 
   const gridStyle = {
@@ -142,31 +146,25 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const fontSize = level.gridSize > 2 ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl';
 
   return (
-    <div className="flex flex-col h-screen bg-teal-50 overflow-hidden relative">
-      {/* Header - Compact */}
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10 h-14">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-teal-800 shadow-sm hover:bg-teal-100"><ArrowLeft size={20} /></button>
-        <div className="flex items-center gap-4">
-          {difficulty === 'ADVANCED' && <span className="bg-teal-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-          <div className="text-teal-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-          <div className="flex items-center bg-teal-100 px-3 py-1 rounded-full text-teal-800 font-bold"><Trophy size={16} className="mr-2"/> {score}</div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center p-1 w-full h-full overflow-hidden">
-        
-        {/* Title: Hidden on small height screens (landscape phones) to save vertical space */}
-        <div className="text-center shrink-0 hidden sm:block h-8">
-            <h2 className="text-lg font-bold text-teal-900">還原圖片</h2>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex flex-row items-center justify-center gap-2 sm:gap-12 w-full h-full max-h-[85vh]">
-            
-            {/* Target Preview (Left) - Increased Size */}
-            <div className="bg-white p-2 rounded-xl shadow-md border-2 border-teal-100 shrink-0 flex flex-col items-center justify-center">
+    <GridFocusScreen
+      title="拼圖達人"
+      subtitle="交換方塊還原目標圖片"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className="bg-teal-50"
+      statusClassName="bg-teal-100 text-teal-800"
+      advancedClassName="bg-teal-600"
+      playfieldLabel="拼圖交換矩陣"
+      supportLabel="目標圖片"
+      playfieldClassName="flex items-center justify-center overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-hidden"
+      support={(
+            <div className="flex flex-col items-center justify-center rounded-xl border-2 border-teal-100 bg-white p-2 shadow-md">
                 <div className="text-xs text-center text-gray-400 mb-1 font-bold">目標</div>
-                <div className="grid gap-1 w-[28vmin] h-[28vmin] max-w-[180px] max-h-[180px] min-w-[100px] min-h-[100px]" style={gridStyle}>
+                <div className="grid h-32 w-32 gap-1" style={gridStyle}>
                     {level.targetImage.map((item, idx) => (
                         <div key={idx} className="bg-gray-100 flex items-center justify-center text-3xl sm:text-4xl rounded">
                             {item}
@@ -174,23 +172,23 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     ))}
                 </div>
             </div>
-
-            {/* Main Game Grid with Coordinates (Right) */}
-            <div className="flex flex-col items-center shrink-0">
+      )}
+      playfield={(
+            <div className="flex h-full max-h-[30rem] aspect-square flex-col items-center">
                 {/* Column Labels (Top) */}
-                <div className="flex pl-6 mb-1 w-full justify-around">
+                <div className="mb-0 flex w-full justify-around pl-6">
                     {labels.map((label) => (
-                        <div key={label} className="flex-1 text-center font-bold text-teal-700 text-base sm:text-lg">
+                        <div key={label} className="flex-1 text-center text-sm font-bold leading-none text-teal-700 sm:text-base">
                             {label}
                         </div>
                     ))}
                 </div>
                 
-                <div className="flex items-center">
+                <div className="flex min-h-0 w-full flex-1 items-center">
                     {/* Row Labels (Left) - Use Grid to match alignment exactly */}
-                    <div className="grid gap-1 w-6 pr-1 h-[55vmin] max-h-[350px] min-h-[200px]" style={rowStyle}>
+                    <div className="grid h-full w-6 gap-1 pr-0.5" style={rowStyle}>
                         {rows.map((r) => (
-                            <div key={r} className="flex items-center justify-center font-bold text-teal-700 text-base sm:text-lg">
+                            <div key={r} className="flex items-center justify-center text-sm font-bold text-teal-700 sm:text-base">
                                 {r}
                             </div>
                         ))}
@@ -199,7 +197,7 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     {/* The Interactive Grid */}
                     {/* Using vmin ensures it scales down on short landscape screens to avoid cropping */}
                     <div 
-                        className={`grid gap-1 bg-white p-2 rounded-xl shadow-xl border-4 ${isRoundComplete ? 'border-green-400' : 'border-teal-200'} w-[55vmin] h-[55vmin] max-w-[350px] max-h-[350px] min-w-[200px] min-h-[200px] transition-all`} 
+                        className={`grid h-full flex-1 gap-1 rounded-xl border-4 bg-white p-2 shadow-xl transition-all ${isRoundComplete ? 'border-green-400' : 'border-teal-200'}`}
                         style={gridStyle}
                     >
                         {currentGrid.map((tile, idx) => (
@@ -219,30 +217,19 @@ const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </div>
                 </div>
             </div>
-        </div>
-
-        {/* Feedback / Controls Footer */}
-        <div className="h-14 flex items-center justify-center relative w-full shrink-0 mt-1">
-            {isRoundComplete ? (
-                <div className="flex items-center gap-4 animate-fade-in-up z-20">
-                    <div className="bg-green-100 border-green-500 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-md flex items-center gap-2 border-2 whitespace-nowrap">
-                        <CheckCircle size={20} />
-                        <span className="text-base">答對了！</span>
-                    </div>
-                    <button 
+      )}
+      feedback={isRoundComplete ? (
+                <div className="flex items-center gap-4 text-green-700">
+                    <span>答對了！</span>
+                    <button
                         onClick={handleNext}
-                        className="px-6 py-1.5 bg-teal-600 text-white rounded-full font-bold shadow-lg hover:bg-teal-700 flex items-center text-base"
+                        className="flex min-h-11 items-center rounded-full bg-teal-600 px-6 font-bold text-white shadow-lg hover:bg-teal-700"
                     >
                         下一題 <ArrowRight className="ml-2 w-4 h-4"/>
                     </button>
                 </div>
-            ) : (
-                <p className="text-teal-600 text-sm animate-pulse bg-white/50 px-4 py-1 rounded-full">點擊兩個方塊交換位置</p>
-            )}
-        </div>
-
-      </div>
-    </div>
+      ) : <span className="text-teal-700">點擊兩個方塊交換位置</span>}
+    />
   );
 };
 

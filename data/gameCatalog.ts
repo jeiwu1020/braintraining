@@ -437,7 +437,7 @@ export const GAME_CATALOG: readonly GameDefinition[] = [
     normalDescription: '計算點數與風險評估，可選擇對抗莊家或分組對抗。',
     tags: ['CARD', 'STRATEGY', 'CHANCE'],
     playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
-    layoutPreset: 'SPLIT_CHOICE',
+    layoutPreset: 'BOARD_TABLE',
   },
   {
     id: GameState.GUESS_CARD,
@@ -446,7 +446,7 @@ export const GAME_CATALOG: readonly GameDefinition[] = [
     normalDescription: '透過發問與排除法，找出目標卡牌。',
     tags: ['CARD', 'LOGIC', 'LANGUAGE'],
     playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
-    layoutPreset: 'SPLIT_CHOICE',
+    layoutPreset: 'GRID_FOCUS',
   },
   {
     id: GameState.PYRAMID,
@@ -557,7 +557,7 @@ export const GAME_CATALOG: readonly GameDefinition[] = [
     advancedDescription: '戶外與長照情境的安全隱患。',
     tags: ['SAFETY', 'DAILY_LIVING'],
     playerModes: ['SOLO', 'GROUP', 'FACILITATED'],
-    layoutPreset: 'SPLIT_CHOICE',
+    layoutPreset: 'GRID_FOCUS',
   },
   {
     id: GameState.POSITIVE_THINKING,
@@ -567,7 +567,7 @@ export const GAME_CATALOG: readonly GameDefinition[] = [
     advancedDescription: '深度認知重塑與自我對話。',
     tags: ['WELLBEING', 'SOCIAL_COGNITION'],
     playerModes: ['SOLO', 'FACILITATED'],
-    layoutPreset: 'SPLIT_CHOICE',
+    layoutPreset: 'FACILITATOR',
   },
 
   {

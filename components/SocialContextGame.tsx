@@ -1,12 +1,149 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Users, CheckCircle, ChevronRight, AlertCircle } from 'lucide-react';
+import { CheckCircle, ChevronRight, AlertCircle, Loader2 } from 'lucide-react';
 import { Difficulty } from '../types';
 import { normalScenarios, advancedScenarios, Scenario } from '../data/socialContextData';
+import GameShell from './game-ui/GameShell';
+import SplitChoiceLayout from './game-ui/SplitChoiceLayout';
 
 interface Props {
     onBack: () => void;
     difficulty: Difficulty;
 }
+
+interface SocialContextRoundViewProps {
+    scenario: Scenario;
+    difficulty: Difficulty;
+    currentIndex: number;
+    total: number;
+    selectedOption: number | null;
+    showFeedback: boolean;
+    showOptions: boolean;
+    isLast: boolean;
+    onBack: () => void;
+    onShowOptions: () => void;
+    onOptionSelect: (index: number) => void;
+    onNext: () => void;
+}
+
+export const SocialContextRoundView = ({
+    scenario,
+    difficulty,
+    currentIndex,
+    total,
+    selectedOption,
+    showFeedback,
+    showOptions,
+    isLast,
+    onBack,
+    onShowOptions,
+    onOptionSelect,
+    onNext,
+}: SocialContextRoundViewProps) => {
+    const selectedIsCorrect = selectedOption !== null && scenario.options[selectedOption]?.isCorrect;
+
+    return (
+        <GameShell
+            title="情境應對"
+            subtitle={difficulty === 'ADVANCED' ? '練習職場與複雜衝突回應' : '練習日常互動與合宜回應'}
+            onBack={onBack}
+            className="bg-purple-50"
+            contentClassName="relative"
+            status={(
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                    {difficulty === 'ADVANCED' && (
+                        <span className="rounded-full bg-purple-600 px-2 py-1 text-xs text-white">進階</span>
+                    )}
+                    <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-bold text-purple-800 sm:px-3 sm:text-sm">
+                        第 {currentIndex + 1}/{total} 題
+                    </span>
+                </div>
+            )}
+        >
+            <SplitChoiceLayout
+                className="mx-auto max-w-5xl"
+                questionLabel="社交情境題目區"
+                choicesLabel="社交情境作答區"
+                questionClassName="flex flex-col items-center justify-center rounded-3xl border-2 border-purple-200 bg-white p-4 shadow-lg sm:p-6"
+                choicesClassName="flex flex-col gap-2"
+                question={(
+                    <div className="w-full">
+                        <h2 className="mb-2 text-xl font-bold text-purple-800 sm:text-2xl">{scenario.title}</h2>
+                        <p className="text-base leading-relaxed text-gray-700 sm:text-lg">{scenario.description}</p>
+                        {!showOptions && (
+                            <div className="mt-4 flex justify-center border-t border-purple-100 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={onShowOptions}
+                                    className="min-h-11 rounded-full bg-purple-600 px-6 py-2 font-bold text-white shadow hover:bg-purple-700"
+                                >
+                                    查看選項
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+                choices={showOptions ? (
+                    <>
+                        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                            {scenario.options.map((option, index) => {
+                                const isSelected = selectedOption === index;
+                                const showCorrectness = showFeedback && (isSelected || option.isCorrect);
+                                const optionClass = showCorrectness
+                                    ? option.isCorrect
+                                        ? 'border-green-500 bg-green-50 text-green-900'
+                                        : 'border-red-400 bg-red-50 text-red-900'
+                                    : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300';
+
+                                return (
+                                    <button
+                                        key={option.text}
+                                        type="button"
+                                        disabled={showFeedback}
+                                        onClick={() => onOptionSelect(index)}
+                                        className={`flex min-h-12 w-full items-start rounded-2xl border-2 p-2.5 text-left shadow-sm transition-colors disabled:cursor-default sm:p-3 ${optionClass}`}
+                                    >
+                                        <span className="mr-2 shrink-0 text-base font-bold opacity-60">{String.fromCharCode(65 + index)}.</span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="flex items-start gap-2 font-medium leading-snug">
+                                                {showCorrectness && option.isCorrect && <CheckCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />}
+                                                {showCorrectness && !option.isCorrect && <AlertCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />}
+                                                <span>{option.text}</span>
+                                            </span>
+                                            {showCorrectness && (
+                                                <span className={`mt-1 block rounded-lg p-1.5 text-xs leading-snug sm:text-sm ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                                                    {option.feedback}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {showFeedback && (
+                            <button
+                                type="button"
+                                onClick={onNext}
+                                className="flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-purple-600 px-4 font-bold text-white shadow hover:bg-purple-700"
+                            >
+                                {isLast ? '完成挑戰' : '下一題'}
+                                {!isLast && <ChevronRight aria-hidden="true" className="ml-1 h-5 w-5" />}
+                            </button>
+                        )}
+                    </>
+                ) : (
+                    <div className="flex h-full min-h-32 items-center justify-center rounded-3xl border-2 border-dashed border-purple-200 bg-white/60 p-4 text-center font-bold text-purple-400">
+                        閱讀情境後，按下「查看選項」
+                    </div>
+                )}
+                feedback={showFeedback ? (
+                    <span className={selectedIsCorrect ? 'text-green-700' : 'text-purple-800'}>
+                        {selectedIsCorrect ? '這個回應很合適！' : '請參考綠色標示的建議回應' }
+                    </span>
+                ) : undefined}
+            />
+        </GameShell>
+    );
+};
 
 const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isAdvanced = difficulty === 'ADVANCED';
@@ -24,7 +161,22 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
         setScenarios(shuffled);
     }, [allScenarios]);
 
-    if (scenarios.length === 0) return null;
+    if (scenarios.length === 0) {
+        return (
+            <GameShell
+                title="情境應對"
+                subtitle={isAdvanced ? '練習職場與複雜衝突回應' : '練習日常互動與合宜回應'}
+                onBack={onBack}
+                className="bg-purple-50"
+                contentClassName="flex items-center justify-center"
+            >
+                <div role="status" aria-live="polite" className="flex flex-col items-center text-purple-800">
+                    <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-purple-600" />
+                    <p>準備情境題目中...</p>
+                </div>
+            </GameShell>
+        );
+    }
 
     const currentScenario = scenarios[currentIndex];
 
@@ -53,117 +205,20 @@ const SocialContextGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isLast = currentIndex === scenarios.length - 1;
 
     return (
-        <div className="h-[100dvh] bg-purple-50 flex flex-col font-sans overflow-hidden">
-            <header className="px-2 py-2 md:p-6 landscape:py-1 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
-                <button
-                    onClick={onBack}
-                    className="flex items-center text-purple-600 hover:text-purple-800 transition-colors font-bold text-sm md:text-xl shrink-0"
-                >
-                    <ArrowLeft className="mr-1 md:mr-2 w-5 h-5 md:w-8 md:h-8" />
-                    <span className="hidden sm:inline landscape:hidden">返回目錄</span>
-                </button>
-                <div className="flex-1 flex justify-center items-center px-2 md:px-4">
-                    <div className="flex items-center bg-purple-50 px-3 md:px-4 py-1 landscape:py-0.5 rounded-full border border-purple-100 max-w-[200px] sm:max-w-[300px] w-full">
-                        <span className="text-purple-600 font-bold text-xs sm:text-sm landscape:text-[10px] shrink-0">第 {currentIndex + 1} 題</span>
-                        <div className="flex-1 mx-2 bg-purple-200 rounded-full h-1.5 md:h-2 landscape:h-1">
-                            <div 
-                                className="bg-purple-500 h-1.5 md:h-2 landscape:h-1 rounded-full transition-all duration-300"
-                                style={{ width: `${((currentIndex + 1) / scenarios.length) * 100}%` }}
-                            ></div>
-                        </div>
-                        <span className="text-purple-600 font-bold text-xs sm:text-sm landscape:text-[10px] shrink-0">共 {scenarios.length} 題</span>
-                    </div>
-                </div>
-                <div className="flex items-center space-x-1 md:space-x-2 text-purple-800 shrink-0">
-                    <Users className="hidden sm:block landscape:hidden w-5 h-5 md:w-8 md:h-8" />
-                    <h1 className="text-sm sm:text-xl md:text-2xl font-bold">情境應對</h1>
-                </div>
-            </header>
-
-            <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 landscape:p-1.5 flex flex-col pb-24 md:pb-28 overflow-y-auto landscape:pb-16">
-                
-                <div className="flex flex-col md:flex-row landscape:flex-row gap-4 md:gap-8 landscape:gap-2 flex-1 min-h-0">
-                    {/* Left: Scenario Description */}
-                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col justify-center">
-                        <div className="bg-white p-4 md:p-10 landscape:p-2 rounded-3xl landscape:rounded-xl border-4 landscape:border-2 border-purple-200 shadow-lg">
-                            <h2 className="text-2xl md:text-3xl landscape:text-lg font-bold text-purple-800 mb-4 landscape:mb-1">{currentScenario.title}</h2>
-                            <p className="text-xl md:text-2xl landscape:text-base text-gray-700 leading-relaxed landscape:leading-snug">
-                                {currentScenario.description}
-                            </p>
-                            {!showOptions && (
-                                <div className="mt-8 landscape:mt-2 pt-6 landscape:pt-2 border-t border-purple-100 flex justify-center">
-                                    <button
-                                        onClick={() => setShowOptions(true)}
-                                        className="py-3 px-8 landscape:py-1.5 landscape:px-4 bg-purple-500 text-white rounded-full font-bold text-lg landscape:text-base hover:bg-purple-600 shadow transition-all transform hover:scale-105"
-                                    >
-                                        查看選項
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right: Options & Feedback */}
-                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col justify-center gap-3 md:gap-4 landscape:gap-1">
-                        {showOptions && currentScenario.options.map((option, index) => {
-                            const isSelected = selectedOption === index;
-                            const showCorrectness = showFeedback && (isSelected || option.isCorrect);
-                            let optionClass = "bg-white border-gray-200 hover:border-purple-300 hover:shadow-md text-gray-700";
-                            
-                            if (showCorrectness) {
-                                if (option.isCorrect) {
-                                    optionClass = "bg-green-50 border-green-500 text-green-800 shadow-md";
-                                } else if (isSelected) {
-                                    optionClass = "bg-red-50 border-red-400 text-red-800 shadow-inner";
-                                }
-                            }
-
-                            return (
-                                <button
-                                    key={index}
-                                    disabled={showFeedback}
-                                    onClick={() => handleOptionSelect(index)}
-                                    className={`w-full text-left p-3 md:p-6 landscape:p-1 landscape:px-2 rounded-2xl landscape:rounded-lg border-2 landscape:border transition-all duration-300 flex-1 ${optionClass}`}
-                                >
-                                    <div className="flex items-start">
-                                        <span className="text-lg md:text-2xl landscape:text-base font-bold mr-3 landscape:mr-1 mt-1 landscape:mt-0 opacity-50 shrink-0">
-                                            {String.fromCharCode(65 + index)}.
-                                        </span>
-                                        <div className="flex-1">
-                                            <p className="text-base md:text-xl landscape:text-sm font-medium leading-tight">{option.text}</p>
-                                            
-                                            {/* Feedback text */}
-                                            {showFeedback && isSelected && (
-                                                <div className={`mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-xs leading-tight animate-fade-in ${option.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
-                                                    {option.feedback}
-                                                </div>
-                                            )}
-                                            {/* Show feedback for correct answer even if not selected */}
-                                            {showFeedback && !isSelected && option.isCorrect && (
-                                                <div className="mt-2 landscape:mt-0.5 p-2 landscape:p-1.5 rounded-xl landscape:rounded-md text-sm md:text-lg landscape:text-xs leading-tight bg-green-100 animate-fade-in">
-                                                    {option.feedback}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </main>
-
-            {/* Bottom bar for Next button (visible only after answering) */}
-            <div className={`fixed bottom-0 left-0 right-0 p-4 landscape:p-2 bg-white border-t border-purple-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-transform duration-300 flex justify-center ${showFeedback ? 'translate-y-0' : 'translate-y-full'}`}>
-                <button
-                    onClick={nextScenario}
-                    className="w-full max-w-md py-4 landscape:py-2 bg-purple-600 text-white rounded-full font-bold text-xl md:text-2xl landscape:text-base hover:bg-purple-700 shadow-lg flex items-center justify-center transform hover:scale-105 transition-all"
-                >
-                    {isLast ? "完成挑戰" : "下一題"}
-                    {!isLast && <ChevronRight className="ml-2 w-6 h-6 md:w-8 md:h-8" />}
-                </button>
-            </div>
-        </div>
+        <SocialContextRoundView
+            scenario={currentScenario}
+            difficulty={difficulty}
+            currentIndex={currentIndex}
+            total={scenarios.length}
+            selectedOption={selectedOption}
+            showFeedback={showFeedback}
+            showOptions={showOptions}
+            isLast={isLast}
+            onBack={onBack}
+            onShowOptions={() => setShowOptions(true)}
+            onOptionSelect={handleOptionSelect}
+            onNext={nextScenario}
+        />
     );
 };
 

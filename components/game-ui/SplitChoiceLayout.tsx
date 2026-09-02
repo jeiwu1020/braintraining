@@ -43,7 +43,8 @@ const SplitChoiceLayout = ({
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-slate-200 bg-white/95 px-5 py-2 text-sm font-bold shadow-xl backdrop-blur-sm sm:text-base"
+        data-layout-region="feedback"
+        className="split-choice-layout__feedback col-span-full flex min-h-8 items-center justify-center rounded-full border border-slate-200 bg-white/95 px-5 py-1 text-center text-sm font-bold shadow-lg backdrop-blur-sm sm:text-base"
       >
         {feedback}
       </div>

@@ -1,12 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, HelpCircle, Lightbulb, Clock } from 'lucide-react';
+import React, { useState, useEffect, type ReactNode } from 'react';
+import { RotateCcw, HelpCircle, Lightbulb, Clock } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface SetGameProps {
   onBack: () => void;
   difficulty: Difficulty;
 }
+
+interface SetBoardViewProps {
+  difficulty: Difficulty;
+  score: number;
+  timeText: string;
+  deckCount: number;
+  message: string;
+  board: ReactNode;
+  onBack: () => void;
+  onShowRules: () => void;
+  onReset: () => void;
+  onHint: () => void;
+}
+
+export const SetBoardView: React.FC<SetBoardViewProps> = ({
+  difficulty,
+  score,
+  timeText,
+  deckCount,
+  message,
+  board,
+  onBack,
+  onShowRules,
+  onReset,
+  onHint,
+}) => (
+  <GameShell
+    title="神奇形色牌"
+    subtitle="找出三張屬性全相同或全不同的牌"
+    onBack={onBack}
+    className="bg-slate-50"
+    status={(
+      <div className="flex items-center gap-1.5">
+        {difficulty === 'ADVANCED' && <span className="rounded-full bg-indigo-600 px-2 py-1 text-xs text-white">進階</span>}
+        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 sm:text-sm">{score} 分</span>
+      </div>
+    )}
+    actions={(
+      <>
+        <button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100"><HelpCircle aria-hidden="true" className="h-5 w-5" /></button>
+        <button type="button" onClick={onReset} aria-label="返回遊戲設定" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100"><RotateCcw aria-hidden="true" className="h-5 w-5" /></button>
+      </>
+    )}
+  >
+    <GridFocusLayout
+      playfieldLabel="形色牌桌面"
+      supportLabel="形色牌資訊區"
+      playfieldClassName="overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-hidden"
+      playfield={board}
+      support={(
+        <div className="flex w-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-center shadow-sm">
+          <div className="flex items-center justify-center gap-2 font-bold text-slate-700"><Clock aria-hidden="true" className="h-5 w-5" />{timeText}</div>
+          <p className="text-sm font-bold text-slate-600">剩餘 {deckCount} 張</p>
+          <button type="button" onClick={onHint} className="flex min-h-11 items-center justify-center rounded-xl bg-amber-100 px-4 font-bold text-amber-800 hover:bg-amber-200">
+            <Lightbulb aria-hidden="true" className="mr-1 h-5 w-5" />提示
+          </button>
+        </div>
+      )}
+      feedback={message ? <span className={message.includes('找到') ? 'text-emerald-700' : 'text-slate-700'}>{message}</span> : undefined}
+    />
+  </GameShell>
+);
 
 type Shape = 'DIAMOND' | 'ROUND' | 'SQUARE';
 type Color = 'RED' | 'GREEN' | 'PURPLE';
@@ -272,27 +337,10 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 text-slate-800 overflow-hidden">
-      <div className="flex justify-between items-center p-2 sm:p-4 bg-white shadow-sm shrink-0 z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-          <ArrowLeft className="w-6 h-6 text-gray-700" />
-        </button>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            神奇形色牌 {isAdvanced && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">進階</span>}
-        </h1>
-        <div className="flex gap-2">
-            <button onClick={() => setShowRules(true)} className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
-                <HelpCircle className="w-6 h-6" />
-            </button>
-            <button onClick={initGame} className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors">
-            <RotateCcw className="w-6 h-6" />
-            </button>
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 flex flex-col p-1 sm:p-2 relative w-full overflow-y-auto">
-          {gameState === 'SETUP' ? (
-              <div className="flex-1 w-full h-full flex items-center justify-center p-4 bg-slate-50/90 animate-fade-in">
+    <>
+      {gameState === 'SETUP' ? (
+        <GameShell title="神奇形色牌" subtitle="設定計時方式後開始挑戰" onBack={onBack} className="bg-slate-50">
+              <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-slate-50/90 p-4 animate-fade-in">
                   <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm w-full max-h-full overflow-y-auto">
                       <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">遊戲設定</h2>
                       
@@ -339,30 +387,20 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                       </button>
                   </div>
               </div>
-          ) : (
-            <>
-              <div className="w-full max-w-5xl mx-auto flex justify-between items-center px-2 mb-1 shrink-0 flex-wrap gap-2">
-                  <div className="text-sm sm:text-lg font-bold text-slate-700 flex items-center gap-4">
-                      <span>分數: <span className="text-emerald-600 text-lg sm:text-2xl">{score}</span></span>
-                      <span className="flex items-center gap-1">
-                          <Clock size={16}/> <span className={timerMode === 'DOWN' && time <= 60 ? 'text-red-500' : ''}>{formatTime(time)}</span>
-                      </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                      <div className="text-xs sm:text-sm text-slate-500 font-medium">剩餘牌數: {deck.length}</div>
-                      <button onClick={showHint} disabled={gameState !== 'PLAYING'} className="flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 font-bold transition-colors text-xs sm:text-sm disabled:opacity-50">
-                          <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5" /> 提示
-                      </button>
-                  </div>
-              </div>
-
-              <div className="h-6 sm:h-8 mb-1 sm:mb-2 text-center text-sm sm:text-base shrink-0">
-                  <span className={`font-bold ${message.includes('找到') || message.includes('加成') ? 'text-emerald-600' : 'text-slate-600'}`}>
-                      {message}
-                  </span>
-              </div>
-
-              <div className="flex-1 min-h-0 w-full max-w-5xl mx-auto overflow-y-auto flex flex-wrap justify-center content-start sm:content-center gap-1 sm:gap-2 p-1 relative">
+        </GameShell>
+      ) : (
+        <SetBoardView
+          difficulty={difficulty}
+          score={score}
+          timeText={formatTime(time)}
+          deckCount={deck.length}
+          message={message}
+          onBack={onBack}
+          onShowRules={() => setShowRules(true)}
+          onReset={initGame}
+          onHint={showHint}
+          board={(
+              <div className="grid h-full min-h-0 grid-cols-4 content-center gap-2 overflow-y-auto p-1">
                   {board.map((card) => {
                       const isSelected = selectedIds.includes(card.id);
                       return (
@@ -371,7 +409,8 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                               onClick={() => {
                                   if (gameState === 'PLAYING') handleCardClick(card.id);
                               }}
-                              className={`w-[31%] h-[22%] sm:w-[23%] sm:h-[30%] landscape:w-[15%] landscape:h-[45%] bg-white rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center justify-center
+                              aria-pressed={isSelected}
+                              className={`min-h-16 bg-white rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center justify-center
                                   ${isSelected ? 'border-4 border-emerald-500 scale-95 shadow-inner bg-emerald-100 ring-2 ring-emerald-500 ring-offset-1' : 'border-2 border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'}`}
                           >
                               {renderShape(card)}
@@ -379,8 +418,11 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                       );
                   })}
               </div>
+          )}
+        />
+      )}
 
-              {gameState === 'GAMEOVER' && (
+      {gameState === 'GAMEOVER' && (
                   <div className="fixed inset-0 flex items-center justify-center p-4 bg-white/90 animate-fade-in z-50">
                       <div className="p-4 sm:p-8 bg-white rounded-3xl shadow-xl border border-slate-200 text-center w-full max-w-sm shrink-0 max-h-[100dvh] overflow-y-auto">
                             <h3 className="text-2xl font-bold text-emerald-600 mb-6">挑戰結束！</h3>
@@ -410,10 +452,7 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
                             </button>
                       </div>
                   </div>
-              )}
-            </>
-          )}
-      </div>
+      )}
 
       {showRules && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
@@ -449,7 +488,7 @@ const SetGame: React.FC<SetGameProps> = ({ onBack, difficulty }) => {
               </div>
           </div>
       )}
-    </div>
+    </>
   );
 };
 

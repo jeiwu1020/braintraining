@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, ThumbsUp, AlertCircle, Trophy, ArrowRight, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
+import { Loader2, ThumbsUp, AlertCircle, Trophy, ArrowRight, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { SortingLevel, Difficulty } from '../types';
 import { generateSortingLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import CognitiveChoiceScreen from './game-ui/CognitiveChoiceScreen';
+import GameShell from './game-ui/GameShell';
 
 interface Props {
   onBack: () => void;
@@ -154,7 +156,8 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isSessionFinished) {
     return (
-      <div className="flex flex-col h-[100dvh] bg-orange-50 overflow-hidden">
+      <GameShell title="分類大師" subtitle="本回合完成" onBack={onBack} className="bg-orange-50">
+      <div className="flex h-full flex-col overflow-hidden">
         {/* Header */}
         <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
             <h2 className="text-xl font-bold text-orange-800 flex items-center">
@@ -218,15 +221,18 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </button>
         </div>
       </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-orange-50">
-        <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-        <p className="text-orange-700 text-lg">AI 正在準備題目中...</p>
-      </div>
+      <GameShell title="分類大師" subtitle="判斷物品所屬類別" onBack={onBack} className="bg-orange-50">
+        <div role="status" className="flex h-full flex-col items-center justify-center">
+          <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
+          <p className="text-orange-700 text-lg">AI 正在準備題目中...</p>
+        </div>
+      </GameShell>
     );
   }
 
@@ -234,127 +240,60 @@ const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const correctCategoryName = currentItem.category === 'A' ? level.categoryA : level.categoryB;
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-orange-50 overflow-hidden relative">
-      {/* Header */}
-      <div className="flex-none p-2 sm:p-4 flex justify-between items-center bg-white/50 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-orange-800 shadow-sm hover:bg-orange-100">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex gap-4 items-center">
-            {difficulty === 'ADVANCED' && <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-          <div className="px-3 py-1 bg-orange-100 rounded-full text-orange-800 font-bold text-sm md:text-base">
-             第 {round} / {TOTAL_ROUNDS} 題
+    <CognitiveChoiceScreen
+      title="分類大師"
+      subtitle="判斷物品所屬類別"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className="bg-orange-50"
+      statusClassName="bg-orange-100 text-orange-800"
+      advancedClassName="bg-orange-600"
+      questionLabel="分類題目區"
+      choicesLabel="分類作答區"
+      questionClassName={`relative flex flex-col items-center justify-center rounded-3xl border-4 bg-white p-4 text-center shadow-xl ${feedback === 'correct' ? 'border-green-400 bg-green-50' : feedback === 'wrong' ? 'border-red-400 bg-red-50' : 'border-white'}`}
+      choicesClassName="flex flex-col justify-center gap-3 pr-1"
+      question={(
+        <>
+          <div className="absolute right-4 top-4">
+            {feedback === 'correct' && <ThumbsUp className="h-10 w-10 text-green-500" />}
+            {feedback === 'wrong' && <AlertCircle className="h-10 w-10 text-red-500" />}
           </div>
-          <div className="flex items-center text-orange-800 font-bold bg-orange-100 px-3 py-1 rounded-full text-sm md:text-base">
-            <Trophy size={16} className="mr-2" />
-            {score}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 w-full max-w-5xl mx-auto overflow-hidden">
-        
-          {/* Flex Container: Stacks vertically on mobile, Side-by-side on Landscape/Desktop */}
-          {/* Constrain height to avoid overflow issues on landscape mobile */}
-          <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-stretch justify-center h-full max-h-[85vh]">
-            
-            {/* Left: Card Display Area */}
-            <div className="flex-1 flex flex-col items-center justify-center min-h-[200px]">
-                <div className="relative w-full max-w-sm aspect-[4/3] sm:aspect-square flex items-center justify-center">
-                    <div className={`
-                        w-full h-full bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center border-4 p-4 text-center
-                        transition-all duration-300 relative overflow-hidden
-                        ${feedback === 'correct' ? 'border-green-400 bg-green-50' : ''}
-                        ${feedback === 'wrong' ? 'border-red-400 bg-red-50' : 'border-white'}
-                    `}>
-                        {/* Status Icon Overlay */}
-                        <div className="absolute top-4 right-4 transition-opacity duration-300">
-                             {feedback === 'correct' && <ThumbsUp className="text-green-500 w-10 h-10 animate-bounce" />}
-                             {feedback === 'wrong' && <AlertCircle className="text-red-500 w-10 h-10 animate-shake" />}
-                        </div>
-
-                        <h3 className="text-5xl sm:text-7xl font-bold text-gray-800 mb-4 tracking-wider leading-tight">
-                            {currentItem.name}
-                        </h3>
-                        
-                        {/* Dynamic Text */}
-                        <div className="h-16 flex items-center justify-center">
-                            {!showResult ? (
-                                <p className="text-gray-500 text-lg animate-pulse bg-gray-100 px-4 py-1 rounded-full">屬於哪一類？</p>
-                            ) : (
-                                <div className="animate-fade-in-up">
-                                    <p className={`text-xl font-bold ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
-                                        {feedback === 'correct' ? '答對了！' : '答錯囉！'}
-                                    </p>
-                                    <p className="text-gray-600 text-sm">
-                                        它是 <span className="font-bold text-orange-600 underline">{correctCategoryName}</span>
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Right: Buttons / Controls - Fixed Layout Strategy */}
-            {/* The right column takes available space but has a max width. Content is flex-col. */}
-            <div className="flex-none sm:flex-1 flex flex-col gap-3 justify-center min-w-[200px] sm:max-w-xs h-full">
-                
-                {/* Options Wrapper: Grows to fill space minus the footer */}
-                <div className="flex-1 flex flex-col gap-3 min-h-0">
-                    {/* Option A */}
-                    <button
-                        disabled={showResult}
-                        onClick={() => handleSort('A')}
-                        className={`
-                            flex-1 min-h-[4rem] py-2 rounded-2xl shadow-md flex flex-col items-center justify-center transition-all border-4 relative
-                            ${!showResult ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-200 active:scale-95' : ''}
-                            ${showResult && currentItem.category === 'A' ? 'bg-green-500 text-white border-green-600 ring-4 ring-green-200 z-10' : ''}
-                            ${showResult && currentItem.category !== 'A' ? 'bg-gray-100 text-gray-400 border-gray-200 opacity-50' : ''}
-                        `}
-                    >
-                        <span className="text-2xl sm:text-3xl font-bold">{level.categoryA}</span>
-                        {showResult && currentItem.category === 'A' && <CheckCircle className="absolute right-4 w-6 h-6 text-white"/>}
-                    </button>
-
-                    {/* Option B */}
-                    <button
-                        disabled={showResult}
-                        onClick={() => handleSort('B')}
-                        className={`
-                            flex-1 min-h-[4rem] py-2 rounded-2xl shadow-md flex flex-col items-center justify-center transition-all border-4 relative
-                            ${!showResult ? 'bg-green-50 hover:bg-green-100 text-green-900 border-green-200 active:scale-95' : ''}
-                            ${showResult && currentItem.category === 'B' ? 'bg-green-500 text-white border-green-600 ring-4 ring-green-200 z-10' : ''}
-                            ${showResult && currentItem.category !== 'B' ? 'bg-gray-100 text-gray-400 border-gray-200 opacity-50' : ''}
-                        `}
-                    >
-                        <span className="text-2xl sm:text-3xl font-bold">{level.categoryB}</span>
-                        {showResult && currentItem.category === 'B' && <CheckCircle className="absolute right-4 w-6 h-6 text-white"/>}
-                    </button>
-                </div>
-
-                {/* Footer Area: Reserved space for Next Button to prevent layout shift */}
-                {/* Fixed height ensures the options above don't resize when this button appears */}
-                <div className="flex-none h-16 sm:h-20 shrink-0">
-                    {showResult ? (
-                        <button 
-                            onClick={handleNext}
-                            className="w-full h-full bg-orange-500 text-white text-xl font-bold rounded-2xl shadow-lg hover:bg-orange-600 flex items-center justify-center gap-2 transition-transform active:scale-95 animate-fade-in"
-                        >
-                            {round < TOTAL_ROUNDS ? "下一題" : "查看成績"} 
-                            <ArrowRight size={24} />
-                        </button>
-                    ) : (
-                        // Invisible placeholder to maintain layout structure
-                        <div className="w-full h-full invisible" aria-hidden="true" />
-                    )}
-                </div>
-
-            </div>
-          </div>
-      </div>
-    </div>
+          <h2 className="mb-3 text-5xl font-bold leading-tight tracking-wider text-gray-800 sm:text-7xl">{currentItem.name}</h2>
+          <p className="rounded-full bg-gray-100 px-4 py-1 text-lg text-gray-500">屬於哪一類？</p>
+        </>
+      )}
+      choices={(
+        <>
+          {(['A', 'B'] as const).map(category => {
+            const isCorrectCategory = currentItem.category === category;
+            return (
+              <button
+                key={category}
+                disabled={showResult}
+                onClick={() => handleSort(category)}
+                className={`relative flex min-h-20 items-center justify-center rounded-2xl border-4 py-2 text-2xl font-bold shadow-md transition-all active:scale-95 sm:text-3xl ${!showResult ? (category === 'A' ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100' : 'border-green-200 bg-green-50 text-green-900 hover:bg-green-100') : isCorrectCategory ? 'border-green-600 bg-green-500 text-white ring-4 ring-green-200' : 'border-gray-200 bg-gray-100 text-gray-400 opacity-50'}`}
+              >
+                {category === 'A' ? level.categoryA : level.categoryB}
+                {showResult && isCorrectCategory && <CheckCircle className="absolute right-4 h-6 w-6" />}
+              </button>
+            );
+          })}
+          {showResult && (
+            <button onClick={handleNext} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 text-xl font-bold text-white shadow-lg transition-transform hover:bg-orange-600 active:scale-95">
+              {round < TOTAL_ROUNDS ? '下一題' : '查看成績'} <ArrowRight size={24} />
+            </button>
+          )}
+        </>
+      )}
+      feedback={showResult ? (
+        <span className={feedback === 'correct' ? 'text-green-700' : 'text-red-700'}>
+          {feedback === 'correct' ? '答對了！' : `答錯囉！正確分類是 ${correctCategoryName}`}
+        </span>
+      ) : undefined}
+    />
   );
 };
 

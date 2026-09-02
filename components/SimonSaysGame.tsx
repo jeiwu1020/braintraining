@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Play, CheckCircle2, Trophy, Timer } from 'lucide-react';
+import { RefreshCw, Play } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -131,44 +132,26 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
-      <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={24} />
-        </button>
-        <div className="text-center">
-          <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>順序記憶</h2>
-          <p className="text-xs text-gray-500">長度：{level}</p>
-        </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
-          <RefreshCw size={24} />
-        </button>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-start p-4 landscape:p-2 overflow-y-auto w-full">
-        
-        {/* Stats Bar */}
-        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
-          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
-            <Timer className="text-blue-500" />
-            第 {round} / {TOTAL_ROUNDS} 關
-          </div>
-          <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
-            <Trophy className="text-yellow-500" />
-            分數: {score}
-          </div>
-        </div>
-
-        {isComplete && (
-          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-4 landscape:p-3 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-md">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mb-2" />
-            <h3 className="text-2xl font-bold text-green-600 mb-2">挑戰完成！</h3>
-            <p className="text-xl text-gray-700 font-bold">總得分：{score} 分</p>
-          </div>
-        )}
-
-        <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full">
-          <div className={`flex-1 flex flex-col items-center justify-center text-center ${isComplete ? 'hidden' : ''}`}>
+    <GridFocusScreen
+      title="順序記憶"
+      subtitle={`記住並重現顏色順序（長度 ${level}）`}
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className={isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'}
+      statusClassName={isAdvanced ? 'bg-indigo-100 text-indigo-800' : 'bg-emerald-100 text-emerald-800'}
+      advancedClassName="bg-indigo-600"
+      playfieldLabel="顏色順序矩陣"
+      supportLabel="順序播放與結果"
+      playfieldClassName="flex items-center justify-center overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-auto"
+      actions={(
+        <button onClick={initGame} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"><RefreshCw size={22} /></button>
+      )}
+      support={(
+          <div className={`flex flex-col items-center justify-center text-center ${isComplete ? 'hidden' : ''}`}>
             <h3 className="text-xl landscape:text-lg lg:text-3xl font-bold text-gray-700 mb-2 lg:mb-4 h-10">
               {showResult ? '正確順序是：' : isPlaying ? '請記住順序...' : isWaitingForPlayer ? '請說出順序！' : '準備好開始了嗎？'}
             </h3>
@@ -193,16 +176,17 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               </button>
             )}
           </div>
-
-          <div className="flex-1 flex flex-col items-center justify-center w-full">
-            <div className={`grid grid-cols-2 gap-3 landscape:gap-2 lg:gap-8 w-full max-w-[240px] landscape:max-w-[180px] lg:max-w-md ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+      )}
+      playfield={(
+          <div className="flex h-full w-full flex-col items-center justify-center">
+            <div className={`grid h-full max-h-64 aspect-square grid-cols-2 gap-3 sm:gap-4 ${isComplete ? 'pointer-events-none opacity-50' : ''}`}>
               {COLORS.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => handleColorClick(c.id)}
                   disabled={!isWaitingForPlayer || isPlaying}
                   className={`
-                    aspect-square rounded-2xl lg:rounded-[2rem] shadow-lg transition-all duration-200 border-4 border-white/20
+                    min-h-11 aspect-square rounded-2xl shadow-lg transition-all duration-200 border-4 border-white/20
                     ${activeColor === c.id ? c.active + ' scale-95 ring-8 ring-white/50' : c.color + ' hover:scale-105'}
                     ${!isWaitingForPlayer ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}
                   `}
@@ -211,7 +195,7 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </div>
 
             {/* Progress dots for player input */}
-            <div className="mt-6 lg:mt-12 flex gap-2 lg:gap-3 h-4">
+            <div className="mt-4 flex h-4 gap-2">
               {isWaitingForPlayer && Array.from({ length: sequence.length }).map((_, i) => (
                 <div 
                   key={i} 
@@ -220,10 +204,9 @@ const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               ))}
             </div>
           </div>
-        </div>
-
-      </div>
-    </div>
+      )}
+      feedback={isComplete ? <span className="text-green-700">挑戰完成！總得分：{score} 分</span> : showResult ? <span className={isLastRoundCorrect ? 'text-green-700' : 'text-red-700'}>{isLastRoundCorrect ? '答對了！' : `答錯了！正確順序：${getSequenceText()}`}</span> : undefined}
+    />
   );
 };
 

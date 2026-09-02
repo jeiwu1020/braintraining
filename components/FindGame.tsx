@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, AlertCircle } from 'lucide-react';
+import { Loader2, Trophy } from 'lucide-react';
 import { FindLevel, Difficulty } from '../types';
 import { generateFindLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -93,7 +95,8 @@ const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isSessionFinished) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-50 p-4 animate-fade-in overflow-y-auto">
+        <GameShell title="眼明手快" subtitle="本回合完成" onBack={onBack} className="bg-yellow-50">
+         <div className="flex h-full flex-col items-center justify-center p-4 animate-fade-in overflow-y-auto">
             <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-yellow-200 my-4">
                 <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
                 <h2 className="text-3xl font-bold text-yellow-900 mb-2">挑戰完成！</h2>
@@ -116,76 +119,55 @@ const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </button>
                 </div>
             </div>
-        </div>
+         </div>
+        </GameShell>
       );
   }
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-50">
-        <Loader2 className="w-12 h-12 text-yellow-600 animate-spin mb-4" />
-        <p className="text-yellow-800">準備圖案中...</p>
-      </div>
+      <GameShell title="眼明手快" subtitle="從矩陣中找出指定圖案" onBack={onBack} className="bg-yellow-50">
+        <div role="status" className="flex h-full flex-col items-center justify-center">
+          <Loader2 className="w-12 h-12 text-yellow-600 animate-spin mb-4" />
+          <p className="text-yellow-800">準備圖案中...</p>
+        </div>
+      </GameShell>
     );
   }
 
   if (!level) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-yellow-50 overflow-hidden relative">
-        {/* Header - Very compact */}
-        <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-20">
-            <button onClick={onBack} className="p-2 bg-white rounded-full text-yellow-800 shadow-sm hover:bg-yellow-100">
-                <ArrowLeft size={20} />
-            </button>
-            <div className="flex items-center gap-4">
-                {difficulty === 'ADVANCED' && <span className="bg-yellow-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-                 <div className="px-3 py-1 bg-yellow-100 rounded-full text-yellow-800 font-bold text-sm">
-                    第 {round} / {TOTAL_ROUNDS} 題
-                </div>
-                <div className="flex items-center bg-yellow-100 px-3 py-1 rounded-full text-yellow-800 font-bold">
-                    <Trophy size={16} className="mr-2"/> {totalScore}
-                </div>
-            </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-2 gap-2 sm:gap-6 w-full h-full">
-            
-            {/* Target Instruction - Left (Landscape) or Top (Portrait) */}
-            <div className="shrink-0 z-10 bg-yellow-100/80 p-2 sm:p-4 rounded-xl flex flex-row sm:flex-col items-center justify-center shadow-sm gap-3 sm:gap-4 border border-yellow-200">
+    <GridFocusScreen
+      title="眼明手快"
+      subtitle="從矩陣中找出指定圖案"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={totalScore}
+      onBack={onBack}
+      className="bg-yellow-50"
+      statusClassName="bg-yellow-100 text-yellow-800"
+      advancedClassName="bg-yellow-600"
+      playfieldLabel="視覺搜尋矩陣"
+      supportLabel="指定目標圖案"
+      playfieldClassName="flex items-center justify-center overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-hidden"
+      support={(
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-yellow-200 bg-yellow-100/80 p-4 shadow-sm">
                 <span className="text-gray-700 font-medium text-sm sm:text-lg">請找出：</span>
-                <div className="bg-white border-2 sm:border-4 border-yellow-400 rounded-lg sm:rounded-2xl w-12 h-12 sm:w-20 sm:h-20 flex items-center justify-center shadow-inner">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-yellow-400 bg-white shadow-inner">
                         <span className="text-3xl sm:text-5xl leading-none">{level.target}</span>
                 </div>
             </div>
-
-            {/* Error Message Toast */}
-            {errorMsg && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-bounce-short pointer-events-none">
-                    <div className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-xl shadow-xl flex items-center whitespace-nowrap">
-                        <AlertCircle className="w-6 h-6 mr-2" />
-                        <span className="font-bold text-lg">{errorMsg}</span>
-                    </div>
-                </div>
-            )}
-
-            {/* Grid Container Wrapper
-                Logic: 
-                - Portrait: Width constrained (90vw), Height adapts.
-                - Landscape: Height constrained (75vh), Width adapts to maintain aspect ratio.
-                This effectively "scales" the content to fit the screen without scrolling.
-            */}
-            <div className="
-                relative flex justify-center items-center shrink-0
-                w-[90vw] h-[90vw] max-w-[500px] max-h-[500px] 
-                sm:w-auto sm:h-[75vh] sm:aspect-square
-            ">
+      )}
+      playfield={(
+            <div className="relative flex h-full max-h-[30rem] aspect-square items-center justify-center">
                 <div className="flex flex-col w-full h-full">
                     {/* Column Labels (A-D) */}
-                    <div className="flex pl-8 mb-1">
+                    <div className="mb-0 flex pl-6">
                         {['A', 'B', 'C', 'D'].map(label => (
-                            <div key={label} className="flex-1 text-center font-bold text-yellow-700 text-lg md:text-xl">
+                            <div key={label} className="flex-1 text-center text-sm font-bold leading-none text-yellow-700 sm:text-base">
                                 {label}
                             </div>
                         ))}
@@ -193,16 +175,16 @@ const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
                     <div className="flex flex-1">
                         {/* Row Labels (1-4) */}
-                        <div className="flex flex-col w-8 justify-around pr-1">
+                        <div className="flex w-6 flex-col justify-around pr-0.5">
                             {[1, 2, 3, 4].map(label => (
-                                <div key={label} className="flex-1 flex items-center justify-center font-bold text-yellow-700 text-lg md:text-xl">
+                                <div key={label} className="flex flex-1 items-center justify-center text-sm font-bold leading-none text-yellow-700 sm:text-base">
                                     {label}
                                 </div>
                             ))}
                         </div>
 
                         {/* Buttons Grid - 4x4 */}
-                        <div className="flex-1 grid grid-cols-4 gap-1.5 sm:gap-2 bg-white rounded-xl shadow-lg p-2 border-2 sm:border-4 border-yellow-100">
+                        <div className="grid flex-1 grid-cols-4 gap-1 rounded-xl border-2 border-yellow-100 bg-white p-1 shadow-lg">
                             {Array.from({ length: level.gridSize }).map((_, index) => {
                                 const isTarget = index === level.targetPosition;
                                 return (
@@ -225,8 +207,9 @@ const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+      )}
+      feedback={errorMsg ? <span className="text-red-700">{errorMsg}</span> : showResult ? <span className="text-green-700">找到了！</span> : undefined}
+    />
   );
 };
 

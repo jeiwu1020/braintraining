@@ -34,6 +34,24 @@
 
   .split-choice-layout {
     grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .split-choice-layout:has(.split-choice-layout__feedback) {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .grid-focus-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .grid-focus-layout:has([data-layout-region='support']) {
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.3fr);
+  }
+
+  .grid-focus-layout:has(.grid-focus-layout__feedback) {
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 }
 
@@ -42,6 +60,20 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(15rem, 1fr) auto;
     overflow-y: auto;
+  }
+
+  .split-choice-layout:has(.split-choice-layout__feedback) {
+    grid-template-rows: minmax(15rem, 1fr) auto auto;
+  }
+
+  .grid-focus-layout:has([data-layout-region='support']) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(15rem, 1fr) auto;
+    overflow-y: auto;
+  }
+
+  .grid-focus-layout:has([data-layout-region='support']):has(.grid-focus-layout__feedback) {
+    grid-template-rows: minmax(15rem, 1fr) auto auto;
   }
 }
 

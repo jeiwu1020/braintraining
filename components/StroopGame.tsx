@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, Clock, CheckCircle } from 'lucide-react';
+import { Loader2, Trophy } from 'lucide-react';
 import { StroopLevel, Difficulty } from '../types';
 import { generateStroopLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import CognitiveChoiceScreen from './game-ui/CognitiveChoiceScreen';
+import GameShell from './game-ui/GameShell';
 
 interface Props {
   onBack: () => void;
@@ -105,7 +107,7 @@ const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   if (isFinished) {
     const evalResult = getEvaluation(score);
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-rose-50 p-4 animate-fade-in">
+      <GameShell title="顏色陷阱" subtitle="本回合完成" onBack={onBack} className="bg-rose-50" contentClassName="flex items-center justify-center overflow-y-auto p-4">
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-rose-200">
               <Trophy className="w-20 h-20 text-rose-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-rose-900 mb-2">{evalResult.title}</h2>
@@ -128,82 +130,69 @@ const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-      return <div className="min-h-[100dvh] bg-rose-50 flex items-center justify-center"><Loader2 className="animate-spin text-rose-500"/></div>;
+      return (
+        <GameShell title="顏色陷阱" subtitle="回答文字顯示的顏色" onBack={onBack} className="bg-rose-50" contentClassName="flex items-center justify-center">
+          <div role="status" aria-live="polite" className="flex flex-col items-center text-rose-800">
+            <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-rose-500" />
+            <p>準備顏色題目中...</p>
+          </div>
+        </GameShell>
+      );
   }
 
   return (
-    <div className={`flex flex-col h-[100dvh] overflow-hidden transition-colors duration-300 ${feedback === 'wrong' ? 'bg-red-50' : 'bg-rose-50'}`}>
-       {/* Header */}
-       <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-            <button onClick={onBack} className="p-2 bg-white rounded-full text-rose-800 shadow-sm hover:bg-rose-100">
-            <ArrowLeft size={20} />
-            </button>
-            <div className="flex items-center gap-4">
-                {difficulty === 'ADVANCED' && <span className="bg-rose-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-                <div className="text-rose-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-                <div className="flex items-center bg-rose-100 px-3 py-1 rounded-full text-rose-800 font-bold">
-                    <Trophy size={16} className="mr-2"/> {score}
-                </div>
-            </div>
-        </div>
-
-        {/* Main Content - Allow scrolling if height is small (landscape) */}
-        <div className="flex-1 overflow-y-auto p-4 landscape:p-2">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 min-h-full">
-                
-                {/* Left Side: Question */}
-                <div className="flex-none flex flex-col items-center justify-center max-w-sm">
-                    <p className="text-gray-500 text-lg mb-2 text-center shrink-0">
+    <CognitiveChoiceScreen
+      title="顏色陷阱"
+      subtitle={difficulty === 'ADVANCED' ? '快速辨識文字實際顯示的顏色' : '回答文字實際顯示的顏色'}
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className={feedback === 'wrong' ? 'bg-red-50' : 'bg-rose-50'}
+      statusClassName="bg-rose-100 text-rose-800"
+      advancedClassName="bg-rose-600"
+      questionLabel="顏色刺激題目區"
+      choicesLabel="顏色名稱作答區"
+      questionClassName="flex flex-col items-center justify-center rounded-3xl border-2 border-rose-100 bg-white p-3 shadow-lg sm:p-5"
+      choicesClassName="flex items-center justify-center"
+      question={(
+        <>
+                    <p className="mb-3 text-center text-base text-gray-500 sm:text-lg">
                         請回答這個字的 <span className="font-bold text-black underline decoration-rose-500 decoration-4">顏色</span>
                     </p>
-                    
-                    {/* The Stroop Word - Responsive Sizing */}
-                    <div className="bg-white rounded-3xl shadow-xl border-4 border-rose-100 w-56 h-56 sm:w-72 sm:h-72 flex items-center justify-center relative shrink-0">
-                        <span className={`text-7xl sm:text-9xl font-black ${level.colorCode}`}>
+                    <div className="flex min-h-32 w-full items-center justify-center rounded-3xl border-4 border-rose-100 bg-white sm:min-h-36">
+                        <span className={`text-7xl font-black sm:text-8xl ${level.colorCode}`}>
                             {level.text}
                         </span>
-                        
-                        {/* Feedback Overlay */}
-                        {feedback === 'correct' && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-2xl animate-fade-in z-20">
-                                <div className="text-green-600 flex flex-col items-center">
-                                    <CheckCircle className="w-16 h-16 mb-2" />
-                                    <span className="text-3xl font-bold">答對了！</span>
-                                </div>
-                            </div>
-                        )}
-                        {feedback === 'wrong' && (
-                             <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-2xl animate-fade-in z-20">
-                                <div className="text-red-500 flex flex-col items-center">
-                                    <span className="text-3xl font-bold">看錯囉！</span>
-                                    <span className="text-xl mt-2">是 {level.colorName} 色</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </div>
-
-                {/* Right Side: Options - Responsive Grid */}
-                <div className="flex-none w-full max-w-sm grid grid-cols-3 gap-3 sm:gap-4 content-center">
+        </>
+      )}
+      choices={(
+                <div className="grid w-full grid-cols-3 content-center gap-2 sm:gap-3">
                     {level.options.map((opt, idx) => (
                         <button
                             key={idx}
                             onClick={() => handleAnswer(opt)}
                             disabled={feedback !== null}
-                            className="py-3 sm:py-4 bg-white border-2 border-rose-200 rounded-xl text-xl sm:text-2xl font-bold text-gray-700 shadow-md hover:bg-rose-100 active:scale-95 transition-all disabled:opacity-50 h-20 sm:h-24 flex items-center justify-center"
+                            className="flex min-h-16 items-center justify-center rounded-xl border-2 border-rose-200 bg-white py-3 text-xl font-bold text-gray-700 shadow-md transition-all hover:bg-rose-100 active:scale-95 disabled:opacity-50 sm:text-2xl"
                         >
                             {opt}
                         </button>
                     ))}
                 </div>
-            </div>
-        </div>
-    </div>
+      )}
+      feedback={feedback ? (
+        <span className={feedback === 'correct' ? 'text-green-700' : 'text-red-700'}>
+          {feedback === 'correct' ? '答對了！' : `看錯囉，正確是 ${level.colorName} 色`}
+        </span>
+      ) : undefined}
+    />
   );
 };
 

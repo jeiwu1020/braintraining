@@ -1,13 +1,138 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, RefreshCw, CheckCircle2, HelpCircle } from 'lucide-react';
+import { RefreshCw, HelpCircle } from 'lucide-react';
 import { soundService } from '../services/soundService';
 import { RulesModal } from './RulesModal';
 import { NORMAL_IDIOMS, ADVANCED_IDIOMS, IdiomItem } from '../data/idiomsData';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
   isAdvanced?: boolean;
 }
+
+interface WordTileRoundViewProps {
+  currentIdiom: IdiomItem | null;
+  isAdvanced?: boolean;
+  roundIndex: number;
+  totalScore: number;
+  placed: (string | null)[];
+  options: string[];
+  isWin: boolean;
+  hasGuessed: boolean;
+  time: number;
+  onBack: () => void;
+  onShowRules: () => void;
+  onRemovePlaced: (index: number) => void;
+  onSelectOption: (char: string, index: number) => void;
+  onNextRound: () => void;
+}
+
+export const WordTileRoundView: React.FC<WordTileRoundViewProps> = ({
+  currentIdiom,
+  isAdvanced,
+  roundIndex,
+  totalScore,
+  placed,
+  options,
+  isWin,
+  hasGuessed,
+  time,
+  onBack,
+  onShowRules,
+  onRemovePlaced,
+  onSelectOption,
+  onNextRound,
+}) => (
+  <GridFocusScreen
+    title="成語接龍拼圖"
+    subtitle="依序選字，拼成正確的四字成語"
+    difficulty={isAdvanced ? 'ADVANCED' : 'NORMAL'}
+    round={roundIndex + 1}
+    totalRounds={10}
+    score={totalScore}
+    onBack={onBack}
+    className="bg-orange-50"
+    statusClassName="bg-orange-100 text-orange-800"
+    advancedClassName="bg-orange-600"
+    playfieldLabel="成語排列區"
+    supportLabel="待選文字區"
+    playfieldClassName="flex items-center justify-center overflow-hidden"
+    supportClassName="flex items-center justify-center overflow-hidden"
+    actions={(
+      <button
+        type="button"
+        onClick={onShowRules}
+        aria-label="遊戲規則"
+        className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-orange-100 text-orange-700 hover:bg-orange-200"
+      >
+        <HelpCircle aria-hidden="true" size={22} />
+      </button>
+    )}
+    playfield={(
+      <div className="flex flex-col items-center gap-3 p-2">
+        <p className="text-sm font-bold text-orange-700 sm:text-base">依序排列成語</p>
+        <div className="flex gap-2 sm:gap-3">
+          {placed.map((char, idx) => (
+            <button
+              type="button"
+              key={idx}
+              onClick={() => onRemovePlaced(idx)}
+              disabled={char === null || isWin}
+              aria-label={`第 ${idx + 1} 格${char ? `：${char}` : '，尚未填入'}`}
+              className={`flex h-16 w-16 items-center justify-center rounded-2xl border-2 text-3xl font-bold shadow-md transition sm:h-20 sm:w-20 sm:text-4xl ${
+                char === null
+                  ? 'border-dashed border-orange-300 bg-white text-orange-800'
+                  : isWin
+                    ? 'border-green-500 bg-green-100 text-green-700'
+                    : hasGuessed && currentIdiom && char !== currentIdiom.word[idx]
+                      ? 'border-red-400 bg-red-100 text-red-700'
+                      : 'border-orange-400 bg-orange-100 text-orange-900'
+              }`}
+            >
+              {char}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+    support={isWin ? (
+      <div className="flex h-full flex-col justify-center gap-2 rounded-2xl border border-orange-200 bg-white p-3 text-sm text-slate-700 shadow-sm">
+        <p className="font-bold text-orange-800">出處與釋義</p>
+        <p><span className="font-bold text-orange-600">出處：</span>{currentIdiom?.origin}</p>
+        <p className="leading-snug"><span className="font-bold text-orange-600">釋義：</span>{currentIdiom?.meaning}</p>
+        <button type="button" onClick={onNextRound} className="mt-1 min-h-11 rounded-xl bg-orange-500 px-4 font-bold text-white shadow hover:bg-orange-600">
+          <RefreshCw aria-hidden="true" className="mr-1 inline h-4 w-4" />
+          {roundIndex >= 9 ? '結算分數' : '下一題'}
+        </button>
+      </div>
+    ) : (
+      <div className="flex flex-wrap justify-center gap-2 p-2 sm:gap-3">
+        {options.some(Boolean) ? options.map((opt, idx) => (
+            <button
+              type="button"
+              key={idx}
+              onClick={() => onSelectOption(opt, idx)}
+              disabled={!opt}
+              aria-label={opt ? `選擇文字 ${opt}` : `文字 ${idx + 1} 已使用`}
+              className={`flex min-h-14 min-w-14 items-center justify-center rounded-xl border-2 border-orange-200 bg-white px-3 text-2xl font-bold text-orange-700 shadow transition hover:border-orange-400 hover:bg-orange-50 sm:min-h-16 sm:min-w-16 sm:text-3xl ${!opt ? 'invisible' : ''}`}
+            >
+              {opt}
+            </button>
+          )) : (
+            <p className="rounded-xl bg-orange-100 p-3 text-center text-sm font-bold leading-relaxed text-orange-800">
+              文字已全部放入<br />點擊左側文字可取回調整
+            </p>
+          )}
+      </div>
+    )}
+    feedback={isWin
+      ? <span className="text-green-700">解答正確！獲得 {Math.max(10, 100 - time * 2)} 分</span>
+      : hasGuessed
+        ? <span className="text-red-700">順序還不對，點擊已填文字取回後再試試看</span>
+        : <span className="text-orange-700">從右側選字；點擊已填文字可取回</span>}
+  />
+);
 
 const WordTileGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const idiomPool = isAdvanced ? ADVANCED_IDIOMS : NORMAL_IDIOMS;
@@ -128,7 +253,8 @@ const WordTileGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
 
   if (gameOver) {
       return (
-          <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-orange-50 p-4">
+        <GameShell title="成語接龍拼圖" subtitle="測驗完成" onBack={onBack} className="bg-orange-50">
+          <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4">
               <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center text-center animate-fade-in-up border-4 border-orange-100 max-w-sm w-full">
                   <div className="text-6xl mb-4 animate-bounce">🏆</div>
                   <h2 className="text-3xl font-bold text-orange-900 mb-2">測驗完成！</h2>
@@ -150,31 +276,28 @@ const WordTileGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                   </button>
               </div>
           </div>
+        </GameShell>
       );
   }
 
   return (
-    <div className="flex flex-col items-center justify-between h-[100dvh] max-h-[100dvh] bg-orange-50 p-1 sm:p-4 overflow-hidden relative">
-      <button 
-        onClick={onBack}
-        className="absolute top-1.5 left-1.5 p-1.5 sm:p-2 bg-white rounded-full shadow-md text-orange-600 hover:bg-orange-100 z-50 transition-colors"
-      >
-        <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
-      </button>
-
-      <div className="absolute top-1.5 right-1.5 sm:top-4 sm:right-4 flex gap-1.5 sm:gap-2 z-10">
-          <div className="text-orange-800 font-bold text-xs sm:text-lg bg-white px-2 sm:px-4 py-1 sm:py-2 rounded-xl shadow-sm border border-orange-100 flex items-center">
-              {isAdvanced ? '進階模式' : '一般模式'} | {roundIndex + 1} / 10 題
-          </div>
-          <button 
-              onClick={() => setShowRules(true)}
-              className="p-1 sm:p-2 bg-white text-orange-600 rounded-xl shadow-sm border border-orange-100 hover:bg-orange-50 transition-colors active:scale-95 flex items-center justify-center"
-              title="遊戲規則"
-          >
-              <HelpCircle size={20} className="sm:w-[22px] sm:h-[22px]" />
-          </button>
-      </div>
-
+    <>
+      <WordTileRoundView
+        currentIdiom={currentIdiom}
+        isAdvanced={isAdvanced}
+        roundIndex={roundIndex}
+        totalScore={totalScore}
+        placed={placed}
+        options={options}
+        isWin={isWin}
+        hasGuessed={hasGuessed}
+        time={time}
+        onBack={onBack}
+        onShowRules={() => setShowRules(true)}
+        onRemovePlaced={handleRemovePlaced}
+        onSelectOption={handleSelectOption}
+        onNextRound={handleNextRound}
+      />
       <RulesModal 
           isOpen={showRules} 
           onClose={() => setShowRules(false)}
@@ -185,86 +308,7 @@ const WordTileGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               "每次測驗共有 10 題，題庫擴充至 300 題且不重複！"
           ]}
       />
-
-      <div className="w-full max-w-5xl flex flex-col items-center justify-center my-auto py-0">
-          <h2 className="text-xl sm:text-2xl font-bold text-orange-900 mb-1 sm:mb-4 hidden sm:block">成語接龍拼圖</h2>
-          
-          {/* Target Slots */}
-          <div className="flex gap-2 sm:gap-4 mb-1 sm:mb-4 mt-0.5 shrink-0">
-              {placed.map((char, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => handleRemovePlaced(idx)}
-                    disabled={char === null || isWin}
-                    className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-2xl sm:text-4xl md:text-5xl font-bold shadow-md border-2 sm:border-4 transition-all duration-300 ${
-                        char === null 
-                            ? 'bg-white border-dashed border-orange-300 text-orange-800'
-                            : isWin 
-                                ? 'bg-green-100 border-green-500 text-green-700 scale-105 shadow-green-200 cursor-default'
-                                : hasGuessed && currentIdiom
-                                    ? char === currentIdiom.word[idx]
-                                        ? 'bg-green-100 border-green-400 text-green-700'
-                                        : 'bg-red-100 border-red-400 text-red-700 hover:bg-red-50 animate-shake'
-                                    : 'bg-gradient-to-b from-orange-100 to-orange-200 border-orange-400 text-orange-900 hover:bg-orange-50'
-                    }`}
-                  >
-                      {char}
-                  </button>
-              ))}
-          </div>
-
-          {/* Bottom Area */}
-          <div className="min-h-[100px] sm:min-h-[200px] w-full flex items-center justify-center shrink-0">
-              {!isWin ? (
-                  <div className="flex gap-2.5 sm:gap-6 animate-fade-in-up">
-                      {options.map((opt, idx) => (
-                          <button
-                              key={idx}
-                              onClick={() => handleSelectOption(opt, idx)}
-                              disabled={!opt}
-                              className={`w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-white rounded-2xl shadow-md border-2 border-orange-200 flex items-center justify-center text-2xl sm:text-3xl md:text-4xl font-bold text-orange-700 hover:bg-orange-50 hover:scale-105 hover:border-orange-400 transition-all active:scale-95 ${!opt ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100'}`}
-                          >
-                              {opt}
-                          </button>
-                      ))}
-                  </div>
-              ) : (
-                  <div className="relative flex flex-col items-center animate-fade-in-up w-full px-2 sm:px-4 justify-center">
-                      {/* Score display overlaying top edge of container without taking up vertical flow space */}
-                      <div className="absolute -top-3.5 sm:-top-5 left-1/2 -translate-x-1/2 z-20 bg-white px-3 sm:px-6 py-0.5 sm:py-1.5 rounded-full shadow-lg border-2 border-orange-300 text-orange-600 font-extrabold text-xs sm:text-base md:text-lg flex items-center gap-1 sm:gap-1.5 animate-bounce pointer-events-none whitespace-nowrap">
-                          <span>🎉 解答正確！獲得：</span>
-                          <span className="text-orange-700 text-xs sm:text-xl font-black">{Math.max(10, 100 - time * 2)}</span>
-                          <span>分</span>
-                      </div>
-
-                      <div className="flex flex-row items-stretch justify-center gap-2 sm:gap-4 w-full max-w-4xl pt-1.5 sm:pt-3">
-                          {/* Text Box */}
-                          <div className="bg-white rounded-2xl shadow-md border border-orange-200 p-2 sm:p-4 flex-1 overflow-y-auto max-h-[80px] sm:max-h-[160px] md:max-h-[200px]">
-                              <h3 className="text-xs sm:text-xl font-bold text-orange-900 mb-0.5 sm:mb-1 border-b border-orange-100 pb-0.5 sm:pb-1">
-                                  出處與釋義
-                              </h3>
-                              <p className="text-slate-700 font-bold mb-0.5 sm:mb-1 text-[11px] sm:text-base">
-                                  <span className="text-orange-600 mr-1 sm:mr-1.5">【出處】</span>{currentIdiom?.origin}
-                              </p>
-                              <p className="text-slate-600 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
-                                  <span className="text-orange-600 font-bold mr-1 sm:mr-1.5">【釋義】</span>{currentIdiom?.meaning}
-                              </p>
-                          </div>
-                          
-                          {/* Next Button */}
-                          <button 
-                              onClick={handleNextRound}
-                              className="px-3 sm:px-8 bg-orange-500 text-white rounded-2xl font-bold text-sm sm:text-2xl hover:bg-orange-600 shadow-md flex flex-col items-center justify-center gap-1 sm:gap-2 transition-transform active:scale-95 shrink-0"
-                          >
-                              <RefreshCw size={18} className="sm:w-8 sm:h-8" />
-                              <span className="whitespace-nowrap">{roundIndex >= 9 ? '結算分數' : '下一題'}</span>
-                          </button>
-                      </div>
-                  </div>
-              )}
-          </div>
-      </div>
-    </div>
+    </>
   );
 };
 

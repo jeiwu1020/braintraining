@@ -1,14 +1,125 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, RotateCcw, Check, XCircle, Trophy, Send, Eye, ArrowRight } from 'lucide-react';
+import { Loader2, RotateCcw, Check, Trophy, Send, Eye, ArrowRight } from 'lucide-react';
 import { SentenceLevel, Difficulty } from '../types';
 import { generateSentenceLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
   difficulty?: Difficulty;
 }
+
+type SentenceWord = { id: string; text: string };
+
+interface SentenceRoundViewProps {
+  difficulty: Difficulty;
+  round: number;
+  totalScore: number;
+  userAnswer: SentenceWord[];
+  availableWords: SentenceWord[];
+  isCorrect: boolean;
+  showError: boolean;
+  onBack: () => void;
+  onSkip: () => void;
+  onSelectWord: (word: SentenceWord) => void;
+  onDeselectWord: (word: SentenceWord) => void;
+  onShowAnswer: () => void;
+  onReset: () => void;
+  onCheckAnswer: () => void;
+}
+
+export const SentenceRoundView: React.FC<SentenceRoundViewProps> = ({
+  difficulty,
+  round,
+  totalScore,
+  userAnswer,
+  availableWords,
+  isCorrect,
+  showError,
+  onBack,
+  onSkip,
+  onSelectWord,
+  onDeselectWord,
+  onShowAnswer,
+  onReset,
+  onCheckAnswer,
+}) => (
+  <GridFocusScreen
+    title="造句拼拼樂"
+    subtitle="依序選詞，組成通順的句子"
+    difficulty={difficulty}
+    round={round}
+    totalRounds={10}
+    score={totalScore}
+    onBack={onBack}
+    className="bg-pink-50"
+    statusClassName="bg-pink-100 text-pink-800"
+    advancedClassName="bg-pink-600"
+    playfieldLabel="句子排列區"
+    supportLabel="待選詞語區"
+    playfieldClassName="flex items-center justify-center overflow-hidden"
+    supportClassName="overflow-hidden"
+    actions={(
+      <button type="button" onClick={onSkip} className="min-h-11 rounded-xl bg-pink-100 px-3 text-sm font-bold text-pink-700 hover:bg-pink-200">
+        跳過
+      </button>
+    )}
+    playfield={(
+      <div className={`flex min-h-24 w-full max-w-3xl flex-wrap content-center items-center justify-center gap-2 rounded-2xl border-4 bg-white p-3 shadow-inner transition-colors ${isCorrect ? 'border-green-400 bg-green-50' : showError ? 'border-red-300 bg-red-50' : 'border-pink-200'}`}>
+        {userAnswer.length === 0 && !isCorrect && <span className="text-gray-400">答案區：依序點選右側詞語</span>}
+        {userAnswer.map(word => (
+          <button
+            type="button"
+            key={word.id}
+            onClick={() => onDeselectWord(word)}
+            disabled={isCorrect}
+            className="min-h-11 rounded-xl bg-pink-500 px-4 text-lg font-bold text-white shadow hover:bg-pink-600 sm:text-xl"
+          >
+            {word.text}
+          </button>
+        ))}
+        {isCorrect && <Check aria-label="句子正確" className="h-9 w-9 shrink-0 text-green-500" />}
+      </div>
+    )}
+    support={(
+      <div className="flex h-full min-h-0 flex-col gap-2 p-1">
+        <div className="flex min-h-0 flex-1 flex-wrap content-center justify-center gap-2 overflow-y-auto">
+          {availableWords.map(word => (
+            <button
+              type="button"
+              key={word.id}
+              onClick={() => onSelectWord(word)}
+              disabled={isCorrect}
+              className="min-h-11 rounded-xl border-2 border-pink-100 bg-white px-3 text-lg font-bold text-pink-700 shadow hover:border-pink-300 sm:text-xl"
+            >
+              {word.text}
+            </button>
+          ))}
+        </div>
+        <div className="flex shrink-0 flex-wrap justify-center gap-2">
+          <button type="button" onClick={onShowAnswer} disabled={isCorrect} aria-label="看答案，不計分" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-yellow-100 px-3 font-bold text-yellow-700 disabled:opacity-50">
+            <Eye aria-hidden="true" className="mr-1 h-5 w-5" />答案
+          </button>
+          <button type="button" onClick={onReset} disabled={isCorrect} className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-gray-100 px-3 font-bold text-gray-600 disabled:opacity-50">
+            <RotateCcw aria-hidden="true" className="mr-1 h-5 w-5" />重置
+          </button>
+          <button type="button" onClick={onCheckAnswer} disabled={userAnswer.length === 0 && !isCorrect} className={`flex min-h-11 items-center justify-center rounded-xl px-4 font-bold text-white shadow disabled:opacity-50 ${isCorrect ? 'bg-green-500' : 'bg-pink-500'}`}>
+            {isCorrect ? '下一題' : '確認'}
+            {isCorrect ? <ArrowRight aria-hidden="true" className="ml-1 h-5 w-5" /> : <Send aria-hidden="true" className="ml-1 h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+    )}
+    feedback={showError
+      ? <span className="text-red-700">順序不對喔，再試試看！</span>
+      : isCorrect
+        ? <span className="text-green-700">句子正確，做得很好！</span>
+        : undefined}
+  />
+);
 
 const TOTAL_ROUNDS = 10;
 
@@ -146,7 +257,8 @@ const SentenceGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isSessionFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-pink-50 p-4 animate-fade-in overflow-y-auto">
+      <GameShell title="造句拼拼樂" subtitle="練習完成" onBack={onBack} className="bg-pink-50">
+        <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-pink-200 my-4">
               <Trophy className="w-20 h-20 text-pink-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-pink-900 mb-2">練習完成！</h2>
@@ -169,140 +281,39 @@ const SentenceGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+        </div>
+      </GameShell>
     );
 }
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-pink-50">
-        <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4" />
-        <p className="text-pink-700">準備句子中...</p>
-      </div>
+      <GameShell title="造句拼拼樂" subtitle="依序選詞，組成通順的句子" onBack={onBack} className="bg-pink-50">
+        <div role="status" className="flex h-full flex-col items-center justify-center">
+          <Loader2 className="mb-4 h-12 w-12 animate-spin text-pink-500" />
+          <p className="text-pink-700">準備句子中...</p>
+        </div>
+      </GameShell>
     );
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-pink-50 overflow-hidden">
-      {/* Header - Compact */}
-      <div className="flex-none px-4 py-1 sm:py-2 flex justify-between items-center bg-white/50 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-pink-800 shadow-sm hover:bg-pink-100">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-4">
-            {difficulty === 'ADVANCED' && <span className="bg-pink-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-             <div className="px-3 py-1 bg-pink-100 rounded-full text-pink-800 font-bold text-sm">
-                第 {round} / {TOTAL_ROUNDS} 題
-             </div>
-             <div className="flex items-center bg-pink-100 px-3 py-1 rounded-full text-pink-800 font-bold">
-                <Trophy size={16} className="mr-2"/> {totalScore}
-             </div>
-        </div>
-        <button onClick={startNewRound} className="px-3 py-1 bg-white rounded-full text-pink-600 text-sm font-medium hover:bg-pink-100 shadow-sm">
-            跳過
-        </button>
-      </div>
-
-      {/* Main Layout: Flex Column */}
-      <div className="flex-1 flex flex-col items-center p-1 sm:p-2 max-w-4xl mx-auto w-full gap-1 sm:gap-2 relative overflow-hidden">
-        
-        {/* Error Toast */}
-        {showError && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 animate-bounce-short z-50 bg-red-100 border-2 border-red-400 text-red-700 px-6 py-3 rounded-full flex items-center shadow-lg whitespace-nowrap">
-                <XCircle className="w-6 h-6 mr-2" />
-                <span className="font-bold">順序不對喔，再試試看！</span>
-            </div>
-        )}
-
-        {/* TOP: Answer Area - Reduced Height */}
-        <div className="w-full flex-none flex flex-col items-center justify-center bg-white/40 rounded-xl p-1 sm:p-2">
-             {/* Hide label on mobile to save vertical space */}
-             <p className="text-gray-500 mb-1 text-sm self-start pl-2 hidden sm:block">請組成通順的句子：</p>
-             <div className={`
-                w-full min-h-[3rem] sm:min-h-[4rem]
-                bg-white rounded-xl shadow-inner p-1 sm:p-2 
-                flex flex-nowrap items-center gap-2 overflow-x-auto
-                border-4 transition-colors duration-300 
-                ${isCorrect ? 'border-green-400 bg-green-50' : showError ? 'border-red-300 bg-red-50' : 'border-pink-200'}
-             `}>
-                {userAnswer.length === 0 && !isCorrect && (
-                   <span className="text-gray-300 text-base sm:text-lg w-full text-center">答案區</span>
-                )}
-                {userAnswer.map(word => (
-                    <button 
-                        key={word.id} 
-                        onClick={() => handleDeselectWord(word)}
-                        className="flex-shrink-0 bg-pink-500 text-white text-lg sm:text-2xl font-bold px-3 py-1 sm:px-4 sm:py-2 rounded-lg shadow-md hover:bg-pink-600 transition-all animate-fade-in"
-                    >
-                        {word.text}
-                    </button>
-                ))}
-                {isCorrect && <Check className="text-green-500 w-8 h-8 sm:w-10 sm:h-10 ml-2 animate-bounce flex-shrink-0"/>}
-             </div>
-        </div>
-
-        {/* BOTTOM: Source Words & Controls - Use full remaining height */}
-        <div className="flex-1 w-full relative min-h-0 bg-white/30 rounded-2xl border border-pink-100 overflow-hidden">
-            
-            {/* Scrollable Word List - Absolute fill with padding at bottom for floating buttons */}
-            <div className="absolute inset-0 overflow-y-auto content-start p-2 pb-20">
-                <div className="flex flex-wrap gap-2 justify-center pt-2">
-                    {availableWords.map(word => (
-                        <button 
-                            key={word.id} 
-                            onClick={() => handleSelectWord(word)}
-                            className="bg-white text-pink-700 text-lg sm:text-2xl font-bold px-4 py-2 sm:px-5 sm:py-3 rounded-lg sm:rounded-xl shadow border-2 border-pink-100 hover:border-pink-300 active:scale-95 transition-all"
-                        >
-                            {word.text}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Controls - Floating Buttons */}
-            
-            {/* Left Group: Show Answer & Reset */}
-            <div className="absolute bottom-3 left-3 flex gap-2 z-20">
-                 <button 
-                    onClick={handleShowAnswer}
-                    disabled={isCorrect}
-                    className="flex items-center justify-center p-3 sm:px-4 sm:py-2 bg-yellow-100/90 backdrop-blur-sm text-yellow-700 rounded-full shadow-lg border border-yellow-200 hover:bg-yellow-200 transition disabled:opacity-50 active:scale-95"
-                    title="看答案 (不計分)"
-                >
-                    <Eye size={20} />
-                    <span className="ml-1 text-sm font-bold hidden sm:inline">看答案</span>
-                </button>
-                
-                <button 
-                    onClick={resetCurrent}
-                    disabled={isCorrect}
-                    className="flex items-center justify-center p-3 sm:px-4 sm:py-2 bg-gray-100/90 backdrop-blur-sm text-gray-600 rounded-full shadow-lg border border-gray-200 hover:bg-gray-200 transition disabled:opacity-50 active:scale-95"
-                >
-                    <RotateCcw size={20} />
-                    <span className="ml-1 text-sm font-bold hidden sm:inline">重置</span>
-                </button>
-            </div>
-            
-            {/* Confirm: Bottom Right */}
-            <button 
-                onClick={checkAnswer}
-                disabled={userAnswer.length === 0 && !isCorrect}
-                className={`
-                    absolute bottom-3 right-3 flex items-center justify-center py-3 px-5 
-                    backdrop-blur-sm text-white rounded-full font-bold shadow-xl 
-                    transition z-20 active:scale-95
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    ${isCorrect ? 'bg-green-500 hover:bg-green-600' : 'bg-pink-500/95 hover:bg-pink-600'}
-                `}
-            >
-                <span className="mr-1 text-sm sm:text-base">{isCorrect ? "下一題" : "確認"}</span>
-                {isCorrect ? <ArrowRight size={18} /> : <Send size={18} />}
-            </button>
-
-        </div>
-
-      </div>
-    </div>
+    <SentenceRoundView
+      difficulty={difficulty}
+      round={round}
+      totalScore={totalScore}
+      userAnswer={userAnswer}
+      availableWords={availableWords}
+      isCorrect={isCorrect}
+      showError={showError}
+      onBack={onBack}
+      onSkip={startNewRound}
+      onSelectWord={handleSelectWord}
+      onDeselectWord={handleDeselectWord}
+      onShowAnswer={handleShowAnswer}
+      onReset={resetCurrent}
+      onCheckAnswer={checkAnswer}
+    />
   );
 };
 

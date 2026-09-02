@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, ArrowRight, RotateCcw, Check, Eye } from 'lucide-react';
+import { Loader2, Trophy, ArrowRight, RotateCcw, Check, Eye } from 'lucide-react';
 import { StepsLevel, StepItem, Difficulty } from '../types';
 import { generateStepsLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import SplitChoiceLayout from './game-ui/SplitChoiceLayout';
 
 interface Props {
   onBack: () => void;
@@ -11,6 +13,172 @@ interface Props {
 }
 
 const TOTAL_ROUNDS = 10;
+
+interface StepsRoundViewProps {
+  level: StepsLevel;
+  difficulty: Difficulty;
+  round: number;
+  score: number;
+  availableSteps: StepItem[];
+  userOrder: StepItem[];
+  isCorrect: boolean;
+  showError: boolean;
+  onBack: () => void;
+  onSkip: () => void;
+  onSelectStep: (step: StepItem) => void;
+  onDeselectStep: (step: StepItem) => void;
+  onReset: () => void;
+  onShowAnswer: () => void;
+  onCheck: () => void;
+}
+
+export const StepsRoundView = ({
+  level,
+  difficulty,
+  round,
+  score,
+  availableSteps,
+  userOrder,
+  isCorrect,
+  showError,
+  onBack,
+  onSkip,
+  onSelectStep,
+  onDeselectStep,
+  onReset,
+  onShowAnswer,
+  onCheck,
+}: StepsRoundViewProps) => (
+  <GameShell
+    title="生活步驟"
+    subtitle={difficulty === 'ADVANCED' ? '排列較複雜的生活任務' : '依照正確順序完成生活任務'}
+    onBack={onBack}
+    className="bg-purple-50"
+    contentClassName="relative"
+    status={(
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {difficulty === 'ADVANCED' && (
+          <span className="rounded-full bg-purple-600 px-2 py-1 text-xs text-white">進階</span>
+        )}
+        <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-bold text-purple-800 sm:px-3 sm:text-sm">
+          第 {round}/{TOTAL_ROUNDS} 題
+        </span>
+        <span className="flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-bold text-purple-800 sm:px-3 sm:text-sm">
+          <Trophy aria-hidden="true" className="mr-1 h-4 w-4" /> {score}
+        </span>
+      </div>
+    )}
+    actions={(
+      <button
+        type="button"
+        onClick={onSkip}
+        className="min-h-11 rounded-xl px-3 text-sm font-bold text-purple-700 hover:bg-purple-100"
+      >
+        跳過
+      </button>
+    )}
+  >
+    <SplitChoiceLayout
+      className="mx-auto max-w-6xl"
+      questionLabel="步驟排列區"
+      choicesLabel="待選步驟區"
+      questionClassName="flex flex-col overflow-hidden rounded-2xl border-2 border-purple-200 bg-white/70 shadow-inner"
+      choicesClassName="flex flex-col overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-lg"
+      question={(
+        <>
+          <div className="shrink-0 border-b border-purple-200 bg-purple-100/70 p-2 text-center">
+            <h2 className="truncate text-base font-bold leading-tight text-purple-900 sm:text-lg">
+              題目：<span className="text-purple-700">{level.title}</span>
+            </h2>
+            <p className="text-xs text-purple-500">從右側依序選出正確步驟</p>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
+            <div className="flex flex-wrap content-start items-center gap-2">
+              {userOrder.length === 0 && (
+                <div className="flex min-h-20 w-full items-center justify-center font-bold text-purple-300">
+                  尚未選擇步驟
+                </div>
+              )}
+              {userOrder.map((step, index) => (
+                <React.Fragment key={step.id}>
+                  <button
+                    type="button"
+                    onClick={() => onDeselectStep(step)}
+                    disabled={isCorrect}
+                    className="group flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full border border-purple-300 bg-white px-3 py-1.5 text-sm font-bold text-purple-900 shadow-sm transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-70 sm:text-base"
+                  >
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100 text-xs text-purple-700">
+                      {index + 1}
+                    </span>
+                    {step.text}
+                  </button>
+                  {index < userOrder.length - 1 && <ArrowRight aria-hidden="true" className="h-4 w-4 text-purple-300" />}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 gap-2 border-t border-purple-100 bg-white/70 p-2">
+            <button
+              type="button"
+              onClick={onShowAnswer}
+              disabled={isCorrect}
+              className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-yellow-100 px-3 font-bold text-yellow-800 disabled:opacity-50"
+            >
+              <Eye aria-hidden="true" className="h-5 w-5" />
+              <span className="hidden sm:inline">答案</span>
+            </button>
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={userOrder.length === 0 || isCorrect}
+              className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-gray-200 px-3 font-bold text-gray-700 disabled:opacity-50"
+            >
+              <RotateCcw aria-hidden="true" className="h-5 w-5" />
+              <span className="hidden sm:inline">重置</span>
+            </button>
+            <button
+              type="button"
+              onClick={onCheck}
+              disabled={availableSteps.length > 0 && !isCorrect}
+              className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl font-bold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50 ${isCorrect ? 'bg-green-600' : 'bg-purple-600'}`}
+            >
+              {isCorrect ? '下一題' : '確認'}
+              {isCorrect ? <ArrowRight aria-hidden="true" className="h-5 w-5" /> : <Check aria-hidden="true" className="h-5 w-5" />}
+            </button>
+          </div>
+        </>
+      )}
+      choices={(
+        <>
+          <div className="shrink-0 border-b border-gray-100 bg-gray-50 p-2 text-center text-xs font-bold text-gray-500">
+            待選步驟
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
+            <div className="flex flex-wrap content-start justify-center gap-2 sm:justify-start">
+              {availableSteps.map((step) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => onSelectStep(step)}
+                  disabled={isCorrect}
+                  className="min-h-11 whitespace-nowrap rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-bold text-purple-900 shadow-sm transition-colors hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 sm:text-base"
+                >
+                  {step.text}
+                </button>
+              ))}
+              {availableSteps.length === 0 && (
+                <p className="py-6 text-center font-bold text-purple-400">所有步驟都已排入左側</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+      feedback={showError ? <span className="text-red-700">順序不對喔，請再調整！</span> : undefined}
+    />
+  </GameShell>
+);
 
 const StepsGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [level, setLevel] = useState<StepsLevel | null>(null);
@@ -142,7 +310,13 @@ const StepsGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-50 p-4 animate-fade-in">
+      <GameShell
+        title="生活步驟"
+        subtitle="本回合完成"
+        onBack={onBack}
+        className="bg-purple-50"
+        contentClassName="flex items-center justify-center overflow-y-auto p-4"
+      >
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-purple-200">
               <Check className="w-20 h-20 text-purple-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-purple-900 mb-2">步驟大師！</h2>
@@ -165,147 +339,45 @@ const StepsGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-50">
-        <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
-        <p className="text-purple-800">準備步驟中...</p>
-      </div>
+      <GameShell
+        title="生活步驟"
+        subtitle={difficulty === 'ADVANCED' ? '排列較複雜的生活任務' : '依照正確順序完成生活任務'}
+        onBack={onBack}
+        className="bg-purple-50"
+        contentClassName="flex items-center justify-center"
+      >
+        <div role="status" aria-live="polite" className="flex flex-col items-center text-purple-800">
+          <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-purple-600" />
+          <p>準備步驟中...</p>
+        </div>
+      </GameShell>
     );
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-purple-50 overflow-hidden relative">
-      {/* Header - Extremely Compact */}
-      <div className="flex-none px-3 py-1 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10 h-12">
-        <button onClick={onBack} className="p-1.5 bg-white rounded-full text-purple-800 shadow-sm hover:bg-purple-100">
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex items-center gap-2">
-             {difficulty === 'ADVANCED' && <span className="bg-purple-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-             <div className="px-2 py-0.5 bg-purple-100 rounded-full text-purple-800 font-bold text-xs sm:text-sm">
-                題 {round}/{TOTAL_ROUNDS}
-             </div>
-             <div className="flex items-center bg-purple-100 px-2 py-0.5 rounded-full text-purple-800 font-bold text-sm">
-                <Trophy size={14} className="mr-1"/> {score}
-             </div>
-        </div>
-        <button onClick={startRound} className="px-3 py-1 bg-white rounded-full text-purple-600 text-xs sm:text-sm font-medium hover:bg-purple-100 shadow-sm">
-            跳過
-        </button>
-      </div>
-
-      <div className="flex-1 flex flex-col sm:flex-row p-2 max-w-6xl mx-auto w-full gap-2 relative overflow-hidden min-h-0">
-        
-        {/* Game Area: Split View in Landscape, Vertical Stack in Portrait */}
-        
-        {/* Left/Top: Answer Drop Zone + Controls */}
-        <div className="flex-[1.2] flex flex-col min-h-0 bg-white/60 rounded-xl border-2 border-purple-200 shadow-inner overflow-hidden relative">
-            
-            {/* Embedded Title Header */}
-            <div className="flex-none bg-purple-100/50 p-2 text-center border-b border-purple-200">
-                <h2 className="text-base sm:text-lg font-bold text-purple-900 truncate leading-tight">
-                    題目：<span className="text-purple-700">{level.title}</span>
-                </h2>
-                <div className="text-purple-400 text-xs">請依序點擊右方選項</div>
-            </div>
-            
-            {/* Answer Content - Flex Wrap (Auto-width) */}
-            <div className="flex-1 overflow-y-auto p-2">
-                 <div className="flex flex-wrap gap-2 content-start items-center">
-                    {userOrder.length === 0 && (
-                        <div className="w-full h-20 flex items-center justify-center text-purple-300 font-bold text-sm">
-                            答案區 (空白)
-                        </div>
-                    )}
-                    
-                    {userOrder.map((step, idx) => (
-                        <React.Fragment key={step.id}>
-                            <button 
-                                onClick={() => handleDeselectStep(step)}
-                                className="group w-auto bg-white border border-purple-300 text-purple-900 px-3 py-1.5 rounded-full font-bold shadow-sm hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center gap-2 animate-fade-in text-sm sm:text-base whitespace-nowrap"
-                            >
-                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs group-hover:bg-red-100 group-hover:text-red-600">
-                                    {idx + 1}
-                                </div>
-                                {step.text}
-                            </button>
-                            {/* Visual connector */}
-                            {idx < userOrder.length - 1 && (
-                                <ArrowRight className="text-purple-200 w-4 h-4" />
-                            )}
-                        </React.Fragment>
-                    ))}
-                 </div>
-            </div>
-
-            {/* Controls - Docked inside the Left/Top Pane at bottom */}
-            <div className="flex-none p-2 bg-white/50 border-t border-purple-100 flex gap-2">
-                <button 
-                    onClick={handleShowAnswer}
-                    disabled={isCorrect}
-                    className="p-2 sm:px-4 bg-yellow-100 text-yellow-700 rounded-lg shadow-sm disabled:opacity-50 active:scale-95 transition-transform flex items-center justify-center gap-1"
-                >
-                    <Eye size={18} />
-                    <span className="text-sm font-bold hidden sm:inline">答案</span>
-                </button>
-                <button 
-                    onClick={handleReset}
-                    disabled={userOrder.length === 0 || isCorrect}
-                    className="p-2 sm:px-4 bg-gray-200 text-gray-700 rounded-lg shadow-sm disabled:opacity-50 active:scale-95 transition-transform flex items-center justify-center gap-1"
-                >
-                    <RotateCcw size={18} />
-                    <span className="text-sm font-bold hidden sm:inline">重置</span>
-                </button>
-                <button 
-                    onClick={checkAnswer}
-                    disabled={availableSteps.length > 0 && !isCorrect}
-                    className={`
-                        flex-1 text-white text-base font-bold rounded-lg shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 py-2
-                        ${isCorrect ? 'bg-green-600' : 'bg-purple-600'}
-                    `}
-                >
-                    {isCorrect ? "下一題" : "確認"}
-                    {isCorrect ? <ArrowRight size={18} /> : <Check size={18} />}
-                </button>
-            </div>
-        </div>
-
-        {/* Right/Bottom: Source Options - Compact Flex Wrap */}
-        <div className="flex-1 min-h-0 bg-white rounded-xl shadow-lg border border-purple-100 flex flex-col overflow-hidden">
-                <div className="flex-none bg-gray-50 p-1.5 text-center text-gray-400 text-xs border-b border-gray-100">
-                    選項區
-                </div>
-                
-                {/* Scrollable Area */}
-                <div className="flex-1 overflow-y-auto p-2">
-                    {/* Flex Wrap for auto width */}
-                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start content-start">
-                    {availableSteps.map(step => (
-                        <button 
-                            key={step.id}
-                            onClick={() => handleSelectStep(step)}
-                            className="w-auto bg-purple-50 text-purple-900 border border-purple-200 px-3 py-2 rounded-lg font-bold shadow-sm hover:bg-purple-100 hover:border-purple-300 active:scale-95 transition-all text-sm sm:text-base whitespace-nowrap"
-                        >
-                            {step.text}
-                        </button>
-                    ))}
-                    </div>
-                </div>
-        </div>
-
-        {showError && (
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-100 border-2 border-red-400 text-red-700 px-6 py-3 rounded-2xl font-bold shadow-2xl animate-bounce-short text-lg whitespace-nowrap z-50 pointer-events-none">
-                 順序不對喔！
-             </div>
-        )}
-
-      </div>
-    </div>
+    <StepsRoundView
+      level={level}
+      difficulty={difficulty}
+      round={round}
+      score={score}
+      availableSteps={availableSteps}
+      userOrder={userOrder}
+      isCorrect={isCorrect}
+      showError={showError}
+      onBack={onBack}
+      onSkip={startRound}
+      onSelectStep={handleSelectStep}
+      onDeselectStep={handleDeselectStep}
+      onReset={handleReset}
+      onShowAnswer={handleShowAnswer}
+      onCheck={checkAnswer}
+    />
   );
 };
 

@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, Heart } from 'lucide-react';
+import { Loader2, Trophy, Heart } from 'lucide-react';
 import { EmotionLevel, Difficulty } from '../types';
 import { generateEmotionLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import SplitChoiceLayout from './game-ui/SplitChoiceLayout';
 
 interface Props {
   onBack: () => void;
@@ -11,6 +13,93 @@ interface Props {
 }
 
 const TOTAL_ROUNDS = 10;
+
+interface EmotionRoundViewProps {
+  level: EmotionLevel;
+  difficulty: Difficulty;
+  round: number;
+  score: number;
+  feedback: 'correct' | 'wrong' | null;
+  wrongOption: string | null;
+  feedbackMessage: string | null;
+  onBack: () => void;
+  onOptionClick: (option: string) => void;
+}
+
+export const EmotionRoundView = ({
+  level,
+  difficulty,
+  round,
+  score,
+  feedback,
+  wrongOption,
+  feedbackMessage,
+  onBack,
+  onOptionClick,
+}: EmotionRoundViewProps) => (
+  <GameShell
+    title="情緒氣象台"
+    subtitle={difficulty === 'ADVANCED' ? '辨識複雜與混合情緒' : '觀察表情與情境，理解感受'}
+    onBack={onBack}
+    className="bg-pink-50"
+    contentClassName="relative"
+    status={(
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {difficulty === 'ADVANCED' && (
+          <span className="rounded-full bg-pink-600 px-2 py-1 text-xs text-white">進階</span>
+        )}
+        <span className="rounded-full bg-pink-100 px-2 py-1 text-xs font-bold text-pink-800 sm:px-3 sm:text-sm">
+          第 {round}/{TOTAL_ROUNDS} 題
+        </span>
+        <span className="flex items-center rounded-full bg-pink-100 px-2 py-1 text-xs font-bold text-pink-800 sm:px-3 sm:text-sm">
+          <Trophy aria-hidden="true" className="mr-1 h-4 w-4" /> {score}
+        </span>
+      </div>
+    )}
+  >
+    <SplitChoiceLayout
+      className="mx-auto max-w-5xl"
+      questionLabel="情緒題目區"
+      choicesLabel="情緒作答區"
+      questionClassName="flex flex-col items-center justify-center rounded-3xl border-2 border-pink-100 bg-white p-4 text-center shadow-lg sm:p-6"
+      choicesClassName="flex flex-col justify-center gap-3 pr-1 sm:gap-4"
+      question={(
+        <>
+          {level.emoji && (
+            <div aria-hidden="true" className="mb-2 text-6xl sm:mb-4 sm:text-8xl">
+              {level.emoji}
+            </div>
+          )}
+          <h2 className="text-xl font-bold leading-relaxed text-gray-800 sm:text-2xl">
+            {level.question}
+          </h2>
+        </>
+      )}
+      choices={level.options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onOptionClick(option)}
+          disabled={feedback === 'correct'}
+          className={`flex min-h-14 w-full shrink-0 items-center justify-center rounded-2xl border-2 px-2 py-3 text-xl font-bold shadow-md transition-all active:scale-95 sm:min-h-16 sm:text-2xl ${
+            feedback === 'correct' && option === level.correctAnswer
+              ? 'border-green-600 bg-green-500 text-white'
+              : feedback === 'wrong' && option === wrongOption
+                ? 'border-gray-200 bg-gray-100 text-gray-400 shake'
+                : 'border-pink-200 bg-white text-pink-700 hover:bg-pink-50'
+          }`}
+        >
+          {option}
+        </button>
+      ))}
+      feedback={feedbackMessage ? (
+        <span className="whitespace-nowrap text-red-600">{feedbackMessage}</span>
+      ) : feedback === 'correct' ? (
+        <span className="whitespace-nowrap text-green-700">答對了！</span>
+      ) : undefined}
+    />
+  </GameShell>
+);
 
 const EmotionGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [level, setLevel] = useState<EmotionLevel | null>(null);
@@ -115,7 +204,13 @@ const EmotionGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   if (isFinished) {
     const evalResult = getEvaluation(score);
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-4 animate-fade-in">
+      <GameShell
+        title="情緒氣象台"
+        subtitle="本回合完成"
+        onBack={onBack}
+        className="bg-pink-50"
+        contentClassName="flex items-center justify-center overflow-y-auto p-4"
+      >
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-pink-200">
               <Heart className="w-20 h-20 text-pink-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-pink-900 mb-2">{evalResult.title}</h2>
@@ -132,72 +227,39 @@ const EmotionGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-      return <div className="min-h-screen bg-pink-50 flex items-center justify-center"><Loader2 className="animate-spin text-pink-500"/></div>;
+      return (
+        <GameShell
+          title="情緒氣象台"
+          subtitle={difficulty === 'ADVANCED' ? '辨識複雜與混合情緒' : '觀察表情與情境，理解感受'}
+          onBack={onBack}
+          className="bg-pink-50"
+          contentClassName="flex items-center justify-center"
+        >
+          <div role="status" aria-live="polite" className="flex flex-col items-center text-pink-800">
+            <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-pink-500" />
+            <p>準備情緒題目中...</p>
+          </div>
+        </GameShell>
+      );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-pink-50 overflow-hidden relative">
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-pink-800 shadow-sm hover:bg-pink-100">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-4">
-            {difficulty === 'ADVANCED' && <span className="bg-pink-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-            <div className="text-pink-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-             <div className="flex items-center bg-pink-100 px-3 py-1 rounded-full text-pink-800 font-bold">
-                <Trophy size={16} className="mr-2"/> {score}
-             </div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-4 gap-6 max-w-5xl mx-auto w-full relative overflow-hidden">
-          
-          {/* Question Card */}
-          <div className="flex-1 bg-white p-6 sm:p-8 rounded-[2rem] shadow-xl border-4 border-pink-100 text-center flex flex-col items-center justify-center h-auto max-h-[40vh] sm:max-h-full w-full sm:w-auto overflow-y-auto">
-              {level.emoji && (
-                  <div className="text-7xl sm:text-9xl mb-4 sm:mb-6 animate-bounce-short">
-                      {level.emoji}
-                  </div>
-              )}
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 leading-relaxed">
-                  {level.question}
-              </h3>
-          </div>
-
-          {/* Feedback Overlay Message */}
-          {errorMsg && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-bounce-short pointer-events-none">
-                  <div className="bg-red-100 text-red-600 px-8 py-4 rounded-2xl font-bold shadow-2xl border-2 border-red-200 text-2xl whitespace-nowrap">
-                      {errorMsg}
-                  </div>
-              </div>
-          )}
-
-          {/* Options */}
-          <div className="flex-none w-full sm:w-64 grid grid-cols-1 gap-3 sm:gap-4 overflow-y-auto">
-              {level.options.map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleOptionClick(opt)}
-                    className={`
-                        py-4 px-2 rounded-xl text-xl font-bold shadow-md transition-all active:scale-95 border-2 min-h-[4rem] flex items-center justify-center
-                        ${feedback === 'correct' && opt === level.correctAnswer ? 'bg-green-500 text-white border-green-600' : ''}
-                        ${feedback === 'wrong' && opt === wrongOption ? 'bg-gray-100 text-gray-400 border-gray-200 shake' : ''}
-                        ${!feedback || (feedback === 'wrong' && opt !== wrongOption) ? 'bg-white text-pink-700 border-pink-200 hover:bg-pink-50' : ''}
-                    `}
-                  >
-                      {opt}
-                  </button>
-              ))}
-          </div>
-
-      </div>
-    </div>
+    <EmotionRoundView
+      level={level}
+      difficulty={difficulty}
+      round={round}
+      score={score}
+      feedback={feedback}
+      wrongOption={wrongOption}
+      feedbackMessage={errorMsg}
+      onBack={onBack}
+      onOptionClick={handleOptionClick}
+    />
   );
 };
 

@@ -1,12 +1,124 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Image as ImageIcon, RefreshCw, HelpCircle } from 'lucide-react';
+import { Image as ImageIcon, RefreshCw, HelpCircle } from 'lucide-react';
 import { soundService } from '../services/soundService';
 import { RulesModal } from './RulesModal';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
   isAdvanced?: boolean;
 }
+
+interface RevealPictureRoundViewProps {
+  target: { emoji: string; name: string };
+  isAdvanced?: boolean;
+  roundIndex: number;
+  totalScore: number;
+  gridSize: number;
+  revealed: boolean[];
+  isPeek: boolean;
+  isDone: boolean;
+  score: number;
+  onBack: () => void;
+  onShowRules: () => void;
+  onTileClick: (index: number) => void;
+  onRevealAll: () => void;
+  onGuess: (correct: boolean) => void;
+  onNextRound: () => void;
+}
+
+export const RevealPictureRoundView: React.FC<RevealPictureRoundViewProps> = ({
+  target,
+  isAdvanced,
+  roundIndex,
+  totalScore,
+  gridSize,
+  revealed,
+  isPeek,
+  isDone,
+  score,
+  onBack,
+  onShowRules,
+  onTileClick,
+  onRevealAll,
+  onGuess,
+  onNextRound,
+}) => {
+  const revealedCount = revealed.filter(Boolean).length;
+  const isAllRevealed = revealedCount === revealed.length || isDone || isPeek;
+
+  return (
+    <GridFocusScreen
+      title="翻牌解謎"
+      subtitle="少翻幾格，猜出隱藏圖案"
+      difficulty={isAdvanced ? 'ADVANCED' : 'NORMAL'}
+      round={roundIndex + 1}
+      totalRounds={10}
+      score={totalScore}
+      onBack={onBack}
+      className="bg-emerald-50"
+      statusClassName="bg-emerald-100 text-emerald-800"
+      advancedClassName="bg-emerald-600"
+      playfieldLabel="隱藏圖片格線"
+      supportLabel="答案判斷區"
+      playfieldClassName="flex items-center justify-center overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-hidden"
+      actions={(
+        <button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+          <HelpCircle aria-hidden="true" size={22} />
+        </button>
+      )}
+      playfield={(
+        <div className="relative h-full max-h-[30rem] aspect-square overflow-hidden rounded-2xl border-4 border-emerald-100 bg-white shadow-xl">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100">
+            <span className="select-none leading-none drop-shadow-xl" style={{ fontSize: 'clamp(5rem, 28vh, 13rem)' }}>{target.emoji}</span>
+          </div>
+          <div className={`absolute inset-0 grid ${isAllRevealed ? 'pointer-events-none' : ''}`} style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
+            {revealed.map((isRevealed, idx) => (
+              <button
+                type="button"
+                key={idx}
+                onClick={() => onTileClick(idx)}
+                disabled={isRevealed || isAllRevealed}
+                aria-label={`翻開第 ${idx + 1} 格`}
+                className={`flex items-center justify-center bg-emerald-500 text-2xl font-bold text-white shadow-[inset_0_0_0_1px_rgba(4,120,87,0.5)] transition-all hover:bg-emerald-400 ${isRevealed || isAllRevealed ? 'pointer-events-none scale-95 opacity-0' : 'opacity-100'}`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      support={!isDone ? (
+        !isPeek ? (
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="text-sm font-bold leading-relaxed text-emerald-800">看見線索後<br />就可以揭曉答案</p>
+            <button type="button" onClick={onRevealAll} className="flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-4 font-bold text-white shadow hover:bg-emerald-700">
+              <ImageIcon aria-hidden="true" className="mr-2 h-5 w-5" />揭曉答案
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="text-2xl font-bold text-emerald-900">{target.name}</p>
+            <p className="text-sm text-slate-600">你原本猜對了嗎？</p>
+            <button type="button" onClick={() => onGuess(true)} className="min-h-11 w-full rounded-xl bg-green-500 px-4 font-bold text-white shadow hover:bg-green-600">答對</button>
+            <button type="button" onClick={() => onGuess(false)} className="min-h-11 w-full rounded-xl bg-red-500 px-4 font-bold text-white shadow hover:bg-red-600">答錯</button>
+          </div>
+        )
+      ) : (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-2xl font-bold text-emerald-900">{target.name}</p>
+          <p className={`text-xl font-bold ${score > 0 ? 'text-green-600' : 'text-red-600'}`}>得分 {score}</p>
+          <button type="button" onClick={onNextRound} className="mt-1 flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-4 font-bold text-white shadow hover:bg-emerald-700">
+            <RefreshCw aria-hidden="true" className="mr-2 h-5 w-5" />{roundIndex >= 9 ? '結算分數' : '下一題'}
+          </button>
+        </div>
+      )}
+      feedback={<span className="text-emerald-700">已翻開 {revealedCount}/{revealed.length} 塊</span>}
+    />
+  );
+};
 
 const TARGETS = [
   { emoji: '🐘', name: '大象' }, { emoji: '🦒', name: '長頸鹿' }, { emoji: '🦓', name: '斑馬' },
@@ -60,7 +172,6 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const [isPeek, setIsPeek] = useState(false);
 
   const revealedCount = revealed.filter(r => r).length;
-  const isAllRevealed = revealedCount === numTiles || isDone || isPeek;
 
   React.useEffect(() => {
       startGame();
@@ -127,7 +238,8 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
 
   if (gameOver) {
       return (
-          <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-emerald-50 p-4">
+        <GameShell title="翻牌解謎" subtitle="測驗完成" onBack={onBack} className="bg-emerald-50">
+          <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4">
               <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center text-center animate-fade-in-up border-4 border-emerald-100 max-w-sm w-full">
                   <div className="text-6xl mb-4 animate-bounce">🏆</div>
                   <h2 className="text-3xl font-bold text-emerald-900 mb-2">測驗完成！</h2>
@@ -149,31 +261,29 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                   </button>
               </div>
           </div>
+        </GameShell>
       );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-emerald-50 p-2 sm:p-4">
-      <button 
-        onClick={onBack}
-        className="absolute top-2 left-2 p-2 bg-white rounded-full shadow-md text-emerald-600 hover:bg-emerald-100 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
-
-      <div className="absolute top-4 right-4 flex gap-2 z-10">
-          <div className="text-emerald-800 font-bold text-sm sm:text-xl bg-white px-3 sm:px-4 py-2 rounded-xl shadow-sm border border-emerald-100 flex items-center">
-              題數: {roundIndex + 1} / 10
-          </div>
-          <button 
-              onClick={() => setShowRules(true)}
-              className="p-2 sm:p-2 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors active:scale-95 flex items-center justify-center"
-              title="遊戲規則"
-          >
-              <HelpCircle size={24} />
-          </button>
-      </div>
-
+    <>
+      <RevealPictureRoundView
+        target={target}
+        isAdvanced={isAdvanced}
+        roundIndex={roundIndex}
+        totalScore={totalScore}
+        gridSize={gridSize}
+        revealed={revealed}
+        isPeek={isPeek}
+        isDone={isDone}
+        score={score}
+        onBack={onBack}
+        onShowRules={() => setShowRules(true)}
+        onTileClick={handleTileClick}
+        onRevealAll={handleRevealAll}
+        onGuess={handleGuess}
+        onNextRound={handleNextRound}
+      />
       <RulesModal 
           isOpen={showRules} 
           onClose={() => setShowRules(false)}
@@ -186,88 +296,7 @@ const RevealPictureGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               "共 10 題，看你能得幾分！"
           ]}
       />
-
-      <div className="w-full h-full max-w-7xl flex flex-row items-center justify-center gap-2 sm:gap-6 py-2 px-1 sm:px-8 mt-12 sm:mt-0">
-          
-          {/* Grid / Image Container */}
-          <div className="flex-1 flex flex-col items-center justify-center min-w-0">
-              <div className="relative w-full max-w-[85vw] sm:max-w-[75vh] aspect-square bg-white rounded-xl shadow-xl border-4 sm:border-8 border-emerald-100 overflow-hidden flex items-center justify-center shrink-0">
-                  {/* The Hidden Image */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">
-                      <span className="text-[50vw] sm:text-[45vh] leading-none drop-shadow-2xl">{target.emoji}</span>
-                  </div>
-
-                  {/* The Grid Overlay */}
-                  <div 
-                    className={`absolute inset-0 grid gap-0 transition-colors duration-1000 bg-transparent ${isAllRevealed ? 'pointer-events-none' : ''}`}
-                    style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
-                  >
-                      {revealed.map((isRevealed, idx) => (
-                          <button
-                              key={idx}
-                              onClick={() => handleTileClick(idx)}
-                              className={`flex items-center justify-center bg-emerald-500 hover:bg-emerald-400 transition-all duration-500 shadow-[inset_0_0_0_1px_rgba(4,120,87,0.5)] ${isRevealed || isDone || isPeek ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
-                          >
-                              <span className={`${isAdvanced ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-5xl'} font-bold text-white drop-shadow-md`}>{idx + 1}</span>
-                          </button>
-                      ))}
-                  </div>
-              </div>
-          </div>
-          
-          {/* Right Sidebar for Answer and Score */}
-          <div className="w-28 sm:w-64 flex flex-col justify-center shrink-0">
-              {(!isDone) ? (
-                  <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-md border border-emerald-100 flex flex-col gap-2">
-                      {!isPeek ? (
-                          <button 
-                              onClick={handleRevealAll}
-                              className="w-full py-4 sm:py-6 bg-emerald-100 text-emerald-700 font-bold rounded-xl hover:bg-emerald-200 transition-colors shadow-sm text-base sm:text-xl active:scale-95 flex items-center justify-center gap-2"
-                          >
-                              <ImageIcon size={24} /> 揭曉答案
-                          </button>
-                      ) : (
-                          <div className="flex flex-col gap-2 sm:gap-3 animate-fade-in">
-                              <div className="text-center mb-1 sm:mb-2 border-b border-emerald-50 pb-2">
-                                  <span className="text-xl sm:text-3xl font-bold text-emerald-900 drop-shadow-sm">{target.name}</span>
-                              </div>
-                              <button 
-                                  onClick={() => handleGuess(true)}
-                                  className="w-full py-3 sm:py-5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors shadow-sm text-base sm:text-xl active:scale-95"
-                              >
-                                  答對
-                              </button>
-                              <button 
-                                  onClick={() => handleGuess(false)}
-                                  className="w-full py-3 sm:py-5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors shadow-sm text-base sm:text-xl active:scale-95"
-                              >
-                                  答錯
-                              </button>
-                          </div>
-                      )}
-                  </div>
-              ) : (
-                  <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-md border border-emerald-100 flex flex-col items-center text-center gap-2 sm:gap-4 animate-fade-in">
-                      <span className="text-xl sm:text-3xl font-bold text-emerald-900 mb-1 drop-shadow-sm leading-tight">
-                          {target.name}
-                      </span>
-                      <span className={`text-lg sm:text-2xl font-bold ${score > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                          得分: {score}
-                      </span>
-                      <span className="text-xs sm:text-sm text-slate-500 font-bold">
-                          翻開: {revealedCount} 塊
-                      </span>
-                      <button 
-                          onClick={handleNextRound}
-                          className="mt-2 sm:mt-4 w-full py-3 sm:py-4 bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-1 sm:gap-2 hover:bg-emerald-600 shadow-md active:scale-95 transition-transform text-base sm:text-xl"
-                      >
-                          <RefreshCw size={20} /> {roundIndex >= 9 ? '結算分數' : '下一題'}
-                      </button>
-                  </div>
-              )}
-          </div>
-      </div>
-    </div>
+    </>
   );
 };
 

@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, HelpCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Trophy, HelpCircle } from 'lucide-react';
 import { OddOneLevel, Difficulty } from '../types';
 import { generateOddOneLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -94,7 +96,8 @@ const OddOneGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 p-4 animate-fade-in">
+      <GameShell title="誰是異類" subtitle="本回合完成" onBack={onBack} className="bg-orange-50">
+       <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 animate-fade-in">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-orange-200">
           <Trophy className="w-20 h-20 text-orange-500 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-orange-900 mb-2">挑戰完成！</h2>
@@ -105,37 +108,44 @@ const OddOneGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <button onClick={handleRestart} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 shadow-lg">再玩一次</button>
           </div>
         </div>
-      </div>
+       </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-    return <div className="min-h-screen bg-orange-50 flex items-center justify-center"><Loader2 className="animate-spin text-orange-500 w-12 h-12" /></div>;
+    return (
+      <GameShell title="誰是異類" subtitle="找出分類不同的項目" onBack={onBack} className="bg-orange-50">
+        <div role="status" className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-orange-500 w-12 h-12" /></div>
+      </GameShell>
+    );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-orange-50 overflow-hidden relative">
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-orange-800 shadow-sm hover:bg-orange-100"><ArrowLeft size={20} /></button>
-        <div className="flex items-center gap-4">
-          {difficulty === 'ADVANCED' && <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-          <div className="text-orange-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-          <div className="flex items-center bg-orange-100 px-3 py-1 rounded-full text-orange-800 font-bold"><Trophy size={16} className="mr-2"/> {score}</div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center p-4 gap-6 w-full max-w-6xl mx-auto overflow-hidden">
-        <h2 className="text-2xl font-bold text-orange-900 flex items-center shrink-0"><HelpCircle className="mr-2"/> 哪一個不一樣？</h2>
-        
-        {/* Responsive Grid: 2x2 on Portrait, 1 Row on Landscape (sm breakpoint usually triggers on landscape phones) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 w-full h-auto aspect-square sm:aspect-auto sm:h-64 items-stretch">
+    <GridFocusScreen
+      title="誰是異類"
+      subtitle="找出分類不同的項目"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className="bg-orange-50"
+      statusClassName="bg-orange-100 text-orange-800"
+      advancedClassName="bg-orange-600"
+      playfieldLabel="異類圖案矩陣"
+      playfieldClassName="flex flex-col items-center justify-center gap-3 overflow-hidden"
+      playfield={(
+       <>
+        <h2 className="flex shrink-0 items-center text-xl font-bold text-orange-900 sm:text-2xl"><HelpCircle className="mr-2"/> 哪一個不一樣？</h2>
+        <div className="grid h-full max-h-64 w-full max-w-6xl grid-cols-2 items-stretch gap-3 sm:grid-cols-4 sm:gap-4">
           {level.items.map((item, idx) => (
             <button
               key={idx}
               onClick={() => handleItemClick(idx)}
               disabled={!!feedback}
               className={`
-                rounded-2xl shadow-lg border-4 flex flex-col items-center justify-center p-2 sm:p-4 transition-all active:scale-95
+                min-h-0 rounded-2xl shadow-lg border-4 flex flex-col items-center justify-center p-2 sm:p-4 transition-all active:scale-95
                 ${feedback === 'correct' && idx === level.correctIndex ? 'bg-green-100 border-green-500' : ''}
                 ${feedback === 'wrong' && idx === selectedIndex ? 'bg-red-100 border-red-300' : 'bg-white border-orange-100 hover:bg-orange-50'}
                 ${feedback && idx !== level.correctIndex && idx !== selectedIndex ? 'opacity-50' : ''}
@@ -146,24 +156,14 @@ const OddOneGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </button>
           ))}
         </div>
-
-        {/* Feedback Overlay - Always show if feedback exists */}
-        {feedback && (
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-8 py-4 rounded-3xl shadow-2xl border-4 z-50 animate-bounce-short flex flex-col items-center gap-2 ${feedback === 'correct' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'}`}>
-                <div className="flex items-center gap-2">
-                    {feedback === 'correct' ? <CheckCircle size={32} /> : <XCircle size={32} />}
-                    <span className="text-2xl font-bold">{feedback === 'correct' ? "答對了！" : "再想想看"}</span>
-                </div>
-                {/* Show reason inside overlay if available and correct */}
-                {feedback === 'correct' && showReason && level.reason && (
-                    <div className="text-sm sm:text-base font-medium mt-1 bg-white/50 px-3 py-1 rounded-full whitespace-nowrap">
-                        💡 {level.reason}
-                    </div>
-                )}
-            </div>
-        )}
-      </div>
-    </div>
+       </>
+      )}
+      feedback={feedback ? (
+        <span className={feedback === 'correct' ? 'text-green-700' : 'text-red-700'}>
+          {feedback === 'correct' ? `答對了！${showReason && level.reason ? ` 💡 ${level.reason}` : ''}` : '再想想看'}
+        </span>
+      ) : undefined}
+    />
   );
 };
 

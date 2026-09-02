@@ -70,4 +70,12 @@ describe('game catalogue', () => {
       expect(game.layoutPreset.length).toBeGreaterThan(0);
     }
   });
+
+  it('classifies card-table and card-matrix games by their actual play surface', () => {
+    const blackjack = GAME_CATALOG.find(game => game.id === GameState.BLACKJACK);
+    const guessCard = GAME_CATALOG.find(game => game.id === GameState.GUESS_CARD);
+
+    expect(blackjack?.layoutPreset).toBe('BOARD_TABLE');
+    expect(guessCard?.layoutPreset).toBe('GRID_FOCUS');
+  });
 });

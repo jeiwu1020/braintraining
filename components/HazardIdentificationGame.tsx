@@ -1,12 +1,122 @@
 import React, { useState } from 'react';
-import { ArrowLeft, TriangleAlert, CheckCircle2, ChevronRight, Info } from 'lucide-react';
+import { TriangleAlert, CheckCircle2, ChevronRight } from 'lucide-react';
 import { Difficulty } from '../types';
 import { normalScenes, advancedScenes, HazardScene } from '../data/hazardData';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface Props {
     onBack: () => void;
     difficulty: Difficulty;
 }
+
+interface HazardRoundViewProps {
+    scene: HazardScene;
+    difficulty: Difficulty;
+    currentIndex: number;
+    totalScenes: number;
+    revealedItems: number[];
+    isLast: boolean;
+    onBack: () => void;
+    onItemClick: (index: number) => void;
+    onNext: () => void;
+}
+
+export const HazardRoundView: React.FC<HazardRoundViewProps> = ({
+    scene,
+    difficulty,
+    currentIndex,
+    totalScenes,
+    revealedItems,
+    isLast,
+    onBack,
+    onItemClick,
+    onNext,
+}) => {
+    const allRevealed = revealedItems.length === scene.items.length;
+    const latestIndex = revealedItems.length > 0 ? revealedItems[revealedItems.length - 1] : null;
+    const latestItem = latestIndex === null ? null : scene.items[latestIndex];
+
+    return (
+        <GameShell
+            title="安全辨識"
+            subtitle="判斷情境中的安全與危險行為"
+            onBack={onBack}
+            className="bg-red-50"
+            status={(
+                <div className="flex items-center gap-2">
+                    {difficulty === 'ADVANCED' && <span className="rounded-full bg-red-600 px-2 py-1 text-xs text-white">進階</span>}
+                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800 sm:text-sm">情境 {currentIndex + 1}/{totalScenes}</span>
+                </div>
+            )}
+        >
+            <GridFocusLayout
+                playfieldLabel="安全情境選項區"
+                supportLabel="安全判斷說明區"
+                playfieldClassName="overflow-hidden"
+                supportClassName="flex items-center justify-center overflow-hidden"
+                playfield={(
+                    <div className="flex h-full min-h-0 flex-col gap-2">
+                        <div className="shrink-0 rounded-2xl border border-red-100 bg-white px-3 py-2 text-center shadow-sm">
+                            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">{scene.title}</h2>
+                            <p className="text-sm text-slate-600 sm:text-base">{scene.context || scene.description}</p>
+                        </div>
+                        <div className="grid min-h-0 flex-1 grid-cols-2 content-center gap-2 overflow-y-auto">
+                            {scene.items.map((item, index) => {
+                                const isRevealed = revealedItems.includes(index);
+                                const stateClass = isRevealed
+                                    ? item.isHazard
+                                        ? 'border-red-500 bg-red-50 text-red-900'
+                                        : 'border-green-400 bg-green-50 text-green-900'
+                                    : 'border-slate-200 bg-white text-slate-800 hover:border-red-300';
+
+                                return (
+                                    <button
+                                        type="button"
+                                        key={index}
+                                        onClick={() => onItemClick(index)}
+                                        aria-pressed={isRevealed}
+                                        className={`flex min-h-14 items-center gap-2 rounded-xl border-2 p-2 text-left font-bold shadow-sm transition ${stateClass}`}
+                                    >
+                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm shadow-sm">{index + 1}</span>
+                                        <span className="min-w-0 flex-1 text-sm leading-snug sm:text-base">{item.text}</span>
+                                        {isRevealed && (
+                                            item.isHazard
+                                                ? <TriangleAlert aria-label="危險行為" className="h-5 w-5 shrink-0 text-red-600" />
+                                                : <CheckCircle2 aria-label="安全行為" className="h-5 w-5 shrink-0 text-green-600" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+                support={(
+                    <div className="flex w-full flex-col gap-3 rounded-2xl border border-red-100 bg-white p-3 text-center shadow-sm">
+                        {latestItem ? (
+                            <>
+                                <div className={`flex items-center justify-center gap-2 font-bold ${latestItem.isHazard ? 'text-red-700' : 'text-green-700'}`}>
+                                    {latestItem.isHazard ? <TriangleAlert className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+                                    {latestItem.isHazard ? '危險行為' : '安全行為'}
+                                </div>
+                                <p className="text-sm font-medium leading-relaxed text-slate-700">{latestItem.explanation}</p>
+                            </>
+                        ) : (
+                            <p className="text-sm font-bold leading-relaxed text-red-800">依序點選每個行為<br />查看安全判斷與原因</p>
+                        )}
+                        {allRevealed && (
+                            <button type="button" onClick={onNext} className="flex min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 font-bold text-white shadow hover:bg-red-700">
+                                {isLast ? '完成挑戰' : '下一個情境'}
+                                {!isLast && <ChevronRight aria-hidden="true" className="ml-1 h-5 w-5" />}
+                            </button>
+                        )}
+                    </div>
+                )}
+                feedback={<span className="text-red-700">已查看 {revealedItems.length}/{scene.items.length} 個行為</span>}
+            />
+        </GameShell>
+    );
+};
 
 const HazardIdentificationGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isAdvanced = difficulty === 'ADVANCED';
@@ -26,9 +136,6 @@ const HazardIdentificationGame: React.FC<Props> = ({ onBack, difficulty }) => {
 
     const currentScene = scenes[currentIndex];
     
-    // Check if ALL options have been revealed
-    const allRevealed = revealedItems.length === currentScene.items.length;
-
     const handleItemClick = (index: number) => {
         if (!revealedItems.includes(index)) {
             setRevealedItems([...revealedItems, index]);
@@ -50,100 +157,17 @@ const HazardIdentificationGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isLast = currentIndex === scenes.length - 1;
 
     return (
-        <div className="h-[100dvh] bg-red-50 flex flex-col font-sans overflow-hidden">
-            <header className="px-2 py-2 md:p-6 landscape:py-1 landscape:md:py-2 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
-                <button
-                    onClick={onBack}
-                    className="flex items-center text-red-600 hover:text-red-800 transition-colors font-bold text-sm md:text-xl shrink-0"
-                >
-                    <ArrowLeft className="mr-1 md:mr-2 w-5 h-5 md:w-8 md:h-8" />
-                    <span className="hidden sm:inline landscape:hidden">返回目錄</span>
-                </button>
-                <div className="flex-1 flex justify-center items-center px-1">
-                    <div className="flex items-center justify-center bg-red-50 px-2 sm:px-4 py-1 sm:py-2 landscape:py-0.5 rounded-full border border-red-100">
-                        <Info className="w-4 h-4 md:w-5 md:h-5 text-red-500 mr-1 sm:mr-2 hidden sm:block landscape:hidden" />
-                        <span className="font-bold text-xs sm:text-sm md:text-base text-red-800 text-center">
-                            <span className="hidden sm:inline landscape:hidden">請找出哪些是安全行為？哪些是危險行為？</span>
-                            <span className="sm:hidden landscape:inline">找出安全/危險行為</span>
-                        </span>
-                    </div>
-                </div>
-                <div className="flex items-center space-x-1 md:space-x-2 text-red-800 shrink-0">
-                    <TriangleAlert className="hidden sm:block landscape:hidden w-5 h-5 md:w-8 md:h-8" />
-                    <h1 className="text-sm sm:text-xl md:text-2xl font-bold">安全辨識</h1>
-                </div>
-            </header>
-
-            <main className="flex-1 max-w-6xl w-full mx-auto p-2 sm:p-4 md:p-8 landscape:p-1 landscape:sm:p-2 flex flex-col pb-20 md:pb-28 overflow-y-auto landscape:pb-16 text-center">
-                
-                <div className="bg-white p-3 sm:p-6 md:p-8 landscape:p-2 rounded-2xl md:rounded-3xl border-2 border-red-100 shadow-xl flex-1 flex flex-col min-h-0">
-                    <div className="mb-2 sm:mb-6 landscape:mb-1 border-b-2 border-red-50 pb-2 sm:pb-4 landscape:pb-1 text-center shrink-0">
-                        <span className="inline-block px-2 sm:px-4 py-0.5 sm:py-1 landscape:py-0 bg-red-100 text-red-700 font-bold rounded-full text-xs sm:text-sm md:text-lg mb-1 sm:mb-2 landscape:mb-0.5">
-                            情境 {currentIndex + 1} / {scenes.length}
-                        </span>
-                        <h2 className="text-lg sm:text-2xl md:text-4xl landscape:text-lg font-extrabold text-gray-800 mb-1 sm:mb-2 landscape:mb-0.5">{currentScene.title}</h2>
-                        <p className="text-sm sm:text-xl md:text-3xl landscape:text-base text-gray-600 font-medium">{currentScene.context || currentScene.description}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-2 sm:gap-4 md:gap-6 landscape:gap-1.5 flex-1 content-start relative pb-2 overflow-y-auto pr-1">
-                        {currentScene.items.map((item, index) => {
-                            const isRevealed = revealedItems.includes(index);
-                            const isHazard = item.isHazard;
-                            
-                            let cardClass = "bg-gray-50 border-gray-200 hover:border-red-300 text-gray-700 cursor-pointer hover:shadow-md";
-                            
-                            if (isRevealed) {
-                                if (isHazard) {
-                                    cardClass = "bg-red-50 border-red-500 text-red-900 shadow-lg scale-[1.02] landscape:scale-[1.01]";
-                                } else {
-                                    cardClass = "bg-green-50 border-green-300 text-green-800 opacity-80 cursor-default";
-                                }
-                            }
-
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleItemClick(index)}
-                                    disabled={isRevealed && !isHazard}
-                                    className={`relative text-left p-2 sm:p-4 md:p-6 landscape:p-1.5 rounded-xl md:rounded-2xl landscape:rounded-lg border-2 transition-all duration-300 flex flex-col ${cardClass}`}
-                                >
-                                    <div className="flex items-center sm:items-start mb-0 sm:mb-2 landscape:mb-0">
-                                        <div className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 landscape:w-6 landscape:h-6 shrink-0 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 landscape:mr-1.5 text-sm sm:text-base md:text-xl landscape:text-sm font-bold bg-white shadow-sm
-                                            ${isRevealed ? (isHazard ? 'text-red-600' : 'text-green-600') : 'text-gray-500'}
-                                        `}>
-                                            {index + 1}
-                                        </div>
-                                        <p className="text-sm sm:text-lg md:text-2xl landscape:text-base font-bold sm:pt-1 landscape:pt-0 leading-tight">{item.text}</p>
-                                    </div>
-                                    
-                                    {/* Explanation shown after click */}
-                                    <div className={`overflow-hidden transition-all duration-500 ${isRevealed ? 'max-h-40 mt-1 sm:mt-2 md:mt-4 landscape:mt-0.5 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                        <div className={`p-2 sm:p-3 md:p-4 landscape:p-2 rounded-lg md:rounded-xl text-xs sm:text-base md:text-lg landscape:text-sm font-medium ${isHazard ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                            <div className="flex items-center gap-1 sm:gap-2 landscape:gap-1 mb-0.5 sm:mb-1 landscape:mb-0">
-                                                {isHazard ? <TriangleAlert className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 landscape:w-3 landscape:h-3"/> : <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 landscape:w-3 landscape:h-3" />}
-                                                <span className="font-bold text-xs sm:text-sm md:text-base landscape:text-sm">{isHazard ? '危險提示' : '安全行為'}</span>
-                                            </div>
-                                            <span className="leading-snug">{item.explanation}</span>
-                                        </div>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </main>
-
-            {/* Bottom bar for Next button (visible only after finding the hazard) */}
-            <div className={`fixed bottom-0 left-0 right-0 p-4 landscape:p-2 bg-white border-t border-red-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-transform duration-300 flex justify-center ${allRevealed ? 'translate-y-0' : 'translate-y-full'}`}>
-                <button
-                    onClick={nextScene}
-                    className="w-full max-w-md py-4 landscape:py-2 bg-red-600 text-white rounded-full font-bold text-xl md:text-2xl landscape:text-base hover:bg-red-700 shadow-lg flex items-center justify-center transform hover:scale-105 transition-all"
-                >
-                    {isLast ? "完成挑戰" : "下一個情境"}
-                    {!isLast && <ChevronRight className="ml-2 w-6 h-6 md:w-8 md:h-8 landscape:w-4 landscape:h-4" />}
-                </button>
-            </div>
-        </div>
+        <HazardRoundView
+            scene={currentScene}
+            difficulty={difficulty}
+            currentIndex={currentIndex}
+            totalScenes={scenes.length}
+            revealedItems={revealedItems}
+            isLast={isLast}
+            onBack={onBack}
+            onItemClick={handleItemClick}
+            onNext={nextScene}
+        />
     );
 };
 

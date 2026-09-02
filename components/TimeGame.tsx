@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Loader2, Trophy, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Trophy, Clock } from 'lucide-react';
 import { TimeLevel, Difficulty } from '../types';
 import { generateTimeLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import SplitChoiceLayout from './game-ui/SplitChoiceLayout';
 
 interface Props {
   onBack: () => void;
@@ -31,6 +33,91 @@ const AnalogClock = ({ hour, minute }: { hour: number, minute: number }) => {
         </div>
     );
 };
+
+interface TimeRoundViewProps {
+  level: TimeLevel;
+  difficulty: Difficulty;
+  round: number;
+  score: number;
+  feedback: 'correct' | 'wrong' | null;
+  selectedOption: string | null;
+  onBack: () => void;
+  onOptionClick: (option: string) => void;
+}
+
+export const TimeRoundView = ({
+  level,
+  difficulty,
+  round,
+  score,
+  feedback,
+  selectedOption,
+  onBack,
+  onOptionClick,
+}: TimeRoundViewProps) => (
+  <GameShell
+    title="時間管家"
+    subtitle={difficulty === 'ADVANCED' ? '進階時間計算與規劃' : '看懂時鐘，建立時間觀念'}
+    onBack={onBack}
+    className="bg-slate-50"
+    contentClassName="relative"
+    status={(
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {difficulty === 'ADVANCED' && (
+          <span className="rounded-full bg-slate-700 px-2 py-1 text-xs text-white">進階</span>
+        )}
+        <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-800 sm:px-3 sm:text-sm">
+          第 {round}/{TOTAL_ROUNDS} 題
+        </span>
+        <span className="flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-800 sm:px-3 sm:text-sm">
+          <Trophy aria-hidden="true" className="mr-1 h-4 w-4" /> {score}
+        </span>
+      </div>
+    )}
+  >
+    <SplitChoiceLayout
+      className="mx-auto max-w-5xl"
+      questionLabel="時間題目區"
+      choicesLabel="時間作答區"
+      questionClassName="flex flex-col items-center justify-center rounded-3xl border-2 border-slate-200 bg-white p-3 text-center shadow-lg sm:p-5"
+      choicesClassName="flex flex-col justify-center gap-3 pr-1 sm:gap-4"
+      question={(
+        <>
+          {level.type === 'CLOCK' && level.clockTime ? (
+            <AnalogClock hour={level.clockTime.hour} minute={level.clockTime.minute} />
+          ) : (
+            <Clock aria-hidden="true" className="h-24 w-24 text-slate-300 sm:h-32 sm:w-32" />
+          )}
+          <h2 className="mt-3 text-xl font-bold leading-snug text-slate-800 sm:text-2xl">
+            {level.question}
+          </h2>
+        </>
+      )}
+      choices={level.options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onOptionClick(option)}
+          disabled={!!feedback}
+          className={`w-full shrink-0 rounded-2xl border-2 py-3 text-xl font-bold shadow-md transition-all active:scale-95 sm:text-2xl md:py-4 ${
+            feedback === 'correct' && option === level.correctAnswer
+              ? 'border-green-600 bg-green-500 text-white'
+              : feedback === 'wrong' && option === selectedOption
+                ? 'border-red-300 bg-red-100 text-red-700'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          {option}
+        </button>
+      ))}
+      feedback={feedback ? (
+        <span className={`whitespace-nowrap ${feedback === 'correct' ? 'text-green-700' : 'text-red-700'}`}>
+          {feedback === 'correct' ? '答對了！' : '再想想看'}
+        </span>
+      ) : undefined}
+    />
+  </GameShell>
+);
 
 const TimeGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [level, setLevel] = useState<TimeLevel | null>(null);
@@ -101,7 +188,13 @@ const TimeGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 animate-fade-in">
+      <GameShell
+        title="時間管家"
+        subtitle="本回合完成"
+        onBack={onBack}
+        className="bg-slate-50"
+        contentClassName="flex items-center justify-center overflow-y-auto p-4"
+      >
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-slate-200">
           <Trophy className="w-20 h-20 text-slate-500 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-slate-900 mb-2">時間大師！</h2>
@@ -112,70 +205,38 @@ const TimeGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <button onClick={handleRestart} className="flex-1 py-3 bg-slate-600 text-white rounded-xl font-bold hover:bg-slate-700 shadow-lg">再玩一次</button>
           </div>
         </div>
-      </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-slate-500 w-12 h-12" /></div>;
+    return (
+      <GameShell
+        title="時間管家"
+        subtitle={difficulty === 'ADVANCED' ? '進階時間計算與規劃' : '看懂時鐘，建立時間觀念'}
+        onBack={onBack}
+        className="bg-slate-50"
+        contentClassName="flex items-center justify-center"
+      >
+        <div role="status" aria-live="polite" className="flex flex-col items-center text-slate-700">
+          <Loader2 aria-hidden="true" className="mb-4 h-12 w-12 animate-spin text-slate-500" />
+          <p>準備時間題目中...</p>
+        </div>
+      </GameShell>
+    );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden relative">
-      <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-white rounded-full text-slate-800 shadow-sm hover:bg-slate-100"><ArrowLeft size={20} /></button>
-        <div className="flex items-center gap-4">
-          {difficulty === 'ADVANCED' && <span className="bg-slate-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-          <div className="text-slate-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-          <div className="flex items-center bg-slate-200 px-3 py-1 rounded-full text-slate-800 font-bold"><Trophy size={16} className="mr-2"/> {score}</div>
-        </div>
-      </div>
-
-      {/* Main Content - Flex Row on Landscape */}
-      <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-4 gap-6 sm:gap-12 w-full max-w-5xl mx-auto overflow-hidden">
-        
-        {/* Left Side: Clock / Visual */}
-        <div className="flex-1 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-[2rem] shadow-lg border-2 border-slate-100 flex flex-col items-center justify-center w-full max-w-xs aspect-square">
-                {level.type === 'CLOCK' && level.clockTime ? (
-                    <AnalogClock hour={level.clockTime.hour} minute={level.clockTime.minute} />
-                ) : (
-                    <Clock size={120} className="text-slate-300" />
-                )}
-            </div>
-        </div>
-
-        {/* Right Side: Question & Options */}
-        <div className="flex-1 flex flex-col justify-center w-full max-w-md gap-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 text-center sm:text-left">{level.question}</h2>
-            
-            <div className="grid grid-cols-1 gap-3 w-full">
-                {level.options.map((opt, idx) => (
-                    <button
-                    key={idx}
-                    onClick={() => handleOptionClick(opt)}
-                    disabled={!!feedback}
-                    className={`
-                        py-3 sm:py-4 rounded-xl text-2xl font-bold shadow-md border-2 transition-all active:scale-95
-                        ${feedback === 'correct' && opt === level.correctAnswer ? 'bg-green-500 text-white border-green-600' : ''}
-                        ${feedback === 'wrong' && opt === selectedOption ? 'bg-red-100 border-red-300' : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700'}
-                    `}
-                    >
-                    {opt}
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        {/* Feedback Overlay */}
-        {feedback && (
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-8 py-4 rounded-3xl shadow-2xl border-4 z-50 animate-bounce-short flex items-center gap-3 ${feedback === 'correct' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'}`}>
-                {feedback === 'correct' ? <CheckCircle size={32} /> : <XCircle size={32} />}
-                <span className="text-2xl font-bold">{feedback === 'correct' ? "答對了！" : "再想想看"}</span>
-            </div>
-        )}
-      </div>
-    </div>
+    <TimeRoundView
+      level={level}
+      difficulty={difficulty}
+      round={round}
+      score={score}
+      feedback={feedback}
+      selectedOption={selectedOption}
+      onBack={onBack}
+      onOptionClick={handleOptionClick}
+    />
   );
 };
 

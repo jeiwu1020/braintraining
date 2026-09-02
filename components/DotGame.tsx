@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Trophy, Eye, Play, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Trophy, Eye, Play, ArrowRight } from 'lucide-react';
 import { DotLevel, Difficulty } from '../types';
 import { generateDotLevel } from '../services/geminiService';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusScreen from './game-ui/GridFocusScreen';
 
 interface Props {
   onBack: () => void;
@@ -130,7 +132,8 @@ const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   if (isFinished) {
     const evalResult = getEvaluation(score);
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-cyan-50 p-4 animate-fade-in">
+      <GameShell title="方塊在哪裡" subtitle="本回合完成" onBack={onBack} className="bg-cyan-50">
+       <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full border-4 border-cyan-200">
               <Trophy className="w-20 h-20 text-cyan-500 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-cyan-900 mb-2">{evalResult.title}</h2>
@@ -147,46 +150,43 @@ const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   </button>
               </div>
           </div>
-      </div>
+       </div>
+      </GameShell>
     );
   }
 
   if (loading || !level) {
-      return <div className="min-h-screen bg-cyan-50 flex items-center justify-center"><Loader2 className="animate-spin text-cyan-500"/></div>;
+      return <GameShell title="方塊在哪裡" subtitle="記住亮起的方塊位置" onBack={onBack} className="bg-cyan-50"><div role="status" className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-cyan-500"/></div></GameShell>;
   }
 
   // Dynamic sizing logic
   // Use vmin to keep it square and fitting within the smaller dimension of the screen
   const gridContainerStyle = {
       gridTemplateColumns: `repeat(${level.gridSize}, 1fr)`,
-      width: 'min(75vmin, 450px)',
-      height: 'min(75vmin, 450px)', 
   };
 
   // Adjust font size based on grid density to prevent layout break
   const fontSizeClass = level.gridSize > 3 ? 'text-3xl sm:text-5xl' : 'text-4xl sm:text-6xl';
 
   return (
-    <div className="flex flex-col h-screen bg-cyan-50 overflow-hidden relative">
-        <div className="flex-none px-4 py-2 flex justify-between items-center bg-white/80 backdrop-blur-sm shadow-sm z-10">
-            <button onClick={onBack} className="p-2 bg-white rounded-full text-cyan-800 shadow-sm hover:bg-cyan-100">
-            <ArrowLeft size={20} />
-            </button>
-            <div className="flex items-center gap-4">
-                {difficulty === 'ADVANCED' && <span className="bg-cyan-600 text-white px-2 py-1 rounded text-xs">進階</span>}
-                <div className="text-cyan-800 font-bold">第 {round} / {TOTAL_ROUNDS} 題</div>
-                <div className="flex items-center bg-cyan-100 px-3 py-1 rounded-full text-cyan-800 font-bold">
-                    <Trophy size={16} className="mr-2"/> {score}
-                </div>
-            </div>
-        </div>
-
-        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center p-2 gap-4 sm:gap-12 overflow-hidden">
-            
-            {/* Left Side (Landscape): Grid */}
-            <div className="flex-none flex items-center justify-center">
+    <GridFocusScreen
+      title="方塊在哪裡"
+      subtitle="記住亮起的方塊位置"
+      difficulty={difficulty}
+      round={round}
+      totalRounds={TOTAL_ROUNDS}
+      score={score}
+      onBack={onBack}
+      className="bg-cyan-50"
+      statusClassName="bg-cyan-100 text-cyan-800"
+      advancedClassName="bg-cyan-600"
+      playfieldLabel="空間記憶矩陣"
+      supportLabel="記憶階段控制"
+      playfieldClassName="flex items-center justify-center overflow-hidden"
+      supportClassName="flex items-center justify-center overflow-hidden"
+      playfield={(
                 <div 
-                    className="grid gap-2 bg-white p-3 rounded-2xl shadow-lg border-4 border-cyan-200"
+                    className="grid h-full max-h-[28rem] aspect-square gap-2 rounded-2xl border-4 border-cyan-200 bg-white p-3 shadow-lg"
                     style={gridContainerStyle}
                 >
                     {Array.from({ length: level.gridSize * level.gridSize }).map((_, idx) => {
@@ -227,22 +227,22 @@ const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         }
 
                         return (
-                            <div 
+                            <button
                                 key={idx}
                                 onClick={() => handleCellClick(idx)}
-                                className={`rounded-lg border-2 transition-all duration-200 ${bgColor} ${borderColor} flex items-center justify-center`}
+                                disabled={gameState !== 'recall'}
+                                className={`flex min-h-11 items-center justify-center rounded-lg border-2 transition-all duration-200 ${bgColor} ${borderColor}`}
                             >
                                 <span className={`${fontSizeClass} font-black ${textColor} transition-opacity duration-300 select-none`}>
                                     {idx + 1}
                                 </span>
-                            </div>
+                            </button>
                         )
                     })}
                 </div>
-            </div>
-
-            {/* Right Side (Landscape): Controls & Instruction */}
-            <div className="flex-none flex flex-col items-center justify-center max-w-sm text-center">
+      )}
+      support={(
+            <div className="flex flex-col items-center justify-center text-center">
                 <h2 className="text-xl sm:text-2xl font-bold text-cyan-900 mb-4 sm:mb-6">
                     {gameState === 'memorize' && <span className="flex flex-col items-center"><Eye className="mb-2 w-8 h-8"/> 記住方塊位置 <br/><span className="text-4xl mt-2 text-red-500">{countdown.toFixed(0)}</span></span>}
                     {gameState === 'recall' && <span className="flex flex-col items-center text-orange-600">點擊剛才的方塊位置</span>}
@@ -261,10 +261,6 @@ const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
                 {gameState === 'result' && (
                     <div className="flex flex-col items-center animate-fade-in-up w-full">
-                        <div className={`text-xl font-bold mb-4 sm:mb-6 flex items-center ${feedbackText.includes("棒") ? "text-green-600" : "text-gray-600"}`}>
-                             {feedbackText.includes("棒") ? <CheckCircle className="mr-2 w-6 h-6"/> : <XCircle className="mr-2 w-6 h-6"/>}
-                             {feedbackText}
-                        </div>
                         <button 
                             onClick={handleNextLevel}
                             className="px-8 py-3 sm:py-4 bg-cyan-600 text-white rounded-full font-bold shadow-lg hover:bg-cyan-700 flex items-center text-lg sm:text-xl"
@@ -274,8 +270,9 @@ const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     </div>
                 )}
             </div>
-        </div>
-    </div>
+      )}
+      feedback={gameState === 'result' ? feedbackText : undefined}
+    />
   );
 };
 
