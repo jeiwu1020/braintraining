@@ -145,16 +145,17 @@
 - 邏輯猜牌
 - 金字塔接龍
 
-最近完成的神奇形色牌、繽紛形色棋、麻將湊牌大師、拉密魔術牌、歡樂排七接龍、經典撿紅點、邏輯猜牌與金字塔接龍已接上 `GameShell` + `GridFocusLayout`，並保留各自牌面主題與遊戲流程；牌類遊戲、邏輯猜牌與金字塔均有真正 game component wiring 與核心行為契約測試。金字塔另完成 SETUP／PLAYING／GAMEOVER、stock／waste、覆蓋牌判定、13 配對規則與保留 feedback 列驗收。
+最近完成的神奇形色牌、繽紛形色棋、麻將湊牌大師、拉密魔術牌、歡樂排七接龍、經典撿紅點、邏輯猜牌與金字塔接龍已接上 `GameShell` + `GridFocusLayout`，並保留各自牌面主題與遊戲流程；牌類遊戲、邏輯猜牌與金字塔均有真正 game component wiring 與核心行為契約測試。金字塔另完成 SETUP／PLAYING／GAMEOVER、stock／waste、覆蓋牌判定、13 配對規則與保留 feedback 列驗收。邏輯猜牌另完成候選牌總覽驗收：NORMAL 24/24、ADVANCED 52/52 均同時可見，候選牌不使用捲動，發問控制改為全寬下方操作列。
 
 ### 5.3 目前自動化證據
 
 - 19 個測試檔通過。
-- 52 個測試通過。
+- 53 個測試通過。
 - Vite 正式版建置成功。
 - `git diff --check` 通過。
 - 已有目錄、共用版面與代表遊戲契約測試。
 - 金字塔已以瀏覽器實測 640 × 360 與 844 × 390 的 SETUP、NORMAL／ADVANCED PLAYING、選取／配對、stock／waste、recycle 與 timeout 結算；無 document overflow。
+- 邏輯猜牌已以瀏覽器實測 640 × 360 與 844 × 390 的 NORMAL 24/24、ADVANCED 52/52、首／中／末列直接猜牌、紅色提問排除與固定牌位；候選牌無垂直或水平捲動，無 document overflow。
 - 完整 `tsc --noEmit` 目前尚未形成有效品質門檻：既有根目錄腳本 `fixMissingData.ts` 在第 154 行有無效字元、第 169 行有未結束的 template literal，會先中止型別檢查。
 
 ## 6. 剩餘工作
