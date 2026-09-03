@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，不代表開始 migration，也不增加完成數。稽核對象只有七款尚未完成 BOARD acceptance 的遊戲：尋寶迷宮指路、圍棋、播棋、象棋暗棋、西洋跳棋、奇雞連連與公開 21 點。
+本文件是診斷性稽核，不代表開始 migration，也不增加完成數。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；象棋暗棋現已依本文件完成 LIGHT acceptance，其餘六款仍待 reviewer 排程：尋寶迷宮指路、圍棋、播棋、西洋跳棋、奇雞連連與公開 21 點。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -75,6 +75,8 @@
 **Decision: LIGHT.** 保留寬桌。最低修改：為上下 player label 保留獨立 band／移除與座標重疊、改用 persistent 單人／雙人 selector、補返回／重設與 pit accessible names，並維持 sowing animation 的既有尺寸。
 
 ### 象棋暗棋（DarkChessGame）
+
+**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 本次保留原有架構，只完成共用模式控制、工具列觸控尺寸與 accessible labels；未進行結構性 migration。
 
 **Current architecture.** 自製左側垂直工具列＋中央 4×8 暗棋盤；翻牌前顯示問號，翻牌後顯示棋子，頂部 log/status，規則為可局部捲動 modal。
 
@@ -160,4 +162,4 @@
 
 ## Audit conclusion
 
-本輪為 audit only；沒有修改任何 game component、shared component、CSS、catalog 或 game tests。migration count 維持 **35/59**，七款均為 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。
+本輪暗棋已完成 LIGHT acceptance；其餘六款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。暗棋沒有結構性 migration，僅以既有架構完成標準化。

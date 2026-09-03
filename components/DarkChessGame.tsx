@@ -1,9 +1,10 @@
 
 // ... imports ... (Keep existing imports)
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, BookOpen, X, Undo2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, BookOpen, X, Undo2 } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameModeSelector from './game-ui/GameModeSelector';
 
 interface Props {
   onBack: () => void;
@@ -473,42 +474,40 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     <div className="flex flex-col landscape:flex-row h-[100dvh] bg-amber-50 overflow-hidden text-amber-900">
         {/* Compact Header */}
         <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-[#f7e7ce] shadow-sm z-10 border-b landscape:border-b-0 landscape:border-r border-amber-200 portrait:h-14 landscape:w-16 landscape:h-full">
-            <button onClick={onBack} className="p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><ArrowLeft size={18} /></button>
+            <button onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><ArrowLeft size={18} /></button>
             <div className="flex portrait:flex-row landscape:flex-col items-center gap-2">
-                <button 
-                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-white/50 rounded-full text-xs sm:text-sm font-bold text-amber-900 border border-amber-300"
-                >
-                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
-                </button>
                 <button 
                     onClick={handleUndo} 
                     disabled={history.length === 0}
-                    className="p-1.5 md:p-2 bg-white/50 rounded-full border border-amber-300 hover:bg-white/80 disabled:opacity-50 flex items-center justify-center text-amber-900"
+                    aria-label="悔棋"
+                    className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full border border-amber-300 hover:bg-white/80 disabled:opacity-50 flex items-center justify-center text-amber-900"
                 >
                     <Undo2 size={16} />
                 </button>
                 <button
                     onClick={() => setShowRules(true)}
-                    className="p-1.5 md:p-2 bg-amber-100 rounded-full border border-amber-300 hover:bg-amber-200 text-amber-900"
+                    aria-label="遊戲規則"
+                    className="min-h-11 min-w-11 p-1.5 md:p-2 bg-amber-100 rounded-full border border-amber-300 hover:bg-amber-200 text-amber-900"
                     title="象棋規則說明"
                 >
                     <BookOpen size={16} />
                 </button>
             </div>
-            <button onClick={initGame} className="p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><RefreshCw size={18} /></button>
+            <button onClick={initGame} aria-label="重新開始" className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><RefreshCw size={18} /></button>
         </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {/* Log */}
-            <div className="flex-none text-center py-1 sm:py-2 bg-[#f7e7ce] text-amber-900 border-b border-amber-200 z-10">
-                <div className="font-bold text-sm sm:text-base">{log}</div>
-                <div className="text-xs opacity-70">
-                    {isRedTurn ? "紅方回合" : "黑方回合"} 
-                    {gameMode === 'PVE' && playerColor && <span className="ml-1">({playerColor === 'RED' ? '你:紅' : '你:黑'})</span>}
+            <div className="flex-none flex flex-wrap items-center justify-center gap-2 px-2 py-1 bg-[#f7e7ce] text-amber-900 border-b border-amber-200 z-10">
+                <div className="text-center min-w-0">
+                    <div className="font-bold text-sm sm:text-base">{log}</div>
+                    <div className="text-xs opacity-70">
+                        {isRedTurn ? "紅方回合" : "黑方回合"}
+                        {gameMode === 'PVE' && playerColor && <span className="ml-1">({playerColor === 'RED' ? '你:紅' : '你:黑'})</span>}
+                    </div>
                 </div>
+                <GameModeSelector value={gameMode} onChange={setGameMode} className="w-auto min-w-[10.5rem] max-w-[13rem]" />
             </div>
 
             {/* Board Container */}
@@ -548,6 +547,8 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                                         key={idx}
                                         onClick={() => handleTileClick(idx)}
                                         type="button"
+                                        data-dark-chess-cell={`${COL_LABELS[idx % COLS]}${Math.floor(idx / COLS) + 1}`}
+                                        aria-label={`${COL_LABELS[idx % COLS]}${Math.floor(idx / COLS) + 1}，${piece ? (piece.revealed ? `${piece.isRed ? '紅方' : '黑方'}${piece.text}` : '未翻開棋子') : '空位'}`}
                                         className={`
                                             relative rounded-full border-2 sm:border-4 shadow-sm w-full h-full
                                             transition-transform active:scale-95
@@ -598,7 +599,7 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         <h2 className="text-white font-bold text-lg flex items-center gap-2">
                             <BookOpen size={18} /> 暗棋規則說明
                         </h2>
-                        <button onClick={() => setShowRules(false)} className="text-white/80 hover:text-white">
+                        <button onClick={() => setShowRules(false)} aria-label="關閉規則" className="min-h-11 min-w-11 flex items-center justify-center text-white/80 hover:text-white">
                             <X size={20} />
                         </button>
                     </div>
