@@ -11,6 +11,7 @@ interface MahjongMeldsGameProps {
   onBack: () => void;
   difficulty?: Difficulty;
   isAdvanced?: boolean;
+  initialQuestions?: MahjongQuestion[];
 }
 
 interface MahjongRoundLayoutProps {
@@ -420,10 +421,32 @@ export const calculateTimeScore = (seconds: number): { score: number; label: str
   return { score: 40, label: '穩紮穩打', icon: '🛡️' };
 };
 
-const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false }) => {
+export const resolveMahjongAnswer = ({
+  optionId,
+  correctAnswerId,
+  elapsedSeconds,
+}: {
+  optionId: string;
+  correctAnswerId: string;
+  elapsedSeconds: number;
+}) => {
+  const isCorrect = optionId === correctAnswerId;
+  return {
+    isAnswered: true,
+    isCorrect,
+    earnedScore: isCorrect ? calculateTimeScore(elapsedSeconds).score : 0,
+  };
+};
+
+export const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({
+  onBack,
+  difficulty = 'NORMAL',
+  isAdvanced = false,
+  initialQuestions,
+}) => {
   const isAdv = isAdvanced || difficulty === 'ADVANCED';
 
-  const [questions, setQuestions] = useState<MahjongQuestion[]>([]);
+  const [questions, setQuestions] = useState<MahjongQuestion[]>(() => initialQuestions ?? []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -468,7 +491,7 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
 
   const restartGame = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const list = generateMahjongPool(isAdv);
+    const list = initialQuestions ?? generateMahjongPool(isAdv);
     setQuestions(list);
     setCurrentIndex(0);
     setSelectedOptionId(null);
@@ -499,13 +522,18 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
     setSelectedOptionId(option.id);
     setIsAnswered(true);
 
-    const correct = option.id === currentQ.correctAnswerId;
+    const answerResult = resolveMahjongAnswer({
+      optionId: option.id,
+      correctAnswerId: currentQ.correctAnswerId,
+      elapsedSeconds: finalSec,
+    });
+    const correct = answerResult.isCorrect;
     setIsCorrect(correct);
 
     if (correct) {
       soundService.playCorrect();
       const speedCalc = calculateTimeScore(finalSec);
-      const earned = speedCalc.score;
+      const earned = answerResult.earnedScore;
       setLastEarnedScore(earned);
       setLastSpeedInfo({ label: speedCalc.label, icon: speedCalc.icon, time: finalSec });
 
