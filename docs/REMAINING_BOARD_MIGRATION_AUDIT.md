@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋與播棋現已依本文件完成 LIGHT acceptance，其餘四款仍待 reviewer 排程：圍棋、西洋跳棋、奇雞連連與公開 21 點。
+本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋、播棋與圍棋現已依本文件完成 LIGHT acceptance，其餘三款仍待 reviewer 排程：西洋跳棋、奇雞連連與公開 21 點。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -11,7 +11,7 @@
 | Game | Preset | Decision | 640×360 | Primary issue | Required fixes | Shared mode selector? | Migration recommendation | Risk |
 |---|---|---|---|---|---|---|---|---|
 | 尋寶迷宮指路 | BOARD_SIDEBAR | **LIGHT COMPLETE** | Landscape and portrait maze fit after stack | Portrait geometry; icon-only labels（已修正） | Portrait stack/re-size maze、accessible names（已完成） | No (GROUP/FACILITATED) | Keep custom left-controls + maze; LIGHT standardization complete | Low |
-| 圍棋 | BOARD_SIDEBAR | **LIGHT** | 9×9 board and panel fit, no document scroll | Many mode/action targets are 23–34px; specialized panel is dense | Increase core touch targets and clarify labels; retain `WeiqiLandscapeLayout` | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; do not force generic BoardSidebar | Medium |
+| 圍棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 9×9 board and panel fit, no document scroll | Compact mode/action targets（已修正） | ≥44px core targets、readability、accessible names；保留 `WeiqiLandscapeLayout`（已完成） | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; LIGHT standardization complete | Low–medium |
 | 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
 | 象棋暗棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px（已修正） | Shared mode selector, ≥44px core actions, accessible labels、圓形棋子 | Yes | Keep custom board + toolbar; targeted visual/control patch complete | Low |
 | 西洋跳棋 | BOARD_SIDEBAR | **LIGHT** | 8×8 fits in landscape | Portrait hides side-panel controls; landscape actions ~28px | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector | Yes | Keep board + move-log architecture; responsive/accessibility patch only | Medium–high gameplay-state risk |
@@ -46,17 +46,19 @@
 
 **Current architecture.** `WeiqiLandscapeLayout` 是專用 9×9／13×13／19×19 棋盤與右側控制面板，另有死活題與終局 modal。它的木質棋盤、座標、提子資訊與棋理工具具有圍棋特有語意，適合保留。
 
-**640×360 findings.** 9×9 初始盤完整可見，棋盤約 297×297px，右側 panel 可見，document 640×360；所有主要內容同頁。**MAJOR**：模式、路數、難度與工具按鈕多落在約 23–34px 高，悔棋／虛手／形勢／認輸等核心操作低於理想 touch target。**MINOR**：部分 icon-only 控制及細小文字依位置理解。
+**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 本次保留 `WeiqiLandscapeLayout`、專用 `WeiqiBoard` 與 AI／PVP／PUZZLE 三模式，完成 compact controls 的觸控尺寸、可讀性、selected state 與 accessible names；未進行結構性 migration，未改 gameplay。
+
+**640×360 findings.** 9×9 初始盤完整可見，棋盤約 297×297px → 約 297×297px（約 0% shrink），右側 panel 可見，document 640×360；所有主要內容同頁。模式選項、返回／規則／重開與悔棋／虛手／形勢／認輸均以約 44px 互動高度呈現；路數／難度／讓子與題庫導覽維持密集但可讀的次要控制。panel 允許 local `overflow-y-auto`，棋盤不捲動。
 
 **844×390 / 932×430.** 棋盤可放大、無 document overflow；右側 panel 仍清楚，沒有結構性壓縮。
 
 **390×844.** 專用直向版將控制分置上下，9×9 棋盤約 330×330px，座標仍可見，沒有 document overflow；底部工具列偏密但可到達。
 
-**Representative states tested.** 9×9 初始盤、模式／棋盤規格／難度切換、悔棋／虛手／形勢／認輸入口、規則與題目提示 modal。
+**Representative states tested.** 9×9 初始盤、模式／棋盤規格／難度切換、悔棋／虛手／形勢／認輸入口、規則與題目提示 modal；自動化 acceptance contract 已通過。瀏覽器 CLI 在本工作環境未安裝，640×360 等 runtime screenshot 與 AI 600ms／PVP／modal 手動流程需 reviewer 重新確認。
 
 **Mode / accessibility / duplication.** 使用 AI／PVP／PUZZLE 三種語意，並非單純 PVE/PVP，故 `GameModeSelector` 不直接適用；應保留三模式明確呈現。沒有發現持續重複的底部狀態列。主要風險是小控制，而非棋盤 architecture。
 
-**Decision: LIGHT.** 保留 `WeiqiLandscapeLayout` 作為專用例外。最低修改：將核心操作與模式按鈕提高到可觸控尺寸、補 icon accessible names、確保 640 高度下不因放大控制而壓縮 9×9 盤。不要 FULL 重做。
+**Decision: LIGHT COMPLETE.** 保留 `WeiqiLandscapeLayout` 作為專用例外；`GameModeSelector` 不適用，因為圍棋模式是 AI／PVP／PUZZLE。已將核心操作與模式按鈕提高到可觸控尺寸、補 accessible names、以 ring／check 提供非色彩 selected cue，且未壓縮 9×9 盤。不要 FULL 重做。
 
 ### 播棋（MancalaGame）
 
@@ -146,7 +148,7 @@
 
 ### 1. KEEP closures
 
-目前沒有足夠證據把七款直接關為 KEEP；應先由 reviewer 接受本稽核，再針對 **Weiqi**（專用版面已完整且無 overflow）與 **DarkChess**（棋盤幾何完整）確認是否可把控制尺寸視為可接受的 minor polish。若 reviewer 將這些差異視為非阻擋，可在補齊 evidence 後個別關閉 KEEP，不需要改 architecture。
+目前沒有足夠證據把剩餘三款直接關為 KEEP；Weiqi、Maze、DarkChess 與 Mancala 已依各自語意完成 LIGHT acceptance，不需要改 architecture。
 
 ### 2. LIGHT fixes（建議順序）
 
@@ -155,7 +157,7 @@
 3. **Gobblet**：640 寬度 inventory clipping，需保護兩側 source inventory。
 4. **Checkers**：portrait controls visibility，需小心 animation／Undo。
 5. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
-6. **Weiqi**：最後處理密集控制尺寸，因其專用 layout 與三模式語意需要較細緻的 review。
+6. **Weiqi**：已完成密集控制尺寸與三模式語意 review；保留專用 layout。
 
 ### 3. FULL migrations
 
@@ -163,4 +165,4 @@
 
 ## Audit conclusion
 
-本輪迷宮、暗棋與播棋已完成 LIGHT acceptance；其餘四款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。三款均沒有結構性 migration，僅以既有架構完成標準化。
+本輪迷宮、暗棋、播棋與圍棋已完成 LIGHT acceptance；其餘三款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。四款均沒有結構性 migration，僅以既有架構完成標準化。

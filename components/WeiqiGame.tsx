@@ -690,6 +690,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
   return (
     <div
       id="weiqi-game-root"
+      data-weiqi-layout="standard"
       className="flex flex-col h-[100dvh] w-full bg-gradient-to-br from-amber-950 via-stone-900 to-amber-950 text-amber-50 select-none p-1.5 sm:p-3 overflow-hidden font-sans"
     >
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="圍棋 規則與死活要點說明" rules={goRules} />
@@ -699,7 +700,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
         <button
           id="weiqi-back-btn"
           onClick={onBack}
-          className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs sm:text-sm shadow transition active:scale-95 shrink-0"
+          aria-label="返回"
+          className="min-h-11 flex items-center gap-1 px-2.5 sm:px-3 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs sm:text-sm shadow transition active:scale-95 shrink-0"
         >
           <ArrowLeft size={16} />
           <span>返回</span>
@@ -714,38 +716,50 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
             <button
               id="mode-ai-btn"
               onClick={() => setGameMode('AI')}
-              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              data-weiqi-mode="AI"
+              aria-label="人機模式"
+              aria-pressed={gameMode === 'AI'}
+              className={`min-h-11 px-2 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
                 gameMode === 'AI'
-                  ? 'bg-amber-500 text-stone-950 shadow'
+                  ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200'
                   : 'text-amber-300 hover:text-amber-100'
               }`}
             >
               <Bot size={14} />
               <span className="hidden sm:inline">人機對決</span>
+              {gameMode === 'AI' && <span aria-hidden="true">✓</span>}
             </button>
             <button
               id="mode-pvp-btn"
               onClick={() => setGameMode('PVP')}
-              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              data-weiqi-mode="PVP"
+              aria-label="AB組模式"
+              aria-pressed={gameMode === 'PVP'}
+              className={`min-h-11 px-2 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
                 gameMode === 'PVP'
-                  ? 'bg-amber-500 text-stone-950 shadow'
+                  ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200'
                   : 'text-amber-300 hover:text-amber-100'
               }`}
             >
               <Users size={14} />
               <span className="hidden sm:inline">AB組對決</span>
+              {gameMode === 'PVP' && <span aria-hidden="true">✓</span>}
             </button>
             <button
               id="mode-puzzle-btn"
               onClick={() => setGameMode('PUZZLE')}
-              className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              data-weiqi-mode="PUZZLE"
+              aria-label="死活題模式"
+              aria-pressed={gameMode === 'PUZZLE'}
+              className={`min-h-11 px-2 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
                 gameMode === 'PUZZLE'
-                  ? 'bg-amber-500 text-stone-950 shadow'
+                  ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200'
                   : 'text-amber-300 hover:text-amber-100'
               }`}
             >
               <Brain size={14} />
               <span>死活出題</span>
+              {gameMode === 'PUZZLE' && <span aria-hidden="true">✓</span>}
             </button>
           </div>
         </div>
@@ -760,8 +774,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
           <button
             id="weiqi-rules-btn"
             onClick={() => setShowRules(true)}
-            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs transition shadow"
-            title="規則說明"
+            aria-label="遊戲規則"
+            className="min-h-11 min-w-[44px] flex items-center justify-center sm:px-2.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs transition shadow"
           >
             <HelpCircle size={16} />
           </button>
@@ -772,8 +786,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
               if (gameMode === 'PUZZLE') loadPuzzle(currentPuzzleIndex);
               else resetMatch(boardSize, handicap);
             }}
-            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs transition shadow"
-            title="重新開始"
+            aria-label="重新開始"
+            className="min-h-11 min-w-[44px] flex items-center justify-center sm:px-2.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs transition shadow"
           >
             <RotateCcw size={16} />
           </button>
@@ -797,9 +811,12 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                     <button
                       key={size}
                       onClick={() => setBoardSize(size)}
-                      className={`px-2 py-0.5 rounded text-xs font-black transition ${
+                      aria-label={`${size}路棋盤`}
+                      aria-pressed={boardSize === size}
+                      data-weiqi-board-size={size}
+                      className={`min-h-8 px-2 rounded text-xs font-black transition ${
                         boardSize === size
-                          ? 'bg-amber-500 text-stone-950 shadow'
+                          ? 'bg-amber-500 text-stone-950 shadow ring-1 ring-amber-200'
                           : 'text-amber-300 hover:bg-stone-800'
                       }`}
                     >
@@ -819,7 +836,9 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                             setPlayerColor(color);
                             resetMatch(boardSize, handicap);
                           }}
-                          className={`px-2 py-0.5 rounded text-xs font-bold transition ${
+                          aria-label={`執${color === 'BLACK' ? '黑' : '白'}子`}
+                          aria-pressed={playerColor === color}
+                          className={`min-h-8 px-2 rounded text-xs font-bold transition ${
                             playerColor === color ? 'bg-amber-500 text-stone-950 shadow' : 'text-amber-300 hover:bg-stone-800'
                           }`}
                         >
@@ -833,7 +852,10 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                         <button
                           key={diff}
                           onClick={() => setAiDifficulty(diff)}
-                          className={`px-2 py-0.5 rounded text-xs font-bold transition ${
+                          aria-label={`AI難度：${diff === 'EASY' ? '入門' : diff === 'NORMAL' ? '普通' : '高手'}`}
+                          aria-pressed={aiDifficulty === diff}
+                          data-weiqi-difficulty={diff}
+                          className={`min-h-8 px-2 rounded text-xs font-bold transition ${
                             aiDifficulty === diff
                               ? 'bg-amber-500 text-stone-950 shadow'
                               : 'text-amber-300 hover:bg-stone-800'
@@ -908,19 +930,19 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   />
                   {currentTurn === 'BLACK' ? '黑方 (先手)' : '白方 (後手)'}
                 </span>
-                <span className="text-stone-400 text-[11px]">第 {moveCount + 1} 手</span>
+                <span className="text-stone-300 text-xs">第 {moveCount + 1} 手</span>
               </div>
 
               {/* Atari Warning */}
               <div className="flex items-center gap-1">
                 {(blackAtariGroups.length > 0 || whiteAtariGroups.length > 0) && (
-                  <span className="px-2 py-0.5 bg-rose-950 border border-rose-500 text-rose-300 font-bold rounded-lg text-[11px] animate-pulse flex items-center gap-1">
+                  <span className="px-2 py-0.5 bg-rose-950 border border-rose-500 text-rose-300 font-bold rounded-lg text-xs animate-pulse flex items-center gap-1">
                     <Shield size={12} />
                     叫吃警告！
                   </span>
                 )}
                 {koPoint && (
-                  <span className="px-2 py-0.5 bg-amber-950 border border-amber-500 text-amber-300 font-bold rounded-lg text-[11px]">
+                  <span className="px-2 py-0.5 bg-amber-950 border border-amber-500 text-amber-300 font-bold rounded-lg text-xs">
                     打劫中
                   </span>
                 )}
@@ -1042,7 +1064,9 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   id="weiqi-undo-btn"
                   onClick={handleUndo}
                   disabled={moveHistory.length === 0 || isAiThinking || !!gameOverResult}
-                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 disabled:hover:bg-stone-900 text-amber-200 border border-amber-700/50 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
+                  aria-label="悔棋"
+                  data-weiqi-action="undo"
+                  className="min-h-11 px-2.5 sm:px-3.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 disabled:hover:bg-stone-900 text-amber-200 border border-amber-700/50 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
                 >
                   <Undo2 size={14} />
                   <span>悔棋</span>
@@ -1052,7 +1076,9 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   id="weiqi-pass-btn"
                   onClick={() => handlePass(false)}
                   disabled={isAiThinking || !!gameOverResult}
-                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-40 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
+                  aria-label="虛手"
+                  data-weiqi-action="pass"
+                  className="min-h-11 px-2.5 sm:px-3.5 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-40 text-amber-200 border border-amber-700/60 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
                 >
                   <HandMetal size={14} />
                   <span>虛手 (停一手)</span>
@@ -1063,7 +1089,9 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                 <button
                   id="weiqi-territory-btn"
                   onClick={toggleTerritoryEstimation}
-                  className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 border rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow ${
+                  aria-label="形勢估算"
+                  data-weiqi-action="territory"
+                  className={`min-h-11 px-2.5 sm:px-3.5 border rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow ${
                     showTerritory
                       ? 'bg-amber-500 border-amber-400 text-stone-950'
                       : 'bg-stone-900 hover:bg-stone-800 text-amber-300 border-amber-700/50'
@@ -1077,7 +1105,9 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   id="weiqi-resign-btn"
                   onClick={handleResign}
                   disabled={!!gameOverResult || moveCount === 0}
-                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-rose-950/80 hover:bg-rose-900 disabled:opacity-40 text-rose-200 border border-rose-700/60 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
+                  aria-label="認輸"
+                  data-weiqi-action="resign"
+                  className="min-h-11 px-2.5 sm:px-3.5 bg-rose-950/80 hover:bg-rose-900 disabled:opacity-40 text-rose-200 border border-rose-700/60 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 transition shadow"
                 >
                   <Flag size={14} />
                   <span>認輸</span>
@@ -1107,9 +1137,11 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   <button
                     key={tab.id}
                     onClick={() => handleCategoryChange(tab.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-black transition ${
+                    aria-label={`題目分類：${tab.label}`}
+                    aria-pressed={puzzleFilter === tab.id}
+                    className={`min-h-9 px-2.5 rounded-lg text-xs font-black transition ${
                       puzzleFilter === tab.id
-                        ? 'bg-amber-500 text-stone-950 shadow'
+                        ? 'bg-amber-500 text-stone-950 shadow ring-1 ring-amber-200'
                         : 'text-amber-300 hover:bg-stone-800'
                     }`}
                   >
@@ -1122,6 +1154,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
               <div className="flex items-center gap-1.5">
                 <select
                   id="puzzle-selector-dropdown"
+                  aria-label="選擇死活題"
                   value={currentPuzzle.id}
                   onChange={(e) => {
                     const idx = filteredPuzzles.findIndex(p => p.id === e.target.value);
@@ -1129,7 +1162,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                       loadPuzzle(idx);
                     }
                   }}
-                  className="bg-stone-900 border border-amber-700/70 text-amber-200 text-xs font-bold rounded-xl px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[170px] sm:max-w-[220px] truncate"
+                  className="min-h-10 bg-stone-900 border border-amber-700/70 text-amber-200 text-xs font-bold rounded-xl px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[170px] sm:max-w-[220px] truncate"
                 >
                   {filteredPuzzles.map((p, idx) => (
                     <option key={p.id} value={p.id} className="bg-stone-900 text-amber-100 py-1">
@@ -1142,8 +1175,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   <button
                     onClick={() => loadPuzzle(Math.max(0, currentPuzzleIndex - 1))}
                     disabled={currentPuzzleIndex === 0}
-                    className="p-1 hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
-                    title="上一題"
+                    aria-label="上一題"
+                    className="min-h-10 min-w-10 flex items-center justify-center hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -1153,8 +1186,8 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   <button
                     onClick={() => loadPuzzle(Math.min(filteredPuzzles.length - 1, currentPuzzleIndex + 1))}
                     disabled={currentPuzzleIndex === filteredPuzzles.length - 1}
-                    className="p-1 hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
-                    title="下一題"
+                    aria-label="下一題"
+                    className="min-h-10 min-w-10 flex items-center justify-center hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -1205,7 +1238,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                       <div className="font-black flex items-center gap-1 text-emerald-400 mb-1">
                         <CheckCircle2 size={15} /> 答對了！
                       </div>
-                      <p className="text-[11px] leading-tight mb-2">{currentPuzzle.successMessage}</p>
+                      <p className="text-xs leading-tight mb-2">{currentPuzzle.successMessage}</p>
                       <button
                         onClick={() => loadPuzzle(Math.min(filteredPuzzles.length - 1, currentPuzzleIndex + 1))}
                         className="w-full py-1.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-black rounded-lg text-xs flex items-center justify-center gap-1 shadow"
@@ -1218,7 +1251,7 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
 
                   {puzzleStatus === 'WRONG' && (
                     <div className="p-2 bg-rose-950 border border-rose-500 rounded-xl text-rose-200 flex items-center justify-between">
-                      <span className="font-bold text-[11px]">落子不對，再試一次！</span>
+                      <span className="font-bold text-xs">落子不對，再試一次！</span>
                       <button
                         onClick={() => loadPuzzle(currentPuzzleIndex)}
                         className="px-2 py-1 bg-rose-600 text-white font-bold rounded text-xs"
@@ -1231,14 +1264,16 @@ export const WeiqiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', isAd
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowHintModal(true)}
-                      className="flex-1 py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold flex items-center justify-center gap-1"
+                      aria-label="查看題目提示"
+                      className="flex-1 min-h-11 py-1.5 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-xl font-bold flex items-center justify-center gap-1"
                     >
                       <Lightbulb size={13} />
                       <span>提示</span>
                     </button>
                     <button
                       onClick={() => setShowSolutionModal(true)}
-                      className="flex-1 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-xl font-bold flex items-center justify-center gap-1"
+                      aria-label="查看題目解說"
+                      className="flex-1 min-h-11 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-xl font-bold flex items-center justify-center gap-1"
                     >
                       <Eye size={13} />
                       <span>解說</span>

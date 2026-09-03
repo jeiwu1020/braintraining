@@ -243,6 +243,7 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
                     onClick={() => onCellClick(r, c)}
                     onMouseEnter={() => setHoveredPoint({ r, c })}
                     onMouseLeave={() => setHoveredPoint(null)}
+                    aria-label={`圍棋交叉點 ${GO_COLUMN_LABELS[c]}${boardSize - r}`}
                     className="relative flex items-center justify-center w-full h-full focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
                     style={{ minWidth: 0, minHeight: 0 }}
                     title={`${GO_COLUMN_LABELS[c]}${boardSize - r}`}

@@ -142,6 +142,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
   return (
     <div
       id="weiqi-landscape-root"
+      data-weiqi-layout="landscape"
       className="flex flex-row h-[100dvh] w-full bg-gradient-to-br from-amber-950 via-stone-900 to-amber-950 text-amber-50 select-none p-1 sm:p-1.5 gap-1.5 sm:gap-2 overflow-hidden font-sans"
     >
       {/* ========================================================================= */}
@@ -170,71 +171,92 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
       {/* ========================================================================= */}
       {/* RIGHT: CONTROL PANEL & STATUS SIDEBAR */}
       {/* ========================================================================= */}
-      <aside className="w-64 sm:w-72 md:w-80 shrink-0 h-full flex flex-col justify-between bg-stone-950/90 border border-amber-800/50 rounded-2xl p-2 sm:p-2.5 shadow-2xl backdrop-blur-md overflow-y-auto min-h-0 gap-1.5">
+      <aside
+        aria-label="圍棋控制面板"
+        className="w-64 sm:w-72 md:w-80 shrink-0 h-full flex flex-col justify-between bg-stone-950/90 border border-amber-800/50 rounded-2xl p-2 sm:p-2.5 shadow-2xl backdrop-blur-md overflow-y-auto min-h-0 gap-1.5"
+      >
         
         {/* Top Header Strip: Back, Mode Switcher, Rules, Restart */}
-        <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-amber-900/60 shrink-0">
+        <div className="shrink-0 pb-1.5 border-b border-amber-900/60">
+          <div className="flex items-center justify-between gap-1">
           <button
             id="weiqi-landscape-back-btn"
             onClick={onBack}
-            className="flex items-center gap-0.5 px-2 py-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg font-bold text-[11px] shadow transition active:scale-95 shrink-0"
+            aria-label="返回"
+            className="min-h-11 min-w-[44px] flex items-center justify-center gap-0.5 px-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg font-bold text-xs shadow transition active:scale-95 shrink-0"
           >
-            <ArrowLeft size={13} />
+            <ArrowLeft size={16} aria-hidden="true" />
             <span>返回</span>
           </button>
-
-          {/* Mode Switcher */}
-          <div className="flex items-center bg-stone-900/90 border border-amber-700/50 p-0.5 rounded-lg shadow-inner">
-            <button
-              onClick={() => setGameMode('AI')}
-              className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition flex items-center gap-0.5 ${
-                gameMode === 'AI' ? 'bg-amber-500 text-stone-950 shadow' : 'text-amber-300 hover:text-amber-100'
-              }`}
-              title="人機對決"
-            >
-              <Bot size={12} />
-              <span>人機</span>
-            </button>
-            <button
-              onClick={() => setGameMode('PVP')}
-              className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition flex items-center gap-0.5 ${
-                gameMode === 'PVP' ? 'bg-amber-500 text-stone-950 shadow' : 'text-amber-300 hover:text-amber-100'
-              }`}
-              title="AB組對決"
-            >
-              <Users size={12} />
-              <span>AB組</span>
-            </button>
-            <button
-              onClick={() => setGameMode('PUZZLE')}
-              className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition flex items-center gap-0.5 ${
-                gameMode === 'PUZZLE' ? 'bg-amber-500 text-stone-950 shadow' : 'text-amber-300 hover:text-amber-100'
-              }`}
-              title="死活出題"
-            >
-              <Brain size={12} />
-              <span>死活</span>
-            </button>
-          </div>
 
           {/* Quick Actions: Rules, Restart */}
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setShowRules(true)}
-              className="p-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg text-xs transition"
-              title="規則說明"
+              aria-label="遊戲規則"
+              className="min-h-11 min-w-[44px] flex items-center justify-center bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg text-xs transition"
             >
-              <HelpCircle size={13} />
+              <HelpCircle size={16} aria-hidden="true" />
             </button>
             <button
               onClick={() => {
                 if (gameMode === 'PUZZLE') loadPuzzle(currentPuzzleIndex);
                 else resetMatch(boardSize, handicap);
               }}
-              className="p-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg text-xs transition"
-              title="重新開始"
+              aria-label="重新開始"
+              className="min-h-11 min-w-[44px] flex items-center justify-center bg-amber-900/80 hover:bg-amber-800 text-amber-200 border border-amber-700/60 rounded-lg text-xs transition"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={16} aria-hidden="true" />
+            </button>
+          </div>
+          </div>
+
+          {/* Three-way mode switcher: these modes have distinct semantics from PVE/PVP. */}
+          <div
+            className="mt-1.5 grid grid-cols-3 gap-1 bg-stone-900/90 border border-amber-700/50 p-1 rounded-lg shadow-inner"
+            aria-label="圍棋模式"
+          >
+            <button
+              type="button"
+              onClick={() => setGameMode('AI')}
+              data-weiqi-mode="AI"
+              aria-label="人機模式"
+              aria-pressed={gameMode === 'AI'}
+              className={`min-h-11 rounded-md text-xs font-bold transition flex items-center justify-center gap-1 ${
+                gameMode === 'AI' ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200 ring-offset-1 ring-offset-stone-900' : 'text-amber-300 hover:text-amber-100'
+              }`}
+            >
+              <Bot size={16} aria-hidden="true" />
+              <span>人機</span>
+              {gameMode === 'AI' && <span aria-hidden="true">✓</span>}
+            </button>
+            <button
+              type="button"
+              onClick={() => setGameMode('PVP')}
+              data-weiqi-mode="PVP"
+              aria-label="AB組模式"
+              aria-pressed={gameMode === 'PVP'}
+              className={`min-h-11 rounded-md text-xs font-bold transition flex items-center justify-center gap-1 ${
+                gameMode === 'PVP' ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200 ring-offset-1 ring-offset-stone-900' : 'text-amber-300 hover:text-amber-100'
+              }`}
+            >
+              <Users size={16} aria-hidden="true" />
+              <span>AB組</span>
+              {gameMode === 'PVP' && <span aria-hidden="true">✓</span>}
+            </button>
+            <button
+              type="button"
+              onClick={() => setGameMode('PUZZLE')}
+              data-weiqi-mode="PUZZLE"
+              aria-label="死活題模式"
+              aria-pressed={gameMode === 'PUZZLE'}
+              className={`min-h-11 rounded-md text-xs font-bold transition flex items-center justify-center gap-1 ${
+                gameMode === 'PUZZLE' ? 'bg-amber-500 text-stone-950 shadow ring-2 ring-amber-200 ring-offset-1 ring-offset-stone-900' : 'text-amber-300 hover:text-amber-100'
+              }`}
+            >
+              <Brain size={16} aria-hidden="true" />
+              <span>死活</span>
+              {gameMode === 'PUZZLE' && <span aria-hidden="true">✓</span>}
             </button>
           </div>
         </div>
@@ -246,9 +268,9 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
           <div className="flex-1 flex flex-col justify-between gap-1.5 min-h-0">
             
             {/* Options Strip: Board Size & AI Diff / Handicap */}
-            <div className="bg-stone-900/80 border border-amber-800/40 rounded-xl p-1.5 flex items-center justify-between gap-1 text-[11px]">
+            <div className="bg-stone-900/80 border border-amber-800/40 rounded-xl p-1.5 flex flex-wrap items-center justify-between gap-1.5 text-xs">
               <div className="flex items-center gap-1">
-                <span className="text-stone-400 font-bold text-[10px]">路數:</span>
+                <span className="text-stone-300 font-bold">路數:</span>
                 {([9, 13, 19] as const).map(sz => (
                   <button
                     key={sz}
@@ -256,9 +278,12 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                       setBoardSize(sz);
                       resetMatch(sz, handicap);
                     }}
-                    className={`px-1.5 py-0.5 rounded font-black text-[10px] transition ${
+                    data-weiqi-board-size={sz}
+                    aria-label={`${sz}路棋盤`}
+                    aria-pressed={boardSize === sz}
+                    className={`min-h-8 px-2 rounded font-black text-xs transition ${
                       boardSize === sz
-                        ? 'bg-amber-500 text-stone-950 shadow'
+                        ? 'bg-amber-500 text-stone-950 shadow ring-1 ring-amber-200'
                         : 'bg-stone-800 hover:bg-stone-700 text-amber-300'
                     }`}
                   >
@@ -269,7 +294,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
 
               {gameMode === 'AI' ? (
                 <div className="flex items-center gap-1">
-                  <span className="text-stone-400 font-bold text-[10px]">難度:</span>
+                  <span className="text-stone-300 font-bold">難度:</span>
                   {(
                     [
                       { id: 'EASY', label: '入門' },
@@ -280,9 +305,12 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                     <button
                       key={d.id}
                       onClick={() => setAiDifficulty(d.id)}
-                      className={`px-1 py-0.5 rounded font-black text-[10px] transition ${
+                      data-weiqi-difficulty={d.id}
+                      aria-label={`AI難度：${d.label}`}
+                      aria-pressed={aiDifficulty === d.id}
+                      className={`min-h-8 px-2 rounded font-black text-xs transition ${
                         aiDifficulty === d.id
-                          ? 'bg-amber-500 text-stone-950 shadow'
+                          ? 'bg-amber-500 text-stone-950 shadow ring-1 ring-amber-200'
                           : 'bg-stone-800 hover:bg-stone-700 text-amber-300'
                       }`}
                     >
@@ -292,15 +320,16 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
-                  <span className="text-stone-400 font-bold text-[10px]">讓子:</span>
+                  <span className="text-stone-300 font-bold">讓子:</span>
                   <select
+                    aria-label="讓子設定"
                     value={handicap}
                     onChange={e => {
                       const val = Number(e.target.value);
                       setHandicap(val);
                       resetMatch(boardSize, val);
                     }}
-                    className="bg-stone-800 border border-amber-700/60 text-amber-200 text-[10px] font-bold rounded px-1 py-0.5"
+                    className="min-h-8 bg-stone-800 border border-amber-700/60 text-amber-200 text-xs font-bold rounded px-1.5 py-1"
                   >
                     {[0, 2, 3, 4, 5, 6, 7, 8, 9].map(h => (
                       <option key={h} value={h}>
@@ -323,22 +352,22 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                         : 'bg-white border-stone-800'
                     } ${isAiThinking ? 'animate-pulse' : ''}`}
                   />
-                  <span className="font-black text-amber-200 text-xs">
+                  <span className="font-black text-amber-200 text-sm">
                     {currentTurn === 'BLACK' ? '黑方回合' : '白方回合'}
                   </span>
                 </div>
-                <span className="text-[10px] font-bold text-stone-400 bg-stone-950 px-1.5 py-0.5 rounded-md border border-stone-800">
+                <span className="text-xs font-bold text-stone-300 bg-stone-950 px-1.5 py-1 rounded-md border border-stone-800">
                   第 {moveCount} 手
                 </span>
               </div>
 
               {/* Captures / Team Score */}
-              <div className="grid grid-cols-2 gap-1 text-[10px] font-bold">
-                <div className="bg-stone-950/80 border border-stone-800 rounded-lg p-1 flex items-center justify-between">
+              <div className="grid grid-cols-2 gap-1 text-xs font-bold">
+                <div className="bg-stone-950/80 border border-stone-800 rounded-lg p-1.5 flex items-center justify-between">
                   <span className="text-stone-400">提白:</span>
                   <span className="text-amber-400 font-black">{blackCaptures} 子</span>
                 </div>
-                <div className="bg-stone-950/80 border border-stone-800 rounded-lg p-1 flex items-center justify-between">
+                <div className="bg-stone-950/80 border border-stone-800 rounded-lg p-1.5 flex items-center justify-between">
                   <span className="text-stone-400">提黑:</span>
                   <span className="text-amber-400 font-black">{whiteCaptures} 子</span>
                 </div>
@@ -346,20 +375,20 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
 
               {/* Live Alerts: Atari / Ko / AI Thinking */}
               {isAiThinking && (
-                <div className="bg-blue-950/80 border border-blue-600/60 rounded-lg px-2 py-0.5 flex items-center gap-1 text-[10px] text-blue-200 animate-pulse">
-                  <Bot size={11} className="text-blue-400" />
+                <div className="bg-blue-950/80 border border-blue-600/60 rounded-lg px-2 py-1 flex items-center gap-1 text-xs text-blue-200 animate-pulse">
+                  <Bot size={13} className="text-blue-400" />
                   <span>AI 思考中...</span>
                 </div>
               )}
               {blackAtariGroups.length > 0 && currentTurn === 'BLACK' && (
-                <div className="bg-rose-950/80 border border-rose-600/60 rounded-lg px-2 py-0.5 flex items-center gap-1 text-[10px] text-rose-200">
-                  <Shield size={11} className="text-rose-400 animate-pulse" />
+                <div className="bg-rose-950/80 border border-rose-600/60 rounded-lg px-2 py-1 flex items-center gap-1 text-xs text-rose-200">
+                  <Shield size={13} className="text-rose-400 animate-pulse" />
                   <span>黑棋被叫吃！</span>
                 </div>
               )}
               {whiteAtariGroups.length > 0 && currentTurn === 'WHITE' && (
-                <div className="bg-rose-950/80 border border-rose-600/60 rounded-lg px-2 py-0.5 flex items-center gap-1 text-[10px] text-rose-200">
-                  <Shield size={11} className="text-rose-400 animate-pulse" />
+                <div className="bg-rose-950/80 border border-rose-600/60 rounded-lg px-2 py-1 flex items-center gap-1 text-xs text-rose-200">
+                  <Shield size={13} className="text-rose-400 animate-pulse" />
                   <span>白棋被叫吃！</span>
                 </div>
               )}
@@ -367,7 +396,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
 
             {/* Territory Info if Active */}
             {showTerritory && territoryResult && (
-              <div className="bg-stone-950/90 border border-amber-700/60 rounded-xl p-1.5 text-[10px] space-y-1">
+              <div className="bg-stone-950/90 border border-amber-700/60 rounded-xl p-1.5 text-xs space-y-1">
                 <div className="flex items-center justify-between font-black text-amber-300">
                   <span>形勢判斷 (目數估算):</span>
                   <span>
@@ -386,43 +415,51 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
             )}
 
             {/* Action Buttons Grid (2x2) */}
-            <div className="grid grid-cols-2 gap-1 pt-1 border-t border-amber-900/60">
+            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-amber-900/60">
               <button
                 onClick={handleUndo}
                 disabled={moveHistoryLength === 0 || isAiThinking || !!gameOverResult}
-                className="py-1 px-1.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-amber-200 border border-amber-700/50 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition shadow"
+                aria-label="悔棋"
+                data-weiqi-action="undo"
+                className="min-h-11 px-1.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-amber-200 border border-amber-700/50 rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shadow"
               >
-                <Undo2 size={12} />
+                <Undo2 size={16} aria-hidden="true" />
                 <span>悔棋</span>
               </button>
 
               <button
                 onClick={() => handlePass(false)}
                 disabled={isAiThinking || !!gameOverResult}
-                className="py-1 px-1.5 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-40 text-amber-200 border border-amber-700/60 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition shadow"
+                aria-label="虛手"
+                data-weiqi-action="pass"
+                className="min-h-11 px-1.5 bg-amber-900/80 hover:bg-amber-800 disabled:opacity-40 text-amber-200 border border-amber-700/60 rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shadow"
               >
-                <HandMetal size={12} />
+                <HandMetal size={16} aria-hidden="true" />
                 <span>虛手</span>
               </button>
 
               <button
                 onClick={isScoringReview ? finishScoringReview : toggleTerritoryEstimation}
-                className={`py-1 px-1.5 border rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition shadow ${
+                aria-label={isScoringReview ? '確認數目' : '形勢估算'}
+                data-weiqi-action="territory"
+                className={`min-h-11 px-1.5 border rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shadow ${
                   showTerritory
                     ? 'bg-amber-500 border-amber-400 text-stone-950'
                     : 'bg-stone-900 hover:bg-stone-800 text-amber-300 border-amber-700/50'
                 }`}
               >
-                <Eye size={12} />
+                <Eye size={16} aria-hidden="true" />
                 <span>{isScoringReview ? '確認數目' : '形勢'}</span>
               </button>
 
               <button
                 onClick={handleResign}
                 disabled={!!gameOverResult || moveCount === 0}
-                className="py-1 px-1.5 bg-rose-950/80 hover:bg-rose-900 disabled:opacity-40 text-rose-200 border border-rose-700/60 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition shadow"
+                aria-label="認輸"
+                data-weiqi-action="resign"
+                className="min-h-11 px-1.5 bg-rose-950/80 hover:bg-rose-900 disabled:opacity-40 text-rose-200 border border-rose-700/60 rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shadow"
               >
-                <Flag size={12} />
+                <Flag size={16} aria-hidden="true" />
                 <span>認輸</span>
               </button>
             </div>
@@ -437,7 +474,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
             
             {/* Category Filter Tabs & Selector */}
             <div className="space-y-1">
-              <div className="flex items-center bg-stone-900 border border-amber-800/60 rounded-lg p-0.5 justify-between">
+              <div className="grid grid-cols-4 gap-1 bg-stone-900 border border-amber-800/60 rounded-lg p-1 justify-between">
                 {(
                   [
                     { id: 'ALL', label: '全部' },
@@ -449,9 +486,11 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex-1 py-0.5 text-[10px] font-bold rounded-md transition ${
+                    aria-label={`題目分類：${cat.label}`}
+                    aria-pressed={puzzleFilter === cat.id}
+                    className={`min-h-9 px-1 text-xs font-bold rounded-md transition ${
                       puzzleFilter === cat.id
-                        ? 'bg-amber-500 text-stone-950 shadow'
+                        ? 'bg-amber-500 text-stone-950 shadow ring-1 ring-amber-200'
                         : 'text-amber-300 hover:text-amber-100'
                     }`}
                   >
@@ -468,7 +507,8 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                     const idx = filteredPuzzles.findIndex(p => p.id === e.target.value);
                     if (idx !== -1) loadPuzzle(idx);
                   }}
-                  className="flex-1 bg-stone-900 border border-amber-700/60 text-amber-200 text-[10px] font-bold rounded-lg px-1.5 py-1 truncate focus:outline-none"
+                  aria-label="選擇死活題"
+                  className="flex-1 min-h-10 bg-stone-900 border border-amber-700/60 text-amber-200 text-xs font-bold rounded-lg px-1.5 py-1 truncate focus:outline-none"
                 >
                   {filteredPuzzles.map((p, idx) => (
                     <option key={p.id} value={p.id} className="bg-stone-900 text-amber-100 py-1">
@@ -481,21 +521,21 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                   <button
                     onClick={() => loadPuzzle(Math.max(0, currentPuzzleIndex - 1))}
                     disabled={currentPuzzleIndex === 0}
-                    className="p-0.5 hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
-                    title="上一題"
+                    aria-label="上一題"
+                    className="min-h-10 min-w-10 flex items-center justify-center hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
                   >
-                    <ChevronLeft size={13} />
+                    <ChevronLeft size={16} aria-hidden="true" />
                   </button>
-                  <span className="px-1 text-[10px] font-black text-amber-400">
+                  <span className="px-1 text-xs font-black text-amber-400">
                     {currentPuzzleIndex + 1}/{filteredPuzzles.length}
                   </span>
                   <button
                     onClick={() => loadPuzzle(Math.min(filteredPuzzles.length - 1, currentPuzzleIndex + 1))}
                     disabled={currentPuzzleIndex === filteredPuzzles.length - 1}
-                    className="p-0.5 hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
-                    title="下一題"
+                    aria-label="下一題"
+                    className="min-h-10 min-w-10 flex items-center justify-center hover:bg-stone-800 disabled:opacity-30 rounded text-amber-200"
                   >
-                    <ChevronRight size={13} />
+                    <ChevronRight size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -507,9 +547,9 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                 <span className="px-1.5 py-0.5 bg-amber-800 border border-amber-600 text-amber-300 rounded text-[9px] font-black">
                   {currentPuzzle.badge}
                 </span>
-                <h3 className="font-bold text-amber-100 text-[11px] truncate">{currentPuzzle.title}</h3>
+                <h3 className="font-bold text-amber-100 text-xs truncate">{currentPuzzle.title}</h3>
               </div>
-              <p className="text-stone-300 text-[10px] leading-relaxed bg-stone-950/70 p-1.5 rounded-lg border border-amber-900/40">
+              <p className="text-stone-300 text-xs leading-relaxed bg-stone-950/70 p-1.5 rounded-lg border border-amber-900/40">
                 {currentPuzzle.prompt}
               </p>
             </div>
@@ -517,19 +557,21 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
             {/* Interactive Feedback & Action Buttons */}
             <div className="space-y-1">
               {puzzleStatus === 'UNSOLVED' && (
-                <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setShowHintModal(true)}
-                    className="flex-1 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition shadow"
+                    aria-label="查看題目提示"
+                    className="flex-1 min-h-11 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition shadow"
                   >
-                    <Lightbulb size={12} className="text-amber-400" />
+                    <Lightbulb size={16} className="text-amber-400" aria-hidden="true" />
                     <span>提示</span>
                   </button>
                   <button
                     onClick={() => setShowSolutionModal(true)}
-                    className="flex-1 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition shadow"
+                    aria-label="查看題目解說"
+                    className="flex-1 min-h-11 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition shadow"
                   >
-                    <Eye size={12} />
+                    <Eye size={16} aria-hidden="true" />
                     <span>解說</span>
                   </button>
                 </div>
@@ -541,11 +583,11 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                   animate={{ scale: 1, opacity: 1 }}
                   className="bg-emerald-950/90 border border-emerald-500/80 rounded-xl p-1.5 space-y-1 shadow-lg"
                 >
-                  <div className="flex items-center gap-1 text-emerald-300 font-black text-[11px]">
+                  <div className="flex items-center gap-1 text-emerald-300 font-black text-xs">
                     <CheckCircle2 size={13} className="text-emerald-400" />
                     <span>🎉 答對了！</span>
                   </div>
-                  <p className="text-[10px] text-emerald-100/90">{currentPuzzle.successMessage}</p>
+                  <p className="text-xs text-emerald-100/90">{currentPuzzle.successMessage}</p>
                   <button
                     onClick={() => {
                       if (currentPuzzleIndex < filteredPuzzles.length - 1) {
@@ -554,7 +596,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                         loadPuzzle(0);
                       }
                     }}
-                    className="w-full py-1 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black rounded-lg text-[11px] shadow transition"
+                    className="w-full min-h-10 py-1 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black rounded-lg text-xs shadow transition"
                   >
                     下一題 ➔
                   </button>
@@ -567,21 +609,21 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                   animate={{ scale: 1, opacity: 1 }}
                   className="bg-rose-950/90 border border-rose-500/80 rounded-xl p-1.5 space-y-1 shadow-lg"
                 >
-                  <div className="flex items-center gap-1 text-rose-300 font-black text-[11px]">
+                  <div className="flex items-center gap-1 text-rose-300 font-black text-xs">
                     <XCircle size={13} className="text-rose-400" />
                     <span>❌ 落子不對！</span>
                   </div>
-                  <p className="text-[10px] text-rose-200/90">此處被白棋識破，請重新思考！</p>
+                  <p className="text-xs text-rose-200/90">此處被白棋識破，請重新思考！</p>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => loadPuzzle(currentPuzzleIndex)}
-                      className="flex-1 py-1 bg-rose-700 hover:bg-rose-600 text-white font-bold rounded-lg text-[10px] transition"
+                      className="flex-1 min-h-10 py-1 bg-rose-700 hover:bg-rose-600 text-white font-bold rounded-lg text-xs transition"
                     >
                       重試
                     </button>
                     <button
                       onClick={() => setShowHintModal(true)}
-                      className="flex-1 py-1 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 font-bold rounded-lg text-[10px] transition"
+                      className="flex-1 min-h-10 py-1 bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-700/60 font-bold rounded-lg text-xs transition"
                     >
                       提示
                     </button>
