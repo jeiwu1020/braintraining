@@ -14,6 +14,7 @@ describe('Checkers LIGHT acceptance', () => {
     expect(markup).toContain('data-checkers-layout="board-move-log"');
     expect(markup).toContain('data-checkers-board="true"');
     expect((markup.match(/data-checkers-cell=/g) ?? []).length).toBeGreaterThanOrEqual(64);
+    expect(markup).toContain('白方(你)回合');
     expect(markup).toContain('data-game-mode-selector="true"');
     expect(markup).toContain('data-game-mode-option="PVE"');
     expect(markup).toContain('data-game-mode-option="PVP"');
@@ -37,6 +38,10 @@ describe('Checkers LIGHT acceptance', () => {
     expect(source).toContain('data-checkers-review-action="last"');
     expect(source).toContain('<GameModeSelector');
     expect(source).toContain('max-h-28 overflow-y-auto');
+    expect(source).toContain('data-checkers-last-land="true"');
+    expect(source).not.toContain('inset 0 0 0 3px');
+    expect(source).toContain('rgba(250,204,21,0.18)');
+    expect(source).toMatch(/useState<1\|2>\(2\)/);
     expect(source).not.toContain("setGameMode(p=>p==='PVE'?'PVP':'PVE')");
   });
 });

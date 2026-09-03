@@ -30,7 +30,7 @@ const makeInitialBoard = (): (Piece|null)[][] => {
 
 const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
     const [board, setBoard] = useState<(Piece|null)[][]>(()=>makeInitialBoard());
-    const [turn, setTurn] = useState<1|2>(1);
+    const [turn, setTurn] = useState<1|2>(2);
     const [selectedPos, setSelectedPos] = useState<{r:number;c:number}|null>(null);
     const [validMoves, setValidMoves] = useState<{r:number;c:number;isJump:boolean}[]>([]);
     const [winner, setWinner] = useState<number|null>(null);
@@ -218,7 +218,7 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                         <button key={`${r}-${c}`} type="button" data-checkers-cell={coordinate} aria-label={cellLabel}
                             onClick={()=>handleSquareClick(r,c)}
                             className={`relative flex items-center justify-center p-0 border-0 ${isDark?'bg-[#8B4513]':'bg-[#DEB887]'} ${isVM&&!animating&&!reviewing?'cursor-pointer':''}`}>
-                            {isLL&&<div className="absolute inset-0 rounded-sm pointer-events-none" style={{boxShadow:'inset 0 0 0 3px rgba(250,204,21,0.85)'}}/>}
+                            {isLL&&<div data-checkers-last-land="true" className="absolute inset-0 rounded-sm pointer-events-none" style={{background:'rgba(250,204,21,0.18)',boxShadow:'inset 0 0 0 1px rgba(250,204,21,0.65)'}}/>}
                             {tc&&<div className="absolute inset-0 rounded-sm pointer-events-none" style={{background:`rgba(250,204,21,${tc.opacity*0.35})`}}/>}
                             {isVM&&!animating&&!reviewing&&<div className="absolute w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500/60 ring-2 ring-green-800/70"/>}
                             {p&&(
