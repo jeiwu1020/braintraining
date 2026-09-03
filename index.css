@@ -56,7 +56,7 @@
 
   .board-sidebar-layout {
     grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.28fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .board-sidebar-layout:has(.board-sidebar-layout__feedback) {
@@ -87,8 +87,12 @@
 
   .board-sidebar-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(15rem, 1fr) auto auto;
+    grid-template-rows: minmax(15rem, 1fr) auto;
     overflow-y: auto;
+  }
+
+  .board-sidebar-layout:has(.board-sidebar-layout__feedback) {
+    grid-template-rows: minmax(15rem, 1fr) auto auto;
   }
 }
 

@@ -246,14 +246,14 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
     <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
       <div className="relative flex h-full max-h-full w-full max-w-full items-center justify-center">
         <div
-          className="connect-four-board relative aspect-[7/6] h-auto max-w-full rounded-b-2xl rounded-t-xl bg-blue-600 p-2 pt-3 shadow-2xl sm:p-3 sm:pt-4"
-          style={{ width: 'min(100%, calc((100dvh - 8rem) * 7 / 6))' }}
+          className="connect-four-board relative flex max-w-full flex-col rounded-b-2xl rounded-t-xl bg-blue-600 p-2 shadow-2xl sm:p-3"
+          style={{ width: 'min(100%, calc((100dvh - 9rem) * 7 / 6))' }}
         >
-          <div className="absolute -top-1 left-0 flex w-full justify-around px-2 text-xs font-bold text-blue-900 sm:text-sm">
+          <div aria-label="欄位座標" className="grid shrink-0 grid-cols-7 gap-1 px-2 pb-1 text-xs font-extrabold text-white sm:gap-1.5 sm:px-3 sm:pb-1.5 sm:text-sm">
             {COL_LABELS.map(label => <span key={label} className="w-full text-center">{label}</span>)}
           </div>
 
-          <div className="grid h-full w-full grid-cols-7 gap-1 rounded-lg border-4 border-blue-800 bg-blue-700 p-1.5 sm:gap-1.5 sm:p-2">
+          <div className="grid aspect-[7/6] w-full grid-cols-7 gap-1 rounded-lg border-4 border-blue-800 bg-blue-700 p-1.5 sm:gap-1.5 sm:p-2">
             {COL_LABELS.map((label, c) => {
               const isColumnFull = board[0]?.[c] !== EMPTY;
               const isColumnPlayable = !winner && (gameMode === 'PVP' || isPlayerTurn) && !isColumnFull;
@@ -267,7 +267,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                   aria-describedby="connect-four-turn"
                   disabled={!isColumnPlayable}
                   onClick={() => handleColumnClick(c)}
-                  className="group relative flex min-h-0 min-w-0 flex-1 flex-col gap-1 rounded-md p-0.5 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80"
+                  className="group relative grid min-h-0 min-w-0 flex-1 grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80"
                 >
                   {Array.from({ length: ROWS }, (_, r) => {
                     const cell = board[r]?.[c] ?? EMPTY;
@@ -277,7 +277,8 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                       <span
                         key={`${r}-${c}`}
                         aria-hidden="true"
-                        className={`min-h-0 flex-1 rounded-full border border-black/10 shadow-inner transition-colors duration-300 ${
+                        data-connect-four-hole="true"
+                        className={`aspect-square w-full min-h-0 min-w-0 self-center rounded-full border border-black/10 shadow-inner transition-colors duration-300 ${
                           cell === EMPTY ? 'bg-blue-900/30' : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'
                         } ${isWin ? 'ring-4 ring-white ring-offset-1 ring-offset-blue-700 animate-pulse' : ''}`}
                       />
@@ -362,12 +363,10 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
         <BoardSidebarLayout
           board={boardView}
           sidebar={sidebarView}
-          feedback={<span className="flex items-center gap-2"><Trophy aria-hidden="true" className="h-4 w-4" />{statusText}</span>}
           boardLabel="四子棋棋盤"
           sidebarLabel="四子棋狀態與操作"
           boardClassName="flex min-h-0 items-center justify-center"
           sidebarClassName="flex min-h-0 flex-col"
-          feedbackClassName="border-blue-200 text-blue-900"
         />
 
         {showRules && (
