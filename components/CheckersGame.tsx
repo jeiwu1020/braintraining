@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Crown, Undo2, Redo2, BookOpen, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Crown, Undo2, Redo2, BookOpen, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameModeSelector from './game-ui/GameModeSelector';
 
 interface Props { onBack: () => void; difficulty?: Difficulty; }
 
@@ -18,8 +19,17 @@ interface GameSnapshot { board:(Piece|null)[][]; turn:1|2; lastLandPos:{r:number
 
 const cloneBoard = (b:(Piece|null)[][]): (Piece|null)[][] => b.map(row=>row.map(p=>p?{...p}:null));
 
+const makeInitialBoard = (): (Piece|null)[][] => {
+    const b = Array(SIZE).fill(null).map(()=>Array(SIZE).fill(null));
+    for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) if ((r+c)%2===1) {
+        if (r<3) b[r][c]={player:1,isKing:false};
+        if (r>4) b[r][c]={player:2,isKing:false};
+    }
+    return b;
+};
+
 const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
-    const [board, setBoard] = useState<(Piece|null)[][]>([]);
+    const [board, setBoard] = useState<(Piece|null)[][]>(()=>makeInitialBoard());
     const [turn, setTurn] = useState<1|2>(1);
     const [selectedPos, setSelectedPos] = useState<{r:number;c:number}|null>(null);
     const [validMoves, setValidMoves] = useState<{r:number;c:number;isJump:boolean}[]>([]);
@@ -39,25 +49,17 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
     const animFrameRef = useRef<number|null>(null);
     const boardDivRef = useRef<HTMLDivElement|null>(null);
     const moveListRef = useRef<HTMLDivElement|null>(null);
+    const portraitMoveListRef = useRef<HTMLDivElement|null>(null);
 
     useEffect(() => { resetGame(); }, [gameMode]);
 
     // Auto-scroll move list to current step
     useEffect(() => {
-        if (moveListRef.current) {
-            const active = moveListRef.current.querySelector('[data-active="true"]');
+        [moveListRef.current, portraitMoveListRef.current].forEach((list) => {
+            const active = list?.querySelector('[data-active="true"]');
             if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
+        });
     }, [historyIndex, reviewIndex, reviewing]);
-
-    const makeInitialBoard = (): (Piece|null)[][] => {
-        const b = Array(SIZE).fill(null).map(()=>Array(SIZE).fill(null));
-        for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) if ((r+c)%2===1) {
-            if (r<3) b[r][c]={player:1,isKing:false};
-            if (r>4) b[r][c]={player:2,isKing:false};
-        }
-        return b;
-    };
 
     const resetGame = () => {
         const nb = makeInitialBoard();
@@ -200,7 +202,7 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
 
     // Shared board renderer
     const renderBoard=()=>(
-        <div ref={boardDivRef} className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full h-full relative">
+        <div ref={boardDivRef} data-checkers-board="true" className="bg-[#4a3b2a] p-1.5 rounded shadow-2xl border-4 border-[#3d2b1f] w-full h-full relative">
             <div className="w-full h-full grid grid-cols-8 grid-rows-8">
                 {board.map((row,r)=>row.map((p,c)=>{
                     const isDark=(r+c)%2===1;
@@ -208,18 +210,23 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                     const isVM=validMoves.some(m=>m.r===r&&m.c===c);
                     const tc=trail.find(t=>t.r===r&&t.c===c);
                     const isLL=lastLandPos?.r===r&&lastLandPos?.c===c&&!animating&&!isSel;
+                    const coordinate=posLabel(r,c);
+                    const cellLabel=p
+                        ? `${coordinate}，${p.player===1?'紅方':'白方'}${p.isKing?'王':''}棋子`
+                        : `${coordinate}，空位`;
                     return (
-                        <div key={`${r}-${c}`} onClick={()=>handleSquareClick(r,c)}
-                            className={`relative flex items-center justify-center ${isDark?'bg-[#8B4513]':'bg-[#DEB887]'} ${isVM&&!animating&&!reviewing?'cursor-pointer':''}`}>
+                        <button key={`${r}-${c}`} type="button" data-checkers-cell={coordinate} aria-label={cellLabel}
+                            onClick={()=>handleSquareClick(r,c)}
+                            className={`relative flex items-center justify-center p-0 border-0 ${isDark?'bg-[#8B4513]':'bg-[#DEB887]'} ${isVM&&!animating&&!reviewing?'cursor-pointer':''}`}>
                             {isLL&&<div className="absolute inset-0 rounded-sm pointer-events-none" style={{boxShadow:'inset 0 0 0 3px rgba(250,204,21,0.85)'}}/>}
                             {tc&&<div className="absolute inset-0 rounded-sm pointer-events-none" style={{background:`rgba(250,204,21,${tc.opacity*0.35})`}}/>}
-                            {isVM&&!animating&&!reviewing&&<div className="absolute w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500/60"/>}
+                            {isVM&&!animating&&!reviewing&&<div className="absolute w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500/60 ring-2 ring-green-800/70"/>}
                             {p&&(
                                 <div className={`w-[80%] h-[80%] rounded-full shadow-md border-2 sm:border-4 flex items-center justify-center aspect-square ${p.player===1?'bg-red-700 border-red-900':'bg-slate-200 border-slate-400'} ${isSel?'scale-110 ring-2 ring-yellow-400':''}`}>
                                     {p.isKing&&<Crown size={12} className={p.player===1?'text-red-200':'text-slate-600'}/>}
                                 </div>
                             )}
-                        </div>
+                        </button>
                     );
                 }))}
             </div>
@@ -253,24 +260,23 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {/* Review controls */}
             {reviewing&&(
                 <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-center gap-1">
-                        <button onClick={()=>goReview(0)} className="p-1.5 bg-slate-300 rounded-full text-slate-700 hover:bg-slate-400"><ChevronsLeft size={14}/></button>
-                        <button onClick={()=>goReview(reviewIndex-1)} disabled={reviewIndex===0} className={`p-1.5 rounded-full ${reviewIndex>0?'bg-slate-300 text-slate-700 hover:bg-slate-400':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronLeft size={14}/></button>
-                        <span className="text-[10px] font-bold text-slate-500 min-w-[40px] text-center">{reviewIndex}/{history.length-1}</span>
-                        <button onClick={()=>goReview(reviewIndex+1)} disabled={reviewIndex===history.length-1} className={`p-1.5 rounded-full ${reviewIndex<history.length-1?'bg-slate-300 text-slate-700 hover:bg-slate-400':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronRight size={14}/></button>
-                        <button onClick={()=>goReview(history.length-1)} className="p-1.5 bg-slate-300 rounded-full text-slate-700 hover:bg-slate-400"><ChevronsRight size={14}/></button>
+                    <div className="grid grid-cols-2 gap-1">
+                        <button type="button" data-checkers-review-action="first" aria-label="移到第一步" onClick={()=>goReview(0)} className="min-h-10 min-w-10 flex items-center justify-center bg-slate-300 rounded-lg text-slate-700 hover:bg-slate-400"><ChevronsLeft size={16} aria-hidden="true"/></button>
+                        <button type="button" data-checkers-review-action="previous" aria-label="上一步" onClick={()=>goReview(reviewIndex-1)} disabled={reviewIndex===0} className={`min-h-10 min-w-10 flex items-center justify-center rounded-lg ${reviewIndex>0?'bg-slate-300 text-slate-700 hover:bg-slate-400':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronLeft size={16} aria-hidden="true"/></button>
+                        <button type="button" data-checkers-review-action="next" aria-label="下一步" onClick={()=>goReview(reviewIndex+1)} disabled={reviewIndex===history.length-1} className={`min-h-10 min-w-10 flex items-center justify-center rounded-lg ${reviewIndex<history.length-1?'bg-slate-300 text-slate-700 hover:bg-slate-400':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronRight size={16} aria-hidden="true"/></button>
+                        <button type="button" data-checkers-review-action="last" aria-label="移到最後一步" onClick={()=>goReview(history.length-1)} className="min-h-10 min-w-10 flex items-center justify-center bg-slate-300 rounded-lg text-slate-700 hover:bg-slate-400"><ChevronsRight size={16} aria-hidden="true"/></button>
                     </div>
-                    <button onClick={exitReview} className="w-full py-1.5 bg-slate-700 text-white rounded-lg text-xs font-bold">結束復盤</button>
+                    <button type="button" data-checkers-review-action="exit" aria-label="結束復盤" onClick={exitReview} className="w-full min-h-11 bg-slate-700 text-white rounded-lg text-xs font-bold">結束復盤</button>
                 </div>
             )}
 
             {/* Move list */}
-            <div ref={moveListRef} className="flex-1 overflow-y-auto rounded-lg bg-white border border-slate-200 min-h-0">
+            <div ref={moveListRef} data-checkers-move-log="true" className="flex-1 overflow-y-auto rounded-lg bg-white border border-slate-200 min-h-0">
                 <div className="p-1 space-y-0.5">
                     {history.map((snap,i)=>(
-                        <div key={i} data-active={i===curIdx}
+                        <div key={i} data-active={i===curIdx} data-checkers-move={i}
                             onClick={()=>{ if(reviewing) goReview(i); }}
-                            className={`text-[10px] px-2 py-1 rounded font-mono cursor-pointer transition-colors
+                            className={`text-xs px-2 py-1 rounded font-mono cursor-pointer transition-colors
                                 ${i===curIdx?'bg-yellow-200 text-slate-900 font-bold':'text-slate-600 hover:bg-slate-50'}
                                 ${i===0?'text-slate-400':''}`}>
                             {i===0?'— 開始 —':`${i}. ${snap.moveLabel}`}
@@ -283,15 +289,15 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
             {!reviewing&&(
                 <div className="flex flex-col gap-1.5">
                     <div className="flex gap-1.5">
-                        <button onClick={handleUndo} disabled={!canUndo} title="上一步"
-                            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold ${canUndo?'bg-gray-200 text-slate-800 hover:bg-gray-300':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
-                            <Undo2 size={13}/> 悔棋</button>
-                        <button onClick={handleRedo} disabled={!canRedo} title="下一步"
-                            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold ${canRedo?'bg-gray-200 text-slate-800 hover:bg-gray-300':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
-                            <Redo2 size={13}/> 重做</button>
+                        <button type="button" data-checkers-action="undo" aria-label="悔棋" onClick={handleUndo} disabled={!canUndo} title="上一步"
+                            className={`min-h-11 flex-1 flex items-center justify-center gap-1 rounded-lg text-xs font-bold ${canUndo?'bg-gray-200 text-slate-800 hover:bg-gray-300':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
+                            <Undo2 size={15} aria-hidden="true"/> 悔棋</button>
+                        <button type="button" data-checkers-action="redo" aria-label="重做" onClick={handleRedo} disabled={!canRedo} title="下一步"
+                            className={`min-h-11 flex-1 flex items-center justify-center gap-1 rounded-lg text-xs font-bold ${canRedo?'bg-gray-200 text-slate-800 hover:bg-gray-300':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
+                            <Redo2 size={15} aria-hidden="true"/> 重做</button>
                     </div>
-                    <button onClick={()=>setShowRules(true)} className="flex items-center justify-center gap-1.5 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-300">
-                        <BookOpen size={13}/> 規則說明</button>
+                    <button type="button" data-checkers-action="rules" aria-label="規則說明" onClick={()=>setShowRules(true)} className="min-h-11 flex items-center justify-center gap-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-300">
+                        <BookOpen size={15} aria-hidden="true"/> 規則說明</button>
                 </div>
             )}
         </div>
@@ -300,35 +306,33 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
     // Bottom panel for portrait reviewing
     const renderBottomReview=()=>(
         <div className="flex-none px-2 pb-1.5 pt-1 flex items-center gap-1.5 bg-slate-100">
-            <button onClick={()=>goReview(0)} className="p-1.5 bg-slate-300 rounded-full text-slate-700"><ChevronsLeft size={14}/></button>
-            <button onClick={()=>goReview(reviewIndex-1)} disabled={reviewIndex===0} className={`p-1.5 rounded-full ${reviewIndex>0?'bg-slate-300 text-slate-700':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronLeft size={14}/></button>
+            <button type="button" data-checkers-review-action="first" aria-label="移到第一步" onClick={()=>goReview(0)} className="min-h-11 min-w-11 flex items-center justify-center bg-slate-300 rounded-lg text-slate-700"><ChevronsLeft size={16} aria-hidden="true"/></button>
+            <button type="button" data-checkers-review-action="previous" aria-label="上一步" onClick={()=>goReview(reviewIndex-1)} disabled={reviewIndex===0} className={`min-h-11 min-w-11 flex items-center justify-center rounded-lg ${reviewIndex>0?'bg-slate-300 text-slate-700':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronLeft size={16} aria-hidden="true"/></button>
             <span className="text-xs font-bold text-slate-600 flex-1 text-center truncate">{history[reviewIndex]?.moveLabel}</span>
-            <button onClick={()=>goReview(reviewIndex+1)} disabled={reviewIndex===history.length-1} className={`p-1.5 rounded-full ${reviewIndex<history.length-1?'bg-slate-300 text-slate-700':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronRight size={14}/></button>
-            <button onClick={()=>goReview(history.length-1)} className="p-1.5 bg-slate-300 rounded-full text-slate-700"><ChevronsRight size={14}/></button>
-            <button onClick={exitReview} className="px-2.5 py-1.5 bg-slate-700 text-white rounded-full text-xs font-bold">結束</button>
+            <button type="button" data-checkers-review-action="next" aria-label="下一步" onClick={()=>goReview(reviewIndex+1)} disabled={reviewIndex===history.length-1} className={`min-h-11 min-w-11 flex items-center justify-center rounded-lg ${reviewIndex<history.length-1?'bg-slate-300 text-slate-700':'bg-slate-100 text-slate-300 cursor-not-allowed'}`}><ChevronRight size={16} aria-hidden="true"/></button>
+            <button type="button" data-checkers-review-action="last" aria-label="移到最後一步" onClick={()=>goReview(history.length-1)} className="min-h-11 min-w-11 flex items-center justify-center bg-slate-300 rounded-lg text-slate-700"><ChevronsRight size={16} aria-hidden="true"/></button>
+            <button type="button" data-checkers-review-action="exit" aria-label="結束復盤" onClick={exitReview} className="min-h-11 px-2.5 bg-slate-700 text-white rounded-lg text-xs font-bold">結束</button>
         </div>
     );
 
     return (
-        <div className="flex flex-col h-[100dvh] bg-slate-100 overflow-hidden">
+        <div className="checkers-game flex flex-col h-[100dvh] bg-slate-100 overflow-hidden" data-checkers-layout="board-move-log">
+            <style>{`@media (orientation: landscape) and (max-height: 480px) {
+                .checkers-game [data-game-mode-selector="true"] { width: auto !important; display: flex; align-items: center; gap: 0.5rem; }
+                .checkers-game [data-game-mode-selector="true"] > div:first-child { margin-bottom: 0; white-space: nowrap; }
+                .checkers-game [data-game-mode-selector="true"] > div:last-child { width: 150px; }
+            }`}</style>
             {/* Header */}
-            <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-11 sm:h-12">
-                <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-slate-800"><ArrowLeft size={17}/></button>
-                <div className="flex items-center gap-1.5">
-                    <button onClick={()=>setGameMode(p=>p==='PVE'?'PVP':'PVE')}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-slate-50 rounded-full text-xs font-bold text-slate-900 border border-slate-200">
-                        {gameMode==='PVE'?<User size={12}/>:<Users size={12}/>}{gameMode==='PVE'?'單人':'雙人'}
-                    </button>
-                    {/* Portrait: undo/redo in header; landscape: in side panel */}
-                    <div className="flex landscape:hidden items-center gap-1">
-                        <button onClick={handleUndo} disabled={!canUndo}
-                            className={`p-1.5 rounded-full ${canUndo?'bg-gray-100 text-slate-800':'bg-gray-50 text-slate-300 cursor-not-allowed'}`}><Undo2 size={15}/></button>
-                        <button onClick={handleRedo} disabled={!canRedo}
-                            className={`p-1.5 rounded-full ${canRedo?'bg-gray-100 text-slate-800':'bg-gray-50 text-slate-300 cursor-not-allowed'}`}><Redo2 size={15}/></button>
-                        <button onClick={()=>setShowRules(true)} className="p-1.5 bg-gray-100 rounded-full text-slate-700"><BookOpen size={15}/></button>
-                    </div>
+            <div className="flex-none p-2 flex justify-between items-center gap-2 bg-white shadow-sm z-10 min-h-14">
+                <button type="button" onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 flex items-center justify-center p-1.5 bg-gray-100 rounded-lg text-slate-800">
+                    <ArrowLeft size={18} aria-hidden="true"/>
+                </button>
+                <div data-checkers-mode className="flex items-center justify-center min-w-0">
+                    <GameModeSelector value={gameMode} onChange={setGameMode} className="w-[190px] shrink-0" />
                 </div>
-                <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-slate-800"><RefreshCw size={17}/></button>
+                <button type="button" onClick={resetGame} aria-label="重新開始" className="min-h-11 min-w-11 flex items-center justify-center p-1.5 bg-gray-100 rounded-lg text-slate-800">
+                    <RefreshCw size={18} aria-hidden="true"/>
+                </button>
             </div>
 
             {/* Portrait status bar */}
@@ -354,6 +358,35 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                         <div className="flex-1 aspect-square">
                             {renderBoard()}
                         </div>
+                    </div>
+                </div>
+            </div>
+            {/* Portrait support: keep essential actions and recent history reachable below the board. */}
+            <div data-checkers-portrait-support className="landscape:hidden flex-none w-full px-2 pb-2">
+                {!reviewing&&(
+                    <div className="flex gap-2 mb-2">
+                        <button type="button" data-checkers-action="undo" aria-label="悔棋" onClick={handleUndo} disabled={!canUndo}
+                            className={`min-h-11 flex-1 flex items-center justify-center gap-1 rounded-lg text-xs font-bold ${canUndo?'bg-gray-200 text-slate-800':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
+                            <Undo2 size={15} aria-hidden="true"/> 悔棋</button>
+                        <button type="button" data-checkers-action="redo" aria-label="重做" onClick={handleRedo} disabled={!canRedo}
+                            className={`min-h-11 flex-1 flex items-center justify-center gap-1 rounded-lg text-xs font-bold ${canRedo?'bg-gray-200 text-slate-800':'bg-gray-100 text-slate-300 cursor-not-allowed'}`}>
+                            <Redo2 size={15} aria-hidden="true"/> 重做</button>
+                        <button type="button" data-checkers-action="rules" aria-label="規則說明" onClick={()=>setShowRules(true)}
+                            className="min-h-11 flex-1 flex items-center justify-center gap-1 rounded-lg bg-slate-200 text-slate-700 text-xs font-bold">
+                            <BookOpen size={15} aria-hidden="true"/> 規則</button>
+                    </div>
+                )}
+                <div ref={portraitMoveListRef} data-checkers-move-log="true" className="w-full max-h-28 overflow-y-auto rounded-lg bg-white border border-slate-200">
+                    <div className="p-1 space-y-0.5">
+                        {history.map((snap,i)=>(
+                            <div key={i} data-active={i===curIdx} data-checkers-move={i}
+                                onClick={()=>{ if(reviewing) goReview(i); }}
+                                className={`text-xs px-2 py-1 rounded font-mono cursor-pointer transition-colors
+                                    ${i===curIdx?'bg-yellow-200 text-slate-900 font-bold':'text-slate-600 hover:bg-slate-50'}
+                                    ${i===0?'text-slate-400':''}`}>
+                                {i===0?'— 開始 —':`${i}. ${snap.moveLabel}`}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -402,20 +435,20 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
                 </div>
 
                 {/* Side panel */}
-                <div className="flex-none w-40 bg-slate-100 border-l border-slate-200 p-2 overflow-hidden">
+                <div className="flex-none w-44 bg-slate-100 border-l border-slate-200 p-2 overflow-hidden">
                     {renderSidePanel()}
                 </div>
             </div>
 
             {/* Winner overlay */}
             {winner&&!reviewing&&(
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="checkers-winner-title">
                     <div className="bg-white p-6 rounded-2xl text-center shadow-2xl">
-                        <Trophy className="w-14 h-14 mx-auto mb-3 text-yellow-500"/>
-                        <h2 className="text-xl font-bold mb-5">{winner===1?'紅方獲勝！':'白方獲勝！'}</h2>
+                        <Trophy aria-hidden="true" className="w-14 h-14 mx-auto mb-3 text-yellow-500"/>
+                        <h2 id="checkers-winner-title" className="text-xl font-bold mb-5">{winner===1?'紅方獲勝！':'白方獲勝！'}</h2>
                         <div className="flex gap-3 justify-center">
-                            <button onClick={startReview} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center gap-2 text-sm"><BookOpen size={15}/> 復盤</button>
-                            <button onClick={resetGame} className="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold text-sm">再來一局</button>
+                            <button type="button" aria-label="復盤" onClick={startReview} className="min-h-11 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center gap-2 text-sm"><BookOpen size={15} aria-hidden="true"/> 復盤</button>
+                            <button type="button" aria-label="再來一局" onClick={resetGame} className="min-h-11 px-4 py-2 bg-slate-800 text-white rounded-lg font-bold text-sm">再來一局</button>
                         </div>
                     </div>
                 </div>
@@ -423,11 +456,11 @@ const CheckersGame: React.FC<Props> = ({ onBack, difficulty='NORMAL' }) => {
 
             {/* Rules modal */}
             {showRules&&(
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[85vh] overflow-y-auto">
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="checkers-rules-title">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[85dvh] overflow-y-auto">
                         <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-base font-bold text-slate-800">西洋跳棋規則</h2>
-                            <button onClick={()=>setShowRules(false)} className="p-1 rounded-full bg-gray-100 text-slate-600"><X size={17}/></button>
+                            <h2 id="checkers-rules-title" className="text-base font-bold text-slate-800">西洋跳棋規則</h2>
+                            <button type="button" onClick={()=>setShowRules(false)} aria-label="關閉規則" className="min-h-11 min-w-11 flex items-center justify-center p-1 rounded-lg bg-gray-100 text-slate-600"><X size={18} aria-hidden="true"/></button>
                         </div>
                         <div className="p-4 text-sm text-slate-700 space-y-3 leading-relaxed">
                             <div><p className="font-bold text-slate-900 mb-1">🎯 目標</p><p>吃掉對方所有棋子即獲勝。</p></div>
