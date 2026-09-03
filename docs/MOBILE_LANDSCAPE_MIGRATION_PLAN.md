@@ -75,7 +75,7 @@
 
 ### 3.4 版型資料契約決策
 
-`BOARD_TABLE` 已正式定義為第六個 layout preset，並加入 `GameLayoutPreset` 與 `GAME_LAYOUT_PRESETS` 的 canonical contract。公開 21 點維持獨立牌桌型版面，不併入 `BOARD_SIDEBAR`。四子棋 reference 已通過 reviewer gate；五子棋已使用相同 `BoardSidebarLayout` 完成第二款遷移，其餘 BOARD 遊戲尚未開始 migration。
+`BOARD_TABLE` 已正式定義為第六個 layout preset，並加入 `GameLayoutPreset` 與 `GAME_LAYOUT_PRESETS` 的 canonical contract。公開 21 點維持獨立牌桌型版面，不併入 `BOARD_SIDEBAR`。四子棋 reference 已通過 reviewer gate；五子棋已使用相同 `BoardSidebarLayout` 完成第二款遷移，並完成交叉點棋盤幾何、星位、外框留白與省略重複 feedback 的 visual acceptance；其餘 BOARD 遊戲尚未開始 migration。
 
 ## 4. 目前進度
 
@@ -160,7 +160,7 @@
 
 ### 6.1 `GRID_FOCUS` 里程碑完成
 
-19 款 `GRID_FOCUS` 遊戲均已完成共用版面遷移與代表尺寸驗收。此里程碑目前只等待 reviewer gate；不要在本文件中提前決定下一版型的共用 API 或資料契約。`BOARD_SIDEBAR` 的四子棋 reference 已通過 reviewer gate，五子棋已完成第二款遷移。
+19 款 `GRID_FOCUS` 遊戲均已完成共用版面遷移與代表尺寸驗收。此里程碑目前只等待 reviewer gate；不要在本文件中提前決定下一版型的共用 API 或資料契約。`BOARD_SIDEBAR` 的四子棋 reference 已通過 reviewer gate，五子棋已完成第二款遷移並恢復 canonical intersection geometry。
 
 下一階段依序為 `BOARD_SIDEBAR`、`BOARD_TABLE`、`FACILITATOR` 與 `IMMERSIVE`，開始前先由人工／Sol 審查版型資料契約與參考實作。
 
