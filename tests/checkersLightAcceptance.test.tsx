@@ -40,7 +40,8 @@ describe('Checkers LIGHT acceptance', () => {
     expect(source).toContain('max-h-28 overflow-y-auto');
     expect(source).toContain('data-checkers-last-land="true"');
     expect(source).not.toContain('inset 0 0 0 3px');
-    expect(source).toContain('rgba(250,204,21,0.18)');
+    expect(source).toContain('rgba(250,204,21,0.30)');
+    expect(source).toContain("outline:'2px solid rgba(234,179,8,0.95)'");
     expect(source).toMatch(/useState<1\|2>\(2\)/);
     expect(source).not.toContain("setGameMode(p=>p==='PVE'?'PVP':'PVE')");
   });
