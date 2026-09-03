@@ -18,5 +18,7 @@ describe('DarkChess LIGHT acceptance', () => {
     expect(markup).toContain('aria-label="遊戲規則"');
     expect(markup).toContain('aria-label="重新開始"');
     expect((markup.match(/data-dark-chess-cell=/g) ?? [])).toHaveLength(32);
+    expect((markup.match(/data-dark-chess-toolbar=/g) ?? [])).toHaveLength(4);
+    expect(markup).toContain('data-dark-chess-piece-layer="true"');
   });
 });

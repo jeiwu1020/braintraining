@@ -470,30 +470,34 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       }
   }, [isRedTurn, playerColor, gameOver, gameMode]);
 
+  const toolbarButtonClass = 'min-h-11 min-w-11 flex items-center justify-center p-1.5 md:p-2 rounded-full';
+
   return (
     <div className="flex flex-col landscape:flex-row h-[100dvh] bg-amber-50 overflow-hidden text-amber-900">
         {/* Compact Header */}
         <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-[#f7e7ce] shadow-sm z-10 border-b landscape:border-b-0 landscape:border-r border-amber-200 portrait:h-14 landscape:w-16 landscape:h-full">
-            <button onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><ArrowLeft size={18} /></button>
+            <button onClick={onBack} aria-label="返回" data-dark-chess-toolbar="back" className={`${toolbarButtonClass} bg-white/50 text-amber-900 hover:bg-white/80`}><ArrowLeft size={18} /></button>
             <div className="flex portrait:flex-row landscape:flex-col items-center gap-2">
                 <button 
                     onClick={handleUndo} 
                     disabled={history.length === 0}
                     aria-label="悔棋"
-                    className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full border border-amber-300 hover:bg-white/80 disabled:opacity-50 flex items-center justify-center text-amber-900"
+                    data-dark-chess-toolbar="undo"
+                    className={`${toolbarButtonClass} bg-white/50 border border-amber-300 hover:bg-white/80 disabled:opacity-50 text-amber-900`}
                 >
                     <Undo2 size={16} />
                 </button>
                 <button
                     onClick={() => setShowRules(true)}
                     aria-label="遊戲規則"
-                    className="min-h-11 min-w-11 p-1.5 md:p-2 bg-amber-100 rounded-full border border-amber-300 hover:bg-amber-200 text-amber-900"
+                    data-dark-chess-toolbar="rules"
+                    className={`${toolbarButtonClass} bg-amber-100 border border-amber-300 hover:bg-amber-200 text-amber-900`}
                     title="象棋規則說明"
                 >
                     <BookOpen size={16} />
                 </button>
             </div>
-            <button onClick={initGame} aria-label="重新開始" className="min-h-11 min-w-11 p-1.5 md:p-2 bg-white/50 rounded-full text-amber-900 hover:bg-white/80"><RefreshCw size={18} /></button>
+            <button onClick={initGame} aria-label="重新開始" data-dark-chess-toolbar="reset" className={`${toolbarButtonClass} bg-white/50 text-amber-900 hover:bg-white/80`}><RefreshCw size={18} /></button>
         </div>
 
         {/* Main Content Area */}
@@ -549,25 +553,32 @@ const DarkChessGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                                         type="button"
                                         data-dark-chess-cell={`${COL_LABELS[idx % COLS]}${Math.floor(idx / COLS) + 1}`}
                                         aria-label={`${COL_LABELS[idx % COLS]}${Math.floor(idx / COLS) + 1}，${piece ? (piece.revealed ? `${piece.isRed ? '紅方' : '黑方'}${piece.text}` : '未翻開棋子') : '空位'}`}
+                                        aria-pressed={selectedIdx === idx}
                                         className={`
-                                            relative rounded-full border-2 sm:border-4 shadow-sm w-full h-full
+                                            relative flex items-center justify-center border-2 sm:border-4 shadow-sm w-full h-full
                                             transition-transform active:scale-95
                                             ${!piece ? 'border-transparent bg-black/5 hover:bg-black/10' : ''}
-                                            ${piece && !piece.revealed ? 'bg-[#8B4513] border-[#5C3317]' : ''}
-                                            ${piece && piece.revealed ? 'bg-[#f7e7ce]' : ''}
-                                            ${piece && piece.revealed && piece.isRed ? 'text-red-600 border-red-800' : ''}
-                                            ${piece && piece.revealed && !piece.isRed ? 'text-black border-black' : ''}
-                                            ${selectedIdx === idx ? 'ring-4 ring-yellow-400 scale-105 z-10' : ''}
                                         `}
                                     >
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            {piece && piece.revealed && (
-                                                <div className="rounded-full border border-dashed border-current w-[85%] h-[85%] flex items-center justify-center text-base sm:text-xl md:text-3xl font-bold">
-                                                    {piece.text}
+                                        <div data-dark-chess-piece-layer="true" className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            {piece && (
+                                                <div
+                                                    data-dark-chess-piece="true"
+                                                    className={`aspect-square w-[85%] h-auto min-h-0 self-center shrink-0 rounded-full border-2 sm:border-4 shadow-sm flex items-center justify-center
+                                                        ${piece.revealed ? 'bg-[#f7e7ce]' : 'bg-[#8B4513] border-[#5C3317]'}
+                                                        ${piece.revealed && piece.isRed ? 'text-red-600 border-red-800' : ''}
+                                                        ${piece.revealed && !piece.isRed ? 'text-black border-black' : ''}
+                                                        ${selectedIdx === idx ? 'ring-4 ring-yellow-400 scale-105' : ''}
+                                                    `}
+                                                >
+                                                    {piece.revealed ? (
+                                                        <div className="aspect-square w-[85%] rounded-full border border-dashed border-current flex items-center justify-center text-base sm:text-xl md:text-3xl font-bold">
+                                                            {piece.text}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="opacity-20 text-white text-[10px] sm:text-xs">?</span>
+                                                    )}
                                                 </div>
-                                            )}
-                                            {piece && !piece.revealed && (
-                                                <div className="opacity-20 text-white text-[10px] sm:text-xs">?</div>
                                             )}
                                         </div>
                                     </button>

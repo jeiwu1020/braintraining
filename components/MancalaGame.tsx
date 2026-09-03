@@ -189,8 +189,8 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 className={`
                 relative flex items-center justify-center rounded-full border-4 shadow-inner transition-colors duration-300
                 ${isStore 
-                    ? `w-16 h-32 min-[768px]:w-24 min-[768px]:h-48 min-[1024px]:w-28 min-[1024px]:h-56 ${colorClass}`
-                    : `w-12 h-12 min-[768px]:w-16 min-[768px]:h-16 min-[1024px]:w-20 min-[1024px]:h-20 ${colorClass}`
+                    ? `w-16 h-32 max-[767px]:landscape:w-[72px] max-[767px]:landscape:h-36 max-[767px]:portrait:w-12 max-[767px]:portrait:h-24 min-[768px]:w-24 min-[768px]:h-48 min-[1024px]:w-28 min-[1024px]:h-56 ${colorClass}`
+                    : `w-12 h-12 max-[767px]:landscape:w-14 max-[767px]:landscape:h-14 max-[767px]:portrait:w-9 max-[767px]:portrait:h-9 min-[768px]:w-16 min-[768px]:h-16 min-[1024px]:w-20 min-[1024px]:h-20 ${colorClass}`
                 }
                 ${!isStore && ((owner === 1 && turn === 1) || (owner === 2 && turn === 2)) && !isAnimating ? 'ring-4 ring-yellow-400 cursor-pointer hover:bg-amber-50' : ''}
             `}
@@ -227,38 +227,39 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         <div className="flex-1 flex items-center justify-center p-2 bg-cyan-50 overflow-hidden w-full">
             {/* Wide board container; responsive sizing keeps labels and pits in a reserved flow. */}
             <div 
-                className="bg-[#DEB887] p-2 min-[768px]:p-4 min-[1024px]:p-6 rounded-[2rem] min-[768px]:rounded-[3rem] shadow-2xl border-4 min-[768px]:border-8 border-[#8B4513] relative flex items-center gap-2 min-[768px]:gap-3 min-[1024px]:gap-4 max-w-full"
+                data-mancala-board="true"
+                className="bg-[#DEB887] p-2 max-[767px]:landscape:p-3 min-[768px]:p-4 min-[1024px]:p-6 rounded-[2rem] min-[768px]:rounded-[3rem] shadow-2xl border-4 min-[768px]:border-8 border-[#8B4513] relative flex items-center gap-2 max-[767px]:landscape:gap-3 min-[768px]:gap-3 min-[1024px]:gap-4 max-w-full"
             >
                 
                 {/* P2 Store (Left) - Blue */}
                 <Pit idx={13} isStore owner={2} />
 
                 {/* Rows Container */}
-                <div className="flex flex-col gap-1 min-[768px]:gap-2 justify-center">
+                <div className="flex flex-col gap-1 max-[767px]:landscape:gap-2 min-[768px]:gap-2 justify-center">
                     
                     {/* Top Row (P2) - Indices 12 down to 7 */}
                     <div className="flex flex-col items-center">
                         <div className="text-[#8B4513] font-bold text-[10px] min-[768px]:text-sm leading-tight text-center whitespace-nowrap">{topPlayerLabel}</div>
                         {/* Top Coordinates Labels */}
-                        <div className="flex gap-1.5 min-[768px]:gap-3 w-full justify-around mb-1" aria-label="上方藍方座標">
+                        <div className="flex gap-1.5 max-[767px]:landscape:gap-2 min-[768px]:gap-3 w-full justify-around mb-1" aria-label="上方藍方座標">
                             {LABELS.map(l => (
-                                <span key={`top-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
+                                <span key={`top-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 max-[767px]:landscape:w-14 max-[767px]:portrait:w-9 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
                             ))}
                         </div>
-                        <div className="flex gap-1.5 min-[768px]:gap-3">
+                        <div className="flex gap-1.5 max-[767px]:landscape:gap-2 min-[768px]:gap-3">
                             {[12, 11, 10, 9, 8, 7].map(i => <Pit key={i} idx={i} owner={2} />)}
                         </div>
                     </div>
 
                     {/* Bottom Row (P1) - Indices 0 to 5 */}
                     <div className="flex flex-col items-center">
-                        <div className="flex gap-1.5 min-[768px]:gap-3">
+                        <div className="flex gap-1.5 max-[767px]:landscape:gap-2 min-[768px]:gap-3">
                             {[0, 1, 2, 3, 4, 5].map(i => <Pit key={i} idx={i} owner={1} />)}
                         </div>
                         {/* Bottom Coordinates Labels */}
-                        <div className="flex gap-1.5 min-[768px]:gap-3 w-full justify-around mt-1" aria-label="下方紅方座標">
+                        <div className="flex gap-1.5 max-[767px]:landscape:gap-2 min-[768px]:gap-3 w-full justify-around mt-1" aria-label="下方紅方座標">
                             {LABELS.map(l => (
-                                <span key={`bot-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
+                                <span key={`bot-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 max-[767px]:landscape:w-14 max-[767px]:portrait:w-9 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
                             ))}
                         </div>
                         <div className="text-[#8B4513] font-bold text-[10px] min-[768px]:text-sm leading-tight text-center whitespace-nowrap">{bottomPlayerLabel}</div>

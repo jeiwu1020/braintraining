@@ -13,7 +13,7 @@
 | 尋寶迷宮指路 | BOARD_SIDEBAR | **LIGHT** | Landscape fits; portrait maze collapses/overlaps | Portrait geometry; icon-only labels | Portrait stack/re-size maze; add accessible names; preserve left controls | No (GROUP/FACILITATED) | Keep custom left-controls + maze; targeted responsive/accessibility patch | Low |
 | 圍棋 | BOARD_SIDEBAR | **LIGHT** | 9×9 board and panel fit, no document scroll | Many mode/action targets are 23–34px; specialized panel is dense | Increase core touch targets and clarify labels; retain `WeiqiLandscapeLayout` | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; do not force generic BoardSidebar | Medium |
 | 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
-| 象棋暗棋 | BOARD_SIDEBAR | **LIGHT** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px | Shared mode selector, ≥44px core actions, accessible labels | Yes | Keep custom board + toolbar; targeted control patch | Low |
+| 象棋暗棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px（已修正） | Shared mode selector, ≥44px core actions, accessible labels、圓形棋子 | Yes | Keep custom board + toolbar; targeted visual/control patch complete | Low |
 | 西洋跳棋 | BOARD_SIDEBAR | **LIGHT** | 8×8 fits in landscape | Portrait hides side-panel controls; landscape actions ~28px | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector | Yes | Keep board + move-log architecture; responsive/accessibility patch only | Medium–high gameplay-state risk |
 | 奇雞連連 | BOARD_SIDEBAR | **LIGHT** | Board fits; right inventory clips at 640 | Gameplay-critical inventory extends beyond viewport; icon-only mode/actions | Compact inventory/gap at narrow width without shrinking board excessively; shared selector; labels | Yes | Keep board-with-two-inventories composition; targeted narrow-width fix | Medium |
 | 公開 21 點 | BOARD_TABLE | **LIGHT** | Setup/play overflow vertically; table remains understandable | Primary setup/action controls below 640 viewport; action buttons ~36px | No (DEALER/PVP semantics differ) | Keep dedicated table; reduce landscape vertical footprint and enlarge actions | Medium |
@@ -64,11 +64,11 @@
 
 **Current architecture.** 自製寬幅橢圓桌：上下各 6 個 pit，左右兩個 store，座標 A–F，動畫播子與終局 overlay。這種左右對等寬桌比 generic board/sidebar 更符合玩法。
 
-**640×360 findings.** 完成修正後寬桌約 486×189px，12 個 pit、兩個 store、上下 A–F 座標與玩家標籤均在同頁，document 640×360 無 overflow；pit 約 48×48px、核心 toolbar 與模式選項達 44px。原先的標籤重疊與單一模式 toggle 已移除。
+**640×360 findings.** 本次視覺修正後寬桌約 576×217px（修正前約 486×189px），12 個 pit、兩個 store、上下 A–F 座標與玩家標籤均在同頁，document 640×360 無 overflow；landscape pit 約 56×56px、store 約 72×144px，核心 toolbar 與模式選項達 44px。原先的標籤重疊、單一模式 toggle 與過度保守的 landscape 尺寸已移除。
 
 **844×390 / 932×430.** 寬桌完整同頁，分別約 708×272px；標籤與座標保持獨立 band，無 document overflow。
 
-**390×844.** 寬桌約 374×189px，棋洞、stores、selector、返回與重設仍可到達，保留既有專用 portrait flow。
+**390×844.** 寬桌約 374×165px，棋洞與 stores 維持平衡的 compact 尺寸，selector、返回與重設仍可到達，保留既有專用 portrait flow。
 
 **Representative states tested.** 初始 4 seeds、PVE/PVP 模式切換、下方 P1 pit 選取、播子動畫、AI 回應、回合訊息、規則與重設入口。
 
@@ -78,21 +78,21 @@
 
 ### 象棋暗棋（DarkChessGame）
 
-**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 本次保留原有架構，只完成共用模式控制、工具列觸控尺寸與 accessible labels；未進行結構性 migration。
+**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 本次保留原有架構，完成共用模式控制、工具列觸控尺寸與 accessible labels；本輪另修正工具列圖示置中與棋子正圓幾何，未進行結構性 migration。
 
 **Current architecture.** 自製左側垂直工具列＋中央 4×8 暗棋盤；翻牌前顯示問號，翻牌後顯示棋子，頂部 log/status，規則為可局部捲動 modal。
 
-**640×360 findings.** 8×4 棋盤約 480×235px，32 個棋子按鈕約 50×47px，A–H／1–4 座標與問號清楚，document 640×360 無 overflow。**MAJOR**：模式、悔棋、規則、重設主要是 30–32px icon-only toolbar；使用者需猜圖示，且不符合核心 touch 目標。棋盤本體沒有結構性問題。
+**640×360 findings.** 8×4 棋盤約 480×235px，32 個棋子按鈕約 50×47px，A–H／1–4 座標與問號清楚，document 640×360 無 overflow。工具列四個 icon button 現已統一為 44×44px 並置中；隱藏與翻開棋子均以明確 1:1 圓形 token 呈現，棋盤本體沒有結構性問題。
 
-**844×390 / 932×430.** 棋盤可放大，無 document overflow；工具列仍偏小但不再擁擠。
+**844×390 / 932×430.** 棋盤可放大，無 document overflow；四個工具列按鈕維持一致 44×44px 盒與置中圖示，圓形棋子隨 cell 等比放大。
 
 **390×844.** 工具列移至頂部，4×8 棋盤完整可見，核心圖示仍缺文字與較大 target。
 
 **Representative states tested.** 初始全覆蓋盤、翻牌入口、模式／悔棋／規則／重設 toolbar；未宣稱已完成一局吃子流程。
 
-**Mode / accessibility / duplication.** 支援 PVE/PVP，應列為 `GameModeSelector` LIGHT。log/status 只在頂部持續呈現，沒有額外重複底部列；問號按鈕需把「翻牌」語意放入 accessible name。
+**Mode / accessibility / duplication.** 支援 PVE/PVP，已使用 `GameModeSelector` LIGHT。log/status 只在頂部持續呈現，沒有額外重複底部列；問號按鈕保留「翻牌」語意 accessible name，四個 toolbar icon 已統一置中且達 44px，棋子 token 改為正圓。
 
-**Decision: LIGHT.** 保留暗棋盤與左工具列。最低修改：以 shared selector 呈現單人／雙人、將核心 toolbar 擴至可觸控尺寸並補 labels，規則 modal 維持 max-height/local scroll。無需 FULL。
+**Decision: LIGHT COMPLETE.** 保留暗棋盤與左工具列；已完成 shared selector、核心 toolbar 觸控尺寸、置中幾何、accessible labels 與正圓棋子 token，規則 modal 維持 max-height/local scroll。無需 FULL。
 
 ### 西洋跳棋（CheckersGame）
 

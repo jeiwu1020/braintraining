@@ -163,6 +163,8 @@
 - 點格棋已使用核准的 `BoardSidebarLayout` 完成 edge-based 棋盤遷移：25 個 dots、40 條 selectable edges、16 個 boxes、方格 ownership、完成方格後續手與 PVE／PVP／悔棋均保留。
 - 播棋已保留專用寬幅棋桌並完成 LIGHT acceptance：共用 `GameModeSelector`、上下玩家標籤獨立 band、44px 核心控制與棋洞／計分槽 accessible names 均已補齊；6+6 pits、兩個 stores、A–F 座標與播子動畫未改變。
 - 播棋已以瀏覽器實測 640×360、844×390、932×430、390×844 與桌面代表尺寸：寬桌、stores、12 個 pits、座標與玩家標籤完整可見，PVE／PVP、播子動畫、AI 回應與重設流程正常，無 document overflow。
+- 播棋後續視覺驗收修正已完成：640×360 寬桌由約 486×189px 放大至約 576×217px，landscape pit／store 約 56×56px／72×144px，標籤、座標、count badge 與播子動畫維持穩定，未改 gameplay。
+- 暗棋後續視覺驗收修正已完成：Back／Undo／Rules／Reset 工具列按鈕統一 44×44px 置中，隱藏與翻開棋子改為明確 1:1 圓形 token（640×360 約 35.7×35.7px），未改 gameplay。
 - 五子棋已以 `BoardSidebarLayout` 完成 10 × 10 正方形棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，座標、逐格操作、PVE／PVP、AI 延遲、悔棋與五連線勝利均保留。
 - 完整 `tsc --noEmit` 目前尚未形成有效品質門檻：既有根目錄腳本 `fixMissingData.ts` 在第 154 行有無效字元、第 169 行有未結束的 template literal，會先中止型別檢查。
 

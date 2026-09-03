@@ -14,6 +14,7 @@ describe('Mancala LIGHT acceptance', () => {
     expect(markup).toContain('data-game-mode-option="PVP"');
     expect(markup).toMatch(/data-game-mode-option="PVE"[^>]*aria-pressed="true"/);
     expect((markup.match(/data-mancala-pit=/g) ?? [])).toHaveLength(12);
+    expect(markup).toContain('data-mancala-board="true"');
     expect(markup).toContain('data-mancala-store="P1"');
     expect(markup).toContain('data-mancala-store="P2"');
     expect((markup.match(/>A<|>B<|>C<|>D<|>E<|>F</g) ?? [])).toHaveLength(12);
