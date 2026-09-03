@@ -288,7 +288,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const PieceRender = ({ p, isBoard = false }: { p: Piece, isBoard?: boolean }) => {
       const sizeClasses = isBoard 
            ? [ 'w-[40%] h-[40%]', 'w-[65%] h-[65%]', 'w-[90%] h-[90%]' ]
-           : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10 max-[480px]:landscape:w-6 max-[480px]:landscape:h-6', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14 max-[480px]:landscape:w-8 max-[480px]:landscape:h-8', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20 max-[480px]:landscape:w-10 max-[480px]:landscape:h-10' ];
+           : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20' ];
       const colorClass = p.player === 1 ? 'bg-blue-500 border-blue-700' : 'bg-orange-500 border-orange-700';
       return (
            <div className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`} aria-hidden="true">
@@ -343,8 +343,8 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 <GameModeSelector value={gameMode} onChange={setGameMode} className="!w-[190px] shrink-0" />
             </div>
 
-            <div data-gobblet-layout="inventory-board-inventory" className="flex-1 flex flex-col portrait:sm:flex-row landscape:flex-row items-center justify-center p-2 max-[480px]:landscape:p-1 gap-2 sm:gap-6 max-[480px]:landscape:gap-1 overflow-hidden w-full h-full">
-            <div data-gobblet-inventory="2" aria-label="橘方棋子庫" className={`flex-none order-1 sm:order-3 p-2 max-[480px]:landscape:p-1 rounded-xl bg-orange-100/50 grid grid-cols-6 sm:grid-cols-2 max-[480px]:landscape:grid-cols-2 gap-2 max-[480px]:landscape:gap-1 justify-center items-center w-full sm:w-auto max-[480px]:landscape:w-auto h-auto sm:max-h-full shrink-0 ${turn === 2 ? 'ring-2 ring-orange-400' : 'opacity-70'}`}>
+            <div data-gobblet-layout="inventory-board-inventory" className="flex-1 flex flex-col portrait:sm:flex-row landscape:flex-row items-center justify-center p-2 gap-2 sm:gap-6 overflow-hidden w-full h-full">
+            <div data-gobblet-inventory="2" aria-label="橘方棋子庫" className={`flex-none order-1 sm:order-3 p-2 rounded-xl bg-orange-100/50 grid grid-cols-6 sm:grid-cols-2 gap-2 justify-center items-center w-full sm:w-auto h-auto sm:max-h-full shrink-0 ${turn === 2 ? 'ring-2 ring-orange-400' : 'opacity-70'}`}>
                 {p2Inv.map((p, i) => (
                     <button key={p.id} type="button" data-gobblet-inventory-player="2" data-gobblet-piece-size={gobbletSizeCodes[p.size]} onClick={() => handleInvClick(2, i)} disabled={gameMode === 'PVE'} aria-label={`橘方${gobbletSizeLabels[p.size]}棋子 ${p.id.endsWith('2') ? '2' : '1'}`} aria-pressed={selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2} className={`min-h-11 min-w-11 transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
                         <PieceRender p={p} isBoard={false} />
@@ -381,7 +381,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 </div>
             </div>
 
-            <div data-gobblet-inventory="1" aria-label="藍方棋子庫" className={`flex-none order-3 sm:order-1 p-2 max-[480px]:landscape:p-1 rounded-xl bg-blue-100/50 grid grid-cols-6 sm:grid-cols-2 max-[480px]:landscape:grid-cols-2 gap-2 max-[480px]:landscape:gap-1 justify-center items-center w-full sm:w-auto max-[480px]:landscape:w-auto h-auto sm:max-h-full shrink-0 ${turn === 1 ? 'ring-2 ring-blue-400' : 'opacity-70'}`}>
+            <div data-gobblet-inventory="1" aria-label="藍方棋子庫" className={`flex-none order-3 sm:order-1 p-2 rounded-xl bg-blue-100/50 grid grid-cols-6 sm:grid-cols-2 gap-2 justify-center items-center w-full sm:w-auto h-auto sm:max-h-full shrink-0 ${turn === 1 ? 'ring-2 ring-blue-400' : 'opacity-70'}`}>
                 {p1Inv.map((p, i) => (
                     <button key={p.id} type="button" data-gobblet-inventory-player="1" data-gobblet-piece-size={gobbletSizeCodes[p.size]} onClick={() => handleInvClick(1, i)} aria-label={`藍方${gobbletSizeLabels[p.size]}棋子 ${p.id.endsWith('2') ? '2' : '1'}`} aria-pressed={selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===1} className={`min-h-11 min-w-11 transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===1 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
                         <PieceRender p={p} isBoard={false} />

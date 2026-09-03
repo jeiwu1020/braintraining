@@ -29,6 +29,7 @@ describe('Gobblet LIGHT acceptance', () => {
     expect(markup).toContain('.gobblet-piece-s { width: 1.5rem; height: 1.5rem; }');
     expect(source).not.toContain('max-width: 700px');
     expect(source).not.toContain('max-[700px]:landscape:');
+    expect(source).not.toContain('max-[480px]:landscape:');
     expect(source).toContain('(orientation: landscape) and (max-height: 480px)');
 
     expect(markup).toContain('aria-label="返回"');
