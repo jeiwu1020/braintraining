@@ -34,17 +34,20 @@ const ADVANCED_ITEMS = [
   { emoji: '🩺', name: '聽診器' }, { emoji: '💉', name: '注射器' }, { emoji: '💊', name: '藥丸' }, { emoji: '🌡️', name: '溫度計' }, { emoji: '♿', name: '輪椅' }
 ];
 
+export const calculateZoomPotentialScore = (hintCount: number) =>
+  Math.max(25, 100 - hintCount * 15);
+
 const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const isAdvanced = difficulty === 'ADVANCED';
   const items = isAdvanced ? ADVANCED_ITEMS : NORMAL_ITEMS;
   
   const [currentItem, setCurrentItem] = useState(items[0]);
-  const [zoomLevel, setZoomLevel] = useState(5);
+  const [zoomLevel, setZoomLevel] = useState(isAdvanced ? 8 : 5);
   const [isRevealed, setIsRevealed] = useState(false);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
-  const [roundStartTime, setRoundStartTime] = useState(Date.now());
+  const [currentRoundScore, setCurrentRoundScore] = useState(100);
   const [usedIndices, setUsedIndices] = useState<number[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const TOTAL_ROUNDS = 10;
@@ -63,7 +66,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setCorrectCount(0);
     setUsedIndices([firstIndex]);
     setIsComplete(false);
-    setRoundStartTime(Date.now());
+    setCurrentRoundScore(100);
   };
 
   const nextRound = () => {
@@ -83,13 +86,11 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setIsRevealed(false);
     setRound(prev => prev + 1);
     setUsedIndices(prev => [...prev, nextIndex]);
-    setRoundStartTime(Date.now());
+    setCurrentRoundScore(100);
   };
 
   const handleCorrect = () => {
-    const timeTaken = (Date.now() - roundStartTime) / 1000;
-    const roundScore = Math.max(10, 100 - Math.floor(timeTaken) * 2);
-    setScore(prev => prev + roundScore);
+    setScore(prev => prev + currentRoundScore);
     setCorrectCount(prev => prev + 1);
     soundService.playWin();
     nextRound();
@@ -103,6 +104,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const handleZoomOut = () => {
     if (zoomLevel > 1) {
       setZoomLevel(prev => Math.max(1, prev - (isAdvanced ? 1.5 : 1)));
+      setCurrentRoundScore(prev => Math.max(25, prev - 15));
       soundService.playGameSound('LOW');
     }
   };
@@ -116,14 +118,14 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   return (
     <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
       <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={onBack} aria-label="返回遊戲選單" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">
           <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>局部猜全貌</h2>
           <p className="text-xs text-gray-500">{isAdvanced ? '超高倍率放大' : '局部放大猜謎'}</p>
         </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={initGame} aria-label="重新開始" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <RefreshCw size={24} />
         </button>
       </div>
@@ -131,14 +133,18 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
         
         {/* Stats Bar */}
-        <div className="w-full max-w-2xl flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
+        <div className="w-full max-w-2xl flex justify-between items-center gap-2 bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Timer className="text-blue-500" />
             第 {round} / {TOTAL_ROUNDS} 關
           </div>
+          <div data-zoom-potential-score="true" className="flex shrink-0 flex-col items-center text-center text-sm font-bold text-blue-700">
+            <span>本題可得：{currentRoundScore} 分</span>
+            <span className="text-xs font-medium text-gray-500">每縮小一次，本題可得分數減少 15 分</span>
+          </div>
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Trophy className="text-yellow-500" />
-            分數: {score}
+            總分：{score}
           </div>
         </div>
 
@@ -176,7 +182,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     <button 
                       onClick={handleZoomOut}
                       disabled={zoomLevel <= 1}
-                      className={`flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all ${zoomLevel <= 1 ? 'bg-gray-200 text-gray-400' : 'bg-blue-500 text-white hover:bg-blue-600 shadow-md active:scale-95'}`}
+                      className={`min-h-11 flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all ${zoomLevel <= 1 ? 'bg-gray-200 text-gray-400' : 'bg-blue-500 text-white hover:bg-blue-600 shadow-md active:scale-95'}`}
                     >
                       <ZoomOut size={24} className="landscape:w-5 landscape:h-5" />
                       縮小一點
@@ -184,7 +190,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     
                     <button 
                       onClick={handleReveal}
-                      className="flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95"
+                      className="min-h-11 flex items-center gap-2 px-6 py-3 landscape:px-4 landscape:py-2 rounded-full font-bold text-lg landscape:text-base lg:text-lg transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95"
                     >
                       <Eye size={24} className="landscape:w-5 landscape:h-5" />
                       看答案
@@ -194,7 +200,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                   <>
                     <button 
                       onClick={handleCorrect}
-                      className="flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95 animate-fade-in"
+                      className="min-h-11 flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-green-500 text-white hover:bg-green-600 shadow-md active:scale-95 animate-fade-in"
                     >
                       <CheckCircle2 size={28} className="landscape:w-6 landscape:h-6" />
                       答對
@@ -202,7 +208,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                     
                     <button 
                       onClick={handleWrong}
-                      className="flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-red-500 text-white hover:bg-red-600 shadow-md active:scale-95 animate-fade-in"
+                      className="min-h-11 flex items-center gap-2 px-8 py-4 landscape:px-6 landscape:py-3 rounded-full font-bold text-xl landscape:text-lg lg:text-xl transition-all bg-red-500 text-white hover:bg-red-600 shadow-md active:scale-95 animate-fade-in"
                     >
                       <XCircle size={28} className="landscape:w-6 landscape:h-6" />
                       答錯

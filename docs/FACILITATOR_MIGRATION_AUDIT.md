@@ -3,10 +3,10 @@
 ## Audit status
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
-- Audit type: audit plus first LIGHT implementation status tracking.
-- Current overall standardization: `42/59`
-- `FACILITATOR`: `0/11` — audit complete; Conditional Snap LIGHT implementation complete, pending reviewer real-device acceptance.
-- Runtime/browser tooling: unavailable in this environment. All viewport findings below are labeled `STATIC SOURCE INFERENCE`; no invented DOM pixel measurements are presented.
+- Audit type: audit plus LIGHT implementation status tracking.
+- Current overall standardization: `43/59`
+- `FACILITATOR`: `1/11` — Conditional Snap LIGHT complete and reviewer real-device accepted; Zoom LIGHT implementation complete, pending reviewer acceptance.
+- Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 
 ## Methodology
@@ -23,7 +23,7 @@ The classification means:
 
 | Game | Component | Classification | Primary visible issue | Why change / why keep | Evidence level | Primary stimulus dominance | Touch targets | Overflow risk | Gameplay-state risk | Recommended model | Reviewer should check |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 局部猜全貌 | `components/ZoomGame.tsx` | LIGHT | Landscape stimulus is fixed at `160×160` by `landscape:w-40`; header icon buttons are about 40px and unnamed. | Keep the single-stage image/reveal flow; enlarge the short-height stimulus and label the facilitator controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna Medium | Image size, reveal/answer controls, header actions |
+| 局部猜全貌 | `components/ZoomGame.tsx` | LIGHT | Reviewer real-device check found the current landscape stimulus size acceptable; remaining issues are hint-based scoring clarity and small unnamed header controls. | Keep the single-stage image/reveal flow and current landscape footprint; implement the approved hint-count scoring rule and label the facilitator controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | MEDIUM | MEDIUM | Luna Medium | Stimulus unchanged, potential score, reveal/answer controls, header actions |
 | 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | Grid is capped at `60vh` (`216px` at 360px height); advanced five-column cards become very small. | Keep the memory grid and flip state; use available landscape space more effectively and label/reset controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna Medium | NORMAL/ADVANCED grid readability, card selection, completion |
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
 | 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | At `sm` width, advanced mode changes to six columns while avatars remain `80px`; the candidate grid can overflow its roughly half-width region. Question chips are also compact. | The existing candidate-grid plus question/history split is the right facilitator composition; a short-height grid/size correction is enough, not a new shell. | STATIC SOURCE INFERENCE | BORDERLINE | MAJOR ISSUE | HIGH | MEDIUM | Luna High | All candidate cards, question controls, elimination, history scroll |
@@ -63,9 +63,9 @@ CURRENT STRUCTURE
 
 VIEWPORT FINDINGS
 
-640×360: `landscape:w-40` and `text-[100px]` make the primary stage about `160px` square by source contract. The timer/score bar, prompt, controls, and image are all in one vertical flex region; local scrolling can appear when the answer/result state adds height.
+640×360: reviewer real-device inspection confirms the existing `landscape:w-40` / `landscape:h-40` primary stage is acceptable in the current composition. The remaining LIGHT scope is the compact score display, hint-count scoring, and header control semantics; the stage footprint must not be enlarged.
 
-844×390: the same generic `landscape:` branch remains active, so the stage does not grow with the extra width. The image is likely readable but does not use the available group-facing area efficiently.
+844×390: preserve the existing landscape geometry and spacing; use the available row without introducing a larger image or a new layout.
 
 932×430: `lg:` is not active at this width; the same `160px` landscape stage persists despite additional room.
 
@@ -75,7 +75,7 @@ VIEWPORT FINDINGS
 
 PRIMARY STIMULUS DOMINANCE
 
-BORDERLINE — the image is central, but the fixed 160px landscape stage is small for a facilitator-led group.
+YES — reviewer real-device evidence confirms the current image/stimulus size and composition are acceptable.
 
 TOUCH TARGETS
 
@@ -83,19 +83,19 @@ MINOR ISSUE — zoom/reveal and answer controls have useful padding, but Back/Re
 
 WHY CHANGE / WHY KEEP
 
-Keep the existing zoom/reveal state machine and single-stage composition. Change only the landscape presentation: use a short-height-aware stage size, retain the prompt and result controls, and add `aria-label`s to Back/Reset and the primary actions. This addresses a concrete group-readability and accessibility gap without requiring a new layout.
+Keep the existing zoom/reveal state machine, single-stage composition, and current phone-landscape image footprint. Implement the reviewer-approved hint-count scoring rule, expose the current potential score, and add `aria-label`s plus practical targets to Back/Reset. Do not enlarge the stimulus based on the earlier static audit inference.
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `h-[100dvh]`, `overflow-y-auto`, `landscape:w-40`, `landscape:h-40`, `landscape:text-[100px]`, and `p-2` header buttons. Browser measurement was not available.
+REAL-DEVICE CONFIRMED — reviewer verified that the current phone-landscape stimulus size is acceptable. Earlier static evidence identified the `p-2` unnamed header controls and suggested enlarging the `landscape:w-40` stimulus; the latter recommendation is superseded by the reviewer finding.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-On a phone held sideways, the facilitator sees a relatively small cropped stimulus with unused horizontal space; Back/Reset appear as unlabeled small icons, and the answer card may require a short local scroll.
+On a phone held sideways, the stimulus is acceptable, but the facilitator needs a visible per-round value and clear header controls; scoring must not depend on elapsed time or change when revealing the answer.
 
 GAMEPLAY / STATE LOCK
 
-Preserve random item selection, zoom level, the 60-second timer, round progression, score calculation, reveal state, correct/wrong response, sounds, and completion behavior.
+Preserve random item selection, zoom level, round progression, the approved hint-count potential score (100 minus 15 per successful hint, floor 25), reveal state, correct/wrong response, sounds, and completion behavior. The former elapsed-time score dependency is removed.
 
 GAMEPLAY RISK
 
@@ -111,11 +111,11 @@ Luna Medium — one-component responsive/accessibility correction with timer/rev
 
 REVIEWER SHOULD CHECK
 
-1. At 640×360, the image remains clearly group-readable and the prompt is not pushed below the fold.
-2. Zoom out, reveal, correct, wrong, Back, and Reset are directly reachable and named.
-3. The completion card does not create document-level overflow.
+1. At 640×360, the existing image/stimulus footprint remains essentially unchanged and group-readable.
+2. Each successful Zoom out reduces the visible potential score by 15, with a floor of 25; Reveal does not reduce it.
+3. Zoom out, reveal, correct, wrong, Back, and Reset are directly reachable and named.
 
-Final audit line: 局部猜全貌 — Recommendation: LIGHT. Why: landscape stimulus allocation and header semantics need targeted correction, while the stage architecture remains appropriate. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: sideways image dominance and reveal/answer reachability.
+Final audit line: 局部猜全貌 — Recommendation: LIGHT. Why: the reviewer accepts the current landscape stimulus footprint; targeted scoring visibility, hint-count scoring, and header accessibility remain. Evidence: REAL-DEVICE CONFIRMED. What reviewer should visually check: unchanged stimulus, potential-score feedback, and reveal/answer reachability.
 
 ## 記憶翻牌（口語版）
 
@@ -970,8 +970,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap LIGHT complete; reviewer acceptance pending.
-- Production files changed in this batch: `components/ConditionalSnapGame.tsx`.
+- Production implementation: Conditional Snap LIGHT complete; Zoom LIGHT implementation complete, reviewer acceptance pending.
+- Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization remains `42/59`; FACILITATOR remains `0/11` until Conditional Snap receives reviewer real-device acceptance.
+- Overall standardization is `43/59`; FACILITATOR is `1/11` after Conditional Snap reviewer real-device acceptance. Zoom remains pending reviewer acceptance.

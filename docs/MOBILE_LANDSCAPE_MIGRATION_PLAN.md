@@ -11,7 +11,7 @@
 
 ### Acceptance 路徑政策
 
-本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 42/59；Gobblet、Checkers 與 Blackjack 均已由 reviewer 實機接受。
+本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 43/59；Conditional Snap、Gobblet、Checkers 與 Blackjack 均已由 reviewer 實機接受。
 
 隨著小遊戲數量增加，逐款獨立調整已造成頁首、操作區、回饋方式、觸控尺寸與橫向高度利用不一致。本計畫的目標是建立可重複使用的版面規格，逐批遷移 59 款現有遊戲，並讓未來新增遊戲能直接套用同一套分類、元資料、版型與驗收方式。
 
@@ -88,7 +88,7 @@
 | 口徑 | 已完成 | 總數 | 完成率 | 說明 |
 | --- | ---: | ---: | ---: | --- |
 | 目前完成的前兩波 | 30 | 30 | 100% | `SPLIT_CHOICE` 與 `GRID_FOCUS` |
-| 全部遊戲標準化 | 42 | 59 | 71.2% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet／Checkers／Blackjack LIGHT acceptance、帶領及沉浸式遊戲 |
+| 全部遊戲標準化 | 43 | 59 | 72.9% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet／Checkers／Blackjack／Conditional Snap LIGHT acceptance、帶領及沉浸式遊戲 |
 | `GRID_FOCUS` 當前批次 | 19 | 19 | 100% | 完成 |
 
 ### 4.2 各版型進度
@@ -99,7 +99,7 @@
 | `GRID_FOCUS` | 19 | 19 | 完成 |
 | `BOARD_SIDEBAR` | 11 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋、Gobblet 與 Checkers 以 LIGHT 路徑完成標準化 |
 | `BOARD_TABLE` | 1 | 1 | Blackjack LIGHT complete，reviewer real-device accepted |
-| `FACILITATOR` | 0 | 11 | 尚未進入統一遷移 |
+| `FACILITATOR` | 1 | 11 | Conditional Snap LIGHT 完成並通過 reviewer 實機驗收 |
 | `IMMERSIVE` | 0 | 6 | 尚未進入統一遷移 |
 | 合計 | 41 | 59 | 進行中 |
 
@@ -215,7 +215,7 @@
 
 這一階段的核心不是單純左右切版，而是將「參與者看到的內容」與「帶領者控制」分離，避免誤觸、答案提前曝光或操作資訊佔滿畫面。
 
-FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap 已完成 `LIGHT implementation`，但尚待 reviewer 實機驗收；因此目前仍為 `FACILITATOR 0/11`，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。
+FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 1/11`；ZoomGame 已完成下一款 `LIGHT implementation`，尚待 reviewer 實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。
 
 ### 6.4 第四優先：沉浸式 6 款
 
