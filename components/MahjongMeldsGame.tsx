@@ -1,15 +1,93 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Difficulty } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, HelpCircle, Sparkles, CheckCircle2, XCircle, Award, Users, Clock, Zap } from 'lucide-react';
+import { RotateCcw, HelpCircle, Sparkles, CheckCircle2, XCircle, Award, Users } from 'lucide-react';
 import { RulesModal } from './RulesModal';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface MahjongMeldsGameProps {
   onBack: () => void;
   difficulty?: Difficulty;
   isAdvanced?: boolean;
 }
+
+interface MahjongRoundLayoutProps {
+  difficulty: Difficulty;
+  currentIndex: number;
+  totalQuestions: number;
+  score: number;
+  elapsedTime: number;
+  playfield: ReactNode;
+  support: ReactNode;
+  feedback?: ReactNode;
+  teamMode?: 'SOLO' | 'TEAM';
+  teamAScore?: number;
+  teamBScore?: number;
+  currentTeam?: 'A' | 'B';
+  onBack: () => void;
+  onToggleTeam: () => void;
+  onShowRules: () => void;
+  onRestart: () => void;
+}
+
+export const MahjongRoundLayout: React.FC<MahjongRoundLayoutProps> = ({
+  difficulty,
+  currentIndex,
+  totalQuestions,
+  score,
+  elapsedTime,
+  playfield,
+  support,
+  feedback,
+  teamMode = 'SOLO',
+  teamAScore = 0,
+  teamBScore = 0,
+  currentTeam = 'A',
+  onBack,
+  onToggleTeam,
+  onShowRules,
+  onRestart,
+}) => (
+  <GameShell
+    title="麻將湊牌大師"
+    subtitle="找出能完成牌組的正確牌"
+    onBack={onBack}
+    className="bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950"
+    status={(
+      <div className="flex items-center gap-1.5">
+        <span className="rounded-full bg-amber-500 px-2 py-1 text-xs font-bold text-gray-950">{difficulty === 'ADVANCED' ? '進階聽牌' : '經典麻將'}</span>
+        <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-900 sm:px-3 sm:text-sm">第 {currentIndex + 1}/{totalQuestions} 題</span>
+        {teamMode === 'TEAM' ? (
+          <span className="rounded-full bg-emerald-900 px-2 py-1 text-xs font-bold text-white">{currentTeam} 組 · A {teamAScore} / B {teamBScore}</span>
+        ) : (
+          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-900 sm:px-3 sm:text-sm">{score} 分</span>
+        )}
+      </div>
+    )}
+    actions={(
+      <>
+        <span className="hidden rounded-xl bg-emerald-900 px-2 py-1 text-xs font-bold text-amber-200 sm:inline">{elapsedTime.toFixed(1)}s</span>
+        <button type="button" onClick={onToggleTeam} aria-label="切換單人或分組模式" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-900 text-emerald-200"><Users aria-hidden="true" className="h-5 w-5" /></button>
+        <button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-900 text-emerald-200"><HelpCircle aria-hidden="true" className="h-5 w-5" /></button>
+        <button type="button" onClick={onRestart} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-emerald-900 text-emerald-200"><RotateCcw aria-hidden="true" className="h-5 w-5" /></button>
+      </>
+    )}
+  >
+    <GridFocusLayout
+      playfieldLabel="麻將牌桌面"
+      supportLabel="麻將題目資訊"
+      className="bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950"
+      playfieldClassName="overflow-hidden rounded-xl border border-emerald-700/60 bg-emerald-950/70 p-2 text-white"
+      supportClassName="overflow-hidden rounded-xl border border-emerald-700/60 bg-emerald-950/70 p-2 text-white"
+      feedbackClassName="rounded-xl border-emerald-700/60 bg-emerald-950/95 px-2 text-white"
+      playfield={playfield}
+      support={support}
+      feedback={feedback}
+    />
+  </GameShell>
+);
 
 export type MahjongSuit = 'wan' | 'tong' | 'tiao' | 'zi';
 
@@ -108,6 +186,8 @@ export const MahjongTile: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
+      aria-label={disabled && !onClick ? `麻將牌${tile.name}` : `選擇${tile.name}`}
+      aria-pressed={onClick ? selected : undefined}
       className={`relative ${sizeClasses[size]} rounded-md border-x border-t bg-gradient-to-b from-[#fffff9] via-[#fcfbf4] to-[#f4f1e4] border-b-[4px] lg:border-b-[6px] shadow-md flex flex-col items-center justify-center p-1 lg:p-2 transition-all select-none overflow-hidden shrink-0
         ${status === 'correct' ? 'border-emerald-500 border-b-emerald-700 ring-3 lg:ring-4 ring-emerald-400 bg-emerald-50/90 shadow-emerald-500/40' :
           status === 'wrong' ? 'border-rose-500 border-b-rose-700 ring-3 lg:ring-4 ring-rose-500 bg-rose-50/90 shadow-rose-500/40' :
@@ -332,7 +412,7 @@ const generateMahjongPool = (isAdv: boolean): MahjongQuestion[] => {
     .sort(() => Math.random() - 0.5);
 };
 
-const calculateTimeScore = (seconds: number): { score: number; label: string; icon: string } => {
+export const calculateTimeScore = (seconds: number): { score: number; label: string; icon: string } => {
   if (seconds <= 2.5) return { score: 100, label: '雀聖神速', icon: '⚡⚡⚡' };
   if (seconds <= 5.0) return { score: 85, label: '眼明手快', icon: '⚡⚡' };
   if (seconds <= 8.5) return { score: 70, label: '沉穩聽牌', icon: '⚡' };
@@ -469,281 +549,240 @@ const MahjongMeldsGame: React.FC<MahjongMeldsGameProps> = ({ onBack, difficulty 
   ];
 
   return (
-    <div className="h-screen max-h-screen w-full bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-white flex flex-col p-1.5 sm:p-3 select-none overflow-hidden justify-between">
+    <>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="麻將湊牌大師 規則說明" rules={rulesList} />
-
-      {/* Top Compact Navigation Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-emerald-800 hover:bg-emerald-700 active:scale-95 text-emerald-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
-        >
-          <ArrowLeft size={16} />
-          <span>返回</span>
-        </button>
-
-        {/* Title */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-amber-500 text-gray-950 rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
-            {isAdv ? '進階聽牌' : '經典麻將'}
-          </span>
-          <h1 className="text-xs sm:text-base lg:text-xl font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
-            麻將湊牌大師
-          </h1>
-          {currentQ && (
-            <span className="text-[11px] sm:text-xs lg:text-sm text-emerald-300 font-bold hidden sm:inline">
-              ({currentIndex + 1}/{questions.length})
-            </span>
-          )}
-        </div>
-
-        {/* Live Timer & Score */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-emerald-900/90 border border-emerald-600/70 rounded-xl text-amber-300 text-xs lg:text-sm font-bold shadow-inner">
-              <Clock size={14} className="text-amber-400 animate-spin" />
-              <span>{elapsedTime.toFixed(1)}s</span>
-            </div>
-          )}
-
-          {teamMode === 'TEAM' ? (
-            <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
-                A:{teamAScore}
-              </span>
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-blue-400 text-gray-950' : 'bg-emerald-900 text-emerald-300'}`}>
-                B:{teamBScore}
-              </span>
-            </div>
-          ) : (
-            <div className="px-2 py-0.5 lg:px-3 lg:py-1 bg-emerald-900/90 border border-emerald-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm lg:text-base">
-              {score}分
-            </div>
-          )}
-
-          <button
-            onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
-              teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-emerald-800 text-emerald-200'
-            }`}
-            title="模式切換"
-          >
-            <Users size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
-            title="規則說明"
-          >
-            <HelpCircle size={16} />
-          </button>
-
-          <button
-            onClick={restartGame}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded-xl transition shadow"
-            title="重新開始"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-      </div>
 
       {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-emerald-950/80 border border-emerald-700/50 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
-          
-          {/* Question Banner */}
-          <div className="flex items-center justify-between gap-2 border-b border-emerald-800/80 pb-1 lg:pb-2.5 shrink-0">
-            <div className="flex items-center gap-1.5 lg:gap-3">
-              <span className="bg-emerald-800 text-amber-300 border border-emerald-600/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-nowrap">
-                {currentQ.meldTypeLabel}
-              </span>
-              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
-                {currentQ.prompt}
-              </h2>
-            </div>
-          </div>
+        <MahjongRoundLayout
+          difficulty={isAdv ? 'ADVANCED' : 'NORMAL'}
+          currentIndex={currentIndex}
+          totalQuestions={questions.length}
+          score={score}
+          elapsedTime={elapsedTime}
+          teamMode={teamMode}
+          teamAScore={teamAScore}
+          teamBScore={teamBScore}
+          currentTeam={currentTeam}
+          onBack={onBack}
+          onToggleTeam={() => setTeamMode(mode => mode === 'SOLO' ? 'TEAM' : 'SOLO')}
+          onShowRules={() => setShowRules(true)}
+          onRestart={restartGame}
+          playfield={(
+            <div className="flex h-full min-h-0 flex-col justify-between gap-2 overflow-hidden">
+              {/* Hand Tiles Display */}
+              <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-emerald-900/40 rounded-xl lg:rounded-2xl border border-emerald-800/70 shadow-inner shrink-0">
+                <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-emerald-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
+                  <span>🀄 當前牌面</span>
+                </span>
 
-          {/* Hand Tiles Display */}
-          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-emerald-900/40 rounded-xl lg:rounded-2xl border border-emerald-800/70 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-emerald-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
-              <span>🀄 當前牌面</span>
-            </span>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-5 xl:gap-6">
+                  {currentQ.hand.map((tile, idx) => (
+                    <MahjongTile key={tile.id || idx} tile={tile} size="sm" disabled />
+                  ))}
 
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-5 xl:gap-6">
-              {currentQ.hand.map((tile, idx) => (
-                <MahjongTile key={tile.id || idx} tile={tile} size="sm" disabled />
-              ))}
-
-              {/* Missing Slot: Displays Question Placeholder or Placed Answer Tile with Stamp */}
-              {!isAnswered || !selectedOption ? (
-                <div className="w-11 h-16 sm:w-13 sm:h-19 lg:w-20 lg:h-28 xl:w-24 xl:h-34 shrink-0 rounded-md border-x border-t border-dashed border-amber-400 bg-amber-500/15 border-b-[4px] lg:border-b-[6px] border-b-amber-600 flex flex-col items-center justify-center text-amber-300 font-bold p-1 lg:p-2 shadow-inner animate-pulse select-none">
-                  <span className="text-sm sm:text-base lg:text-2xl xl:text-3xl leading-none">❓</span>
-                  <span className="text-[9px] sm:text-[10px] lg:text-xs xl:text-sm text-center font-black text-amber-200 leading-none mt-1 lg:mt-2">缺此張</span>
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ scale: 0.35, y: 25, opacity: 0 }}
-                  animate={{ scale: 1, y: 0, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                  className="relative shrink-0 flex flex-col items-center"
-                >
-                  <MahjongTile
-                    tile={selectedOption}
-                    size="sm"
-                    disabled
-                    status={isCorrect ? 'correct' : 'wrong'}
-                  />
-                  <span className={`text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-black px-1.5 py-0.2 lg:px-2.5 lg:py-0.5 rounded-full mt-0.5 lg:mt-1 leading-none shadow-sm ${
-                    isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-                  }`}>
-                    {isCorrect ? '⭕ 正確' : '❌ 錯誤'}
-                  </span>
-                </motion.div>
-              )}
-            </div>
-          </div>
-
-          {/* Option Tiles (Hand Selection) */}
-          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
-              {currentQ.options.map(opt => {
-                const isSelected = selectedOptionId === opt.id;
-                const isOptCorrect = opt.id === currentQ.correctAnswerId;
-                
-                let optStatus: 'correct' | 'wrong' | null = null;
-                if (isAnswered) {
-                  if (isSelected) {
-                    optStatus = isOptCorrect ? 'correct' : 'wrong';
-                  } else if (isOptCorrect) {
-                    optStatus = 'correct';
-                  }
-                }
-
-                return (
-                  <div key={opt.id} className="flex flex-col items-center">
-                    <MahjongTile
-                      tile={opt}
-                      size="md"
-                      selected={isSelected}
-                      highlight={isAnswered && isOptCorrect}
-                      status={optStatus}
-                      disabled={isAnswered}
-                      onClick={() => handleSelectOption(opt)}
-                    />
-                    {isAnswered && (
-                      <span className={`text-[8px] sm:text-[10px] lg:text-xs xl:text-sm font-black mt-1 lg:mt-2 leading-none text-center ${
-                        isSelected && isOptCorrect ? 'text-emerald-400' :
-                        isSelected && !isOptCorrect ? 'text-rose-400' :
-                        isOptCorrect ? 'text-emerald-300' : 'text-transparent'
-                      }`}>
-                        {isSelected && isOptCorrect ? '⭕ 選擇正確' :
-                         isSelected && !isOptCorrect ? '❌ 選擇錯誤' :
-                         isOptCorrect ? '⭕ 正確解答' : '•'}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
-            <AnimatePresence mode="wait">
-              {isAnswered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
-                    isCorrect
-                      ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
-                      : 'bg-rose-950/95 border-rose-500 text-rose-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
-                    {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
-                    )}
-                    <div className="truncate flex items-center gap-1 lg:gap-2">
-                      {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
-                          +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
-                        </span>
-                      )}
-                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
+                  {!isAnswered || !selectedOption ? (
+                    <div className="w-11 h-16 sm:w-13 sm:h-19 lg:w-20 lg:h-28 xl:w-24 xl:h-34 shrink-0 rounded-md border-x border-t border-dashed border-amber-400 bg-amber-500/15 border-b-[4px] lg:border-b-[6px] border-b-amber-600 flex flex-col items-center justify-center text-amber-300 font-bold p-1 lg:p-2 shadow-inner animate-pulse select-none">
+                      <span className="text-sm sm:text-base lg:text-2xl xl:text-3xl leading-none">❓</span>
+                      <span className="text-[9px] sm:text-[10px] lg:text-xs xl:text-sm text-center font-black text-amber-200 leading-none mt-1 lg:mt-2">缺此張</span>
                     </div>
-                  </div>
-
-                  <button
-                    onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
-                  >
-                    {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      ) : (
-        /* Final Score Screen */
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center p-3 gap-2.5">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="p-2.5 bg-amber-500 text-gray-950 rounded-2xl shadow-xl"
-          >
-            <Award className="w-10 h-10 sm:w-14 sm:h-14" />
-          </motion.div>
-
-          <h2 className="text-lg sm:text-2xl font-black text-amber-300">
-            🀄 麻將湊牌大師通關！
-          </h2>
-
-          {teamMode === 'TEAM' ? (
-            <div className="bg-emerald-900/60 border border-amber-500/50 rounded-2xl p-3 max-w-sm w-full">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-amber-500/20 border border-amber-400 p-2 rounded-xl">
-                  <p className="text-xs text-amber-300 font-bold">A 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamAScore} 分</p>
+                  ) : (
+                    <motion.div
+                      initial={{ scale: 0.35, y: 25, opacity: 0 }}
+                      animate={{ scale: 1, y: 0, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      className="relative shrink-0 flex flex-col items-center"
+                    >
+                      <MahjongTile
+                        tile={selectedOption}
+                        size="sm"
+                        disabled
+                        status={isCorrect ? 'correct' : 'wrong'}
+                      />
+                      <span className={`text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-black px-1.5 py-0.2 lg:px-2.5 lg:py-0.5 rounded-full mt-0.5 lg:mt-1 leading-none shadow-sm ${
+                        isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                      }`}>
+                        {isCorrect ? '⭕ 正確' : '❌ 錯誤'}
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
-                <div className="bg-blue-500/20 border border-blue-400 p-2 rounded-xl">
-                  <p className="text-xs text-blue-300 font-bold">B 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamBScore} 分</p>
+              </div>
+
+              {/* Option Tiles (Hand Selection) */}
+              <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
+                  {currentQ.options.map(opt => {
+                    const isSelected = selectedOptionId === opt.id;
+                    const isOptCorrect = opt.id === currentQ.correctAnswerId;
+
+                    let optStatus: 'correct' | 'wrong' | null = null;
+                    if (isAnswered) {
+                      if (isSelected) {
+                        optStatus = isOptCorrect ? 'correct' : 'wrong';
+                      } else if (isOptCorrect) {
+                        optStatus = 'correct';
+                      }
+                    }
+
+                    return (
+                      <div key={opt.id} className="flex flex-col items-center">
+                        <MahjongTile
+                          tile={opt}
+                          size="md"
+                          selected={isSelected}
+                          highlight={isAnswered && isOptCorrect}
+                          status={optStatus}
+                          disabled={isAnswered}
+                          onClick={() => handleSelectOption(opt)}
+                        />
+                        {isAnswered && (
+                          <span className={`text-[8px] sm:text-[10px] lg:text-xs xl:text-sm font-black mt-1 lg:mt-2 leading-none text-center ${
+                            isSelected && isOptCorrect ? 'text-emerald-400' :
+                            isSelected && !isOptCorrect ? 'text-rose-400' :
+                            isOptCorrect ? 'text-emerald-300' : 'text-transparent'
+                          }`}>
+                            {isSelected && isOptCorrect ? '⭕ 選擇正確' :
+                             isSelected && !isOptCorrect ? '❌ 選擇錯誤' :
+                             isOptCorrect ? '⭕ 正確解答' : '•'}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-emerald-900/60 border border-emerald-700/50 rounded-2xl p-3 max-w-sm w-full">
-              <p className="text-emerald-300 text-xs font-bold">總積分</p>
-              <p className="text-2xl sm:text-4xl font-black text-amber-300">{score} 分</p>
-              <p className="text-[11px] sm:text-xs text-emerald-200 mt-1">牌感敏銳，胡牌聽牌推演迅速！</p>
+          )}
+          support={(
+            <div className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
+              <div className="rounded-xl border border-emerald-800/70 bg-emerald-900/40 p-3 shadow-inner">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-lg border border-emerald-600/50 bg-emerald-800 px-2 py-1 text-xs font-black text-amber-300 sm:text-sm">
+                    {currentQ.meldTypeLabel}
+                  </span>
+                  <span className="text-xs font-bold text-emerald-300">第 {currentIndex + 1}/{questions.length} 題</span>
+                </div>
+                <h2 className="mt-2 text-base font-bold leading-snug text-white sm:text-lg">{currentQ.prompt}</h2>
+              </div>
+              <div className="rounded-xl border border-emerald-800/70 bg-emerald-900/40 p-3">
+                <div className="flex items-center gap-1.5 text-sm font-bold text-amber-300">
+                  <Sparkles aria-hidden="true" className="h-4 w-4" />
+                  <span>作答提示</span>
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-emerald-100">
+                  {isAnswered ? '請閱讀下方解釋，再進入下一題。' : '先觀察牌面中的連續、相同或成對牌，再點選能完成牌組的牌。'}
+                </p>
+              </div>
             </div>
           )}
+          feedback={(
+            <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
+              <AnimatePresence mode="wait">
+                {isAnswered ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
+                      isCorrect
+                        ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
+                        : 'bg-rose-950/95 border-rose-500 text-rose-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
+                      {isCorrect ? (
+                        <CheckCircle2 aria-hidden="true" className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
+                      ) : (
+                        <XCircle aria-hidden="true" className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
+                      )}
+                      <div className="truncate flex items-center gap-1 lg:gap-2">
+                        {isCorrect && lastSpeedInfo && (
+                          <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
+                            +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
+                          </span>
+                        )}
+                        <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="min-h-11 shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
+                    >
+                      {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
+                    </button>
+                  </motion.div>
+                ) : (
+                  <span className="px-1 text-sm text-emerald-800">點選一張牌完成這組牌</span>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        />
+      ) : (
+        <GameShell
+          title="麻將湊牌大師"
+          subtitle="本局挑戰完成"
+          onBack={onBack}
+          className="bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-white"
+        >
+          {/* Final Score Screen */}
+          <div className="mx-auto flex h-full w-full max-w-5xl flex-col items-center justify-center gap-2.5 p-3 text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="rounded-2xl bg-amber-500 p-2.5 text-gray-950 shadow-xl"
+            >
+              <Award className="h-10 w-10 sm:h-14 sm:w-14" />
+            </motion.div>
 
-          <div className="flex gap-2.5 justify-center mt-1">
-            <button
-              onClick={restartGame}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-1"
-            >
-              <RotateCcw size={15} />
-              再玩一局
-            </button>
-            <button
-              onClick={onBack}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 font-bold rounded-xl text-xs sm:text-sm shadow transition"
-            >
-              回遊戲選單
-            </button>
+            <h2 className="text-lg font-black text-amber-300 sm:text-2xl">
+              🀄 麻將湊牌大師通關！
+            </h2>
+
+            {teamMode === 'TEAM' ? (
+              <div className="w-full max-w-sm rounded-2xl border border-amber-500/50 bg-emerald-900/60 p-3">
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="rounded-xl border border-amber-400 bg-amber-500/20 p-2">
+                    <p className="text-xs font-bold text-amber-300">A 組得分</p>
+                    <p className="text-xl font-black text-white sm:text-2xl">{teamAScore} 分</p>
+                  </div>
+                  <div className="rounded-xl border border-blue-400 bg-blue-500/20 p-2">
+                    <p className="text-xs font-bold text-blue-300">B 組得分</p>
+                    <p className="text-xl font-black text-white sm:text-2xl">{teamBScore} 分</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full max-w-sm rounded-2xl border border-emerald-700/50 bg-emerald-900/60 p-3">
+                <p className="text-xs font-bold text-emerald-300">總積分</p>
+                <p className="text-2xl font-black text-amber-300 sm:text-4xl">{score} 分</p>
+                <p className="mt-1 text-[11px] text-emerald-200 sm:text-xs">牌感敏銳，胡牌聽牌推演迅速！</p>
+              </div>
+            )}
+
+            <div className="mt-1 flex justify-center gap-2.5">
+              <button
+                type="button"
+                onClick={restartGame}
+                className="flex min-h-11 items-center gap-1 rounded-xl bg-amber-400 px-3.5 py-1.5 text-xs font-black text-gray-950 shadow transition hover:bg-amber-300 sm:px-4 sm:py-2 sm:text-sm"
+              >
+                <RotateCcw aria-hidden="true" size={15} />
+                再玩一局
+              </button>
+              <button
+                type="button"
+                onClick={onBack}
+                className="min-h-11 rounded-xl bg-emerald-800 px-3.5 py-1.5 text-xs font-bold text-emerald-200 shadow transition hover:bg-emerald-700 sm:px-4 sm:py-2 sm:text-sm"
+              >
+                回遊戲選單
+              </button>
+            </div>
           </div>
-        </div>
+        </GameShell>
       )}
-    </div>
+    </>
   );
 };
 
