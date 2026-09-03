@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋、播棋、圍棋與奇雞連連現已依本文件完成 LIGHT acceptance，其餘兩款仍待 reviewer 排程：西洋跳棋與公開 21 點。
+本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋、播棋與圍棋現已依本文件完成 LIGHT acceptance，奇雞連連仍待 reviewer 重新確認 breakpoint 修正，其餘兩款仍待 reviewer 排程：西洋跳棋與公開 21 點。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -15,7 +15,7 @@
 | 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
 | 象棋暗棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px（已修正） | Shared mode selector, ≥44px core actions, accessible labels、圓形棋子 | Yes | Keep custom board + toolbar; targeted visual/control patch complete | Low |
 | 西洋跳棋 | BOARD_SIDEBAR | **LIGHT** | 8×8 fits in landscape | Portrait hides side-panel controls; landscape actions ~28px | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector | Yes | Keep board + move-log architecture; responsive/accessibility patch only | Medium–high gameplay-state risk |
-| 奇雞連連 | BOARD_SIDEBAR | **LIGHT COMPLETE** | Dual inventories and 3×3 board fit at 640×360 after compact treatment | Inventory clipping/compression and small icon-only controls（已修正） | Compact 2×3 inventories、shared selector、44px toolbar、source/target accessible labels（已完成） | Yes | Keep dedicated dual-inventory + 3×3 architecture; LIGHT standardization complete | Medium |
+| 奇雞連連 | BOARD_SIDEBAR | **LIGHT** | Compact treatment must match 640×360、844×390、932×430 short-height landscape | Width-only breakpoint left normal phone landscape unchanged（已修正，待實機確認） | Height-based compact landscape、2×3 inventories、shared selector、44px toolbar、source/target accessible labels | Yes | Keep dedicated dual-inventory + 3×3 architecture; pending final reviewer acceptance | Medium |
 | 公開 21 點 | BOARD_TABLE | **LIGHT** | Setup/play overflow vertically; table remains understandable | Primary setup/action controls below 640 viewport; action buttons ~36px | No (DEALER/PVP semantics differ) | Keep dedicated table; reduce landscape vertical footprint and enlarge actions | Medium |
 
 **Severity legend:** BLOCKER = gameplay unusable; MAJOR = serious usability/layout issue; MINOR = worthwhile polish/consistency; INFO = no action required. No audited game met the evidence threshold for FULL; no blocker was observed.
@@ -116,9 +116,9 @@
 
 **Current architecture.** 中央 3×3 cell board，左右各一組 S/M/L inventory；inventory 是 gameplay-critical source selection，不應簡化為單一 sidebar。另有選取、覆蓋、規則與 winner modal。
 
-**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 保留專用雙 inventory＋中央 3×3 棋盤，完成 compact landscape 幾何、shared `GameModeSelector`、toolbar accessibility 與 board/inventory labels；未進行結構性 migration，未改 gameplay。
+**Acceptance status: LIGHT FIX UPDATED, REVIEW PENDING (2026-09-03).** 保留專用雙 inventory＋中央 3×3 棋盤；已將 compact landscape breakpoint 從 width-only 修正為 landscape short-height contract，並保留 shared `GameModeSelector`、toolbar accessibility 與 board/inventory labels。未進行結構性 migration，未改 gameplay。
 
-**640×360 findings.** 中央盤維持約 216×216px（約 216×216px → 約 216×216px，0% shrink）；S/M/L 棋子視覺尺寸約 28/36/44px，inventory 每枚按鈕維持至少 44×44px，兩組 inventory 改為窄 landscape 2×3 並完整保留六枚來源。模式選項、返回／悔棋／規則／重開均約 44px，document 不需 scroll，inventory 與棋盤不需 scroll。
+**Compact landscape contract.** 使用 `(orientation: landscape) and (max-height: 480px)`，涵蓋 640×360、844×390、932×430，且不套用 portrait 390×844 或 desktop 1280×720。預期 board frame 約 259px、inner 3×3 約 235px；S/M/L 視覺尺寸約 24/32/40px，inventory 每枚按鈕維持至少 44×44px，兩組 inventory 為 2×3。實機尺寸尚待 reviewer 確認。
 
 **844×390 / 932×430.** 左右 inventory 完整可見，盤面與棋子可辨識；無 document overflow。
 
@@ -128,7 +128,7 @@
 
 **Mode / accessibility / duplication.** 支援 PVE/PVP，已使用 shared `GameModeSelector` 同時呈現「單人／雙人」，並以 `aria-pressed` 暴露 selected state；source inventory 具 player／size accessible names 與穩定 hooks，board buttons 具 A1–C3 座標及頂層棋子／空位 labels，PVE 對手 inventory 仍可見且 disabled。沒有重複模式 status。
 
-**Decision: LIGHT COMPLETE.** 保留左右 inventory＋中央棋盤；≤640 寬度使用 compact 2×3 inventory、縮小間距與 28/36/44px S/M/L 視覺尺寸，保護中央盤不縮小，並補 shared selector、44px toolbar、source/target accessible names、valid-target second cue 及 modal max-height/internal scroll。不要 FULL 重做。
+**Decision: LIGHT.** 保留左右 inventory＋中央棋盤；已修正為 short-height compact landscape，使用 2×3 inventory、24/32/40px S/M/L 視覺尺寸與約 259px board frame，並保留 shared selector、44px toolbar、source/target accessible names、valid-target second cue 及 modal max-height/internal scroll。待實機 reviewer 確認後再標記 LIGHT COMPLETE；不要 FULL 重做。
 
 ### 公開 21 點（BlackjackGame）
 
@@ -150,13 +150,13 @@
 
 ### 1. KEEP closures
 
-目前沒有足夠證據把剩餘兩款直接關為 KEEP；Weiqi、Maze、DarkChess、Mancala 與 Gobblet 已依各自語意完成 LIGHT acceptance，不需要改 architecture。
+目前沒有足夠證據把剩餘兩款直接關為 KEEP；Weiqi、Maze、DarkChess 與 Mancala 已依各自語意完成 LIGHT acceptance，Gobblet 的 breakpoint correction 尚待 reviewer 確認，不需要改 architecture。
 
 ### 2. LIGHT fixes（建議順序）
 
 1. **Mancala**：先修 player label／pit overlap，再導入 shared `GameModeSelector`，風險低且收益明確。
 2. **Maze**：已完成 portrait stack 與 button labels；不涉及棋規。
-3. **Gobblet**：已完成 640 寬度 inventory clipping 修正、shared selector 與 source inventory protection；保留專用架構。
+3. **Gobblet**：已完成 breakpoint correction、shared selector 與 source inventory protection；保留專用架構，待 short-height landscape 實機確認。
 4. **Checkers**：portrait controls visibility，需小心 animation／Undo。
 5. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
 6. **Weiqi**：已完成密集控制尺寸與三模式語意 review；保留專用 layout。
@@ -167,4 +167,4 @@
 
 ## Audit conclusion
 
-本輪迷宮、暗棋、播棋、圍棋與奇雞連連已完成 LIGHT acceptance；其餘兩款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。五款均沒有結構性 migration，僅以既有架構完成標準化。
+本輪迷宮、暗棋、播棋與圍棋已完成 LIGHT acceptance；奇雞連連已完成 breakpoint correction 但仍待 reviewer 重新確認，其餘兩款仍是 future work candidates。五款均沒有結構性 migration，僅以既有架構完成標準化。
