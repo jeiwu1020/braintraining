@@ -63,6 +63,10 @@ export const applyQuestionResult = (
 
 const cloneCards = (cards: CardType[]) => cards.map(card => ({ ...card }));
 
+export const getGuessCardGridColumns = (difficulty: Difficulty): 8 | 13 => (
+    difficulty === 'ADVANCED' ? 13 : 8
+);
+
 const GuessCardGame: React.FC<GuessCardGameProps> = ({
     onBack,
     difficulty,
@@ -181,10 +185,11 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
     };
 
     const disabled = isWon || isGameOver || !!showDialog;
+    const candidateColumns = getGuessCardGridColumns(difficulty);
     const controlClass = 'flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-2 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm';
 
     const feedback = (
-        <div className="flex min-h-11 w-full items-center justify-center px-1 text-center">
+        <div className="flex min-h-8 w-full items-center justify-center px-1 text-center">
             <AnimatePresence mode="wait">
                 {showDialog ? (
                     <motion.div key="dialog" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-2 py-1.5 text-sm text-blue-900">
@@ -233,17 +238,21 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
             <GridFocusLayout
                 playfieldLabel="候選牌集合"
                 supportLabel="推理發問控制"
-                className="bg-blue-50"
-                playfieldClassName="overflow-hidden"
-                supportClassName="overflow-hidden"
+                className="!grid-cols-1 !grid-rows-[minmax(0,1fr)_auto_auto] !content-start !gap-1 !p-1 bg-blue-50"
+                playfieldClassName="!overflow-hidden"
+                supportClassName="!overflow-hidden"
                 playfield={(
-                    <section aria-label="候選牌集合" className="flex h-full min-h-0 flex-col rounded-xl border-2 border-blue-100 bg-white/80 p-2 shadow-inner sm:p-3">
-                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-blue-100 pb-2">
-                            <h2 className="text-sm font-bold text-blue-900 sm:text-base">候選牌</h2>
-                            <span className="text-xs font-semibold text-slate-600 sm:text-sm">點牌可直接猜測</span>
+                    <section aria-label="候選牌集合" data-candidate-count={cards.length} data-candidate-columns={candidateColumns} data-candidate-scroll="none" className="flex h-full min-h-0 flex-col rounded-xl border-2 border-blue-100 bg-white/80 p-1 shadow-inner sm:p-1.5">
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-blue-100 pb-1">
+                            <h2 className="text-xs font-bold text-blue-900 sm:text-sm">候選牌</h2>
+                            <span className="text-[11px] font-semibold text-slate-600 sm:text-xs">點牌可直接猜測</span>
                         </div>
-                        <div className="min-h-0 flex-1 overflow-y-auto py-2 pr-1">
-                            <div className="grid grid-cols-5 gap-1.5 md:grid-cols-8 md:gap-2">
+                        <div className="min-h-0 flex-1 overflow-hidden py-1">
+                            <div
+                                className="grid h-full min-h-0 w-full content-center gap-1"
+                                data-candidate-grid="true"
+                                style={{ gridTemplateColumns: `repeat(${candidateColumns}, minmax(0, 1fr))`, gridAutoRows: 'minmax(0, 1fr)' }}
+                            >
                                 {cards.map((card, index) => {
                                     const isTarget = isWon && targetCard?.id === card.id;
                                     const label = `${card.isEliminated ? '已排除，' : ''}猜測${SUIT_LABELS[card.suit]}${card.value}${isTarget ? '，目標牌' : ''}`;
@@ -257,13 +266,13 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: index * 0.01 }}
-                                            className={`relative flex min-h-11 aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg border-2 bg-white shadow-sm outline-none transition-all focus-visible:ring-4 focus-visible:ring-blue-300 ${card.isEliminated ? 'border-slate-300 bg-slate-200 opacity-60 grayscale' : isTarget ? 'border-emerald-500 bg-emerald-100 shadow-lg' : 'border-slate-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md active:scale-95'}`}
+                                            className={`relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-md border bg-white shadow-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-300 ${card.isEliminated ? 'border-slate-400 bg-slate-200 opacity-70 grayscale' : isTarget ? 'border-emerald-500 bg-emerald-100 shadow-lg' : 'border-slate-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md active:scale-95'}`}
                                         >
-                                            <span className={`flex flex-col items-center justify-center font-bold leading-none ${card.color === 'RED' ? 'text-red-600' : 'text-slate-900'}`}>
-                                                <span className="text-sm sm:text-base">{card.value}</span>
-                                                <span className="mt-1 text-xl sm:text-2xl">{card.suit}</span>
+                                            <span className={`flex items-center justify-center gap-0.5 font-black leading-none ${card.color === 'RED' ? 'text-red-600' : 'text-slate-900'}`}>
+                                                <span className="text-xs sm:text-sm">{card.value}</span>
+                                                <span className="text-sm sm:text-base">{card.suit}</span>
                                             </span>
-                                            {card.isEliminated && <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center text-4xl font-black text-red-600/80">×</span>}
+                                            {card.isEliminated && <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center text-2xl font-black text-red-600/85">×</span>}
                                             {isTarget && <span aria-hidden="true" className="absolute inset-0 rounded-md border-2 border-emerald-500" />}
                                         </motion.button>
                                     );
@@ -273,58 +282,42 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
                     </section>
                 )}
                 support={(
-                    <div className="h-full min-h-0 overflow-y-auto pr-1" style={{ contain: 'layout paint' }}>
-                        <section className="rounded-xl border border-blue-100 bg-white p-2.5 shadow-sm sm:p-3">
-                            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-blue-900 sm:text-base"><HelpCircle aria-hidden="true" className="h-4 w-4" />發問區</h2>
-                            <div className="space-y-3">
-                                <div>
-                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">顏色與奇偶</h3>
-                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                        <button type="button" onClick={() => handleQuickAsk('RED')} disabled={disabled} className={`${controlClass} border-red-200 bg-red-50 text-red-700 hover:bg-red-100`}>紅色</button>
-                                        <button type="button" onClick={() => handleQuickAsk('BLACK')} disabled={disabled} className={`${controlClass} border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200`}>黑色</button>
-                                        <button type="button" onClick={() => handleQuickAsk('EVEN')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>雙數</button>
-                                        <button type="button" onClick={() => handleQuickAsk('ODD')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>單數</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">字母與數字</h3>
-                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                        <button type="button" onClick={() => handleQuickAsk('FACE')} disabled={disabled} className={`${controlClass} border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100`}>字母 (J/Q/K/A)</button>
-                                        <button type="button" onClick={() => handleQuickAsk('NUM')} disabled={disabled} className={`${controlClass} border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100`}>數字 (2~10)</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">單一花色</h3>
-                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                        {(['SPADE', 'HEART', 'DIAMOND', 'CLUB'] as const).map(type => {
-                                            const suit = type === 'SPADE' ? '♠' : type === 'HEART' ? '♥' : type === 'DIAMOND' ? '♦' : '♣';
-                                            const name = type === 'SPADE' ? '黑桃' : type === 'HEART' ? '愛心' : type === 'DIAMOND' ? '方塊' : '梅花';
-                                            return <button key={type} type="button" onClick={() => handleQuickAsk(type)} disabled={disabled} aria-label={`詢問${name}`} className={`${controlClass} text-lg ${suit === '♥' || suit === '♦' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-slate-200 text-slate-900 hover:bg-slate-50'}`}>{suit}</button>;
-                                        })}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">精確數字</h3>
-                                    <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-1.5 sm:gap-2">
-                                        <label className="sr-only" htmlFor="guess-card-compare-op">比較方式</label>
-                                        <select id="guess-card-compare-op" aria-label="比較方式" value={compareOp} onChange={event => setCompareOp(event.target.value as '>'|'<'|'==')} disabled={disabled} className="min-h-11 min-w-0 rounded-lg border-2 border-blue-200 bg-white px-1.5 text-sm font-bold">
-                                            <option value=">">大於</option><option value="<">小於</option><option value="==">等於</option>
-                                        </select>
-                                        <label className="sr-only" htmlFor="guess-card-compare-value">比較數值</label>
-                                        <select id="guess-card-compare-value" aria-label="比較數值" value={compareVal} onChange={event => setCompareVal(event.target.value)} disabled={disabled} className="min-h-11 min-w-0 rounded-lg border-2 border-blue-200 bg-white px-1.5 text-sm font-bold">
-                                            {VALUES.map(value => <option key={value} value={value}>{value}</option>)}
-                                        </select>
-                                        <button type="button" onClick={handleNumberAsk} disabled={disabled} className="min-h-11 rounded-lg bg-blue-700 px-2 text-sm font-bold text-white hover:bg-blue-600">發問</button>
-                                    </div>
-                                </div>
+                    <div className="flex h-full min-h-0 items-center overflow-x-auto" data-support-layout="question-strip" style={{ contain: 'layout paint' }}>
+                        <section aria-label="發問區" className="flex min-w-max items-center gap-1 rounded-xl border border-blue-100 bg-white px-1.5 py-1 shadow-sm sm:gap-1.5 sm:px-2">
+                            <h2 className="flex shrink-0 items-center gap-1 text-xs font-bold text-blue-900 sm:text-sm"><HelpCircle aria-hidden="true" className="h-4 w-4" />發問</h2>
+                            <div className="flex shrink-0 items-center gap-1" role="group" aria-label="顏色與奇偶">
+                                <button type="button" onClick={() => handleQuickAsk('RED')} disabled={disabled} className={`${controlClass} border-red-200 bg-red-50 text-red-700 hover:bg-red-100`}>紅色</button>
+                                <button type="button" onClick={() => handleQuickAsk('BLACK')} disabled={disabled} className={`${controlClass} border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200`}>黑色</button>
+                                <button type="button" onClick={() => handleQuickAsk('EVEN')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>雙數</button>
+                                <button type="button" onClick={() => handleQuickAsk('ODD')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>單數</button>
                             </div>
-                        </section>
-                        <section className="mt-2 rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-sm leading-relaxed text-blue-900 sm:p-3">
-                            先用能大幅排除候選牌的問題，再觀察剩餘牌的花色與數字；直接猜錯會扣 30 分。
+                            <div className="flex shrink-0 items-center gap-1" role="group" aria-label="字母與數字">
+                                <button type="button" onClick={() => handleQuickAsk('FACE')} disabled={disabled} className={`${controlClass} border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100`}>字母</button>
+                                <button type="button" onClick={() => handleQuickAsk('NUM')} disabled={disabled} className={`${controlClass} border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100`}>數字</button>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1" role="group" aria-label="單一花色">
+                                {(['SPADE', 'HEART', 'DIAMOND', 'CLUB'] as const).map(type => {
+                                    const suit = type === 'SPADE' ? '♠' : type === 'HEART' ? '♥' : type === 'DIAMOND' ? '♦' : '♣';
+                                    const name = type === 'SPADE' ? '黑桃' : type === 'HEART' ? '愛心' : type === 'DIAMOND' ? '方塊' : '梅花';
+                                    return <button key={type} type="button" onClick={() => handleQuickAsk(type)} disabled={disabled} aria-label={`詢問${name}`} className={`${controlClass} text-lg ${suit === '♥' || suit === '♦' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-slate-200 text-slate-900 hover:bg-slate-50'}`}>{suit}</button>;
+                                })}
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1" role="group" aria-label="精確數字">
+                                <label className="sr-only" htmlFor="guess-card-compare-op">比較方式</label>
+                                <select id="guess-card-compare-op" aria-label="比較方式" value={compareOp} onChange={event => setCompareOp(event.target.value as '>'|'<'|'==')} disabled={disabled} className="min-h-11 w-16 rounded-lg border-2 border-blue-200 bg-white px-1 text-xs font-bold">
+                                    <option value=">">大於</option><option value="<">小於</option><option value="==">等於</option>
+                                </select>
+                                <label className="sr-only" htmlFor="guess-card-compare-value">比較數值</label>
+                                <select id="guess-card-compare-value" aria-label="比較數值" value={compareVal} onChange={event => setCompareVal(event.target.value)} disabled={disabled} className="min-h-11 w-14 rounded-lg border-2 border-blue-200 bg-white px-1 text-xs font-bold">
+                                    {VALUES.map(value => <option key={value} value={value}>{value}</option>)}
+                                </select>
+                                <button type="button" onClick={handleNumberAsk} disabled={disabled} className="min-h-11 rounded-lg bg-blue-700 px-2 text-xs font-bold text-white hover:bg-blue-600">發問</button>
+                            </div>
                         </section>
                     </div>
                 )}
                 feedback={feedback}
+                feedbackClassName="!h-10 !min-h-10 !rounded-xl !px-2 !py-0"
             />
             </div>
         </GameShell>

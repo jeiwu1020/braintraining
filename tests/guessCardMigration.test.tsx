@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import GuessCardGame, { applyQuestionResult, type CardType } from '../components/GuessCardGame';
+import GuessCardGame, { applyQuestionResult, getGuessCardGridColumns, type CardType } from '../components/GuessCardGame';
 
 const deterministicCards: CardType[] = [
   { id: 1, color: 'RED', suit: '♥', value: '3', isEliminated: false },
@@ -9,6 +9,20 @@ const deterministicCards: CardType[] = [
   { id: 3, color: 'RED', suit: '♥', value: '4', isEliminated: false },
   { id: 4, color: 'BLACK', suit: '♠', value: '4', isEliminated: false },
 ];
+
+const advancedCards: CardType[] = Array.from({ length: 52 }, (_, index) => {
+  const suits = ['♥', '♦', '♠', '♣'] as const;
+  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const suit = suits[Math.floor(index / values.length)];
+  const value = values[index % values.length];
+  return {
+    id: index + 1,
+    color: suit === '♥' || suit === '♦' ? 'RED' : 'BLACK',
+    suit,
+    value,
+    isEliminated: false,
+  };
+});
 
 describe('GuessCardGame grid-focus migration', () => {
   it('wires GuessCardGame through the grid-focus layout contract', () => {
@@ -42,5 +56,27 @@ describe('GuessCardGame grid-focus migration', () => {
       [3, false],
       [4, true],
     ]);
+  });
+
+  it('keeps all advanced candidates visible in a fixed 13-column playfield grid', () => {
+    const markup = renderToStaticMarkup(
+      <GuessCardGame
+        difficulty="ADVANCED"
+        initialCards={advancedCards}
+        initialTargetCard={advancedCards[0]}
+        onBack={() => undefined}
+      />,
+    );
+    const playfieldStart = markup.indexOf('data-layout-region="playfield"');
+    const supportStart = markup.indexOf('data-layout-region="support"');
+    const playfieldMarkup = markup.slice(playfieldStart, supportStart);
+
+    expect(getGuessCardGridColumns('NORMAL')).toBe(8);
+    expect(getGuessCardGridColumns('ADVANCED')).toBe(13);
+    expect(markup).toContain('data-candidate-count="52"');
+    expect(markup).toContain('data-candidate-columns="13"');
+    expect(markup).toContain('data-candidate-scroll="none"');
+    expect((playfieldMarkup.match(/aria-label="猜測/g) ?? []).length).toBe(52);
+    expect(playfieldMarkup).not.toContain('overflow-y-auto');
   });
 });
