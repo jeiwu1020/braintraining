@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，不代表開始 migration，也不增加完成數。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；象棋暗棋現已依本文件完成 LIGHT acceptance，其餘六款仍待 reviewer 排程：尋寶迷宮指路、圍棋、播棋、西洋跳棋、奇雞連連與公開 21 點。
+本文件是診斷性稽核，不代表開始 migration，也不增加完成數。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；象棋暗棋與播棋現已依本文件完成 LIGHT acceptance，其餘五款仍待 reviewer 排程：尋寶迷宮指路、圍棋、西洋跳棋、奇雞連連與公開 21 點。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -12,7 +12,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 尋寶迷宮指路 | BOARD_SIDEBAR | **LIGHT** | Landscape fits; portrait maze collapses/overlaps | Portrait geometry; icon-only labels | Portrait stack/re-size maze; add accessible names; preserve left controls | No (GROUP/FACILITATED) | Keep custom left-controls + maze; targeted responsive/accessibility patch | Low |
 | 圍棋 | BOARD_SIDEBAR | **LIGHT** | 9×9 board and panel fit, no document scroll | Many mode/action targets are 23–34px; specialized panel is dense | Increase core touch targets and clarify labels; retain `WeiqiLandscapeLayout` | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; do not force generic BoardSidebar | Medium |
-| 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT** | Wide board fully visible and touchable | Player labels overlap pit rows/status; current-mode toggle ambiguous | Reserve label bands; use shared two-option mode selector; improve icon labels | Yes | Keep wide table; localized spacing/status fix | Low–medium |
+| 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
 | 象棋暗棋 | BOARD_SIDEBAR | **LIGHT** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px | Shared mode selector, ≥44px core actions, accessible labels | Yes | Keep custom board + toolbar; targeted control patch | Low |
 | 西洋跳棋 | BOARD_SIDEBAR | **LIGHT** | 8×8 fits in landscape | Portrait hides side-panel controls; landscape actions ~28px | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector | Yes | Keep board + move-log architecture; responsive/accessibility patch only | Medium–high gameplay-state risk |
 | 奇雞連連 | BOARD_SIDEBAR | **LIGHT** | Board fits; right inventory clips at 640 | Gameplay-critical inventory extends beyond viewport; icon-only mode/actions | Compact inventory/gap at narrow width without shrinking board excessively; shared selector; labels | Yes | Keep board-with-two-inventories composition; targeted narrow-width fix | Medium |
@@ -60,19 +60,21 @@
 
 ### 播棋（MancalaGame）
 
+**Acceptance status: LIGHT FIX COMPLETE (2026-09-03).** 本次保留專用寬幅棋桌，完成共用模式控制、玩家標籤分區、觸控尺寸與棋洞／計分槽 accessible names；未進行結構性 migration。
+
 **Current architecture.** 自製寬幅橢圓桌：上下各 6 個 pit，左右兩個 store，座標 A–F，動畫播子與終局 overlay。這種左右對等寬桌比 generic board/sidebar 更符合玩法。
 
-**640×360 findings.** 完整 6+6 pits、兩個 stores、座標與分數可見；pit 約 64×64px，document 640×360，無 overflow。**MAJOR**：桌面頂部的「藍方 (電腦/P2)」與底部「紅方 (你/P1)」文字直接壓到 pit/座標列，降低資訊辨識。**MINOR**：目前模式按鈕只顯示當前「單人／雙人」，返回／重設約 32px。
+**640×360 findings.** 完成修正後寬桌約 486×189px，12 個 pit、兩個 store、上下 A–F 座標與玩家標籤均在同頁，document 640×360 無 overflow；pit 約 48×48px、核心 toolbar 與模式選項達 44px。原先的標籤重疊與單一模式 toggle 已移除。
 
-**844×390 / 932×430.** 桌面按比例放大，完整同頁且 pit 可操作；標籤重疊仍是需要修正的 presentation 問題。
+**844×390 / 932×430.** 寬桌完整同頁，分別約 708×272px；標籤與座標保持獨立 band，無 document overflow。
 
-**390×844.** 寬桌縮為約 370px 仍同頁，pit 與 stores 可辨識，但上下 player label 更容易與座標及 pit 靠近。
+**390×844.** 寬桌約 374×189px，棋洞、stores、selector、返回與重設仍可到達，保留既有專用 portrait flow。
 
-**Representative states tested.** 初始 4 seeds、下方 P1 pit 選取、模式按鈕、回合訊息與終局 overlay 入口；未以長動畫宣稱完成整局驗證。
+**Representative states tested.** 初始 4 seeds、PVE/PVP 模式切換、下方 P1 pit 選取、播子動畫、AI 回應、回合訊息、規則與重設入口。
 
-**Mode / accessibility / duplication.** 支援 PVE/PVP，應列為日後 `GameModeSelector` LIGHT。回合訊息與 player label 的層級目前互相競爭；需要保留一次清楚的 current turn，而不是再增添底部 feedback。
+**Mode / accessibility / duplication.** 支援 PVE/PVP，已使用共用 `GameModeSelector` 同時呈現單人／雙人；PVE/PVP 玩家標籤會隨模式正確切換，回合訊息只保留一處，沒有新增重複底部 feedback。棋洞、stores、返回、重設與終局控制均補上 accessible names。
 
-**Decision: LIGHT.** 保留寬桌。最低修改：為上下 player label 保留獨立 band／移除與座標重疊、改用 persistent 單人／雙人 selector、補返回／重設與 pit accessible names，並維持 sowing animation 的既有尺寸。
+**Decision: LIGHT COMPLETE.** 保留寬桌；已完成上下 player label 獨立 band、persistent 單人／雙人 selector、44px 核心控制與 pit/store accessible names，並維持 sowing animation 的既有尺寸與流程。
 
 ### 象棋暗棋（DarkChessGame）
 
@@ -149,12 +151,11 @@
 ### 2. LIGHT fixes（建議順序）
 
 1. **Mancala**：先修 player label／pit overlap，再導入 shared `GameModeSelector`，風險低且收益明確。
-2. **DarkChess**：模式與 toolbar accessible/touch patch，棋盤本體穩定。
-3. **Maze**：portrait stack 與 button labels；不涉及棋規。
-4. **Gobblet**：640 寬度 inventory clipping，需保護兩側 source inventory。
-5. **Checkers**：portrait controls visibility，需小心 animation／Undo。
-6. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
-7. **Weiqi**：最後處理密集控制尺寸，因其專用 layout 與三模式語意需要較細緻的 review。
+2. **Maze**：portrait stack 與 button labels；不涉及棋規。
+3. **Gobblet**：640 寬度 inventory clipping，需保護兩側 source inventory。
+4. **Checkers**：portrait controls visibility，需小心 animation／Undo。
+5. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
+6. **Weiqi**：最後處理密集控制尺寸，因其專用 layout 與三模式語意需要較細緻的 review。
 
 ### 3. FULL migrations
 
@@ -162,4 +163,4 @@
 
 ## Audit conclusion
 
-本輪暗棋已完成 LIGHT acceptance；其餘六款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。暗棋沒有結構性 migration，僅以既有架構完成標準化。
+本輪暗棋與播棋已完成 LIGHT acceptance；其餘五款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。兩款均沒有結構性 migration，僅以既有架構完成標準化。

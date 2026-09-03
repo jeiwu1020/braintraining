@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Gem } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Gem } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameModeSelector from './game-ui/GameModeSelector';
 
 interface Props {
   onBack: () => void;
@@ -26,6 +27,9 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [winner, setWinner] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const topPlayerLabel = gameMode === 'PVE' ? '藍方（電腦）' : '藍方（玩家2）';
+  const bottomPlayerLabel = gameMode === 'PVE' ? '紅方（你）' : '紅方（玩家1）';
 
   useEffect(() => {
     resetGame();
@@ -176,18 +180,24 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           <button 
             disabled={isStore || winner !== null || (gameMode === 'PVE' && owner === 2) || isAnimating}
             onClick={() => !isStore && handlePitClick(idx)}
-            className={`
+            {...(isStore
+              ? { 'data-mancala-store': owner === 1 ? 'P1' : 'P2' }
+              : { 'data-mancala-pit': idx })}
+            aria-label={isStore
+              ? `${owner === 1 ? '紅方' : '藍方'}計分槽，${seeds} 顆`
+              : `${owner === 1 ? '下方紅方' : '上方藍方'}棋洞 ${LABELS[owner === 1 ? idx : 12 - idx]}，${seeds} 顆`}
+                className={`
                 relative flex items-center justify-center rounded-full border-4 shadow-inner transition-colors duration-300
                 ${isStore 
-                    ? `w-16 h-32 sm:w-24 sm:h-48 md:w-28 md:h-56 ${colorClass}` 
-                    : `w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 ${colorClass}`
+                    ? `w-16 h-32 min-[768px]:w-24 min-[768px]:h-48 min-[1024px]:w-28 min-[1024px]:h-56 ${colorClass}`
+                    : `w-12 h-12 min-[768px]:w-16 min-[768px]:h-16 min-[1024px]:w-20 min-[1024px]:h-20 ${colorClass}`
                 }
                 ${!isStore && ((owner === 1 && turn === 1) || (owner === 2 && turn === 2)) && !isAnimating ? 'ring-4 ring-yellow-400 cursor-pointer hover:bg-amber-50' : ''}
             `}
           >
               <div className="flex flex-wrap justify-center content-center gap-1 p-1 w-full h-full overflow-hidden">
                   {Array.from({length: Math.min(seeds, 15)}).map((_, i) => (
-                      <div key={i} className={`rounded-full shadow-sm ${i % 3 === 0 ? 'bg-blue-500' : i % 3 === 1 ? 'bg-red-500' : 'bg-green-500'} ${isStore ? 'w-3 h-3 sm:w-4 sm:h-4' : 'w-2.5 h-2.5 sm:w-3 sm:h-3'} animate-fade-in`}></div>
+                      <div key={i} className={`rounded-full shadow-sm ${i % 3 === 0 ? 'bg-blue-500' : i % 3 === 1 ? 'bg-red-500' : 'bg-green-500'} ${isStore ? 'w-3 h-3 min-[768px]:w-4 min-[768px]:h-4' : 'w-2.5 h-2.5 min-[768px]:w-3 min-[768px]:h-3'} animate-fade-in`}></div>
                   ))}
                   {seeds > 15 && <span className="text-xs font-bold">+{seeds-15}</span>}
               </div>
@@ -202,16 +212,10 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   return (
     <div className="flex flex-col h-[100dvh] bg-cyan-50 overflow-hidden">
         {/* Header */}
-        <div className="flex-none p-2 flex justify-between items-center bg-white shadow-sm z-10 h-14">
-            <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-cyan-800"><ArrowLeft size={20} /></button>
-            <button 
-                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                className="flex items-center gap-2 px-4 py-2 bg-cyan-50 rounded-full text-sm font-bold text-cyan-900 border border-cyan-200"
-            >
-                {gameMode === 'PVE' ? <User size={16} /> : <Users size={16} />}
-                {gameMode === 'PVE' ? '單人' : '雙人'}
-            </button>
-            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-cyan-800"><RefreshCw size={20} /></button>
+        <div className="flex-none min-h-14 p-2 flex justify-between items-center gap-2 bg-white shadow-sm z-10">
+            <button onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 p-1.5 bg-gray-100 rounded-full text-cyan-800 flex items-center justify-center"><ArrowLeft size={20} /></button>
+            <GameModeSelector value={gameMode} onChange={setGameMode} className="w-auto min-w-[10.5rem] max-w-[13rem]" />
+            <button onClick={resetGame} aria-label="重新開始" className="min-h-11 min-w-11 p-1.5 bg-gray-100 rounded-full text-cyan-800 flex items-center justify-center"><RefreshCw size={20} /></button>
         </div>
 
         {/* Message */}
@@ -221,54 +225,49 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
         {/* Board - Fixed Layout Issue */}
         <div className="flex-1 flex items-center justify-center p-2 bg-cyan-50 overflow-hidden w-full">
-            {/* Board Container scales to fit width or height, preserving broad aspect ratio */}
+            {/* Wide board container; responsive sizing keeps labels and pits in a reserved flow. */}
             <div 
-                className="bg-[#DEB887] p-2 sm:p-6 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border-4 sm:border-8 border-[#8B4513] relative flex items-center gap-2 sm:gap-4 max-w-full"
-                style={{
-                    maxHeight: '90%',
-                    aspectRatio: '5/2' // Ensure it keeps a wide shape
-                }}
+                className="bg-[#DEB887] p-2 min-[768px]:p-4 min-[1024px]:p-6 rounded-[2rem] min-[768px]:rounded-[3rem] shadow-2xl border-4 min-[768px]:border-8 border-[#8B4513] relative flex items-center gap-2 min-[768px]:gap-3 min-[1024px]:gap-4 max-w-full"
             >
                 
                 {/* P2 Store (Left) - Blue */}
                 <Pit idx={13} isStore owner={2} />
 
                 {/* Rows Container */}
-                <div className="flex flex-col gap-2 sm:gap-4 justify-center">
+                <div className="flex flex-col gap-1 min-[768px]:gap-2 justify-center">
                     
                     {/* Top Row (P2) - Indices 12 down to 7 */}
                     <div className="flex flex-col items-center">
+                        <div className="text-[#8B4513] font-bold text-[10px] min-[768px]:text-sm leading-tight text-center whitespace-nowrap">{topPlayerLabel}</div>
                         {/* Top Coordinates Labels */}
-                        <div className="flex gap-1.5 sm:gap-3 w-full justify-around mb-1">
+                        <div className="flex gap-1.5 min-[768px]:gap-3 w-full justify-around mb-1" aria-label="上方藍方座標">
                             {LABELS.map(l => (
-                                <span key={`top-${l}`} className="text-[#8B4513] font-bold text-xs sm:text-sm w-12 sm:w-16 md:w-20 text-center select-none opacity-80">{l}</span>
+                                <span key={`top-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
                             ))}
                         </div>
-                        <div className="flex gap-1.5 sm:gap-3">
+                        <div className="flex gap-1.5 min-[768px]:gap-3">
                             {[12, 11, 10, 9, 8, 7].map(i => <Pit key={i} idx={i} owner={2} />)}
                         </div>
                     </div>
 
                     {/* Bottom Row (P1) - Indices 0 to 5 */}
                     <div className="flex flex-col items-center">
-                        <div className="flex gap-1.5 sm:gap-3">
+                        <div className="flex gap-1.5 min-[768px]:gap-3">
                             {[0, 1, 2, 3, 4, 5].map(i => <Pit key={i} idx={i} owner={1} />)}
                         </div>
                         {/* Bottom Coordinates Labels */}
-                        <div className="flex gap-1.5 sm:gap-3 w-full justify-around mt-1">
+                        <div className="flex gap-1.5 min-[768px]:gap-3 w-full justify-around mt-1" aria-label="下方紅方座標">
                             {LABELS.map(l => (
-                                <span key={`bot-${l}`} className="text-[#8B4513] font-bold text-xs sm:text-sm w-12 sm:w-16 md:w-20 text-center select-none opacity-80">{l}</span>
+                                <span key={`bot-${l}`} className="text-[#8B4513] font-bold text-xs min-[768px]:text-sm w-12 min-[768px]:w-16 min-[1024px]:w-20 text-center select-none opacity-80">{l}</span>
                             ))}
                         </div>
+                        <div className="text-[#8B4513] font-bold text-[10px] min-[768px]:text-sm leading-tight text-center whitespace-nowrap">{bottomPlayerLabel}</div>
                     </div>
                 </div>
 
                 {/* P1 Store (Right) - Red */}
                 <Pit idx={6} isStore owner={1} />
 
-                {/* Labels */}
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[#8B4513] font-bold text-[10px] sm:text-sm opacity-50 whitespace-nowrap">藍方 (電腦/P2)</div>
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[#8B4513] font-bold text-[10px] sm:text-sm opacity-50 whitespace-nowrap">紅方 (你/P1)</div>
             </div>
         </div>
 
@@ -280,7 +279,7 @@ const MancalaGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         {winner === 1 ? "紅方獲勝！" : winner === 2 ? "藍方獲勝！" : "平手"}
                     </h2>
                     <p className="text-gray-500 mb-6">比分 {board[6]} : {board[13]}</p>
-                    <button onClick={resetGame} className="px-6 py-2 bg-cyan-600 text-white rounded-lg font-bold">再來一局</button>
+                    <button onClick={resetGame} aria-label="再來一局" className="min-h-11 px-6 py-2 bg-cyan-600 text-white rounded-lg font-bold">再來一局</button>
                 </div>
             </div>
         )}
