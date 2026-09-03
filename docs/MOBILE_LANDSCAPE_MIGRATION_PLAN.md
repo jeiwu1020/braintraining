@@ -75,7 +75,7 @@
 
 ### 3.4 版型資料契約決策
 
-`BOARD_TABLE` 已正式定義為第六個 layout preset，並加入 `GameLayoutPreset` 與 `GAME_LAYOUT_PRESETS` 的 canonical contract。公開 21 點維持獨立牌桌型版面，不併入 `BOARD_SIDEBAR`。四子棋 reference 已通過 reviewer gate；五子棋已使用相同 `BoardSidebarLayout` 完成第二款遷移，並完成交叉點棋盤幾何、星位、外框留白與省略重複 feedback 的 visual acceptance；黑白棋完成第三款遷移並驗證 8×8 cell-based 棋盤與合法步提示；數獨完成第四款遷移，驗證 4×4／9×9 cell-based 資料輸入棋盤；其餘 BOARD 遊戲尚未開始 migration。
+`BOARD_TABLE` 已正式定義為第六個 layout preset，並加入 `GameLayoutPreset` 與 `GAME_LAYOUT_PRESETS` 的 canonical contract。公開 21 點維持獨立牌桌型版面，不併入 `BOARD_SIDEBAR`。四子棋 reference 已通過 reviewer gate；五子棋已使用相同 `BoardSidebarLayout` 完成第二款遷移，並完成交叉點棋盤幾何、星位、外框留白與省略重複 feedback 的 visual acceptance；黑白棋完成第三款遷移並驗證 8×8 cell-based 棋盤與合法步提示；數獨完成第四款遷移，驗證 4×4／9×9 cell-based 資料輸入棋盤；點格棋完成第五款遷移，驗證 5×5 dots／4×4 boxes 的 edge-based 操作模型；其餘 BOARD 遊戲尚未開始 migration。
 
 ## 4. 目前進度
 
@@ -84,7 +84,7 @@
 | 口徑 | 已完成 | 總數 | 完成率 | 說明 |
 | --- | ---: | ---: | ---: | --- |
 | 目前完成的前兩波 | 30 | 30 | 100% | `SPLIT_CHOICE` 與 `GRID_FOCUS` |
-| 全部遊戲標準化 | 34 | 59 | 57.6% | 包含四子棋 reference、五子棋與後續棋盤、帶領及沉浸式遊戲 |
+| 全部遊戲標準化 | 35 | 59 | 59.3% | 包含四子棋 reference、五子棋與後續棋盤、帶領及沉浸式遊戲 |
 | `GRID_FOCUS` 當前批次 | 19 | 19 | 100% | 完成 |
 
 ### 4.2 各版型進度
@@ -93,11 +93,11 @@
 | --- | ---: | ---: | --- |
 | `SPLIT_CHOICE` | 11 | 11 | 完成 |
 | `GRID_FOCUS` | 19 | 19 | 完成 |
-| `BOARD_SIDEBAR` | 4 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋與數獨完成遷移 |
+| `BOARD_SIDEBAR` | 5 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移 |
 | `BOARD_TABLE` | 0 | 1 | 尚未進入統一遷移 |
 | `FACILITATOR` | 0 | 11 | 尚未進入統一遷移 |
 | `IMMERSIVE` | 0 | 6 | 尚未進入統一遷移 |
-| 合計 | 34 | 59 | 進行中 |
+| 合計 | 35 | 59 | 進行中 |
 
 「0」表示尚未依本次固定規格完成系統性遷移與驗收，不代表該遊戲目前完全沒有手機橫向樣式。
 
@@ -145,8 +145,8 @@
 
 ### 5.3 目前自動化證據
 
-- 23 個測試檔通過。
-- 66 個測試通過。
+- 24 個測試檔通過。
+- 68 個測試通過。
 - Vite 正式版建置成功。
 - `git diff --check` 通過。
 - 已有目錄、共用版面與代表遊戲契約測試。
@@ -155,6 +155,7 @@
 - 四子棋已建立 `BoardSidebarLayout` reference：640 × 360、844 × 390、932 × 430 橫向與 390 × 844 直向均完成代表狀態檢查，棋盤 7 × 6 完整可見，欄位操作、PVE／PVP、AI 延遲、悔棋、勝利與規則對話框均保留。
 - 黑白棋已使用核准的 `BoardSidebarLayout` 完成 8 × 8 cell-based 棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，初始合法步、翻子、PVE／PVP、AI 延遲、悔棋、計數與規則對話框均保留。
 - 數獨已使用核准的 `BoardSidebarLayout` 完成 4 × 4／9 × 9 cell-based 資料輸入棋盤遷移：棋盤、子區塊粗分隔線、固定／玩家數字、auto／manual target 與 1–9 輸入控制均保留。
+- 點格棋已使用核准的 `BoardSidebarLayout` 完成 edge-based 棋盤遷移：25 個 dots、40 條 selectable edges、16 個 boxes、方格 ownership、完成方格後續手與 PVE／PVP／悔棋均保留。
 - 五子棋已以 `BoardSidebarLayout` 完成 10 × 10 正方形棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，座標、逐格操作、PVE／PVP、AI 延遲、悔棋與五連線勝利均保留。
 - 完整 `tsc --noEmit` 目前尚未形成有效品質門檻：既有根目錄腳本 `fixMissingData.ts` 在第 154 行有無效字元、第 169 行有未結束的 template literal，會先中止型別檢查。
 
@@ -340,9 +341,9 @@ GRID_FOCUS 已完成最後 G6；每完成一個新版型的第一款仍由 Sol �
 請審查這份「小遊戲手機橫向版面遷移計劃書」，重點判斷剩餘工作是否適合從 Sol 中度切換成 Luna Max。
 
 請依下列項目回答：
-1. 先核對進度分母：前兩波 30/30、全專案 34/59、GRID_FOCUS 19/19 與 `BOARD_SIDEBAR` 4/11 是否合理。
+1. 先核對進度分母：前兩波 30/30、全專案 35/59、GRID_FOCUS 19/19 與 `BOARD_SIDEBAR` 5/11 是否合理。
 2. 將剩餘任務分成「Luna Max 可獨立完成」、「Luna Max 完成後需 Sol 複核」、「應由 Sol 處理」。
-3. 審查金字塔接龍 Luna Max 收尾遷移是否風險可控，以及數獨第四款 `BOARD_SIDEBAR` 遷移是否符合既有 reference contract。
+3. 審查金字塔接龍 Luna Max 收尾遷移是否風險可控，以及點格棋第五款 `BOARD_SIDEBAR` 遷移是否符合既有 reference contract。
 4. 指出目前驗收條件是否足以防止 UI 遷移誤改規則。
 5. 比較 Luna Max 與 Sol 中度在品質、返工風險、token／成本、速度上的預期差異；無法從官方資料確認的部分請明確標示為推論。
 6. 最後給出明確建議：完全切換、混合分工，或維持 Sol，並列出停止 Luna 試點的條件。
