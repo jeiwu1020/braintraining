@@ -1,22 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Crown, Undo2, HelpCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Trophy, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 import { applyGobbletMove, type GobbletPiece } from '../services/gobblet';
+import GameModeSelector from './game-ui/GameModeSelector';
 
 interface Props {
   onBack: () => void;
   difficulty?: Difficulty;
 }
 
-type Size = 0 | 1 | 2;
 type Piece = GobbletPiece;
+
+const initGobbletPieces = (player: 1 | 2): Piece[] => [
+  { player, size: 0, id: `${player}-s1` }, { player, size: 0, id: `${player}-s2` },
+  { player, size: 1, id: `${player}-m1` }, { player, size: 1, id: `${player}-m2` },
+  { player, size: 2, id: `${player}-l1` }, { player, size: 2, id: `${player}-l2` },
+];
+
+const gobbletSizeLabels = ['小型', '中型', '大型'] as const;
+const gobbletSizeCodes = ['S', 'M', 'L'] as const;
 
 const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const [board, setBoard] = useState<Piece[][]>(Array(9).fill([]));
-  const [p1Inv, setP1Inv] = useState<Piece[]>([]);
-  const [p2Inv, setP2Inv] = useState<Piece[]>([]);
+  const [p1Inv, setP1Inv] = useState<Piece[]>(() => initGobbletPieces(1));
+  const [p2Inv, setP2Inv] = useState<Piece[]>(() => initGobbletPieces(2));
   const [turn, setTurn] = useState<1 | 2>(1);
   const [selectedPiece, setSelectedPiece] = useState<{source: 'board'|'inv', index: number} | null>(null);
   const [winner, setWinner] = useState<number | null>(null);
@@ -34,16 +43,10 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   useEffect(() => { resetGame(); }, [gameMode]);
 
-  const initPieces = (p: 1 | 2) => [
-      {player: p, size: 0, id: `${p}-s1`}, {player: p, size: 0, id: `${p}-s2`},
-      {player: p, size: 1, id: `${p}-m1`}, {player: p, size: 1, id: `${p}-m2`},
-      {player: p, size: 2, id: `${p}-l1`}, {player: p, size: 2, id: `${p}-l2`}
-  ] as Piece[];
-
   const resetGame = () => {
       setBoard(Array(9).fill([]));
-      setP1Inv(initPieces(1));
-      setP2Inv(initPieces(2));
+      setP1Inv(initGobbletPieces(1));
+      setP2Inv(initGobbletPieces(2));
       setTurn(1);
       setWinner(null);
       setIsWinModalOpen(false);
@@ -284,58 +287,65 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   const PieceRender = ({ p, isBoard = false }: { p: Piece, isBoard?: boolean }) => {
       const sizeClasses = isBoard 
-          ? [ 'w-[40%] h-[40%]', 'w-[65%] h-[65%]', 'w-[90%] h-[90%]' ]
-          : [ 'w-6 h-6 sm:w-10 sm:h-10', 'w-10 h-10 sm:w-14 sm:h-14', 'w-14 h-14 sm:w-20 sm:h-20' ];
+           ? [ 'w-[40%] h-[40%]', 'w-[65%] h-[65%]', 'w-[90%] h-[90%]' ]
+           : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10 max-[700px]:landscape:w-7 max-[700px]:landscape:h-7', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14 max-[700px]:landscape:w-9 max-[700px]:landscape:h-9', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20 max-[700px]:landscape:w-11 max-[700px]:landscape:h-11' ];
       const colorClass = p.player === 1 ? 'bg-blue-500 border-blue-700' : 'bg-orange-500 border-orange-700';
       return (
-          <div className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`}>
-              {['S', 'M', 'L'][p.size]}
+           <div className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`} aria-hidden="true">
+              {gobbletSizeCodes[p.size]}
           </div>
       );
   };
 
   return (
-    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-orange-50 overflow-hidden text-orange-900">
+    <div className="gobblet-game flex flex-col landscape:flex-row h-[100dvh] bg-orange-50 overflow-hidden text-orange-900">
+        <style>{`@media (orientation: landscape) and (max-width: 700px) {
+          .gobblet-game [data-gobblet-layout="inventory-board-inventory"] { gap: 0.25rem; padding: 0.25rem; }
+          .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; width: auto; }
+          .gobblet-game .gobblet-piece-s { width: 1.75rem; height: 1.75rem; }
+          .gobblet-game .gobblet-piece-m { width: 2.25rem; height: 2.25rem; }
+          .gobblet-game .gobblet-piece-l { width: 2.75rem; height: 2.75rem; }
+        }`}</style>
         <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
-            <button onClick={onBack} className="p-1.5 md:p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-                <ArrowLeft size={18} />
+            <button type="button" onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200">
+                <ArrowLeft size={18} aria-hidden="true" />
             </button>
             <div className="flex portrait:flex-row landscape:flex-col gap-2">
-                <button 
-                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')} 
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-orange-50 rounded-full text-xs sm:text-sm font-bold border border-orange-200"
-                >
-                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />} 
-                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
-                </button>
-                <button 
+                <button
+                    type="button"
                     onClick={handleUndo} 
                     disabled={history.length === 0}
-                    className="p-1.5 md:p-2 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 disabled:opacity-50 flex items-center justify-center"
+                    aria-label="悔棋"
+                    className="min-h-11 min-w-11 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 disabled:opacity-50 flex items-center justify-center"
                 >
-                    <Undo2 size={16} />
+                    <Undo2 size={16} aria-hidden="true" />
                 </button>
-                <button 
+                <button
+                    type="button"
                     onClick={() => setShowRules(true)} 
-                    className="p-1.5 md:p-2 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 flex items-center justify-center"
+                    aria-label="遊戲規則"
+                    className="min-h-11 min-w-11 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 flex items-center justify-center"
                 >
-                    <HelpCircle size={16} />
+                    <HelpCircle size={16} aria-hidden="true" />
                 </button>
             </div>
-            <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200">
-                <RefreshCw size={18} />
+            <button type="button" onClick={resetGame} aria-label="重新開始" className="min-h-11 min-w-11 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200">
+                <RefreshCw size={18} aria-hidden="true" />
             </button>
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <div className="flex-none text-center py-1 sm:py-2 font-bold text-sm sm:text-lg bg-orange-200 border-b border-orange-300 z-10">
-                {winner ? (winner === 1 ? "藍方獲勝！" : "橘方獲勝！") : (turn === 1 ? "藍方回合 (你)" : (gameMode==='PVE'?"電腦思考中...":"橘方回合"))}
+            <div className="flex-none flex items-center justify-between gap-2 px-2 py-1 bg-orange-200 border-b border-orange-300 z-10">
+                <div className="min-w-0 flex-1 text-center font-bold text-sm sm:text-lg">
+                    {winner ? (winner === 1 ? "藍方獲勝！" : "橘方獲勝！") : (turn === 1 ? "藍方回合 (你)" : (gameMode==='PVE'?"電腦思考中...":"橘方回合"))}
+                </div>
+                <GameModeSelector value={gameMode} onChange={setGameMode} className="!w-[190px] shrink-0" />
             </div>
 
-            <div className="flex-1 flex flex-col portrait:sm:flex-row landscape:flex-row items-center justify-center p-2 gap-2 sm:gap-6 overflow-hidden w-full h-full">
-            <div className={`flex-none order-1 sm:order-3 p-2 rounded-xl bg-orange-100/50 grid grid-cols-6 sm:grid-cols-2 gap-2 justify-center items-center w-full sm:w-auto h-auto sm:max-h-full ${turn === 2 ? 'ring-2 ring-orange-400' : 'opacity-70'}`}>
+            <div data-gobblet-layout="inventory-board-inventory" className="flex-1 flex flex-col portrait:sm:flex-row landscape:flex-row items-center justify-center p-2 max-[700px]:landscape:p-1 gap-2 sm:gap-6 max-[700px]:landscape:gap-1 overflow-hidden w-full h-full">
+            <div data-gobblet-inventory="2" aria-label="橘方棋子庫" className={`flex-none order-1 sm:order-3 p-2 max-[700px]:landscape:p-1 rounded-xl bg-orange-100/50 grid grid-cols-6 sm:grid-cols-2 max-[700px]:landscape:grid-cols-2 gap-2 max-[700px]:landscape:gap-1 justify-center items-center w-full sm:w-auto max-[700px]:landscape:w-auto h-auto sm:max-h-full shrink-0 ${turn === 2 ? 'ring-2 ring-orange-400' : 'opacity-70'}`}>
                 {p2Inv.map((p, i) => (
-                    <button key={p.id} onClick={() => handleInvClick(2, i)} disabled={gameMode === 'PVE'} className={`transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
+                    <button key={p.id} type="button" data-gobblet-inventory-player="2" data-gobblet-piece-size={gobbletSizeCodes[p.size]} onClick={() => handleInvClick(2, i)} disabled={gameMode === 'PVE'} aria-label={`橘方${gobbletSizeLabels[p.size]}棋子 ${p.id.endsWith('2') ? '2' : '1'}`} aria-pressed={selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2} className={`min-h-11 min-w-11 transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===2 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
                         <PieceRender p={p} isBoard={false} />
                     </button>
                 ))}
@@ -350,14 +360,17 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         <div className="flex flex-col pr-1 sm:pr-2 py-3 w-6 sm:w-8 shrink-0">
                             {['1', '2', '3'].map(t => <div key={t} className="flex-1 flex items-center justify-center font-bold text-orange-800 text-xs sm:text-sm">{t}</div>)}
                         </div>
-                        <div className="bg-white p-2 rounded-xl shadow-2xl border-4 border-orange-200 grid grid-cols-3 grid-rows-3 gap-2 aspect-square flex-1 w-full">
+                        <div data-gobblet-board="true" className="bg-white p-2 rounded-xl shadow-2xl border-4 border-orange-200 grid grid-cols-3 grid-rows-3 gap-2 aspect-square flex-1 w-full">
                             {board.map((stack, i) => {
                                 const top = stack.length > 0 ? stack[stack.length-1] : null;
                                 const pSelected = selectedPiece?.source === 'inv' ? (turn === 1 ? p1Inv : p2Inv)[selectedPiece.index] : (selectedPiece?.source === 'board' ? board[selectedPiece.index][board[selectedPiece.index].length-1] : null);
                                 const isTarget = pSelected && canPlace(i, pSelected, board);
                                 const isSource = selectedPiece?.source === 'board' && selectedPiece.index === i;
+                                const coordinate = `${['A', 'B', 'C'][i % 3]}${Math.floor(i / 3) + 1}`;
+                                const topLabel = top ? `${top.player === 1 ? '藍方' : '橘方'}${gobbletSizeLabels[top.size]}棋子` : '空位';
                                 return (
-                                    <button key={i} onClick={() => handleBoardClick(i)} className={`relative bg-orange-50 rounded-lg flex items-center justify-center border-2 border-orange-100 w-full h-full aspect-square ${isTarget ? 'bg-green-100 border-green-300 animate-pulse' : ''} ${isSource ? 'ring-4 ring-yellow-400 z-20' : ''}`}>
+                                    <button key={i} type="button" data-gobblet-cell={coordinate} aria-label={`${coordinate}，${topLabel}`} onClick={() => handleBoardClick(i)} className={`relative bg-orange-50 rounded-lg flex items-center justify-center border-2 border-orange-100 w-full h-full aspect-square ${isTarget ? 'bg-green-100 border-green-300 animate-pulse' : ''} ${isSource ? 'ring-4 ring-yellow-400 z-20' : ''}`}>
+                                        {isTarget && <span aria-hidden="true" className="pointer-events-none absolute inset-1 rounded-md border-2 border-green-700" />}
                                         {top && <PieceRender p={top} isBoard={true} />}
                                     </button>
                                 )
@@ -367,9 +380,9 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 </div>
             </div>
 
-            <div className={`flex-none order-3 sm:order-1 p-2 rounded-xl bg-blue-100/50 grid grid-cols-6 sm:grid-cols-2 gap-2 justify-center items-center w-full sm:w-auto h-auto sm:max-h-full ${turn === 1 ? 'ring-2 ring-blue-400' : 'opacity-70'}`}>
+            <div data-gobblet-inventory="1" aria-label="藍方棋子庫" className={`flex-none order-3 sm:order-1 p-2 max-[700px]:landscape:p-1 rounded-xl bg-blue-100/50 grid grid-cols-6 sm:grid-cols-2 max-[700px]:landscape:grid-cols-2 gap-2 max-[700px]:landscape:gap-1 justify-center items-center w-full sm:w-auto max-[700px]:landscape:w-auto h-auto sm:max-h-full shrink-0 ${turn === 1 ? 'ring-2 ring-blue-400' : 'opacity-70'}`}>
                 {p1Inv.map((p, i) => (
-                    <button key={p.id} onClick={() => handleInvClick(1, i)} className={`transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===1 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
+                    <button key={p.id} type="button" data-gobblet-inventory-player="1" data-gobblet-piece-size={gobbletSizeCodes[p.size]} onClick={() => handleInvClick(1, i)} aria-label={`藍方${gobbletSizeLabels[p.size]}棋子 ${p.id.endsWith('2') ? '2' : '1'}`} aria-pressed={selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===1} className={`min-h-11 min-w-11 transition-transform aspect-square flex items-center justify-center ${selectedPiece?.source === 'inv' && selectedPiece.index === i && turn===1 ? 'scale-110 ring-2 ring-yellow-400 rounded-full' : ''}`}>
                         <PieceRender p={p} isBoard={false} />
                     </button>
                 ))}
@@ -379,9 +392,9 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
         {/* Rules Modal */}
         {showRules && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90vh]">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-orange-900"><HelpCircle /> 遊戲規則：奇雞連連</h2>
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="gobblet-rules-title">
+                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl overflow-y-auto max-h-[90dvh]">
+                    <h2 id="gobblet-rules-title" className="text-xl font-bold mb-4 flex items-center gap-2 text-orange-900"><HelpCircle aria-hidden="true" /> 遊戲規則：奇雞連連</h2>
                     <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
                         <li>雙方各有三種尺寸大小的圈圈（套娃/奇雞）。</li>
                         <li><b>放置規則：</b>你可以將場外自己顏色的圈圈放入棋盤上的空位。</li>
@@ -390,8 +403,10 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                         <li><b>露子規則：</b>移開棋子後若露出對方三連線，你必須把拿起的棋子蓋住該連線中另外一枚較小棋子，破壞連線；否則即使你的落點也形成三連線，仍由對方獲勝。</li>
                     </ul>
                     <button 
+                        type="button"
                         onClick={() => setShowRules(false)} 
-                        className="w-full py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
+                        aria-label="關閉遊戲規則"
+                        className="w-full min-h-11 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
                     >
                         了解，開始遊戲！
                     </button>
@@ -400,11 +415,11 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         )}
 
         {winner && isWinModalOpen && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="gobblet-win-title">
                 <div className="bg-white p-8 rounded-2xl text-center shadow-2xl border-4 border-orange-200 w-full max-w-sm">
-                    <Trophy className="w-16 h-16 mx-auto mb-4 text-yellow-500"/>
-                    <h2 className="text-2xl font-bold mb-6">{winner === 1 ? "藍方獲勝！" : "橘方獲勝！"}</h2>
-                    <button onClick={() => setIsWinModalOpen(false)} className="px-10 py-3 bg-orange-600 text-white rounded-lg font-bold">確認</button>
+                    <Trophy aria-hidden="true" className="w-16 h-16 mx-auto mb-4 text-yellow-500"/>
+                    <h2 id="gobblet-win-title" className="text-2xl font-bold mb-6">{winner === 1 ? "藍方獲勝！" : "橘方獲勝！"}</h2>
+                    <button type="button" onClick={() => setIsWinModalOpen(false)} className="min-h-11 px-10 py-3 bg-orange-600 text-white rounded-lg font-bold">確認</button>
                 </div>
             </div>
         )}

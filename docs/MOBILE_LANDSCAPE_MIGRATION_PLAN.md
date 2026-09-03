@@ -11,7 +11,7 @@
 
 ### Acceptance 路徑政策
 
-本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 39/59。
+本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 40/59。
 
 隨著小遊戲數量增加，逐款獨立調整已造成頁首、操作區、回饋方式、觸控尺寸與橫向高度利用不一致。本計畫的目標是建立可重複使用的版面規格，逐批遷移 59 款現有遊戲，並讓未來新增遊戲能直接套用同一套分類、元資料、版型與驗收方式。
 
@@ -88,7 +88,7 @@
 | 口徑 | 已完成 | 總數 | 完成率 | 說明 |
 | --- | ---: | ---: | ---: | --- |
 | 目前完成的前兩波 | 30 | 30 | 100% | `SPLIT_CHOICE` 與 `GRID_FOCUS` |
-| 全部遊戲標準化 | 39 | 59 | 66.1% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋 LIGHT acceptance、帶領及沉浸式遊戲 |
+| 全部遊戲標準化 | 40 | 59 | 67.8% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／奇雞連連 LIGHT acceptance、帶領及沉浸式遊戲 |
 | `GRID_FOCUS` 當前批次 | 19 | 19 | 100% | 完成 |
 
 ### 4.2 各版型進度
@@ -97,11 +97,11 @@
 | --- | ---: | ---: | --- |
 | `SPLIT_CHOICE` | 11 | 11 | 完成 |
 | `GRID_FOCUS` | 19 | 19 | 完成 |
-| `BOARD_SIDEBAR` | 8 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋與圍棋以 LIGHT 路徑完成標準化 |
+| `BOARD_SIDEBAR` | 10 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋與奇雞連連以 LIGHT 路徑完成標準化 |
 | `BOARD_TABLE` | 0 | 1 | 尚未進入統一遷移 |
 | `FACILITATOR` | 0 | 11 | 尚未進入統一遷移 |
 | `IMMERSIVE` | 0 | 6 | 尚未進入統一遷移 |
-| 合計 | 39 | 59 | 進行中 |
+| 合計 | 40 | 59 | 進行中 |
 
 「0」表示尚未依本次固定規格完成系統性遷移與驗收，不代表該遊戲目前完全沒有手機橫向樣式。
 
@@ -167,6 +167,7 @@
 - 暗棋後續視覺驗收修正已完成：Back／Undo／Rules／Reset 工具列按鈕統一 44×44px 置中，隱藏與翻開棋子改為明確 1:1 圓形 token（640×360 約 35.7×35.7px），未改 gameplay。
 - 尋寶迷宮指路已保留專用左側控制＋右側迷宮架構並完成 LIGHT acceptance：640×360 landscape 結構維持；390×844 改為迷宮在上、控制在下的 portrait stack，NORMAL 7×9 與 ADVANCED 9×13 均無 cell overlap，返回／規則／聲控／方向控制補上 accessible names，未改 maze 或語音 gameplay。
 - Weiqi completed mobile standardization through LIGHT acceptance while retaining its specialized Go landscape layout and three-mode AI/PVP/PUZZLE control model. 640×360 9×9 棋盤約 297px → 約 297px（0% shrink），模式與核心操作約 44px，保留專用 `WeiqiLandscapeLayout`，未改 gameplay；`GameModeSelector` 不適用。
+- Gobblet completed mobile standardization through LIGHT acceptance while retaining its dedicated dual-inventory + 3×3 board architecture. 640×360 棋盤約 216×216px → 約 216×216px（0% shrink），S/M/L 視覺尺寸約 28/36/44px，inventory hit box 至少 44px；PVE/PVP 使用 shared `GameModeSelector`，未改 gameplay。
 - 五子棋已以 `BoardSidebarLayout` 完成 10 × 10 正方形棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，座標、逐格操作、PVE／PVP、AI 延遲、悔棋與五連線勝利均保留。
 - 完整 `tsc --noEmit` 目前尚未形成有效品質門檻：既有根目錄腳本 `fixMissingData.ts` 在第 154 行有無效字元、第 169 行有未結束的 template literal，會先中止型別檢查。
 
@@ -189,13 +190,12 @@
 - 四子棋
 - 黑白棋
 - 西洋跳棋
-- 奇雞連連
 
 `BOARD_TABLE`：
 
 - 公開 21 點
 
-四子棋已建立並通過 reviewer gate 的第一個 `BoardSidebarLayout` 參考實作；本輪修正其手機橫向圓形孔洞、A–G 座標可見性／對比與重複底部狀態，並確認 optional feedback 缺省時不保留空白列。五子棋與黑白棋已完成後續遷移；尋寶迷宮指路、象棋暗棋、播棋與圍棋均保留專用版面並以 LIGHT 路徑完成模式控制、觸控尺寸與 accessibility 標準化。後續仍應逐款檢查規則與狀態較複雜的西洋跳棋。奇雞連連已有規則判定測試，但版面仍應納入本階段重新驗收。公開 21 點因牌桌資訊結構不同，保留獨立 `BOARD_TABLE` 版型。
+四子棋已建立並通過 reviewer gate 的第一個 `BoardSidebarLayout` 參考實作；本輪修正其手機橫向圓形孔洞、A–G 座標可見性／對比與重複底部狀態，並確認 optional feedback 缺省時不保留空白列。五子棋與黑白棋已完成後續遷移；尋寶迷宮指路、象棋暗棋、播棋、圍棋與 Gobblet 均保留專用版面並以 LIGHT 路徑完成模式控制、觸控尺寸與 accessibility 標準化。後續仍應逐款檢查規則與狀態較複雜的西洋跳棋。公開 21 點因牌桌資訊結構不同，保留獨立 `BOARD_TABLE` 版型。
 
 ### 6.3 第三優先：帶領型 11 款
 
@@ -349,7 +349,7 @@ GRID_FOCUS 已完成最後 G6；每完成一個新版型的第一款仍由 Sol �
 請審查這份「小遊戲手機橫向版面遷移計劃書」，重點判斷剩餘工作是否適合從 Sol 中度切換成 Luna Max。
 
 請依下列項目回答：
-1. 先核對進度分母：前兩波 30/30、全專案 39/59、GRID_FOCUS 19/19 與 `BOARD_SIDEBAR` 8/11 是否合理。
+1. 先核對進度分母：前兩波 30/30、全專案 40/59、GRID_FOCUS 19/19 與 `BOARD_SIDEBAR` 10/11 是否合理。
 2. 將剩餘任務分成「Luna Max 可獨立完成」、「Luna Max 完成後需 Sol 複核」、「應由 Sol 處理」。
 3. 審查金字塔接龍 Luna Max 收尾遷移是否風險可控，以及點格棋第五款 `BOARD_SIDEBAR` 遷移是否符合既有 reference contract。
 4. 指出目前驗收條件是否足以防止 UI 遷移誤改規則。
@@ -361,7 +361,7 @@ GRID_FOCUS 已完成最後 G6；每完成一個新版型的第一款仍由 Sol �
 
 ## 14. 建議決策
 
-目前最穩健的方案仍是「混合分工」，不是立即把全部剩餘 20 款一次交給 Luna Max：
+目前最穩健的方案仍是「混合分工」，不是立即把全部剩餘 2 款一次交給 Luna Max：
 
 1. Luna Max 已完成 `GRID_FOCUS` 試點與最後一款金字塔接龍。
 2. 使用現有測試、雙尺寸實測與人工差異檢查衡量品質。
