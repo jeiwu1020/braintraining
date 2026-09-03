@@ -22,6 +22,9 @@ describe('Gobblet LIGHT acceptance', () => {
     expect((markup.match(/data-gobblet-inventory-player="2" data-gobblet-piece-size=/g) ?? [])).toHaveLength(6);
     expect(markup).toContain('data-gobblet-cell="A1"');
     expect(markup).toContain('aria-label="A1，空位"');
+    expect(markup).toContain('data-gobblet-board-frame="true"');
+    expect(markup).toContain('width: min(72vh, 88vw)');
+    expect(markup).toContain('.gobblet-piece-s { width: 1.5rem; height: 1.5rem; }');
 
     expect(markup).toContain('aria-label="返回"');
     expect(markup).toContain('aria-label="悔棋"');

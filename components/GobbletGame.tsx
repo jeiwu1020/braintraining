@@ -288,7 +288,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const PieceRender = ({ p, isBoard = false }: { p: Piece, isBoard?: boolean }) => {
       const sizeClasses = isBoard 
            ? [ 'w-[40%] h-[40%]', 'w-[65%] h-[65%]', 'w-[90%] h-[90%]' ]
-           : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10 max-[700px]:landscape:w-7 max-[700px]:landscape:h-7', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14 max-[700px]:landscape:w-9 max-[700px]:landscape:h-9', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20 max-[700px]:landscape:w-11 max-[700px]:landscape:h-11' ];
+           : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10 max-[700px]:landscape:w-6 max-[700px]:landscape:h-6', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14 max-[700px]:landscape:w-8 max-[700px]:landscape:h-8', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20 max-[700px]:landscape:w-10 max-[700px]:landscape:h-10' ];
       const colorClass = p.player === 1 ? 'bg-blue-500 border-blue-700' : 'bg-orange-500 border-orange-700';
       return (
            <div className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`} aria-hidden="true">
@@ -301,10 +301,11 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     <div className="gobblet-game flex flex-col landscape:flex-row h-[100dvh] bg-orange-50 overflow-hidden text-orange-900">
         <style>{`@media (orientation: landscape) and (max-width: 700px) {
           .gobblet-game [data-gobblet-layout="inventory-board-inventory"] { gap: 0.25rem; padding: 0.25rem; }
-          .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; width: auto; }
-          .gobblet-game .gobblet-piece-s { width: 1.75rem; height: 1.75rem; }
-          .gobblet-game .gobblet-piece-m { width: 2.25rem; height: 2.25rem; }
-          .gobblet-game .gobblet-piece-l { width: 2.75rem; height: 2.75rem; }
+          .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 0; width: auto; }
+          .gobblet-game .gobblet-board-frame { width: min(72vh, 88vw) !important; }
+          .gobblet-game .gobblet-piece-s { width: 1.5rem; height: 1.5rem; }
+          .gobblet-game .gobblet-piece-m { width: 2rem; height: 2rem; }
+          .gobblet-game .gobblet-piece-l { width: 2.5rem; height: 2.5rem; }
         }`}</style>
         <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
             <button type="button" onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200">
@@ -352,7 +353,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             </div>
 
             <div className="order-2 flex-1 flex flex-col items-center justify-center min-h-0 w-full">
-                <div className="flex flex-col items-center justify-center" style={{ width: 'min(60vh, 85vw)' }}>
+                <div data-gobblet-board-frame="true" className="gobblet-board-frame flex flex-col items-center justify-center" style={{ width: 'min(60vh, 85vw)' }}>
                     <div className="flex w-full pl-6 sm:pl-8 mb-1">
                         {['A', 'B', 'C'].map(t => <div key={t} className="flex-1 text-center font-bold text-orange-800 text-xs sm:text-sm">{t}</div>)}
                     </div>
