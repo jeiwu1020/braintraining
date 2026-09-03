@@ -1,15 +1,47 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Difficulty } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles, Flame, Clock, Zap } from 'lucide-react';
+import { RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles, Flame } from 'lucide-react';
 import { RulesModal } from './RulesModal';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface ChineseTenGameProps {
   onBack: () => void;
   difficulty?: Difficulty;
   isAdvanced?: boolean;
+  initialQuestions?: ChineseTenQuestion[];
 }
+
+interface ChineseTenRoundLayoutProps {
+  difficulty: Difficulty;
+  currentIndex: number;
+  totalQuestions: number;
+  score: number;
+  elapsedTime: number;
+  board: ReactNode;
+  support: ReactNode;
+  feedback?: ReactNode;
+  teamMode?: 'SOLO' | 'TEAM';
+  teamAScore?: number;
+  teamBScore?: number;
+  currentTeam?: 'A' | 'B';
+  onBack: () => void;
+  onToggleTeam: () => void;
+  onShowRules: () => void;
+  onRestart: () => void;
+}
+
+export const ChineseTenRoundLayout: React.FC<ChineseTenRoundLayoutProps> = ({ difficulty, currentIndex, totalQuestions, score, elapsedTime, board, support, feedback, teamMode = 'SOLO', teamAScore = 0, teamBScore = 0, currentTeam = 'A', onBack, onToggleTeam, onShowRules, onRestart }) => (
+  <GameShell title="經典撿紅點" subtitle="找出湊十配對，搶下高分紅牌" onBack={onBack} className="bg-gradient-to-br from-rose-950 via-red-950 to-orange-950" status={(
+    <div className="flex items-center gap-1.5"><span className="rounded-full bg-rose-500 px-2 py-1 text-xs font-bold text-white">{difficulty === 'ADVANCED' ? '進階撿牌' : '經典撿紅'}</span><span className="rounded-full bg-rose-100 px-2 py-1 text-xs font-bold text-rose-900 sm:px-3 sm:text-sm">第 {currentIndex + 1}/{totalQuestions} 題</span>{teamMode === 'TEAM' ? <span className="rounded-full bg-rose-900 px-2 py-1 text-xs font-bold text-white">{currentTeam} 組 · A {teamAScore} / B {teamBScore}</span> : <span className="rounded-full bg-rose-100 px-2 py-1 text-xs font-bold text-rose-900 sm:px-3 sm:text-sm">{score} 分</span>}</div>
+  )} actions={(
+    <><span className="hidden rounded-xl bg-rose-900 px-2 py-1 text-xs font-bold text-rose-200 sm:inline">{elapsedTime.toFixed(1)}s</span><button type="button" onClick={onToggleTeam} aria-label="切換單人或分組模式" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-rose-900 text-rose-200"><Users aria-hidden="true" className="h-5 w-5" /></button><button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-rose-900 text-rose-200"><HelpCircle aria-hidden="true" className="h-5 w-5" /></button><button type="button" onClick={onRestart} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-rose-900 text-rose-200"><RotateCcw aria-hidden="true" className="h-5 w-5" /></button></>
+  )}>
+    <GridFocusLayout playfieldLabel="撿紅牌桌" supportLabel="撿紅題目與手牌" className="bg-gradient-to-br from-rose-950 via-red-950 to-orange-950" playfieldClassName="overflow-hidden rounded-xl border border-rose-700/60 bg-rose-950/70 p-2 text-white" supportClassName="overflow-hidden rounded-xl border border-rose-700/60 bg-rose-950/70 p-2 text-white" feedbackClassName="rounded-xl border-rose-700/60 bg-rose-950/95 px-2 text-white" playfield={board} support={support} feedback={feedback} />
+  </GameShell>
+);
 
 export type CardSuit = 'spade' | 'heart' | 'diamond' | 'club';
 
@@ -90,6 +122,8 @@ export const PlayingCard: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
+      aria-label={`${onClick && !disabled ? '選擇' : '撿紅牌'}${card.name}`}
+      aria-pressed={onClick ? selected : undefined}
       className={`relative ${sizeClasses[size]} rounded-xl bg-white border-2 lg:border-[3px] shadow-md flex flex-col justify-between p-1 sm:p-1.5 lg:p-2.5 transition-all select-none overflow-hidden shrink-0
         ${suitInfo.color}
         ${selected ? 'ring-3 lg:ring-4 ring-amber-500 border-amber-600 -translate-y-1 shadow-lg bg-amber-50' : 'border-gray-300 hover:border-amber-400'}
@@ -352,10 +386,15 @@ const calculateTimeScore = (seconds: number): { score: number; label: string; ic
   return { score: 40, label: '穩紮穩打', icon: '🛡️' };
 };
 
-const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false }) => {
+export const resolveChineseTenAnswer = ({ optionId, correctOptionId, elapsedSeconds }: { optionId?: string; correctOptionId: string; elapsedSeconds: number }) => {
+  const isCorrect = optionId === correctOptionId;
+  return { isAnswered: true, isCorrect, earnedScore: isCorrect ? calculateTimeScore(elapsedSeconds).score : 0 };
+};
+
+export const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false, initialQuestions }) => {
   const isAdv = isAdvanced || difficulty === 'ADVANCED';
 
-  const [questions, setQuestions] = useState<ChineseTenQuestion[]>([]);
+  const [questions, setQuestions] = useState<ChineseTenQuestion[]>(() => initialQuestions ?? []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -401,7 +440,7 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
 
   const restart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const list = generateChineseTenPool(isAdv);
+    const list = initialQuestions ?? generateChineseTenPool(isAdv);
     setQuestions(list);
     setCurrentIndex(0);
     setSelectedOptionId(null);
@@ -431,13 +470,14 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
     setSelectedOptionId(opt.id);
     setIsAnswered(true);
 
-    const correct = opt.id === currentQ.correctOptionId;
+    const answerResult = resolveChineseTenAnswer({ optionId: opt.id, correctOptionId: currentQ.correctOptionId, elapsedSeconds: finalSec });
+    const correct = answerResult.isCorrect;
     setIsCorrect(correct);
 
     if (correct) {
       soundService.playCorrect();
       const speedCalc = calculateTimeScore(finalSec);
-      const earned = speedCalc.score;
+      const earned = answerResult.earnedScore;
       setLastEarnedScore(earned);
       setLastSpeedInfo({ label: speedCalc.label, icon: speedCalc.icon, time: finalSec });
 
@@ -485,237 +525,18 @@ const ChineseTenGame: React.FC<ChineseTenGameProps> = ({ onBack, difficulty = 'N
   ];
 
   return (
-    <div className="h-screen max-h-screen w-full bg-gradient-to-br from-red-950 via-stone-900 to-amber-950 text-white flex flex-col p-1.5 sm:p-3 select-none overflow-hidden justify-between">
+    <>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="經典撿紅點 規則與計分" rules={rules} />
-
-      {/* Top Compact Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-stone-800 hover:bg-stone-700 active:scale-95 text-amber-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
-        >
-          <ArrowLeft size={16} />
-          <span>返回</span>
-        </button>
-
-        {/* Title & Status */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-red-600 text-white rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
-            {isAdv ? '進階精算' : '經典配對'}
-          </span>
-          <h1 className="text-xs sm:text-base lg:text-xl font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
-            經典撿紅點
-          </h1>
-          {currentQ && (
-            <span className="text-[11px] sm:text-xs lg:text-sm text-stone-400 font-bold hidden sm:inline">
-              ({currentIndex + 1}/{questions.length})
-            </span>
-          )}
-        </div>
-
-        {/* Live Timer & Score */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-red-950/80 border border-red-700/60 rounded-xl text-amber-300 text-xs lg:text-sm font-bold shadow-inner">
-              <Clock size={14} className="text-red-400 animate-spin" />
-              <span>{elapsedTime.toFixed(1)}s</span>
-            </div>
-          )}
-
-          {teamMode === 'TEAM' ? (
-            <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-stone-800 text-stone-300'}`}>
-                A:{teamAScore}
-              </span>
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-red-500 text-white' : 'bg-stone-800 text-stone-300'}`}>
-                B:{teamBScore}
-              </span>
-            </div>
-          ) : (
-            <div className="px-2 py-0.5 lg:px-3 lg:py-1 bg-stone-800 border border-stone-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm lg:text-base">
-              {score}分
-            </div>
-          )}
-
-          <button
-            onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
-              teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-stone-800 text-amber-200'
-            }`}
-            title="模式切換"
-          >
-            <Users size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
-            title="規則說明"
-          >
-            <HelpCircle size={16} />
-          </button>
-
-          <button
-            onClick={restart}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 rounded-xl transition shadow"
-            title="重新開始"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-stone-900/90 border border-red-800/40 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
-          
-          {/* Prompt Question */}
-          <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-1 lg:pb-2.5 shrink-0">
-            <div className="flex items-center gap-1.5 lg:gap-3">
-              <span className="bg-red-900/80 text-amber-300 border border-red-500/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-nowrap">
-                {currentQ.badge}
-              </span>
-              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
-                {currentQ.prompt}
-              </h2>
-            </div>
-          </div>
-
-          {/* Table Cards Display */}
-          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-stone-950/60 rounded-xl lg:rounded-2xl border border-stone-800/80 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-amber-400 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
-              <Flame size={14} className="text-red-500" />
-              <span>桌面牌況</span>
-            </span>
-
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 lg:gap-5 xl:gap-6">
-              {currentQ.tableCards.map((card, idx) => (
-                <PlayingCard key={card.id || idx} card={card} size="sm" disabled showPointsBadge />
-              ))}
-            </div>
-          </div>
-
-          {/* Hand Cards Options */}
-          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
-              {currentQ.options.map(opt => {
-                const isSelected = selectedOptionId === opt.id;
-                const isOptCorrect = opt.id === currentQ.correctOptionId;
-                let highlight = false;
-                if (isAnswered && isOptCorrect) highlight = true;
-
-                return (
-                  <div key={opt.id} className="flex flex-col items-center">
-                    <PlayingCard
-                      card={opt}
-                      size="md"
-                      selected={isSelected}
-                      highlight={highlight}
-                      disabled={isAnswered}
-                      onClick={() => handleSelect(opt)}
-                      showPointsBadge
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
-            <AnimatePresence mode="wait">
-              {isAnswered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
-                    isCorrect
-                      ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
-                      : 'bg-rose-950/95 border-rose-500 text-rose-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
-                    {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
-                    )}
-                    <div className="truncate flex items-center gap-1 lg:gap-2">
-                      {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-amber-300 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
-                          +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
-                        </span>
-                      )}
-                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
-                  >
-                    {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+        <ChineseTenRoundLayout difficulty={isAdv ? 'ADVANCED' : 'NORMAL'} currentIndex={currentIndex} totalQuestions={questions.length} score={score} elapsedTime={elapsedTime} teamMode={teamMode} teamAScore={teamAScore} teamBScore={teamBScore} currentTeam={currentTeam} onBack={onBack} onToggleTeam={() => setTeamMode(mode => mode === 'SOLO' ? 'TEAM' : 'SOLO')} onShowRules={() => setShowRules(true)} onRestart={restart}
+          board={<div className="flex h-full min-h-0 flex-col justify-between gap-2 overflow-hidden"><div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-stone-800/80 bg-stone-950/60 p-2 shadow-inner"><span className="mb-2 flex shrink-0 items-center gap-1 text-[10px] font-bold text-amber-400 sm:text-xs"><Flame aria-hidden="true" className="h-3.5 w-3.5 text-red-500" />桌面牌況</span><div className="flex max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3">{currentQ.tableCards.map((card, idx) => <PlayingCard key={card.id || idx} card={card} size="sm" disabled showPointsBadge />)}</div></div></div>}
+          support={<div className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto"><div className="rounded-xl border border-stone-800/70 bg-stone-900/70 p-3 shadow-inner"><div className="flex flex-wrap items-center gap-1.5"><span className="rounded-lg border border-red-500/50 bg-red-900/80 px-2 py-1 text-xs font-black text-amber-300 sm:text-sm">{currentQ.badge}</span><span className="text-xs font-bold text-stone-300">第 {currentIndex + 1}/{questions.length} 題</span></div><h2 className="mt-2 line-clamp-3 text-sm font-bold leading-snug text-white sm:text-base lg:text-lg">{currentQ.prompt}</h2></div><div className="flex min-h-0 flex-1 flex-col rounded-xl border border-stone-800/70 bg-black/40 p-2"><div className="shrink-0 border-b border-stone-800 pb-1 text-center text-xs font-bold tracking-wide text-amber-300">🔥 請選擇湊十牌</div><div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-1"><div className="grid w-full grid-cols-2 justify-items-center gap-2 sm:gap-3">{currentQ.options.map(opt => <PlayingCard key={opt.id} card={opt} size="md" selected={selectedOptionId === opt.id} highlight={isAnswered && opt.id === currentQ.correctOptionId} disabled={isAnswered} onClick={() => handleSelect(opt)} showPointsBadge />)}</div></div></div></div>}
+          feedback={<div className="flex min-h-[40px] shrink-0 items-center"><AnimatePresence mode="wait">{isAnswered ? <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`flex w-full items-center justify-between gap-2 rounded-xl border p-1.5 text-xs shadow sm:p-2 ${isCorrect ? 'border-emerald-500 bg-emerald-950/95 text-emerald-100' : 'border-rose-500 bg-rose-950/95 text-rose-100'}`}><div className="flex min-w-0 items-center gap-1.5 overflow-hidden">{isCorrect ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" /> : <XCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-rose-400" />}<span className="truncate font-bold">{currentQ.explanation}</span></div><button type="button" onClick={handleNext} className="min-h-11 shrink-0 rounded-lg bg-amber-400 px-3 py-1 text-xs font-black text-gray-950 shadow transition hover:bg-amber-300">{currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}</button></motion.div> : <span className="px-1 text-sm text-rose-900">點選一張牌完成湊十</span>}</AnimatePresence></div>}
+        />
       ) : (
-        /* Final Score Screen */
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center p-3 gap-2.5">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="p-2.5 bg-red-600 text-amber-200 rounded-2xl shadow-xl"
-          >
-            <Award className="w-10 h-10 sm:w-14 sm:h-14" />
-          </motion.div>
-
-          <h2 className="text-lg sm:text-2xl font-black text-amber-300">
-            🎴 撿紅點挑戰圓滿完成！
-          </h2>
-
-          {teamMode === 'TEAM' ? (
-            <div className="bg-stone-800/90 border border-red-500/50 rounded-2xl p-3 max-w-sm w-full">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-amber-500/20 border border-amber-400 p-2 rounded-xl">
-                  <p className="text-xs text-amber-300 font-bold">A 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamAScore} 分</p>
-                </div>
-                <div className="bg-red-500/20 border border-red-400 p-2 rounded-xl">
-                  <p className="text-xs text-red-300 font-bold">B 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamBScore} 分</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-stone-800/80 border border-stone-700 rounded-2xl p-3 max-w-sm w-full">
-              <p className="text-stone-300 text-xs font-bold">總積分</p>
-              <p className="text-2xl sm:text-4xl font-black text-amber-300">{score} 分</p>
-              <p className="text-[11px] sm:text-xs text-stone-300 mt-1">湊十反應靈敏，紅點精算神速！</p>
-            </div>
-          )}
-
-          <div className="flex gap-2.5 justify-center mt-1">
-            <button
-              onClick={restart}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-1"
-            >
-              <RotateCcw size={15} />
-              再玩一局
-            </button>
-            <button
-              onClick={onBack}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl text-xs sm:text-sm shadow transition"
-            >
-              回遊戲選單
-            </button>
-          </div>
-        </div>
+        <GameShell title="經典撿紅點" subtitle="本局挑戰完成" onBack={onBack} className="h-screen bg-gradient-to-br from-rose-950 via-red-950 to-orange-950 text-white"><div className="mx-auto flex h-full w-full max-w-5xl flex-col items-center justify-center gap-2.5 p-3 text-center"><motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="rounded-2xl bg-red-600 p-2.5 text-amber-200 shadow-xl"><Award className="h-10 w-10 sm:h-14 sm:w-14" /></motion.div><h2 className="text-lg font-black text-amber-300 sm:text-2xl">🎴 撿紅點挑戰圓滿完成！</h2>{teamMode === 'TEAM' ? <div className="w-full max-w-sm rounded-2xl border border-red-500/50 bg-stone-800/90 p-3"><div className="grid grid-cols-2 gap-2 text-center"><div className="rounded-xl border border-amber-400 bg-amber-500/20 p-2"><p className="text-xs font-bold text-amber-300">A 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamAScore} 分</p></div><div className="rounded-xl border border-red-400 bg-red-500/20 p-2"><p className="text-xs font-bold text-red-300">B 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamBScore} 分</p></div></div></div> : <div className="w-full max-w-sm rounded-2xl border border-stone-700 bg-stone-800/80 p-3"><p className="text-xs font-bold text-stone-300">總積分</p><p className="text-2xl font-black text-amber-300 sm:text-4xl">{score} 分</p><p className="mt-1 text-[11px] text-stone-300 sm:text-xs">湊十反應靈敏，紅點精算神速！</p></div>}<div className="mt-1 flex justify-center gap-2.5"><button type="button" onClick={restart} className="flex min-h-11 items-center gap-1 rounded-xl bg-amber-400 px-3.5 py-1.5 text-xs font-black text-gray-950 shadow transition hover:bg-amber-300 sm:px-4 sm:py-2 sm:text-sm"><RotateCcw aria-hidden="true" size={15} />再玩一局</button><button type="button" onClick={onBack} className="min-h-11 rounded-xl bg-stone-800 px-3.5 py-1.5 text-xs font-bold text-amber-200 shadow transition hover:bg-stone-700 sm:px-4 sm:py-2 sm:text-sm">回遊戲選單</button></div></div></GameShell>
       )}
-    </div>
+    </>
   );
 };
 
