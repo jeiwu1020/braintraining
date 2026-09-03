@@ -3,9 +3,9 @@
 ## Audit status
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
-- Audit type: audit-only; no production implementation was started.
+- Audit type: audit plus first LIGHT implementation status tracking.
 - Current overall standardization: `42/59`
-- `FACILITATOR`: `0/11` — audit complete, implementation not started.
+- `FACILITATOR`: `0/11` — audit complete; Conditional Snap LIGHT implementation complete, pending reviewer real-device acceptance.
 - Runtime/browser tooling: unavailable in this environment. All viewport findings below are labeled `STATIC SOURCE INFERENCE`; no invented DOM pixel measurements are presented.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 
@@ -28,7 +28,7 @@ The classification means:
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
 | 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | At `sm` width, advanced mode changes to six columns while avatars remain `80px`; the candidate grid can overflow its roughly half-width region. Question chips are also compact. | The existing candidate-grid plus question/history split is the right facilitator composition; a short-height grid/size correction is enough, not a new shell. | STATIC SOURCE INFERENCE | BORDERLINE | MAJOR ISSUE | HIGH | MEDIUM | Luna High | All candidate cards, question controls, elimination, history scroll |
 | 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | Five-card advanced mode keeps `sm:w-36 sm:h-48` inside an `overflow-hidden` row, so cards can crowd or clip at short landscape. Zoom control is hover-only and unnamed. | Keep the card stage and zoom overlay; compact the card row and expose the zoom action without changing card state. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | MEDIUM | Luna Medium | Four/five cards, zoom, shuffle/refresh, prompt text |
-| 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | `sm` changes the target circle to a potentially `320px` square while the target strip and `96×192` arrows share a `360px` viewport; root is only `min-h-[100dvh]`. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
+| 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | Setup uses `py-6`, `p-6`, several large margins, and a full-height settings stack; at short landscape setup controls are likely below the fold. The play grid is capped at `60vh`. | Keep the map/grid and preview/radar settings; compact setup spacing and preserve the map as the dominant region. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
 | 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | Current card is only `80×112` in landscape and three choice buttons use `py-1`; Rules is an unlabeled icon with no modal height limit. | Keep the two-team simultaneous prediction layout; enlarge core choices modestly and constrain the rules modal. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | HIGH | Luna High | Current/previous card, both teams, prediction controls, round result |
@@ -487,7 +487,9 @@ Keep the center-circle plus arrow composition. Apply a short-height cap to the c
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `min-h-[100dvh]`, `sm:w-24 sm:h-48`, `sm:max-w-md`, `aspect-square`, and the absence of a local overflow contract.
+REAL-DEVICE CONFIRMED pre-fix issue — reviewer observed that the bottom of the game extended beyond the phone screen in landscape. The earlier static evidence was based on `min-h-[100dvh]`, `sm:w-24 sm:h-48`, `sm:max-w-md`, `aspect-square`, and the absence of a local overflow contract.
+
+LIGHT IMPLEMENTATION COMPLETE — pending reviewer real-device acceptance. The implementation uses a viewport-bound root, a short-height landscape contract, and a height-constrained stage while preserving the dedicated composition and gameplay.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
@@ -968,8 +970,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: not started.
-- Production files changed in this batch: zero.
+- Production implementation: Conditional Snap LIGHT complete; reviewer acceptance pending.
+- Production files changed in this batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization remains `42/59`; FACILITATOR remains `0/11` until later implementation and reviewer acceptance.
+- Overall standardization remains `42/59`; FACILITATOR remains `0/11` until Conditional Snap receives reviewer real-device acceptance.

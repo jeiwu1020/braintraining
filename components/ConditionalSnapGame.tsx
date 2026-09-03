@@ -36,10 +36,33 @@ const ConditionalSnapGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-rose-50 p-2 sm:p-4">
+    <div
+      data-conditional-snap-root="true"
+      className="conditional-snap-root flex h-[100dvh] min-h-0 max-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-rose-50 p-2 sm:p-4"
+    >
+      <style>{`\
+        .conditional-snap-root { box-sizing: border-box; }\
+        .conditional-snap-stage { min-height: 0; }\
+        .conditional-snap-stimulus { height: min(100%, 30rem); width: auto; max-width: calc(100% - 7rem); }\
+        .conditional-snap-trigger { width: clamp(3rem, 12vw, 6rem); height: min(100%, 12rem); min-height: 44px; }\
+        @media (orientation: landscape) and (max-height: 480px) {\
+          .conditional-snap-root { height: 100dvh; max-height: 100dvh; overflow: hidden; }\
+          .conditional-snap-target { margin-top: 0; margin-bottom: 0.5rem; }\
+          .conditional-snap-target-panel { padding-top: 0.375rem; padding-bottom: 0.375rem; }\
+          .conditional-snap-stage { flex: 1 1 0%; width: 100%; }\
+          .conditional-snap-stimulus { max-height: 100%; }\
+          .conditional-snap-trigger { max-height: 12rem; }\
+        }\
+        @media (orientation: portrait) {\
+          .conditional-snap-root { height: auto; min-height: 100dvh; max-height: none; overflow-y: auto; }\
+          .conditional-snap-stimulus { height: auto; width: min(90vw, 30rem); max-width: 100%; }\
+          .conditional-snap-trigger { height: 6rem; }\
+        }\
+      `}</style>
       <button 
         onClick={onBack}
-        className="absolute top-2 left-2 p-2 bg-white rounded-full shadow-md text-rose-600 hover:bg-rose-100 z-50 transition-colors"
+        aria-label="返回遊戲選單"
+        className="absolute top-2 left-2 z-50 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white p-2 text-rose-600 shadow-md transition-colors hover:bg-rose-100"
       >
         <ArrowLeft size={20} />
       </button>
@@ -47,7 +70,8 @@ const ConditionalSnapGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       <div className="absolute top-4 right-4 flex gap-2 z-50">
           <button 
               onClick={() => setShowRules(true)}
-              className="p-2 sm:p-2 bg-white text-rose-600 rounded-xl shadow-sm border border-rose-100 hover:bg-rose-50 transition-colors active:scale-95 flex items-center justify-center"
+              aria-label="遊戲規則"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-rose-100 bg-white p-2 text-rose-600 shadow-sm transition-colors hover:bg-rose-50 active:scale-95"
               title="遊戲規則"
           >
               <HelpCircle size={24} />
@@ -65,13 +89,14 @@ const ConditionalSnapGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           ]}
       />
 
-      <div className="w-full flex justify-center mb-2 mt-8 sm:mb-4 sm:mt-0 shrink-0">
-          <div className="bg-white/90 backdrop-blur-md px-3 sm:px-6 py-2 rounded-2xl shadow-sm border border-rose-100 flex flex-wrap items-center justify-center gap-2 text-center">
+      <div className="conditional-snap-target mt-8 mb-2 flex w-full shrink-0 justify-center sm:mt-0 sm:mb-4">
+          <div className="conditional-snap-target-panel flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-rose-100 bg-white/90 px-3 py-2 text-center shadow-sm backdrop-blur-md sm:px-6">
               <span className="text-base sm:text-xl font-bold text-slate-700">任務目標：看到</span>
               <select 
+                aria-label="目標類別"
                 value={targetCategory}
                 onChange={(e) => setTargetCategory(e.target.value)}
-                className="bg-rose-100 text-rose-700 font-bold text-base sm:text-xl px-3 py-1.5 rounded-xl outline-none cursor-pointer hover:bg-rose-200 transition-colors"
+                className="min-h-11 cursor-pointer rounded-xl bg-rose-100 px-3 py-1.5 text-base font-bold text-rose-700 outline-none transition-colors hover:bg-rose-200 sm:text-xl"
               >
                   {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -79,24 +104,28 @@ const ConditionalSnapGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           </div>
       </div>
 
-      <div className="w-full max-w-5xl flex justify-between items-center gap-2 sm:gap-12 flex-1 min-h-0">
+      <div data-conditional-snap-stage="true" className="conditional-snap-stage flex w-full max-w-5xl flex-1 items-center justify-between gap-2 sm:gap-12">
           <button 
             onClick={handleNext}
-            className="w-12 h-24 sm:w-24 sm:h-48 bg-white rounded-2xl shadow-lg border border-rose-100 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 active:scale-95 transition-all shrink-0"
+            aria-label="切換圖片（左側）"
+            data-conditional-snap-trigger="left"
+            className="conditional-snap-trigger flex shrink-0 items-center justify-center rounded-2xl border border-rose-100 bg-white text-rose-300 shadow-lg transition-all hover:bg-rose-50 hover:text-rose-500 active:scale-95"
           >
               <ChevronLeft size={32} className="sm:w-12 sm:h-12" />
           </button>
           
-          <div className="flex-1 max-w-[30vh] sm:max-w-md aspect-square bg-white rounded-full shadow-2xl border-[6px] sm:border-8 border-rose-100 flex items-center justify-center animate-fade-in relative overflow-hidden mx-auto shrink-0">
+          <div data-conditional-snap-target="true" className="conditional-snap-stimulus relative mx-auto flex aspect-square shrink-0 items-center justify-center overflow-hidden rounded-full border-[6px] border-rose-100 bg-white shadow-2xl animate-fade-in sm:border-8">
               <div className="absolute inset-0 bg-gradient-to-tr from-rose-50 to-transparent"></div>
-              <span className="text-[15vh] sm:text-[12rem] leading-none drop-shadow-lg z-10 animate-bounce">
+              <span className="z-10 max-w-full text-[clamp(4rem,22vmin,12rem)] leading-none drop-shadow-lg animate-bounce">
                   {currentEmoji}
               </span>
           </div>
 
           <button 
             onClick={handleNext}
-            className="w-12 h-24 sm:w-24 sm:h-48 bg-white rounded-2xl shadow-lg border border-rose-100 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 active:scale-95 transition-all shrink-0"
+            aria-label="切換圖片（右側）"
+            data-conditional-snap-trigger="right"
+            className="conditional-snap-trigger flex shrink-0 items-center justify-center rounded-2xl border border-rose-100 bg-white text-rose-300 shadow-lg transition-all hover:bg-rose-50 hover:text-rose-500 active:scale-95"
           >
               <ChevronRight size={32} className="sm:w-12 sm:h-12" />
           </button>
