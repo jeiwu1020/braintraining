@@ -56,13 +56,57 @@ const CardDisplay: React.FC<{ card: Card, delay?: number }> = ({ card, delay = 0
         initial={{ opacity: 0, scale: 0.5, rotateY: 90 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.3, delay }}
-        className={`w-14 h-20 sm:w-24 sm:h-36 landscape:w-16 landscape:h-24 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col justify-between p-1 sm:p-2 shrink-0 ${card.color}`}
+        className={`blackjack-card aspect-[2/3] w-14 h-20 sm:w-24 sm:h-36 landscape:w-16 landscape:h-24 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col justify-between p-1 sm:p-2 shrink-0 ${card.color}`}
     >
         <div className="text-xs sm:text-lg landscape:text-xs font-bold leading-none">{card.rank}</div>
         <div className="text-xl sm:text-5xl landscape:text-2xl text-center self-center">{card.suit}</div>
         <div className="text-xs sm:text-lg landscape:text-xs font-bold leading-none self-end rotate-180">{card.rank}</div>
     </motion.div>
 );
+
+const compactLandscapeStyles = `
+@media (orientation: landscape) and (max-height: 480px) {
+    .blackjack-setup { padding: 0.5rem; overflow: hidden; }
+    .blackjack-setup-content { gap: 0.5rem; }
+    .blackjack-setup-title { font-size: 1.5rem; }
+    .blackjack-setup-explanation { font-size: 0.75rem; line-height: 1.2; }
+    .blackjack-round-selector { min-height: 44px; padding: 0.375rem 0.5rem; }
+    .blackjack-round-selector select { min-height: 44px; }
+    .blackjack-mode-row { gap: 0.5rem; }
+    .blackjack-mode-card { min-height: 120px; padding: 0.5rem; }
+    .blackjack-mode-icon { width: 2.25rem; height: 2.25rem; margin-bottom: 0.25rem; }
+    .blackjack-mode-icon svg { width: 1.25rem; height: 1.25rem; }
+    .blackjack-mode-card h2 { font-size: 0.875rem; line-height: 1.2; }
+    .blackjack-mode-card p { font-size: 0.75rem; }
+
+    .blackjack-play { padding: 0.5rem; }
+    .blackjack-play-header { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0; }
+    .blackjack-play-header-left { justify-self: start; }
+    .blackjack-play-status { min-width: 0; padding: 0.25rem 0.5rem; }
+    .blackjack-play-status span { font-size: 0.875rem; line-height: 1.1; }
+    .blackjack-header-next { justify-self: end; min-height: 44px; padding: 0.5rem 0.75rem; border-radius: 0.75rem; }
+    .blackjack-header-spacer { width: auto; }
+    .blackjack-player { padding: 0.5rem; border-radius: 1rem; }
+    .blackjack-player-header { gap: 0.5rem; margin-bottom: 0.375rem; }
+    .blackjack-player-header h2 { font-size: 1rem; line-height: 1.1; }
+    .blackjack-player-header h2 span { font-size: 0.75rem; }
+    .blackjack-player-score { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+    .blackjack-hand { min-height: 0; gap: 0.25rem; margin-bottom: 0.25rem; }
+    .blackjack-card { width: 56px; height: 84px; padding: 0.25rem; border-radius: 0.625rem; }
+    .blackjack-card > div:first-child, .blackjack-card > div:last-child { font-size: 0.75rem; }
+    .blackjack-card > div:nth-child(2) { font-size: 1.5rem; }
+    .blackjack-action { min-height: 44px; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
+    .blackjack-execute { min-height: 44px; padding: 0.5rem 0.75rem; }
+
+    .blackjack-gameover { padding: 0.5rem; }
+    .blackjack-gameover-card { padding: 1rem; }
+    .blackjack-gameover-trophy { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .blackjack-gameover-title { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    .blackjack-gameover-score { margin-bottom: 1rem; padding: 0.5rem; }
+    .blackjack-gameover-score-value { font-size: 1.875rem; }
+    .blackjack-gameover-result { font-size: 1.25rem; margin-bottom: 1rem; }
+}
+`;
 
 const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
     const [mode, setMode] = useState<Mode>(null);
@@ -233,21 +277,22 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
 
     if (!mode) {
         return (
-            <div className="h-full w-full flex flex-col pt-12 sm:pt-24 landscape:pt-8 p-4 sm:p-12 items-center bg-green-50 overflow-y-auto">
-                <button onClick={onBack} className="absolute top-2 left-2 sm:top-4 sm:left-4 p-2 sm:p-3 bg-white rounded-full shadow-md text-green-600 hover:bg-green-100 z-10">
-                    <ArrowLeft size={24} className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div data-blackjack-screen="setup" className="blackjack-setup h-full w-full flex flex-col pt-12 sm:pt-24 landscape:pt-8 p-4 sm:p-12 items-center bg-green-50 overflow-y-auto">
+                <style>{compactLandscapeStyles}</style>
+                <button type="button" onClick={onBack} aria-label="返回模式選單" className="absolute top-2 left-2 sm:top-4 sm:left-4 min-h-11 min-w-11 flex items-center justify-center p-2 sm:p-3 bg-white rounded-lg shadow-md text-green-600 hover:bg-green-100 z-10">
+                    <ArrowLeft aria-hidden="true" size={24} className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
-                <div className="text-center max-w-4xl mx-auto flex flex-col gap-2 sm:gap-6 animate-fade-in w-full">
-                    <h1 className="text-2xl sm:text-5xl landscape:text-2xl font-bold text-green-800 flex items-center justify-center shrink-0">
+                <div className="blackjack-setup-content text-center max-w-4xl mx-auto flex flex-col gap-2 sm:gap-6 animate-fade-in w-full">
+                    <h1 className="blackjack-setup-title text-2xl sm:text-5xl landscape:text-2xl font-bold text-green-800 flex items-center justify-center shrink-0">
                          公開 21 點
                     </h1>
-                    <p className="text-sm sm:text-xl landscape:text-sm text-gray-600 leading-relaxed max-w-2xl mx-auto shrink-0">
+                    <p className="blackjack-setup-explanation text-sm sm:text-xl landscape:text-sm text-gray-600 leading-relaxed max-w-2xl mx-auto shrink-0">
                         所有牌面皆為翻開狀態的派對撲克。共 {targetRounds} 回合，雙人模式採用「同步決策」機制，雙方各自決定後同時發牌，確保公平！
                     </p>
                     
-                    <div className="flex items-center justify-center gap-2 sm:gap-4 bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-green-100 max-w-xs sm:max-w-md mx-auto shrink-0">
+                    <div className="blackjack-round-selector flex items-center justify-center gap-2 sm:gap-4 bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-green-100 max-w-xs sm:max-w-md mx-auto shrink-0">
                         <span className="font-bold text-green-800 text-sm sm:text-lg">自訂回合數:</span>
-                        <select 
+                        <select id="blackjack-target-rounds" aria-label="目標回合數"
                             value={targetRounds}
                             onChange={(e) => setTargetRounds(Number(e.target.value))}
                             className="bg-green-100 text-green-800 font-bold px-2 py-1 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl outline-none hover:bg-green-200 transition-colors text-sm sm:text-lg"
@@ -256,18 +301,18 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                         </select>
                     </div>
 
-                    <div className="flex flex-row gap-2 sm:gap-6 w-full justify-center shrink-0">
-                        <button onClick={startDealerMode} className="flex-1 bg-white p-2 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl border-2 border-blue-200 hover:border-blue-400 hover:-translate-y-1 transition-all flex flex-col items-center justify-center group max-w-[200px] sm:max-w-sm">
-                            <div className="w-8 h-8 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-1 sm:mb-4 group-hover:scale-110 transition-transform">
-                                <Shield className="w-4 h-4 sm:w-8 sm:h-8 text-blue-600" />
+                    <div className="blackjack-mode-row flex flex-row gap-2 sm:gap-6 w-full justify-center shrink-0">
+                        <button type="button" data-blackjack-mode="DEALER" aria-label="合作對抗莊家模式" onClick={startDealerMode} className="blackjack-mode-card flex-1 bg-white p-2 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl border-2 border-blue-200 hover:border-blue-400 hover:-translate-y-1 transition-all flex flex-col items-center justify-center group max-w-[200px] sm:max-w-sm">
+                            <div className="blackjack-mode-icon w-8 h-8 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-1 sm:mb-4 group-hover:scale-110 transition-transform">
+                                <Shield aria-hidden="true" className="w-4 h-4 sm:w-8 sm:h-8 text-blue-600" />
                             </div>
                             <h2 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-2 text-center">合作對抗莊家</h2>
-                            <p className="text-[10px] sm:text-sm text-gray-500 text-center leading-tight">全體一起討論對抗電腦莊家</p>
+                            <p className="text-xs sm:text-sm text-gray-500 text-center leading-tight">全體一起討論對抗電腦莊家</p>
                         </button>
                         
-                        <button onClick={startPvPMode} className="flex-1 bg-white p-2 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl border-2 border-orange-200 hover:border-orange-400 hover:-translate-y-1 transition-all flex flex-col items-center justify-center group max-w-[200px] sm:max-w-sm">
-                            <div className="w-8 h-8 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mb-1 sm:mb-4 group-hover:scale-110 transition-transform">
-                                <Users className="w-4 h-4 sm:w-8 sm:h-8 text-orange-600" />
+                        <button type="button" data-blackjack-mode="PVP" aria-label="雙組同步對抗模式" onClick={startPvPMode} className="blackjack-mode-card flex-1 bg-white p-2 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl border-2 border-orange-200 hover:border-orange-400 hover:-translate-y-1 transition-all flex flex-col items-center justify-center group max-w-[200px] sm:max-w-sm">
+                            <div className="blackjack-mode-icon w-8 h-8 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mb-1 sm:mb-4 group-hover:scale-110 transition-transform">
+                                <Users aria-hidden="true" className="w-4 h-4 sm:w-8 sm:h-8 text-orange-600" />
                             </div>
                             <h2 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-2 text-center">雙組同步對抗</h2>
                             <p className="text-[10px] sm:text-sm text-gray-500 text-center leading-tight">雙方決定補停牌系統同時發牌</p>
@@ -287,18 +332,18 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
         const isDone = isBusted || hasStood || turn === 'END';
 
         return (
-            <div className={`flex-1 flex flex-col items-center p-2 sm:p-4 rounded-3xl transition-all duration-500 relative ${isDone ? 'opacity-80 bg-black/10' : 'bg-white/10'}`}>
-                <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+            <div data-blackjack-player={isP1?'P1':'P2'} className={`blackjack-player flex-1 flex flex-col items-center p-2 sm:p-4 rounded-3xl transition-all duration-500 relative ${isDone ? 'opacity-80 bg-black/10' : 'bg-white/10'}`}>
+                <div className="blackjack-player-header flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
                     <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold flex flex-col items-center">
                         {title}
                         <span className="text-sm font-normal text-green-200">得分: {isP1 ? p1RoundScore : p2RoundScore}</span>
                     </h2>
-                    <div className={`px-2 py-1 sm:px-4 sm:py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${isBusted ? 'bg-red-500 text-white' : hasStood ? 'bg-green-500 text-white' : 'bg-black/40 text-white'}`}>
+                    <div className={`blackjack-player-score px-2 py-1 sm:px-4 sm:py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${isBusted ? 'bg-red-500 text-white' : hasStood ? 'bg-green-500 text-white' : 'bg-black/40 text-white'}`}>
                         {isBusted ? '爆牌' : hasStood ? `${score} 停牌` : `${score} 點`}
                     </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
+                <div className="blackjack-hand flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                     <AnimatePresence>
                         {cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                     </AnimatePresence>
@@ -306,17 +351,17 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
 
                 {!isDone && (
                     <div className="flex gap-2 sm:gap-3 mt-auto">
-                        <button 
+                        <button type="button" data-blackjack-action="hit" aria-label={`${title}補牌`} aria-pressed={action === 'HIT'}
                             onClick={() => setAction('HIT')}
-                            className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'HIT' ? 'bg-yellow-400 text-yellow-900 ring-4 ring-yellow-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
+                            className={`blackjack-action px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'HIT' ? 'bg-yellow-400 text-yellow-900 ring-4 ring-yellow-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
                         >
-                            <RefreshCw size={16} className="inline mr-1" /> 補牌
+                            <RefreshCw aria-hidden="true" size={16} className="inline mr-1" /> 補牌
                         </button>
-                        <button 
+                        <button type="button" data-blackjack-action="stand" aria-label={`${title}停牌`} aria-pressed={action === 'STAND'}
                             onClick={() => setAction('STAND')}
-                            className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'STAND' ? 'bg-gray-400 text-gray-900 ring-4 ring-gray-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
+                            className={`blackjack-action px-3 sm:px-6 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-lg landscape:text-sm shadow-md transition-all ${action === 'STAND' ? 'bg-gray-400 text-gray-900 ring-4 ring-gray-200' : 'bg-white/20 hover:bg-white/30 text-white'}`}
                         >
-                            <CheckCircle size={16} className="inline mr-1" /> 停牌
+                            <CheckCircle aria-hidden="true" size={16} className="inline mr-1" /> 停牌
                         </button>
                     </div>
                 )}
@@ -329,30 +374,31 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
 
     if (gameOver) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-green-50 p-4">
-                <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center text-center animate-fade-in-up border-4 border-green-100 max-w-sm w-full">
-                    <div className="text-6xl mb-4 animate-bounce">🏆</div>
-                    <h2 className="text-3xl font-bold text-green-900 mb-6">遊戲結束！</h2>
+            <div data-blackjack-screen="gameover" className="blackjack-gameover flex flex-col items-center justify-center min-h-[100dvh] bg-green-50 p-4">
+                <style>{compactLandscapeStyles}</style>
+                <div className="blackjack-gameover-card bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center text-center animate-fade-in-up border-4 border-green-100 max-w-sm w-full">
+                    <div aria-hidden="true" className="blackjack-gameover-trophy text-6xl mb-4 animate-bounce">🏆</div>
+                    <h2 className="blackjack-gameover-title text-3xl font-bold text-green-900 mb-6">遊戲結束！</h2>
                     
-                    <div className="w-full flex justify-around mb-8 p-4 bg-green-50 rounded-2xl">
+                    <div className="blackjack-gameover-score w-full flex justify-around mb-8 p-4 bg-green-50 rounded-2xl">
                         <div className="flex flex-col">
                             <span className="text-slate-600 font-bold mb-1">A組</span>
-                            <span className="text-4xl text-green-600 font-black">{p1RoundScore}</span>
+                            <span className="blackjack-gameover-score-value text-4xl text-green-600 font-black">{p1RoundScore}</span>
                         </div>
                         <div className="w-px bg-green-200"></div>
                         <div className="flex flex-col">
                             <span className="text-slate-600 font-bold mb-1">B組</span>
-                            <span className="text-4xl text-green-600 font-black">{p2RoundScore}</span>
+                            <span className="blackjack-gameover-score-value text-4xl text-green-600 font-black">{p2RoundScore}</span>
                         </div>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-green-700 mb-6">
+                    <h3 className="blackjack-gameover-result text-2xl font-bold text-green-700 mb-6">
                         {p1RoundScore > p2RoundScore ? 'A組獲勝！' : p2RoundScore > p1RoundScore ? 'B組獲勝！' : '雙方平局！'}
                     </h3>
 
-                    <button 
+                    <button type="button" data-blackjack-action="return-menu" aria-label="返回選單"
                         onClick={() => setMode(null)}
-                        className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors shadow-md text-lg active:scale-95"
+                        className="w-full min-h-11 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors shadow-md text-lg active:scale-95"
                     >
                         返回選單
                     </button>
@@ -362,7 +408,8 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
     }
 
     return (
-        <div className="h-full w-full flex flex-col p-2 sm:p-6 bg-green-800 text-white relative overflow-hidden">
+        <div data-blackjack-screen="play" data-blackjack-mode={mode ?? undefined} className="blackjack-play h-full w-full flex flex-col p-2 sm:p-6 bg-green-800 text-white relative overflow-hidden">
+            <style>{compactLandscapeStyles}</style>
             <RulesModal 
                 isOpen={showRules} 
                 onClose={() => setShowRules(false)}
@@ -375,17 +422,17 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                 ]}
             />
             
-            <div className="flex items-center justify-between mb-2 sm:mb-4 z-10 shrink-0 px-2">
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setMode(null)} className="p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors">
-                        <ArrowLeft size={20} />
+            <div className="blackjack-play-header flex items-center justify-between mb-2 sm:mb-4 z-10 shrink-0 px-2">
+                <div className="blackjack-play-header-left flex items-center gap-2">
+                    <button type="button" onClick={() => setMode(null)} aria-label="返回模式選單" className="min-h-11 min-w-11 flex items-center justify-center p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors">
+                        <ArrowLeft aria-hidden="true" size={20} />
                     </button>
-                    <button onClick={() => setShowRules(true)} className="p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors">
-                        <HelpCircle size={20} />
+                    <button type="button" onClick={() => setShowRules(true)} aria-label="遊戲規則" className="min-h-11 min-w-11 flex items-center justify-center p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors">
+                        <HelpCircle aria-hidden="true" size={20} />
                     </button>
                 </div>
                 
-                <div className="bg-green-900/80 backdrop-blur-md px-4 py-1 sm:px-8 sm:py-3 rounded-full border-2 border-green-600 shadow-xl text-center min-w-[150px] flex flex-col items-center">
+                <div className="blackjack-play-status bg-green-900/80 backdrop-blur-md px-4 py-1 sm:px-8 sm:py-3 rounded-full border-2 border-green-600 shadow-xl text-center min-w-[150px] flex flex-col items-center">
                     <div className="text-xs text-green-300 font-bold mb-1">回合 {roundIndex + 1} / {targetRounds}</div>
                     <span className="text-sm sm:text-2xl landscape:text-lg font-bold text-yellow-300 drop-shadow-md">
                         {message}
@@ -393,10 +440,10 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                 </div>
 
                 {turn === 'END' ? (
-                    <button onClick={nextRound} className="p-2 sm:p-3 bg-blue-500 hover:bg-blue-400 rounded-full text-white shadow-lg flex items-center gap-2 pr-4 transition-colors text-sm sm:text-base">
-                        <RefreshCw size={20} /> <span className="hidden sm:inline font-bold">{roundIndex >= targetRounds - 1 ? '結算' : '下一回合'}</span>
+                    <button type="button" data-blackjack-action="next-round" aria-label={roundIndex >= targetRounds - 1 ? '結算' : '下一回合'} onClick={nextRound} className="blackjack-header-next min-h-11 p-2 sm:p-3 bg-blue-500 hover:bg-blue-400 rounded-lg text-white shadow-lg flex items-center gap-2 pr-4 transition-colors text-sm sm:text-base">
+                        <RefreshCw aria-hidden="true" size={20} /> <span className="font-bold">{roundIndex >= targetRounds - 1 ? '結算' : '下一回合'}</span>
                     </button>
-                ) : <div className="w-[88px] sm:w-[130px]"></div>}
+                ) : <div className="blackjack-header-spacer w-[88px] sm:w-[130px]" aria-hidden="true"></div>}
             </div>
 
             <div className="flex-1 flex flex-col landscape:flex-row sm:flex-row gap-2 sm:gap-6 min-h-0 relative">
@@ -406,12 +453,12 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                         {renderPlayerAreaPvP(true, 'A組', p1Cards, p1Score, p1Stood, p1Action, setP1Action)}
                         <div className="w-full h-px sm:w-px sm:h-full bg-green-600/50 shrink-0 relative flex items-center justify-center">
                             {turn !== 'END' && canExecutePvP && (
-                                <motion.button 
+                                <motion.button type="button" data-blackjack-action="execute" aria-label="執行回合"
                                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                                     onClick={executePvPTurn}
-                                    className="absolute z-20 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black px-4 py-2 sm:px-6 sm:py-4 rounded-2xl shadow-2xl border-4 border-white flex flex-col items-center active:scale-95"
+                                    className="blackjack-execute absolute z-20 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black px-4 py-2 sm:px-6 sm:py-4 rounded-2xl shadow-2xl border-4 border-white flex flex-col items-center active:scale-95"
                                 >
-                                    <Play size={24} className="mb-1 hidden sm:block" />
+                                    <Play aria-hidden="true" size={24} className="mb-1 hidden sm:block" />
                                     <span>執行</span>
                                     <span>回合</span>
                                 </motion.button>
@@ -422,40 +469,40 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ onBack }) => {
                 ) : (
                     // DEALER MODE (Legacy layout)
                     <>
-                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 bg-white/10`}>
-                             <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                        <div data-blackjack-player="P1" className={`blackjack-player flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 bg-white/10`}>
+                             <div className="blackjack-player-header flex items-center gap-2 mb-2 sm:mb-4">
                                 <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold flex flex-col items-center">
                                     A組
                                     <span className="text-sm font-normal text-green-200">得分: {p1RoundScore}</span>
                                 </h2>
-                                <div className={`px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${p1Score > 21 ? 'bg-red-500' : 'bg-black/40'}`}>
+                                <div className={`blackjack-player-score px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg shadow-md ${p1Score > 21 ? 'bg-red-500' : 'bg-black/40'}`}>
                                     {p1Score > 21 ? '爆牌' : `${p1Score} 點`}
                                 </div>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
+                            <div className="blackjack-hand flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                                 <AnimatePresence>
                                     {p1Cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                                 </AnimatePresence>
                             </div>
                             {turn === 'P1' && (
                                 <div className="flex gap-2 sm:gap-3 mt-auto">
-                                    <button onClick={drawCardDealerMode} className="px-3 sm:px-6 py-1.5 sm:py-2 bg-yellow-500 text-yellow-900 rounded-xl font-bold landscape:text-sm shadow-md">補牌</button>
-                                    <button onClick={handleStandDealerMode} className="px-3 sm:px-6 py-1.5 sm:py-2 bg-gray-600 text-white rounded-xl font-bold landscape:text-sm shadow-md">停牌</button>
+                                    <button type="button" data-blackjack-action="hit" aria-label="補牌" onClick={drawCardDealerMode} className="blackjack-action min-h-11 px-3 sm:px-6 py-1.5 sm:py-2 bg-yellow-500 text-yellow-900 rounded-xl font-bold landscape:text-sm shadow-md">補牌</button>
+                                    <button type="button" data-blackjack-action="stand" aria-label="停牌" onClick={handleStandDealerMode} className="blackjack-action min-h-11 px-3 sm:px-6 py-1.5 sm:py-2 bg-gray-600 text-white rounded-xl font-bold landscape:text-sm shadow-md">停牌</button>
                                 </div>
                             )}
                         </div>
                         <div className="w-full h-px sm:w-px sm:h-full bg-green-600/50 shrink-0"></div>
-                        <div className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 ${turn === 'P2' ? 'bg-white/10' : 'opacity-70'}`}>
-                             <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                        <div data-blackjack-player="P2" className={`blackjack-player flex-1 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl transition-all duration-500 ${turn === 'P2' ? 'bg-white/10' : 'opacity-70'}`}>
+                             <div className="blackjack-player-header flex items-center gap-2 mb-2 sm:mb-4">
                                 <h2 className="text-lg sm:text-2xl landscape:text-xl font-bold flex flex-col items-center">
                                     B組(電腦)
                                     <span className="text-sm font-normal text-green-200">得分: {p2RoundScore}</span>
                                 </h2>
-                                <div className="px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg bg-black/40 shadow-md">
+                                <div className="blackjack-player-score px-2 py-1 rounded-full font-mono text-sm sm:text-xl landscape:text-lg bg-black/40 shadow-md">
                                     {p2Score} 點
                                 </div>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
+                            <div className="blackjack-hand flex flex-wrap justify-center gap-1 sm:gap-2 mb-2 min-h-[5rem] sm:min-h-[8rem]">
                                 <AnimatePresence>
                                     {p2Cards.map((card, idx) => <CardDisplay key={idx} card={card} delay={idx * 0.1} />)}
                                 </AnimatePresence>

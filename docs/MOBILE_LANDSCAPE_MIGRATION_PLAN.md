@@ -11,7 +11,7 @@
 
 ### Acceptance 路徑政策
 
-本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 40/59；Gobblet 已由 reviewer 實機接受，Checkers LIGHT 修正待 reviewer 確認。
+本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前已完成的標準化進度為 41/59；Gobblet 與 Checkers 均已由 reviewer 實機接受，Blackjack LIGHT 修正待 reviewer 確認。
 
 隨著小遊戲數量增加，逐款獨立調整已造成頁首、操作區、回饋方式、觸控尺寸與橫向高度利用不一致。本計畫的目標是建立可重複使用的版面規格，逐批遷移 59 款現有遊戲，並讓未來新增遊戲能直接套用同一套分類、元資料、版型與驗收方式。
 
@@ -88,7 +88,7 @@
 | 口徑 | 已完成 | 總數 | 完成率 | 說明 |
 | --- | ---: | ---: | ---: | --- |
 | 目前完成的前兩波 | 30 | 30 | 100% | `SPLIT_CHOICE` 與 `GRID_FOCUS` |
-| 全部遊戲標準化 | 40 | 59 | 67.8% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet LIGHT acceptance、Checkers LIGHT 修正待 reviewer 確認、帶領及沉浸式遊戲 |
+| 全部遊戲標準化 | 41 | 59 | 69.5% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet／Checkers LIGHT acceptance、Blackjack LIGHT 修正待 reviewer 確認、帶領及沉浸式遊戲 |
 | `GRID_FOCUS` 當前批次 | 19 | 19 | 100% | 完成 |
 
 ### 4.2 各版型進度
@@ -97,11 +97,11 @@
 | --- | ---: | ---: | --- |
 | `SPLIT_CHOICE` | 11 | 11 | 完成 |
 | `GRID_FOCUS` | 19 | 19 | 完成 |
-| `BOARD_SIDEBAR` | 10 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋與 Gobblet 以 LIGHT 路徑完成標準化；Checkers LIGHT 修正待 reviewer 確認 |
-| `BOARD_TABLE` | 0 | 1 | 尚未進入統一遷移 |
+| `BOARD_SIDEBAR` | 11 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋、Gobblet 與 Checkers 以 LIGHT 路徑完成標準化 |
+| `BOARD_TABLE` | 0 | 1 | Blackjack LIGHT implementation complete，尚待 reviewer real-device acceptance |
 | `FACILITATOR` | 0 | 11 | 尚未進入統一遷移 |
 | `IMMERSIVE` | 0 | 6 | 尚未進入統一遷移 |
-| 合計 | 40 | 59 | 進行中 |
+| 合計 | 41 | 59 | 進行中 |
 
 「0」表示尚未依本次固定規格完成系統性遷移與驗收，不代表該遊戲目前完全沒有手機橫向樣式。
 
@@ -168,7 +168,8 @@
 - 尋寶迷宮指路已保留專用左側控制＋右側迷宮架構並完成 LIGHT acceptance：640×360 landscape 結構維持；390×844 改為迷宮在上、控制在下的 portrait stack，NORMAL 7×9 與 ADVANCED 9×13 均無 cell overlap，返回／規則／聲控／方向控制補上 accessible names，未改 maze 或語音 gameplay。
 - Weiqi completed mobile standardization through LIGHT acceptance while retaining its specialized Go landscape layout and three-mode AI/PVP/PUZZLE control model. 640×360 9×9 棋盤約 297px → 約 297px（0% shrink），模式與核心操作約 44px，保留專用 `WeiqiLandscapeLayout`，未改 gameplay；`GameModeSelector` 不適用。
 - Gobblet completed mobile standardization through LIGHT acceptance while retaining its dedicated dual-inventory + 3×3 board architecture; reviewer accepted the spacing correction on a real phone. Compact landscape uses `(orientation: landscape) and (max-height: 480px)` for 640×360、844×390、932×430; PVE/PVP、shared `GameModeSelector` 與 gameplay semantics remain unchanged。
-- Checkers LIGHT fix is implemented without structural migration: the dedicated 8×8 board + move-history/review architecture remains, shared `GameModeSelector` is persistent, landscape actions are enlarged and portrait exposes Undo／Redo／Rules plus a locally scrollable move log. Runtime browser measurement was unavailable in this batch; reviewer acceptance remains pending。
+- Checkers completed mobile standardization through LIGHT acceptance while retaining its dedicated 8×8 board, move-history and review architecture. Reviewer accepted the responsive controls and last-move cue on a real device; no gameplay semantics changed。
+- Blackjack LIGHT implementation is complete without structural migration: the dedicated `BOARD_TABLE` setup／round／two-hand／game-over architecture remains, with compact short-height landscape and accessibility corrections implemented. Browser runtime measurement was unavailable in this batch; reviewer acceptance remains pending。
 - 五子棋已以 `BoardSidebarLayout` 完成 10 × 10 正方形棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，座標、逐格操作、PVE／PVP、AI 延遲、悔棋與五連線勝利均保留。
 - 完整 `tsc --noEmit` 目前尚未形成有效品質門檻：既有根目錄腳本 `fixMissingData.ts` 在第 154 行有無效字元、第 169 行有未結束的 template literal，會先中止型別檢查。
 
@@ -176,7 +177,7 @@
 
 ### 6.1 `GRID_FOCUS` 里程碑完成
 
-19 款 `GRID_FOCUS` 遊戲均已完成共用版面遷移與代表尺寸驗收。此里程碑目前只等待 reviewer gate；不要在本文件中提前決定下一版型的共用 API 或資料契約。`BOARD_SIDEBAR` 的四子棋 reference 已通過 reviewer gate，五子棋已完成第二款遷移並恢復 canonical intersection geometry；Gobblet 已完成 LIGHT reviewer gate，Checkers 仍待實機確認。
+19 款 `GRID_FOCUS` 遊戲均已完成共用版面遷移與代表尺寸驗收。此里程碑目前只等待 reviewer gate；不要在本文件中提前決定下一版型的共用 API 或資料契約。`BOARD_SIDEBAR` 的四子棋 reference 已通過 reviewer gate，五子棋已完成第二款遷移並恢復 canonical intersection geometry；Gobblet 與 Checkers 已完成 LIGHT reviewer gate。
 
 下一階段依序為 `BOARD_SIDEBAR`、`BOARD_TABLE`、`FACILITATOR` 與 `IMMERSIVE`，開始前先由人工／Sol 審查版型資料契約與參考實作。
 
@@ -196,7 +197,7 @@
 
 - 公開 21 點
 
-四子棋已建立並通過 reviewer gate 的第一個 `BoardSidebarLayout` 參考實作；本輪修正其手機橫向圓形孔洞、A–G 座標可見性／對比與重複底部狀態，並確認 optional feedback 缺省時不保留空白列。五子棋與黑白棋已完成後續遷移；尋寶迷宮指路、象棋暗棋、播棋、圍棋與 Gobblet 均保留專用版面並以 LIGHT 路徑完成模式控制、觸控尺寸與 accessibility 標準化。Checkers 已完成專用 8×8 棋盤、move-log、portrait support 與 review controls 的 LIGHT 修正，待實機 reviewer 確認。公開 21 點因牌桌資訊結構不同，保留獨立 `BOARD_TABLE` 版型。
+四子棋已建立並通過 reviewer gate 的第一個 `BoardSidebarLayout` 參考實作；本輪修正其手機橫向圓形孔洞、A–G 座標可見性／對比與重複底部狀態，並確認 optional feedback 缺省時不保留空白列。五子棋與黑白棋已完成後續遷移；尋寶迷宮指路、象棋暗棋、播棋、圍棋、Gobblet 與 Checkers 均保留專用版面並以 LIGHT 路徑完成模式控制、觸控尺寸與 accessibility 標準化。公開 21 點因牌桌資訊結構不同，保留獨立 `BOARD_TABLE` 版型。
 
 ### 6.3 第三優先：帶領型 11 款
 

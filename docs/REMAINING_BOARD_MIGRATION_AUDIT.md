@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋、播棋與圍棋現已依本文件完成 LIGHT acceptance，奇雞連連已由 reviewer 以實機接受，西洋跳棋已完成 LIGHT 修正但仍待 reviewer 確認，公開 21 點仍待排程。
+本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋、播棋、圍棋、奇雞連連與西洋跳棋現已依本文件完成 LIGHT acceptance，其中 Gobblet 與 Checkers 均已由 reviewer 實機接受，公開 21 點仍待排程。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -14,7 +14,7 @@
 | 圍棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 9×9 board and panel fit, no document scroll | Compact mode/action targets（已修正） | ≥44px core targets、readability、accessible names；保留 `WeiqiLandscapeLayout`（已完成） | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; LIGHT standardization complete | Low–medium |
 | 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
 | 象棋暗棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px（已修正） | Shared mode selector, ≥44px core actions, accessible labels、圓形棋子 | Yes | Keep custom board + toolbar; targeted visual/control patch complete | Low |
-| 西洋跳棋 | BOARD_SIDEBAR | **LIGHT** | 8×8 fits in landscape | Portrait hides side-panel controls; landscape actions ~28px | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector | Yes | Keep board + move-log architecture; responsive/accessibility patch only | Medium–high gameplay-state risk |
+| 西洋跳棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×8 fits in landscape after responsive controls | Portrait support area exposes actions/history; landscape controls enlarged（已修正並由 reviewer 實機接受） | Expose sidebar/control stack in portrait; enlarge/label core actions; shared selector（已完成） | Yes | Keep board + move-log architecture; LIGHT standardization complete | Medium–high gameplay-state risk |
 | 奇雞連連 | BOARD_SIDEBAR | **LIGHT COMPLETE** | Compact treatment matches 640×360、844×390、932×430 short-height landscape | Width-only breakpoint left normal phone landscape unchanged（已修正並由 reviewer 實機接受） | Height-based compact landscape、2×3 inventories、shared selector、44px toolbar、source/target accessible labels（已完成） | Yes | Keep dedicated dual-inventory + 3×3 architecture; LIGHT standardization complete | Medium |
 | 公開 21 點 | BOARD_TABLE | **LIGHT** | Setup/play overflow vertically; table remains understandable | Primary setup/action controls below 640 viewport; action buttons ~36px | No (DEALER/PVP semantics differ) | Keep dedicated table; reduce landscape vertical footprint and enlarge actions | Medium |
 
@@ -110,7 +110,7 @@
 
 **Mode / accessibility / duplication.** 支援 PVE/PVP，應列為 `GameModeSelector` LIGHT。棋子是可互動視覺，但部分狀態依顏色／小 marker；winner/rules modal 已有 local scroll。高狀態複雜度使 FULL rewrite 風險高。
 
-**Decision: LIGHT FIX IMPLEMENTED, REVIEW PENDING.** 保留棋盤＋move-log。已將核心 controls 放入 portrait 專用支援區、提高悔棋／重做／規則 target、採 shared selector，並保留既有動畫／Undo 語意；另補齊 8×8 cell accessible labels 與 review navigation names。Runtime browser 未在本環境提供，640×360／844×390／932×430／390×844 仍待 reviewer 實機確認。除非後續實測 landscape 也失敗，否則不要 FULL。
+**Decision: LIGHT COMPLETE.** 保留棋盤＋move-log。已將核心 controls 放入 portrait 專用支援區、提高悔棋／重做／規則 target、採 shared selector，並保留既有動畫／Undo 語意；另補齊 8×8 cell accessible labels 與 review navigation names。Checkers 已由 reviewer 實機接受，last-move cue correction 亦已接受。除非後續出現新的實機回歸，否則不要 FULL。
 
 ### 奇雞連連（GobbletGame）
 
@@ -144,20 +144,20 @@
 
 **Mode / accessibility / duplication.** 目前是 `DEALER`／`PVP` 兩種明確模式卡，而非 literal PVE/PVP；不應在未確認產品語意前硬套單人／雙人 selector。返回、模式卡與補牌／停牌需檢查 accessible names 與 44px touch target；沒有發現重複底部 status row。
 
-**Decision: LIGHT.** 保留專用 BOARD_TABLE。最低修改：縮減 640 landscape setup／playing 的 vertical footprint、讓主要補牌／停牌與模式選擇完整可見且 ≥44px、保留牌面比例與 terminal result。不要建立 BoardTable shared component，除非未來出現第二款且語意相同的桌面遊戲。
+**Decision: LIGHT IMPLEMENTATION COMPLETE, REVIEW PENDING.** 保留專用 BOARD_TABLE。已縮減 short-height landscape setup／playing 的 vertical footprint、讓主要補牌／停牌與模式選擇完整可見且具 ≥44px target、保留牌面比例與 terminal result，並補齊 setup/play/game-over hooks、aria labels 與牌面比例 contract。Browser runtime measurement unavailable in this batch，仍待 reviewer 實機確認。不要建立 BoardTable shared component，除非未來出現第二款且語意相同的桌面遊戲。
 
 ## 後續處理建議
 
 ### 1. KEEP closures
 
-目前沒有足夠證據把剩餘兩款直接關為 KEEP；Weiqi、Maze、DarkChess、Mancala 與 Gobblet 已依各自語意完成 LIGHT acceptance，Checkers 已完成 LIGHT 修正但尚待 reviewer 確認，不需要改 architecture。
+目前沒有足夠證據把剩餘一款直接關為 KEEP；Weiqi、Maze、DarkChess、Mancala、Gobblet 與 Checkers 已依各自語意完成 LIGHT acceptance，不需要改 architecture。
 
 ### 2. LIGHT fixes（建議順序）
 
 1. **Mancala**：先修 player label／pit overlap，再導入 shared `GameModeSelector`，風險低且收益明確。
 2. **Maze**：已完成 portrait stack 與 button labels；不涉及棋規。
 3. **Gobblet**：已完成 breakpoint correction、shared selector 與 source inventory protection；保留專用架構，reviewer 已實機接受。
-4. **Checkers**：已完成 portrait controls visibility、shared selector 與 accessible actions；待 reviewer 實機確認，需小心 animation／Undo。
+4. **Checkers**：已完成 portrait controls visibility、shared selector、accessible actions 與 last-move cue；reviewer 已實機接受，需持續保護 animation／Undo。
 5. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
 6. **Weiqi**：已完成密集控制尺寸與三模式語意 review；保留專用 layout。
 
@@ -167,4 +167,4 @@
 
 ## Audit conclusion
 
-本輪迷宮、暗棋、播棋、圍棋與 Gobblet 已完成 LIGHT acceptance；Checkers 已完成 LIGHT 修正但仍待 reviewer 確認，公開 21 點仍是 future work candidate。六款均沒有結構性 migration，僅以既有架構完成標準化。
+本輪迷宮、暗棋、播棋、圍棋、Gobblet 與 Checkers 已完成 LIGHT acceptance；公開 21 點仍是 future work candidate。六款均沒有結構性 migration，僅以既有架構完成標準化。
