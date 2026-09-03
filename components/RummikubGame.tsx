@@ -867,48 +867,18 @@ export const RummikubGame: React.FC<RummikubGameProps> = ({
           onShowRules={() => setShowRules(true)}
           onRestart={restart}
           board={(
-            <div className="flex h-full min-h-0 flex-col justify-between gap-2 overflow-hidden">
+            <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-amber-800/70 bg-amber-950/50 px-2 py-1.5 shadow-inner">
-                <span className="mb-1.5 flex shrink-0 items-center gap-1 text-[10px] font-bold text-amber-300 sm:text-xs">
-                  <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
-                  <span>當前桌面排組</span>
-                </span>
-                <div className="my-auto flex max-w-full flex-wrap items-center justify-center gap-2 p-1 sm:gap-3">
-                  {currentQ.tableSets.map((set, setIdx) => (
-                    <div key={setIdx} className="flex items-center gap-1 rounded-xl border border-amber-700/50 bg-black/50 p-1 shadow sm:gap-1.5 sm:p-1.5">
-                      {set.map((tile, idx) => tile.isSlot ? (
-                        <div key={`slot_${setIdx}_${idx}`} className="flex h-9 w-6 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 p-0.5 text-amber-300 shadow-inner animate-pulse sm:h-11 sm:w-8 md:h-12 md:w-9 lg:h-16 lg:w-12">
-                          <span className="text-[10px] sm:text-xs md:text-sm">❓</span>
-                          <span className="text-center text-[5px] font-black leading-none text-amber-200 sm:text-[6px] md:text-[7px]">目標位</span>
-                        </div>
-                      ) : <RummikubTile key={tile.id || idx} tile={tile} size="sm" disabled />)}
-                    </div>
-                  ))}
-                </div>
+                <span className="mb-1.5 flex shrink-0 items-center gap-1 text-[10px] font-bold text-amber-300 sm:text-xs"><Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" /><span>當前桌面排組</span></span>
+                <div className="my-auto flex max-w-full flex-wrap items-center justify-center gap-2 p-1 sm:gap-3">{currentQ.tableSets.map((set, setIdx) => <div key={setIdx} className="flex items-center gap-1 rounded-xl border border-amber-700/50 bg-black/50 p-1 shadow sm:gap-1.5 sm:p-1.5">{set.map((tile, idx) => tile.isSlot ? <div key={`slot_${setIdx}_${idx}`} className="flex h-9 w-6 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 p-0.5 text-amber-300 shadow-inner animate-pulse sm:h-11 sm:w-8 md:h-12 md:w-9 lg:h-16 lg:w-12"><span className="text-[10px] sm:text-xs md:text-sm">❓</span><span className="text-center text-[5px] font-black leading-none text-amber-200 sm:text-[6px] md:text-[7px]">目標位</span></div> : <RummikubTile key={tile.id || idx} tile={tile} size="sm" disabled />)}</div>)}</div>
               </div>
+              <div className="shrink-0 rounded-xl border border-amber-800/70 bg-black/40 p-2"><div className="mb-1 text-center text-xs font-bold tracking-wide text-amber-300">🎯 請點擊選擇手牌選項</div><div className="grid grid-cols-4 justify-items-center gap-2 sm:gap-3">{currentQ.options.map(opt => <RummikubTile key={opt.id} tile={opt} size="md" selected={selectedOptionId === opt.id} highlight={isAnswered && opt.id === currentQ.correctOptionId} disabled={isAnswered} onClick={() => handleSelect(opt)} />)}</div></div>
             </div>
           )}
           support={(
             <div className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
-              <div className="rounded-xl border border-amber-800/70 bg-amber-900/40 p-3 shadow-inner">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-lg border border-amber-600/50 bg-amber-800 px-2 py-1 text-xs font-black text-amber-300 sm:text-sm">{currentQ.badge}</span>
-                  <span className="text-xs font-bold text-amber-300">第 {currentIndex + 1}/{questions.length} 題</span>
-                </div>
-                <h2 className="mt-2 line-clamp-3 text-sm font-bold leading-snug text-white sm:text-base lg:text-lg">{currentQ.prompt}</h2>
-              </div>
-              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-amber-800/70 bg-black/40 p-2">
-                <div className="shrink-0 border-b border-amber-800/80 pb-1 text-center text-xs font-bold tracking-wide text-amber-300">🎯 請點擊選擇手牌選項</div>
-                <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto p-1">
-                  <div className="my-auto grid w-full grid-cols-2 items-center justify-items-center gap-2 sm:gap-3">
-                    {currentQ.options.map(opt => {
-                      const isSelected = selectedOptionId === opt.id;
-                      const isOptCorrect = opt.id === currentQ.correctOptionId;
-                      return <div key={opt.id} className="flex justify-center"><RummikubTile tile={opt} size="md" selected={isSelected} highlight={isAnswered && isOptCorrect} disabled={isAnswered} onClick={() => handleSelect(opt)} /></div>;
-                    })}
-                  </div>
-                </div>
-              </div>
+              <div className="rounded-xl border border-amber-800/70 bg-amber-900/40 p-3 shadow-inner"><div className="flex flex-wrap items-center gap-1.5"><span className="rounded-lg border border-amber-600/50 bg-amber-800 px-2 py-1 text-xs font-black text-amber-300 sm:text-sm">{currentQ.badge}</span><span className="text-xs font-bold text-amber-300">第 {currentIndex + 1}/{questions.length} 題</span></div><h2 className="mt-2 text-sm font-bold leading-snug text-white sm:text-base lg:text-lg">{currentQ.prompt}</h2></div>
+              <div className="rounded-xl border border-amber-800/70 bg-amber-900/40 p-3 text-sm leading-relaxed text-amber-100">觀察同色連號、同數不同色與百搭牌，找出能完成牌組的選項。</div>
             </div>
           )}
           feedback={(

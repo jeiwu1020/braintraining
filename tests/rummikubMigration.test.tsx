@@ -44,6 +44,8 @@ describe('RummikubGame grid-focus migration', () => {
     expect(markup).toContain('data-layout-region="support"');
     expect(markup).toContain('data-layout-region="feedback"');
     expect(markup).toContain('選出可以接在紅4-紅5-紅6後面的牌');
+    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇紅色7"'));
+    expect(markup.indexOf('aria-label="選擇紅色7"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
   });
 
   it('keeps Rummikub answer tiles accessible and protects the answer result', () => {
