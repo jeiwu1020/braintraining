@@ -75,6 +75,16 @@ export const applyOthelloMove = (board: number[][], r: number, c: number, player
   return newBoard;
 };
 
+export const getOthelloWinner = (board: number[][]) => {
+  let blackCount = 0;
+  let whiteCount = 0;
+  board.forEach(row => row.forEach(cell => {
+    if (cell === BLACK) blackCount += 1;
+    else if (cell === WHITE) whiteCount += 1;
+  }));
+  return blackCount > whiteCount ? BLACK : whiteCount > blackCount ? WHITE : 3;
+};
+
 // Positional Weights
 // Corners = 100, Adjacent to Corners (X, C squares) = -20 (Danger), Edges = 10
 const POSITION_WEIGHTS = [
@@ -161,13 +171,9 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
   };
 
   const endGame = (b: number[][]) => {
-      let blk = 0, wht = 0;
-      b.forEach(row => row.forEach(c => {
-          if (c === BLACK) blk++; else if (c === WHITE) wht++;
-      }));
-      if (blk > wht) { setWinner(1); soundService.playWin(); }
-      else if (wht > blk) { setWinner(2); soundService.playWin(); }
-      else setWinner(3);
+      const result = getOthelloWinner(b);
+      setWinner(result);
+      if (result !== 3) soundService.playWin();
   };
 
   const handleUndo = () => {

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import OthelloGame, {
   applyOthelloMove,
   getOthelloValidMoves,
+  getOthelloWinner,
   isOthelloValidMove,
 } from '../components/OthelloGame';
 
@@ -56,5 +57,16 @@ describe('OthelloGame board-sidebar migration', () => {
     expect(nextBoard[3][3]).toBe(1);
     expect(nextBoard[3][4]).toBe(1);
     expect(nextBoard[4][4]).toBe(2);
+  });
+
+  it('preserves terminal winner semantics from final board counts', () => {
+    const board = emptyBoard();
+    board[0][0] = 1;
+    board[0][1] = 2;
+    board[0][2] = 1;
+    expect(getOthelloWinner(board)).toBe(1);
+
+    board[0][3] = 2;
+    expect(getOthelloWinner(board)).toBe(3);
   });
 });
