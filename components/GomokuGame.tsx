@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
+import { RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import BoardSidebarLayout from './game-ui/BoardSidebarLayout';
 
 interface Props {
   onBack: () => void;
   difficulty?: Difficulty;
+  initialBoard?: number[][];
 }
 
 const GRID_SIZE = 10;
@@ -17,8 +20,36 @@ const CELL_WHITE = 2; // Player 2 or AI
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const ROWS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const [board, setBoard] = useState<number[][]>([]);
+const createEmptyBoard = () => Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(CELL_EMPTY));
+const cloneBoard = (value: number[][]) => value.map(row => [...row]);
+
+export const findGomokuWinningLine = (currentBoard: number[][], player: number) => {
+  const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  for (let r = 0; r < GRID_SIZE; r += 1) {
+    for (let c = 0; c < GRID_SIZE; c += 1) {
+      if (currentBoard[r]?.[c] !== player) continue;
+      for (const [dr, dc] of directions) {
+        let count = 1;
+        const line = [{ r, c }];
+        for (let k = 1; k < 5; k += 1) {
+          const nr = r + k * dr;
+          const nc = c + k * dc;
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && currentBoard[nr]?.[nc] === player) {
+            count += 1;
+            line.push({ r: nr, c: nc });
+          } else {
+            break;
+          }
+        }
+        if (count === 5) return line;
+      }
+    }
+  }
+  return null;
+};
+
+const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoard }) => {
+  const [board, setBoard] = useState<number[][]>(() => initialBoard ? cloneBoard(initialBoard) : createEmptyBoard());
   const [isBlackTurn, setIsBlackTurn] = useState(true);
   const [winner, setWinner] = useState<number | null>(null); // 0: null, 1: Black, 2: White, 3: Draw
   const [winningLine, setWinningLine] = useState<{r:number, c:number}[]>([]);
@@ -37,7 +68,7 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   }, [gameMode]);
 
   const resetGame = () => {
-    const newBoard = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(CELL_EMPTY));
+    const newBoard = initialBoard ? cloneBoard(initialBoard) : createEmptyBoard();
     setBoard(newBoard);
     setIsBlackTurn(true);
     setWinner(null);
@@ -45,29 +76,6 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setIsWinModalOpen(false);
     setHistory([]);
     setTurnHistory([]);
-  };
-
-  const checkWin = (currentBoard: number[][], player: number) => {
-    const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        if (currentBoard[r][c] !== player) continue;
-        for (const [dr, dc] of directions) {
-          let count = 1;
-          const line = [{r, c}];
-          for (let k = 1; k < 5; k++) {
-            const nr = r + k * dr;
-            const nc = c + k * dc;
-            if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && currentBoard[nr][nc] === player) {
-              count++;
-              line.push({r: nr, c: nc});
-            } else { break; }
-          }
-          if (count === 5) return line;
-        }
-      }
-    }
-    return null;
   };
 
   // --- Advanced AI Logic ---
@@ -198,7 +206,7 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     setBoard(newBoard);
     soundService.playGameSound('BOUNCE');
 
-    const winLine = checkWin(newBoard, currentPlayer);
+    const winLine = findGomokuWinningLine(newBoard, currentPlayer);
     if (winLine) {
       setWinningLine(winLine);
       setWinner(currentPlayer);
@@ -248,7 +256,7 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           newBoard[move.r][move.c] = CELL_WHITE;
           setBoard(newBoard);
           soundService.playGameSound('LOW');
-          const winLine = checkWin(newBoard, CELL_WHITE);
+          const winLine = findGomokuWinningLine(newBoard, CELL_WHITE);
           if (winLine) {
             setWinningLine(winLine);
             setWinner(CELL_WHITE);
@@ -267,145 +275,186 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     }
   }, [isBlackTurn, winner, board, gameMode]);
 
-  return (
-    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-stone-100 overflow-hidden">
-      {/* Header / Sidebar */}
-      <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
-        <button onClick={onBack} className="p-1.5 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200">
-          <ArrowLeft size={18} />
-        </button>
-        
-        <div className="flex portrait:flex-row landscape:flex-col gap-2">
-            <button 
-                onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-stone-100 rounded-full text-xs sm:text-sm font-bold text-stone-700 border border-stone-300"
-            >
-                {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
-            </button>
-            <button 
-                onClick={handleUndo} 
-                disabled={history.length === 0}
-                className="p-1.5 md:p-2 bg-stone-100 rounded-full text-stone-700 border border-stone-300 hover:bg-stone-200 disabled:opacity-50 flex items-center justify-center"
-            >
-                <Undo2 size={16} />
-            </button>
-            <button 
-                onClick={() => setShowRules(true)} 
-                className="p-1.5 md:p-2 bg-stone-100 rounded-full text-stone-700 border border-stone-300 hover:bg-stone-200 flex items-center justify-center"
-            >
-                <HelpCircle size={16} />
-            </button>
+  const modeLabel = gameMode === 'PVE' ? '單人' : '雙人';
+  const difficultyLabel = difficulty === 'ADVANCED' ? '進階' : '一般';
+  const statusText = winner === 1
+    ? '黑棋獲勝！'
+    : winner === 2
+      ? '白棋獲勝！'
+      : winner === 3
+        ? '平手'
+        : (isBlackTurn ? '黑棋回合' : '白棋回合');
+  const turnLabel = isBlackTurn ? '黑棋' : '白棋';
+
+  const boardView = (
+    <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
+      <div
+        className="grid aspect-square h-auto max-w-full gap-0.5"
+        style={{
+          width: 'min(100%, calc(100dvh - 9rem))',
+          gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+          gridTemplateRows: '1.25rem minmax(0, 1fr)',
+        }}
+      >
+        <span aria-hidden="true" />
+        <div className="grid grid-cols-10 items-center text-center text-[10px] font-bold text-stone-700 sm:text-xs">
+          {COLS.map(label => <span key={label}>{label}</span>)}
         </div>
+        <div className="grid grid-rows-10 items-center text-center text-[10px] font-bold text-stone-700 sm:text-xs">
+          {ROWS.map(label => <span key={label}>{label}</span>)}
+        </div>
+        <div className="relative grid grid-cols-10 grid-rows-10 overflow-hidden rounded-sm border-2 border-stone-800 bg-[#DEB887] shadow-xl">
+          {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
+            const r = Math.floor(index / GRID_SIZE);
+            const c = index % GRID_SIZE;
+            const cell = board[r]?.[c] ?? CELL_EMPTY;
+            const coordinate = `${COLS[c]}${ROWS[r]}`;
+            const isWinningPiece = winningLine.some(pos => pos.r === r && pos.c === c);
+            const isOccupied = cell !== CELL_EMPTY;
+            const isDisabled = isOccupied || Boolean(winner) || (gameMode === 'PVE' && !isBlackTurn);
+            const pieceLabel = cell === CELL_BLACK ? '黑棋' : '白棋';
 
-        <button onClick={resetGame} className="p-1.5 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200">
-          <RefreshCw size={18} />
-        </button>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Status Bar */}
-          <div className="flex-none text-center py-1 sm:py-2 bg-stone-200 text-stone-800 font-bold text-sm sm:text-lg">
-              {winner ? (winner === 1 ? "黑棋獲勝！" : winner === 2 ? "白棋獲勝！" : "平手") : (isBlackTurn ? "黑棋回合" : "白棋回合")}
-          </div>
-
-          {/* Board Area */}
-          <div className="flex-1 flex items-center justify-center p-1 sm:p-2 bg-stone-200 overflow-hidden w-full h-full">
-        
-            {/* Dynamic Sizing Container: Restricted based on both dimensions */}
-            <div className="flex flex-col items-center justify-center" style={{ width: 'min(90vw, min(75vh, 600px))' }}>
-            
-            {/* Top Coordinates */}
-            <div className="flex pl-6 mb-0.5 w-full">
-                {COLS.map(c => (
-                    <div key={c} className="flex-1 text-center text-[10px] sm:text-xs font-bold text-stone-600">{c}</div>
-                ))}
-            </div>
-
-            <div className="flex w-full items-stretch">
-                {/* Left Coordinates */}
-                <div className="flex flex-col justify-between pr-1 py-2 w-6">
-                    {ROWS.map(r => (
-                        <div key={r} className="flex-1 flex items-center justify-center text-[10px] sm:text-xs font-bold text-stone-600">{r}</div>
-                    ))}
-                </div>
-
-                {/* The Board Aspect Ratio Square */}
-                <div className="bg-[#DEB887] shadow-xl relative border-2 border-stone-800 flex-1 aspect-square">
-                    <div 
-                        className="w-full h-full grid"
-                        style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)` }}
-                    >
-                        {board.map((row, r) => row.map((cell, c) => {
-                            const isWinningPiece = winningLine.some(pos => pos.r === r && pos.c === c);
-                            const isTop = r === 0;
-                            const isBottom = r === GRID_SIZE - 1;
-                            const isLeft = c === 0;
-                            const isRight = c === GRID_SIZE - 1;
-
-                            return (
-                                <div 
-                                    key={`${r}-${c}`} 
-                                    onClick={() => handleCellClick(r, c)}
-                                    className="relative flex items-center justify-center cursor-pointer"
-                                >
-                                    {/* Lines */}
-                                    <div className={`absolute h-px bg-black w-full top-1/2 ${isLeft ? 'left-1/2 w-1/2' : ''} ${isRight ? 'right-1/2 w-1/2' : ''}`}></div>
-                                    <div className={`absolute w-px bg-black h-full left-1/2 ${isTop ? 'top-1/2 h-1/2' : ''} ${isBottom ? 'bottom-1/2 h-1/2' : ''}`}></div>
-                                    
-                                    {/* Star Points */}
-                                    { ((r===3||r===6) && (c===3||c===6)) && <div className="absolute w-1.5 h-1.5 bg-black rounded-full z-0"></div> }
-
-                                    {/* Piece */}
-                                    {cell !== CELL_EMPTY && (
-                                        <div className={`
-                                            w-[85%] h-[85%] rounded-full shadow-md z-10 transition-transform duration-200
-                                            ${cell === CELL_BLACK ? 'bg-black radial-gradient-black' : 'bg-white radial-gradient-white'}
-                                            ${isWinningPiece ? 'ring-2 ring-green-500 scale-110' : ''}
-                                        `}></div>
-                                    )}
-                                </div>
-                            );
-                        }))}
-                    </div>
-                </div>
-            </div>
+            return (
+              <button
+                key={coordinate}
+                type="button"
+                data-coordinate={coordinate}
+                aria-label={isOccupied ? `${coordinate}，${pieceLabel}` : `在 ${coordinate} 落${turnLabel}`}
+                disabled={isDisabled}
+                onClick={() => handleCellClick(r, c)}
+                className="relative flex min-h-0 min-w-0 items-center justify-center border-b border-r border-black/60 bg-[#DEB887] p-0 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:cursor-not-allowed"
+              >
+                {((r === 3 || r === 6) && (c === 3 || c === 6)) && (
+                  <span aria-hidden="true" className="absolute h-1.5 w-1.5 rounded-full bg-black" />
+                )}
+                {isOccupied && (
+                  <span
+                    aria-hidden="true"
+                    className={`relative z-10 h-[78%] w-[78%] rounded-full shadow-md ${
+                      cell === CELL_BLACK ? 'bg-black' : 'border border-stone-400 bg-white'
+                    } ${isWinningPiece ? 'scale-110 ring-2 ring-green-500 ring-offset-1' : ''}`}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
-      </div>
-      
-      {/* Rules Modal */}
-      {showRules && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><HelpCircle /> 遊戲規則</h2>
-                <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
-                    <li>黑子先手，雙方輪流落子。</li>
-                    <li>任何一方在橫向、縱向或斜向連續排成5個或以上的同色棋子即獲勝。</li>
-                    <li>若棋盤下滿且無人連成5子，則為平局。</li>
-                </ul>
-                <button 
-                  onClick={() => setShowRules(false)} 
-                  className="w-full py-2 bg-stone-800 text-white rounded-lg font-bold hover:bg-stone-700"
-                >
-                  了解，開始遊戲！
-                </button>
-            </div>
-        </div>
-      )}
-
-      {/* Winner Overlay */}
-      {winner && isWinModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 pointer-events-none">
-            <div className="bg-white p-6 rounded-2xl animate-bounce-short text-center shadow-2xl pointer-events-auto border-4 border-stone-200">
-                <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-2"/>
-                <h2 className="text-2xl font-bold mb-4">{winner === 1 ? "黑棋獲勝" : winner === 2 ? "白棋獲勝" : "平手"}</h2>
-                <button onClick={() => setIsWinModalOpen(false)} className="px-6 py-2 bg-stone-800 text-white rounded-lg font-bold">確認</button>
-            </div>
-        </div>
-      )}
     </div>
+  );
+
+  const sidebarView = (
+    <div className="flex h-full min-h-0 flex-col gap-2 rounded-xl border border-stone-200 bg-white/90 p-2 text-stone-800 shadow-sm sm:gap-3 sm:p-3">
+      <div id="gomoku-turn" className="rounded-lg bg-stone-100 p-2 text-center">
+        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-stone-600">
+          <Trophy aria-hidden="true" className="h-4 w-4" /> 目前狀態
+        </div>
+        <strong className="mt-1 block text-base">{statusText}</strong>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+        aria-label={`切換遊戲模式，目前為${modeLabel}`}
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-stone-300 bg-stone-100 px-2 py-1 text-sm font-bold text-stone-800 transition-colors hover:bg-stone-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+      >
+        {gameMode === 'PVE' ? <User aria-hidden="true" className="h-5 w-5" /> : <Users aria-hidden="true" className="h-5 w-5" />}
+        目前模式：{modeLabel}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleUndo}
+        disabled={history.length === 0}
+        aria-label="悔棋"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-2 py-1 text-sm font-bold text-stone-800 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Undo2 aria-hidden="true" className="h-5 w-5" /> 悔棋
+      </button>
+
+      <p className="mt-auto rounded-lg bg-stone-50 p-2 text-xs leading-relaxed text-stone-600 sm:text-sm">
+        點選空格落子，黑子先手；先連成五子或以上即可獲勝。
+      </p>
+    </div>
+  );
+
+  return (
+    <GameShell
+      title="五子棋"
+      subtitle="先連成五子或以上"
+      onBack={onBack}
+      status={<div className="flex items-center gap-2 text-xs sm:text-sm"><span>{difficultyLabel}</span><span aria-label="遊戲模式">{modeLabel}</span></div>}
+      actions={(
+        <>
+          <button
+            type="button"
+            onClick={() => setShowRules(true)}
+            aria-label="查看遊戲規則"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+          >
+            <HelpCircle aria-hidden="true" className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={resetGame}
+            aria-label="重設遊戲"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+          >
+            <RefreshCw aria-hidden="true" className="h-5 w-5" />
+          </button>
+        </>
+      )}
+      contentClassName="bg-stone-100 text-stone-800"
+    >
+      <div className="relative h-full min-h-0">
+        <BoardSidebarLayout
+          board={boardView}
+          sidebar={sidebarView}
+          feedback={<span className="flex items-center gap-2"><Trophy aria-hidden="true" className="h-4 w-4" />{statusText}</span>}
+          boardLabel="五子棋棋盤"
+          sidebarLabel="五子棋狀態與操作"
+          boardClassName="flex min-h-0 items-center justify-center bg-stone-200/70"
+          sidebarClassName="flex min-h-0 flex-col"
+          feedbackClassName="border-stone-300 text-stone-800"
+        />
+
+        {showRules && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+            <div role="dialog" aria-modal="true" aria-labelledby="gomoku-rules-title" className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+              <h2 id="gomoku-rules-title" className="mb-4 flex items-center gap-2 text-xl font-bold text-stone-800"><HelpCircle aria-hidden="true" /> 遊戲規則</h2>
+              <ul className="mb-6 list-disc space-y-2 pl-5 text-sm text-stone-700">
+                <li>黑子先手，雙方輪流落子。</li>
+                <li>任何一方在橫向、縱向或斜向連續排成5個或以上的同色棋子即獲勝。</li>
+                <li>若棋盤下滿且無人連成5子，則為平局。</li>
+              </ul>
+              <button
+                type="button"
+                onClick={() => setShowRules(false)}
+                className="min-h-11 w-full rounded-lg bg-stone-800 px-3 py-2 font-bold text-white transition-colors hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+              >
+                了解，開始遊戲！
+              </button>
+            </div>
+          </div>
+        )}
+
+        {winner && isWinModalOpen && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 p-3">
+            <div role="dialog" aria-modal="true" aria-labelledby="gomoku-result-title" className="max-h-full max-w-sm overflow-y-auto rounded-2xl border-4 border-stone-200 bg-white p-5 text-center shadow-2xl sm:p-6">
+              <Trophy aria-hidden="true" className="mx-auto mb-2 h-14 w-14 text-yellow-500" />
+              <h2 id="gomoku-result-title" className="mb-4 text-2xl font-bold">{winner === 1 ? '黑棋獲勝' : winner === 2 ? '白棋獲勝' : '平手'}</h2>
+              <button
+                type="button"
+                onClick={() => setIsWinModalOpen(false)}
+                className="min-h-11 rounded-lg bg-stone-800 px-6 py-2 font-bold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+              >
+                確認
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </GameShell>
   );
 };
 
