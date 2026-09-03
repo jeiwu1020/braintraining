@@ -1,15 +1,94 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Difficulty } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles, Clock, Zap } from 'lucide-react';
+import { RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles } from 'lucide-react';
 import { RulesModal } from './RulesModal';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface RummikubGameProps {
   onBack: () => void;
   difficulty?: Difficulty;
   isAdvanced?: boolean;
+  initialQuestions?: RummikubQuestion[];
 }
+
+interface RummikubRoundLayoutProps {
+  difficulty: Difficulty;
+  currentIndex: number;
+  totalQuestions: number;
+  score: number;
+  elapsedTime: number;
+  board: ReactNode;
+  support: ReactNode;
+  feedback?: ReactNode;
+  teamMode?: 'SOLO' | 'TEAM';
+  teamAScore?: number;
+  teamBScore?: number;
+  currentTeam?: 'A' | 'B';
+  onBack: () => void;
+  onToggleTeam: () => void;
+  onShowRules: () => void;
+  onRestart: () => void;
+}
+
+export const RummikubRoundLayout: React.FC<RummikubRoundLayoutProps> = ({
+  difficulty,
+  currentIndex,
+  totalQuestions,
+  score,
+  elapsedTime,
+  board,
+  support,
+  feedback,
+  teamMode = 'SOLO',
+  teamAScore = 0,
+  teamBScore = 0,
+  currentTeam = 'A',
+  onBack,
+  onToggleTeam,
+  onShowRules,
+  onRestart,
+}) => (
+  <GameShell
+    title="拉密魔術數字磚"
+    subtitle="找出能合法接牌或組成牌組的選項"
+    onBack={onBack}
+    className="bg-gradient-to-br from-orange-950 via-amber-950 to-stone-950"
+    status={(
+      <div className="flex items-center gap-1.5">
+        <span className="rounded-full bg-orange-500 px-2 py-1 text-xs font-bold text-gray-950">{difficulty === 'ADVANCED' ? '進階拆牌' : '經典拉密'}</span>
+        <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-900 sm:px-3 sm:text-sm">第 {currentIndex + 1}/{totalQuestions} 題</span>
+        {teamMode === 'TEAM' ? (
+          <span className="rounded-full bg-amber-900 px-2 py-1 text-xs font-bold text-white">{currentTeam} 組 · A {teamAScore} / B {teamBScore}</span>
+        ) : (
+          <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-900 sm:px-3 sm:text-sm">{score} 分</span>
+        )}
+      </div>
+    )}
+    actions={(
+      <>
+        <span className="hidden rounded-xl bg-amber-900 px-2 py-1 text-xs font-bold text-amber-200 sm:inline">{elapsedTime.toFixed(1)}s</span>
+        <button type="button" onClick={onToggleTeam} aria-label="切換單人或分組模式" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-amber-900 text-amber-200"><Users aria-hidden="true" className="h-5 w-5" /></button>
+        <button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-amber-900 text-amber-200"><HelpCircle aria-hidden="true" className="h-5 w-5" /></button>
+        <button type="button" onClick={onRestart} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-amber-900 text-amber-200"><RotateCcw aria-hidden="true" className="h-5 w-5" /></button>
+      </>
+    )}
+  >
+    <GridFocusLayout
+      playfieldLabel="拉密牌桌面"
+      supportLabel="拉密題目與手牌"
+      className="bg-gradient-to-br from-orange-950 via-amber-950 to-stone-950"
+      playfieldClassName="overflow-hidden rounded-xl border border-amber-700/60 bg-amber-950/70 p-2 text-white"
+      supportClassName="overflow-hidden rounded-xl border border-amber-700/60 bg-amber-950/70 p-2 text-white"
+      feedbackClassName="rounded-xl border-amber-700/60 bg-amber-950/95 px-2 text-white"
+      playfield={board}
+      support={support}
+      feedback={feedback}
+    />
+  </GameShell>
+);
 
 export type RummikubColor = 'blue' | 'red' | 'yellow' | 'black' | 'green';
 
@@ -52,6 +131,8 @@ export const RummikubTile: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
+      aria-label={`${onClick && !disabled ? '選擇' : '拉密牌'}${tile.isJoker ? '百搭笑臉' : `${currentStyle.name}色${tile.number}`}`}
+      aria-pressed={onClick ? selected : undefined}
       className={`relative ${sizeClasses[size]} rounded-xl lg:rounded-2xl bg-gradient-to-b from-amber-50 to-orange-100/90 border-2 lg:border-[3px] shadow-md flex flex-col items-center justify-between p-0.5 lg:p-1 transition-all select-none shrink-0
         ${selected ? 'ring-3 lg:ring-4 ring-orange-500 border-orange-500 -translate-y-1 shadow-lg bg-orange-100' : `${currentStyle.border} hover:border-orange-400`}
         ${highlight ? 'ring-3 lg:ring-4 ring-emerald-400 border-emerald-500 shadow-md shadow-emerald-500/30' : ''}
@@ -613,10 +694,32 @@ const calculateTimeScore = (seconds: number): { score: number; label: string; ic
   return { score: 40, label: '穩紮穩打', icon: '🛡️' };
 };
 
-const RummikubGame: React.FC<RummikubGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false }) => {
+export const resolveRummikubAnswer = ({
+  optionId,
+  correctOptionId,
+  elapsedSeconds,
+}: {
+  optionId?: string;
+  correctOptionId: string;
+  elapsedSeconds: number;
+}) => {
+  const isCorrect = optionId === correctOptionId;
+  return {
+    isAnswered: true,
+    isCorrect,
+    earnedScore: isCorrect ? calculateTimeScore(elapsedSeconds).score : 0,
+  };
+};
+
+export const RummikubGame: React.FC<RummikubGameProps> = ({
+  onBack,
+  difficulty = 'NORMAL',
+  isAdvanced = false,
+  initialQuestions,
+}) => {
   const isAdv = isAdvanced || difficulty === 'ADVANCED';
 
-  const [questions, setQuestions] = useState<RummikubQuestion[]>([]);
+  const [questions, setQuestions] = useState<RummikubQuestion[]>(() => initialQuestions ?? []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -661,7 +764,7 @@ const RummikubGame: React.FC<RummikubGameProps> = ({ onBack, difficulty = 'NORMA
 
   const restart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const list = generateRummikubQuestions(isAdv);
+    const list = initialQuestions ?? generateRummikubQuestions(isAdv);
     setQuestions(list);
     setCurrentIndex(0);
     setSelectedOptionId(null);
@@ -691,13 +794,18 @@ const RummikubGame: React.FC<RummikubGameProps> = ({ onBack, difficulty = 'NORMA
     setSelectedOptionId(opt.id);
     setIsAnswered(true);
 
-    const correct = opt.id === currentQ.correctOptionId;
+    const answerResult = resolveRummikubAnswer({
+      optionId: opt.id,
+      correctOptionId: currentQ.correctOptionId,
+      elapsedSeconds: finalSec,
+    });
+    const correct = answerResult.isCorrect;
     setIsCorrect(correct);
 
     if (correct) {
       soundService.playCorrect();
       const speedCalc = calculateTimeScore(finalSec);
-      const earned = speedCalc.score;
+      const earned = answerResult.earnedScore;
       setLastEarnedScore(earned);
       setLastSpeedInfo({ label: speedCalc.label, icon: speedCalc.icon, time: finalSec });
 
@@ -740,273 +848,101 @@ const RummikubGame: React.FC<RummikubGameProps> = ({ onBack, difficulty = 'NORMA
   ];
 
   return (
-    <div className="h-screen max-h-screen w-full bg-gradient-to-br from-orange-950 via-amber-950 to-stone-950 text-white flex flex-col p-1.5 sm:p-3 select-none overflow-hidden justify-between">
+    <>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="拉密魔術數字牌 規則說明" rules={rules} />
 
-      {/* Top Compact Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-amber-800 hover:bg-amber-700 active:scale-95 text-amber-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
-        >
-          <ArrowLeft size={16} />
-          <span>返回</span>
-        </button>
-
-        {/* Title */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-orange-500 text-gray-950 rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
-            {isAdv ? '進階拆牌' : '經典拉密'}
-          </span>
-          <h1 className="text-xs sm:text-base lg:text-xl font-black text-amber-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
-            拉密魔術數字磚
-          </h1>
-          {currentQ && (
-            <span className="text-[11px] sm:text-xs lg:text-sm text-amber-200 font-bold hidden sm:inline">
-              ({currentIndex + 1}/{questions.length})
-            </span>
-          )}
-        </div>
-
-        {/* Live Timer & Score */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-amber-900/90 border border-amber-600/70 rounded-xl text-amber-300 text-xs lg:text-sm font-bold shadow-inner">
-              <Clock size={14} className="text-amber-400 animate-spin" />
-              <span>{elapsedTime.toFixed(1)}s</span>
-            </div>
-          )}
-
-          {teamMode === 'TEAM' ? (
-            <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-amber-900 text-amber-300'}`}>
-                A:{teamAScore}
-              </span>
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-blue-400 text-gray-950' : 'bg-amber-900 text-amber-300'}`}>
-                B:{teamBScore}
-              </span>
-            </div>
-          ) : (
-            <div className="px-2.5 py-0.5 lg:px-3 lg:py-1 bg-amber-900/90 border border-amber-700 rounded-xl text-amber-300 font-black text-xs sm:text-sm lg:text-base">
-              {score}分
-            </div>
-          )}
-
-          <button
-            onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
-              teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-amber-800 text-amber-200'
-            }`}
-            title="模式切換"
-          >
-            <Users size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-amber-800 hover:bg-amber-700 text-amber-200 rounded-xl transition shadow"
-            title="規則說明"
-          >
-            <HelpCircle size={16} />
-          </button>
-
-          <button
-            onClick={restart}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-amber-800 hover:bg-amber-700 text-amber-200 rounded-xl transition shadow"
-            title="重新開始"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Single Page Split Layout with No Scrollbars */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col sm:flex-row landscape:flex-row gap-2 sm:gap-3 lg:gap-4 my-1 bg-amber-950/80 border border-amber-700/50 rounded-2xl p-2 sm:p-3 lg:p-4 shadow-xl backdrop-blur-md overflow-hidden min-h-0 h-full">
-          
-          {/* LEFT COLUMN: Question Banner + Table Display */}
-          <div className="flex-1 sm:w-7/12 landscape:w-7/12 lg:w-8/12 flex flex-col min-h-0 overflow-hidden bg-black/40 p-2 sm:p-3 rounded-xl border border-amber-800/60">
-            
-            {/* Question Banner */}
-            <div className="flex items-center gap-2 lg:gap-3 border-b border-amber-800/80 pb-1.5 shrink-0">
-              <span className="bg-amber-800 text-amber-300 border border-amber-600/50 text-[10px] sm:text-xs lg:text-sm font-black px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg whitespace-nowrap shrink-0">
-                {currentQ.badge}
-              </span>
-              <h2 className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-white leading-tight">
-                {currentQ.prompt}
-              </h2>
+        <RummikubRoundLayout
+          difficulty={isAdv ? 'ADVANCED' : 'NORMAL'}
+          currentIndex={currentIndex}
+          totalQuestions={questions.length}
+          score={score}
+          elapsedTime={elapsedTime}
+          teamMode={teamMode}
+          teamAScore={teamAScore}
+          teamBScore={teamBScore}
+          currentTeam={currentTeam}
+          onBack={onBack}
+          onToggleTeam={() => setTeamMode(mode => mode === 'SOLO' ? 'TEAM' : 'SOLO')}
+          onShowRules={() => setShowRules(true)}
+          onRestart={restart}
+          board={(
+            <div className="flex h-full min-h-0 flex-col justify-between gap-2 overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-amber-800/70 bg-amber-950/50 px-2 py-1.5 shadow-inner">
+                <span className="mb-1.5 flex shrink-0 items-center gap-1 text-[10px] font-bold text-amber-300 sm:text-xs">
+                  <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+                  <span>當前桌面排組</span>
+                </span>
+                <div className="my-auto flex max-w-full flex-wrap items-center justify-center gap-2 p-1 sm:gap-3">
+                  {currentQ.tableSets.map((set, setIdx) => (
+                    <div key={setIdx} className="flex items-center gap-1 rounded-xl border border-amber-700/50 bg-black/50 p-1 shadow sm:gap-1.5 sm:p-1.5">
+                      {set.map((tile, idx) => tile.isSlot ? (
+                        <div key={`slot_${setIdx}_${idx}`} className="flex h-9 w-6 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 p-0.5 text-amber-300 shadow-inner animate-pulse sm:h-11 sm:w-8 md:h-12 md:w-9 lg:h-16 lg:w-12">
+                          <span className="text-[10px] sm:text-xs md:text-sm">❓</span>
+                          <span className="text-center text-[5px] font-black leading-none text-amber-200 sm:text-[6px] md:text-[7px]">目標位</span>
+                        </div>
+                      ) : <RummikubTile key={tile.id || idx} tile={tile} size="sm" disabled />)}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-
-            {/* Table Display Area */}
-            <div className="flex-1 my-1 py-1.5 px-2 flex flex-col items-center justify-center bg-amber-950/50 rounded-xl border border-amber-800/70 shadow-inner overflow-auto min-h-0">
-              <span className="text-[10px] sm:text-xs text-amber-300 font-bold mb-1.5 flex items-center gap-1 shrink-0">
-                <Sparkles size={13} className="text-amber-400" />
-                <span>當前桌面排組</span>
-              </span>
-
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 my-auto p-1 max-w-full">
-                {currentQ.tableSets.map((set, setIdx) => (
-                  <div key={setIdx} className="flex items-center gap-1 sm:gap-1.5 bg-black/50 p-1 sm:p-1.5 rounded-xl border border-amber-700/50 shadow">
-                    {set.map((tile, idx) => {
-                      if (tile.isSlot) {
-                        return (
-                          <div
-                            key={`slot_${setIdx}_${idx}`}
-                            className="w-6 h-9 sm:w-8 sm:h-11 md:w-9 md:h-12 lg:w-12 lg:h-16 rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 flex flex-col items-center justify-center text-amber-300 font-bold p-0.5 shadow-inner animate-pulse shrink-0"
-                          >
-                            <span className="text-[10px] sm:text-xs md:text-sm">❓</span>
-                            <span className="text-[5px] sm:text-[6px] md:text-[7px] text-center font-black text-amber-200 leading-none">
-                              目標位
-                            </span>
-                          </div>
-                        );
-                      }
-                      return <RummikubTile key={tile.id || idx} tile={tile} size="sm" disabled />;
+          )}
+          support={(
+            <div className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
+              <div className="rounded-xl border border-amber-800/70 bg-amber-900/40 p-3 shadow-inner">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-lg border border-amber-600/50 bg-amber-800 px-2 py-1 text-xs font-black text-amber-300 sm:text-sm">{currentQ.badge}</span>
+                  <span className="text-xs font-bold text-amber-300">第 {currentIndex + 1}/{questions.length} 題</span>
+                </div>
+                <h2 className="mt-2 line-clamp-3 text-sm font-bold leading-snug text-white sm:text-base lg:text-lg">{currentQ.prompt}</h2>
+              </div>
+              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-amber-800/70 bg-black/40 p-2">
+                <div className="shrink-0 border-b border-amber-800/80 pb-1 text-center text-xs font-bold tracking-wide text-amber-300">🎯 請點擊選擇手牌選項</div>
+                <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto p-1">
+                  <div className="my-auto grid w-full grid-cols-2 items-center justify-items-center gap-2 sm:gap-3">
+                    {currentQ.options.map(opt => {
+                      const isSelected = selectedOptionId === opt.id;
+                      const isOptCorrect = opt.id === currentQ.correctOptionId;
+                      return <div key={opt.id} className="flex justify-center"><RummikubTile tile={opt} size="md" selected={isSelected} highlight={isAnswered && isOptCorrect} disabled={isAnswered} onClick={() => handleSelect(opt)} /></div>;
                     })}
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Hand Cards / Answer Options + Feedback/Next Button */}
-          <div className="shrink-0 sm:w-5/12 landscape:w-5/12 lg:w-4/12 flex flex-col justify-between min-h-0 overflow-hidden bg-black/40 p-2 sm:p-3 rounded-xl border border-amber-800/60">
-            
-            {/* Header */}
-            <div className="border-b border-amber-800/80 pb-1 text-center shrink-0">
-              <span className="text-xs font-bold text-amber-300 tracking-wide">
-                🎯 請點擊選擇手牌選項
-              </span>
-            </div>
-
-            {/* Options Grid */}
-            <div className="flex-1 flex flex-col items-center justify-center my-1 overflow-y-auto p-1 min-h-0">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full justify-items-center items-center my-auto">
-                {currentQ.options.map(opt => {
-                  const isSelected = selectedOptionId === opt.id;
-                  const isOptCorrect = opt.id === currentQ.correctOptionId;
-                  let highlight = false;
-                  if (isAnswered && isOptCorrect) highlight = true;
-
-                  return (
-                    <div key={opt.id} className="flex justify-center">
-                      <RummikubTile
-                        tile={opt}
-                        size="md"
-                        selected={isSelected}
-                        highlight={highlight}
-                        disabled={isAnswered}
-                        onClick={() => handleSelect(opt)}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Bottom Feedback Banner / Action Area */}
-            <div className="shrink-0 min-h-[40px] flex flex-col justify-end pt-1 border-t border-amber-800/80">
-              <AnimatePresence mode="wait">
-                {isAnswered ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className={`w-full p-1.5 sm:p-2 rounded-xl flex flex-col gap-1 shadow border text-xs shrink-0 ${
-                      isCorrect
-                        ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
-                        : 'bg-rose-950/95 border-rose-500 text-rose-100'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        {isCorrect ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        )}
-                        {isCorrect && lastSpeedInfo && (
-                          <span className="bg-emerald-800 text-amber-300 px-1 py-0.5 rounded font-black text-[9px] whitespace-nowrap">
-                            +{lastEarnedScore}分 {lastSpeedInfo.icon}
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={handleNext}
-                        className="shrink-0 px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-lg text-xs shadow active:scale-95 transition"
-                      >
-                        {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
-                      </button>
-                    </div>
-
-                    <div className="text-[10px] sm:text-[11px] leading-tight font-bold opacity-90 line-clamp-2">
-                      {currentQ.explanation}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <div className="text-center text-[10px] sm:text-xs text-amber-300/80 font-bold py-0.5">
-                    點擊作答選項完成題目
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* End Screen */
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center p-3 gap-2.5">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="p-2.5 bg-amber-500 text-gray-950 rounded-2xl shadow-xl"
-          >
-            <Award className="w-10 h-10 sm:w-14 sm:h-14" />
-          </motion.div>
-
-          <h2 className="text-lg sm:text-2xl font-black text-amber-300">
-            🏆 拉密魔術大師通關！
-          </h2>
-
-          {teamMode === 'TEAM' ? (
-            <div className="bg-amber-900/60 border border-amber-500/50 rounded-2xl p-3 max-w-sm w-full">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-amber-500/20 border border-amber-400 p-2 rounded-xl">
-                  <p className="text-xs text-amber-300 font-bold">A 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamAScore} 分</p>
-                </div>
-                <div className="bg-blue-500/20 border border-blue-400 p-2 rounded-xl">
-                  <p className="text-xs text-blue-300 font-bold">B 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamBScore} 分</p>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-amber-900/60 border border-amber-700/50 rounded-2xl p-3 max-w-sm w-full">
-              <p className="text-amber-300 text-xs font-bold">總積分</p>
-              <p className="text-2xl sm:text-4xl font-black text-amber-300">{score} 分</p>
-              <p className="text-[11px] sm:text-xs text-amber-200 mt-1">數字重構邏輯敏銳，拆牌排組靈活迅速！</p>
             </div>
           )}
-
-          <div className="flex gap-2.5 justify-center mt-1">
-            <button
-              onClick={restart}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-black rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-1"
-            >
-              <RotateCcw size={15} />
-              再玩一局
-            </button>
-            <button
-              onClick={onBack}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-800 hover:bg-amber-700 text-amber-200 font-bold rounded-xl text-xs sm:text-sm shadow transition"
-            >
-              回遊戲選單
-            </button>
+          feedback={(
+            <div className="flex min-h-[40px] shrink-0 flex-col justify-end pt-1">
+              <AnimatePresence mode="wait">
+                {isAnswered ? (
+                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`flex w-full shrink-0 flex-col gap-1 rounded-xl border p-1.5 text-xs shadow sm:p-2 ${isCorrect ? 'border-emerald-500 bg-emerald-950/95 text-emerald-100' : 'border-rose-500 bg-rose-950/95 text-rose-100'}`}>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 overflow-hidden">
+                        {isCorrect ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" /> : <XCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-rose-400" />}
+                        {isCorrect && lastSpeedInfo && <span className="whitespace-nowrap rounded bg-emerald-800 px-1 py-0.5 text-[9px] font-black text-amber-300">+{lastEarnedScore}分 {lastSpeedInfo.icon}</span>}
+                      </div>
+                      <button type="button" onClick={handleNext} className="min-h-11 shrink-0 rounded-lg bg-amber-400 px-2.5 py-1 text-xs font-black text-gray-950 shadow transition hover:bg-amber-300 active:scale-95">{currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}</button>
+                    </div>
+                    <div className="line-clamp-2 text-[10px] font-bold leading-tight opacity-90 sm:text-[11px]">{currentQ.explanation}</div>
+                  </motion.div>
+                ) : <div className="py-0.5 text-center text-[10px] font-bold text-amber-800 sm:text-xs">點擊作答選項完成題目</div>}
+              </AnimatePresence>
+            </div>
+          )}
+        />
+      ) : (
+        <GameShell title="拉密魔術數字磚" subtitle="本局挑戰完成" onBack={onBack} className="h-screen bg-gradient-to-br from-orange-950 via-amber-950 to-stone-950 text-white">
+          <div className="mx-auto flex h-full w-full max-w-5xl flex-col items-center justify-center gap-2.5 p-3 text-center">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="rounded-2xl bg-amber-500 p-2.5 text-gray-950 shadow-xl"><Award className="h-10 w-10 sm:h-14 sm:w-14" /></motion.div>
+            <h2 className="text-lg font-black text-amber-300 sm:text-2xl">🏆 拉密魔術大師通關！</h2>
+            {teamMode === 'TEAM' ? (
+              <div className="w-full max-w-sm rounded-2xl border border-amber-500/50 bg-amber-900/60 p-3"><div className="grid grid-cols-2 gap-2 text-center"><div className="rounded-xl border border-amber-400 bg-amber-500/20 p-2"><p className="text-xs font-bold text-amber-300">A 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamAScore} 分</p></div><div className="rounded-xl border border-blue-400 bg-blue-500/20 p-2"><p className="text-xs font-bold text-blue-300">B 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamBScore} 分</p></div></div></div>
+            ) : <div className="w-full max-w-sm rounded-2xl border border-amber-700/50 bg-amber-900/60 p-3"><p className="text-xs font-bold text-amber-300">總積分</p><p className="text-2xl font-black text-amber-300 sm:text-4xl">{score} 分</p><p className="mt-1 text-[11px] text-amber-200 sm:text-xs">數字重構邏輯敏銳，拆牌排組靈活迅速！</p></div>}
+            <div className="mt-1 flex justify-center gap-2.5"><button type="button" onClick={restart} className="flex min-h-11 items-center gap-1 rounded-xl bg-amber-400 px-3.5 py-1.5 text-xs font-black text-gray-950 shadow transition hover:bg-amber-300 sm:px-4 sm:py-2 sm:text-sm"><RotateCcw aria-hidden="true" size={15} />再玩一局</button><button type="button" onClick={onBack} className="min-h-11 rounded-xl bg-amber-800 px-3.5 py-1.5 text-xs font-bold text-amber-200 shadow transition hover:bg-amber-700 sm:px-4 sm:py-2 sm:text-sm">回遊戲選單</button></div>
           </div>
-        </div>
+        </GameShell>
       )}
-    </div>
+    </>
   );
 };
 
