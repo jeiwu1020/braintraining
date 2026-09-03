@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { GameState, Difficulty } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RefreshCw, HelpCircle, Trophy } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Difficulty } from '../types';
+import { AnimatePresence, motion } from 'motion/react';
+import { HelpCircle, RefreshCw, Trophy } from 'lucide-react';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
-interface GuessCardGameProps {
-    onBack: () => void;
-    difficulty: Difficulty;
-}
-
-interface CardType {
+export interface CardType {
     id: number;
     color: 'RED' | 'BLACK';
     suit: '♥' | '♦' | '♠' | '♣';
@@ -16,8 +13,16 @@ interface CardType {
     isEliminated: boolean;
 }
 
+interface GuessCardGameProps {
+    onBack: () => void;
+    difficulty: Difficulty;
+    initialCards?: CardType[];
+    initialTargetCard?: CardType;
+}
+
 const SUITS = ['♥', '♦', '♠', '♣'] as const;
 const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const SUIT_LABELS: Record<CardType['suit'], string> = { '♥': '紅心', '♦': '方塊', '♠': '黑桃', '♣': '梅花' };
 
 const getNumValue = (val: string): number => {
     if (val === 'A') return 1;
@@ -47,27 +52,38 @@ const generateCards = (difficulty: Difficulty): CardType[] => {
     return cards.sort(() => Math.random() - 0.5);
 };
 
-const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => {
-    const [cards, setCards] = useState<CardType[]>([]);
-    const [targetCard, setTargetCard] = useState<CardType | null>(null);
+export const applyQuestionResult = (
+    cards: CardType[],
+    answer: boolean,
+    condition: (card: CardType) => boolean,
+): CardType[] => cards.map(card => {
+    if (card.isEliminated) return card;
+    return answer === condition(card) ? card : { ...card, isEliminated: true };
+});
+
+const cloneCards = (cards: CardType[]) => cards.map(card => ({ ...card }));
+
+const GuessCardGame: React.FC<GuessCardGameProps> = ({
+    onBack,
+    difficulty,
+    initialCards,
+    initialTargetCard,
+}) => {
+    const [cards, setCards] = useState<CardType[]>(() => initialCards ? cloneCards(initialCards) : []);
+    const [targetCard, setTargetCard] = useState<CardType | null>(() => initialTargetCard ? { ...initialTargetCard } : null);
     const [score, setScore] = useState(100);
     const [lastAnswer, setLastAnswer] = useState<{q: string, ans: boolean, isGuess?: boolean} | null>(null);
     const [showDialog, setShowDialog] = useState<{q: string, ans: boolean, isGuess?: boolean} | null>(null);
     const [isWon, setIsWon] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
 
-    // Dynamic question states
     const [compareOp, setCompareOp] = useState<'>'|'<'|'=='>('>');
     const [compareVal, setCompareVal] = useState<string>('7');
 
-    useEffect(() => {
-        initGame();
-    }, [difficulty]);
-
     const initGame = () => {
-        const newCards = generateCards(difficulty);
+        const newCards = initialCards ? cloneCards(initialCards) : generateCards(difficulty);
         setCards(newCards);
-        setTargetCard(newCards[Math.floor(Math.random() * newCards.length)]);
+        setTargetCard(initialTargetCard ? { ...initialTargetCard } : newCards[Math.floor(Math.random() * newCards.length)]);
         setScore(100);
         setLastAnswer(null);
         setShowDialog(null);
@@ -75,12 +91,16 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
         setIsGameOver(false);
     };
 
+    useEffect(() => {
+        initGame();
+    }, [difficulty]);
+
     const handleDirectGuess = (card: CardType) => {
         if (!targetCard || isWon || showDialog || card.isEliminated || isGameOver) return;
-        
+
         const isCorrect = card.id === targetCard.id;
         setShowDialog({ q: `直接猜測：${card.suit}${card.value}`, ans: isCorrect, isGuess: true });
-        
+
         setTimeout(() => {
             setShowDialog(null);
             if (isCorrect) {
@@ -98,34 +118,21 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
         }, 2500);
     };
 
-    const processQuestion = (label: string, condition: (c: CardType) => boolean) => {
+    const processQuestion = (label: string, condition: (card: CardType) => boolean) => {
         if (!targetCard || isWon || showDialog || isGameOver) return;
-        
+
         const answer = condition(targetCard);
-        
-        // 1. Show the dialog with the question and computer's answer
         setShowDialog({ q: label, ans: answer });
-        
-        // 2. Wait 2.5 seconds, then hide dialog and eliminate cards
+
         setTimeout(() => {
             setShowDialog(null);
-            
-            setCards(prevCards => {
-                const newCards = prevCards.map(c => {
-                    if (c.isEliminated) return c;
-                    const match = condition(c);
-                    // If the card doesn't match the truth of the answer, eliminate it
-                    if (answer !== match) {
-                        return { ...c, isEliminated: true };
-                    }
-                    return c;
-                });
 
-                const remaining = newCards.filter(c => !c.isEliminated);
+            setCards(prevCards => {
+                const newCards = applyQuestionResult(prevCards, answer, condition);
+                const remaining = newCards.filter(card => !card.isEliminated);
                 if (remaining.length === 1 && remaining[0].id === targetCard.id) {
                     setIsWon(true);
                 }
-
                 return newCards;
             });
 
@@ -133,25 +140,24 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
                 const newScore = prev - 10;
                 if (newScore <= 0) setIsGameOver(true);
                 return newScore;
-            }); // Deduct points for asking
+            });
             setLastAnswer({ q: label, ans: answer });
-            
         }, 2500);
     };
 
     const handleQuickAsk = (type: string) => {
         if (showDialog || isGameOver) return;
         switch (type) {
-            case 'RED': processQuestion('是紅色的嗎？(♥/♦)', c => c.color === 'RED'); break;
-            case 'BLACK': processQuestion('是黑色的嗎？(♠/♣)', c => c.color === 'BLACK'); break;
-            case 'HEART': processQuestion('是愛心嗎？(♥)', c => c.suit === '♥'); break;
-            case 'SPADE': processQuestion('是黑桃嗎？(♠)', c => c.suit === '♠'); break;
-            case 'DIAMOND': processQuestion('是方塊嗎？(♦)', c => c.suit === '♦'); break;
-            case 'CLUB': processQuestion('是梅花嗎？(♣)', c => c.suit === '♣'); break;
-            case 'EVEN': processQuestion('數字是雙數嗎？(2,4,6,8,10,Q)', c => getNumValue(c.value) % 2 === 0); break;
-            case 'ODD': processQuestion('數字是單數嗎？(A,3,5,7,9,J,K)', c => getNumValue(c.value) % 2 !== 0); break;
-            case 'FACE': processQuestion('是字母牌嗎？(J,Q,K,A)', c => ['J','Q','K','A'].includes(c.value)); break;
-            case 'NUM': processQuestion('是純數字嗎？(2~10)', c => !['J','Q','K','A'].includes(c.value)); break;
+            case 'RED': processQuestion('是紅色的嗎？(♥/♦)', card => card.color === 'RED'); break;
+            case 'BLACK': processQuestion('是黑色的嗎？(♠/♣)', card => card.color === 'BLACK'); break;
+            case 'HEART': processQuestion('是愛心嗎？(♥)', card => card.suit === '♥'); break;
+            case 'SPADE': processQuestion('是黑桃嗎？(♠)', card => card.suit === '♠'); break;
+            case 'DIAMOND': processQuestion('是方塊嗎？(♦)', card => card.suit === '♦'); break;
+            case 'CLUB': processQuestion('是梅花嗎？(♣)', card => card.suit === '♣'); break;
+            case 'EVEN': processQuestion('數字是雙數嗎？(2,4,6,8,10,Q)', card => getNumValue(card.value) % 2 === 0); break;
+            case 'ODD': processQuestion('數字是單數嗎？(A,3,5,7,9,J,K)', card => getNumValue(card.value) % 2 !== 0); break;
+            case 'FACE': processQuestion('是字母牌嗎？(J,Q,K,A)', card => ['J','Q','K','A'].includes(card.value)); break;
+            case 'NUM': processQuestion('是純數字嗎？(2~10)', card => !['J','Q','K','A'].includes(card.value)); break;
         }
     };
 
@@ -159,210 +165,169 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({ onBack, difficulty }) => 
         if (showDialog || isGameOver) return;
         const valNum = getNumValue(compareVal);
         let label = '';
-        let cond: (c: CardType) => boolean;
+        let condition: (card: CardType) => boolean;
 
         if (compareOp === '>') {
             label = `數字大於 ${compareVal} 嗎？`;
-            cond = c => getNumValue(c.value) > valNum;
+            condition = card => getNumValue(card.value) > valNum;
         } else if (compareOp === '<') {
             label = `數字小於 ${compareVal} 嗎？`;
-            cond = c => getNumValue(c.value) < valNum;
+            condition = card => getNumValue(card.value) < valNum;
         } else {
             label = `數字等於 ${compareVal} 嗎？`;
-            cond = c => getNumValue(c.value) === valNum;
+            condition = card => getNumValue(card.value) === valNum;
         }
-        processQuestion(label, cond);
+        processQuestion(label, condition);
     };
 
-    const gridClass = difficulty === 'NORMAL' 
-        ? "grid-cols-6 sm:grid-cols-8 landscape:grid-cols-8 max-w-4xl" 
-        : "grid-cols-7 sm:grid-cols-10 lg:grid-cols-[13] max-w-6xl";
+    const disabled = isWon || isGameOver || !!showDialog;
+    const controlClass = 'flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-2 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm';
 
-    return (
-        <div className="h-full w-full flex flex-col p-1 sm:p-3 bg-blue-50 relative overflow-hidden">
-            
-            {/* Dialog Overlay for Answers */}
-            <AnimatePresence>
-                {showDialog && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-900/40 backdrop-blur-sm">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                            className="bg-white p-6 sm:p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-md mx-4 text-center border-4 border-blue-200"
-                        >
-                            <HelpCircle size={48} className="text-blue-500 mb-4 animate-bounce" />
-                            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">{showDialog.q}</h2>
-                            
-                            <div className="flex flex-col items-center gap-3 bg-slate-100 px-8 py-4 rounded-2xl w-full">
-                                <span className="text-gray-500 font-bold text-sm">
-                                    {showDialog.isGuess ? '猜測結果' : '系統回答'}
-                                </span>
-                                <span className={`text-3xl sm:text-5xl font-black ${showDialog.ans ? 'text-green-500' : 'text-red-500'}`}>
-                                    {showDialog.isGuess 
-                                        ? (showDialog.ans ? '🎉 答對了！' : '❌ 猜錯了！ (-30分)')
-                                        : (showDialog.ans ? '⭕ 是的' : '❌ 不是')}
-                                </span>
-                            </div>
-                        </motion.div>
-                    </div>
+    const feedback = (
+        <div className="flex min-h-11 w-full items-center justify-center px-1 text-center">
+            <AnimatePresence mode="wait">
+                {showDialog ? (
+                    <motion.div key="dialog" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-2 py-1.5 text-sm text-blue-900">
+                        <HelpCircle aria-hidden="true" className="h-5 w-5 shrink-0 text-blue-600" />
+                        <span className="font-bold">{showDialog.q}　{showDialog.isGuess ? (showDialog.ans ? '答對了！' : '猜錯了！扣 30 分') : (showDialog.ans ? '系統回答：是的' : '系統回答：不是')}</span>
+                    </motion.div>
+                ) : isWon ? (
+                    <motion.div key="won" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400 bg-emerald-100 px-2 py-1.5 text-sm font-bold text-emerald-900">
+                        <Trophy aria-hidden="true" className="h-5 w-5 text-emerald-700" />成功找出目標牌！目前得分：{score}
+                    </motion.div>
+                ) : isGameOver ? (
+                    <motion.div key="game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full flex-col items-center justify-center rounded-xl border border-red-300 bg-red-100 px-2 py-1.5 text-sm font-bold text-red-900">
+                        <span>分數歸零，遊戲結束！</span>
+                        <span>正確解答為：{targetCard?.suit}{targetCard?.value}</span>
+                    </motion.div>
+                ) : lastAnswer ? (
+                    <motion.div key="last-answer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-sm font-bold text-slate-800">
+                        {lastAnswer.isGuess ? `猜測 ${lastAnswer.q.replace('猜測 ', '')}：猜錯了，扣 30 分` : `${lastAnswer.q} 系統回答：${lastAnswer.ans ? '是的' : '不是'}`}
+                    </motion.div>
+                ) : (
+                    <span key="idle" className="text-sm text-slate-600">先用問題排除候選牌，再直接猜測目標。</span>
                 )}
             </AnimatePresence>
-
-            {/* Header */}
-            <div className="flex items-center justify-between mb-1 sm:mb-2 shrink-0 px-1 sm:px-2">
-                <button onClick={onBack} className="p-1.5 sm:p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
-                    <ArrowLeft size={18} />
-                </button>
-                <div className="flex flex-col items-center">
-                    <h1 className="text-lg sm:text-2xl font-bold text-blue-900">邏輯猜牌</h1>
-                    <span className="text-[10px] sm:text-xs text-blue-600 font-bold hidden sm:block mt-0.5">發問扣10分 / 點擊卡牌盲猜錯扣30分</span>
-                </div>
-                <button onClick={initGame} className="p-1.5 sm:p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 transition-colors">
-                    <RefreshCw size={18} />
-                </button>
-            </div>
-
-            {/* Main Layout */}
-            <div className="flex-1 flex flex-col landscape:flex-row gap-1 sm:gap-3 min-h-0">
-                
-                {/* Left Panel: Questions (50% on landscape) */}
-                <div className="w-full landscape:w-[50%] flex flex-col gap-1 sm:gap-2 shrink-0 bg-white p-2 sm:p-3 rounded-xl shadow-sm border border-blue-100 min-h-0">
-                    <div className="flex justify-between items-center mb-1 px-1">
-                        <span className="font-bold text-blue-800 flex items-center gap-1 text-sm"><HelpCircle size={14}/> 發問區</span>
-                        <span className={`font-bold px-2 py-0.5 rounded-full text-xs ${score > 0 ? 'text-blue-600 bg-blue-50' : 'text-red-600 bg-red-50'}`}>分數: {score}</span>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 sm:gap-3">
-                        
-                        {/* 快速分類 */}
-                        <div>
-                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">顏色與奇偶</div>
-                            <div className="grid grid-cols-4 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('RED')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-red-100 disabled:opacity-50 active:scale-95">紅色</button>
-                                <button onClick={()=>handleQuickAsk('BLACK')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-gray-200 disabled:opacity-50 active:scale-95">黑色</button>
-                                <button onClick={()=>handleQuickAsk('EVEN')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">雙數</button>
-                                <button onClick={()=>handleQuickAsk('ODD')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] sm:text-sm font-bold hover:bg-blue-100 disabled:opacity-50 active:scale-95">單數</button>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">字母與數字</div>
-                            <div className="grid grid-cols-2 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('FACE')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-purple-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">字母(J,Q,K,A)</button>
-                                <button onClick={()=>handleQuickAsk('NUM')} disabled={isWon || isGameOver || !!showDialog} className="py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-teal-100 disabled:opacity-50 active:scale-95 tracking-tighter sm:tracking-normal">數字(2~10)</button>
-                            </div>
-                        </div>
-
-                        {/* 花色 */}
-                        <div>
-                            <div className="text-xs font-bold text-gray-400 mb-1 sm:mb-2">單一花色</div>
-                            <div className="grid grid-cols-4 gap-1 sm:gap-2">
-                                <button onClick={()=>handleQuickAsk('SPADE')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♠</button>
-                                <button onClick={()=>handleQuickAsk('HEART')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♥</button>
-                                <button onClick={()=>handleQuickAsk('DIAMOND')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-red-200 text-red-600 rounded-lg text-sm sm:text-lg hover:bg-red-50 disabled:opacity-50">♦</button>
-                                <button onClick={()=>handleQuickAsk('CLUB')} disabled={isWon || isGameOver || !!showDialog} className="py-1 sm:py-1.5 border border-gray-200 rounded-lg text-sm sm:text-lg hover:bg-gray-50 disabled:opacity-50">♣</button>
-                            </div>
-                        </div>
-
-                        {/* 自訂數字 */}
-                        <div>
-                            <div className="text-xs font-bold text-gray-400 mb-2">精確數字範圍</div>
-                            <div className="flex gap-2 items-center">
-                                <select 
-                                    value={compareOp} onChange={(e) => setCompareOp(e.target.value as any)}
-                                    className="border-2 border-blue-200 rounded-lg px-2 py-1.5 text-sm font-bold focus:outline-none focus:border-blue-500 bg-white"
-                                >
-                                    <option value=">">大於</option>
-                                    <option value="<">小於</option>
-                                    <option value="==">等於</option>
-                                </select>
-                                <select 
-                                    value={compareVal} onChange={(e) => setCompareVal(e.target.value)}
-                                    className="border-2 border-blue-200 rounded-lg px-2 py-1.5 text-sm font-bold focus:outline-none focus:border-blue-500 bg-white"
-                                >
-                                    {VALUES.map(v => <option key={v} value={v}>{v}</option>)}
-                                </select>
-                                <button 
-                                    onClick={handleNumberAsk} disabled={isWon || isGameOver || !!showDialog}
-                                    className="ml-auto bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-50"
-                                >
-                                    發問
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-                    
-                    {/* Feedback Area / Win State */}
-                    {isWon && (
-                        <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                            className="mt-1 p-1.5 sm:p-2 bg-green-500 rounded-lg text-center shadow-md text-white shrink-0 flex items-center justify-center gap-2"
-                        >
-                            <Trophy size={18} className="text-yellow-300" />
-                            <div className="text-xs sm:text-sm font-bold">成功找出目標！得分: {score}</div>
-                        </motion.div>
-                    )}
-                    {isGameOver && (
-                        <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                            className="mt-1 p-1.5 sm:p-2 bg-red-500 rounded-lg text-center shadow-md text-white shrink-0 flex items-center justify-center gap-2"
-                        >
-                            <div className="text-xs sm:text-sm font-bold flex flex-col items-center">
-                                <span>分數歸零，遊戲結束！</span>
-                                <span>正確解答為：{targetCard?.suit}{targetCard?.value}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </div>
-
-                {/* Right Panel: Cards Grid (Remaining space) */}
-                <div className="flex-1 bg-white/50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 overflow-y-auto min-h-0 border-2 border-white shadow-inner flex flex-col">
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className={`grid ${gridClass} gap-1 sm:gap-1.5 w-full mx-auto`}>
-                            {cards.map((card, index) => (
-                                <motion.button
-                                    key={card.id}
-                                    onClick={() => handleDirectGuess(card)}
-                                    disabled={card.isEliminated || isWon || !!showDialog}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: index * 0.01 }}
-                                    style={{ containerType: 'inline-size' as any }}
-                                    className={`
-                                        relative aspect-[2/3] rounded border flex flex-col items-center justify-center
-                                        transition-all duration-500 overflow-hidden shadow-sm outline-none
-                                        ${card.isEliminated 
-                                            ? 'bg-gray-200 border-gray-300 opacity-30 scale-90 grayscale cursor-not-allowed' 
-                                            : isWon && targetCard?.id === card.id
-                                                ? 'bg-green-100 border-green-500 scale-110 shadow-xl z-10'
-                                                : 'bg-white border-gray-200 hover:ring-4 hover:ring-blue-300 hover:-translate-y-1 active:scale-95 cursor-pointer'
-                                        }
-                                    `}
-                                >
-                                    <div className={`flex flex-col items-center justify-center w-full h-full p-0.5 ${card.color === 'RED' ? 'text-red-600' : 'text-gray-900'}`}>
-                                        <span className="font-bold leading-none" style={{ fontSize: 'clamp(14px, 45cqw, 32px)' }}>{card.value}</span>
-                                        <span className="leading-none" style={{ fontSize: 'clamp(18px, 60cqw, 42px)', marginTop: 'clamp(2px, 2cqw, 4px)' }}>{card.suit}</span>
-                                    </div>
-                                    
-                                    {card.isEliminated && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="w-full h-1 bg-red-500/80 rotate-45 absolute rounded-full"></div>
-                                            <div className="w-full h-1 bg-red-500/80 -rotate-45 absolute rounded-full"></div>
-                                        </div>
-                                    )}
-                                    {isWon && targetCard?.id === card.id && (
-                                        <div className="absolute inset-0 border-2 border-green-500 rounded animate-pulse"></div>
-                                    )}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
+    );
+
+    return (
+        <GameShell
+            title="邏輯猜牌"
+            subtitle="用發問與排除法找出目標卡牌"
+            onBack={onBack}
+            className="bg-blue-50"
+            status={(
+                <div className="flex items-center gap-1.5 text-xs font-bold sm:gap-2 sm:text-sm">
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-800">{difficulty === 'ADVANCED' ? '進階' : '一般'}</span>
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-800">分數：{score}</span>
+                </div>
+            )}
+            actions={(
+                <button type="button" onClick={initGame} aria-label="重新開始邏輯猜牌" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-blue-700 text-white transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
+                    <RefreshCw aria-hidden="true" className="h-5 w-5" />
+                </button>
+            )}
+        >
+            <div className="h-full min-h-0 overflow-hidden">
+            <GridFocusLayout
+                playfieldLabel="候選牌集合"
+                supportLabel="推理發問控制"
+                className="bg-blue-50"
+                playfieldClassName="overflow-hidden"
+                supportClassName="overflow-hidden"
+                playfield={(
+                    <section aria-label="候選牌集合" className="flex h-full min-h-0 flex-col rounded-xl border-2 border-blue-100 bg-white/80 p-2 shadow-inner sm:p-3">
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-blue-100 pb-2">
+                            <h2 className="text-sm font-bold text-blue-900 sm:text-base">候選牌</h2>
+                            <span className="text-xs font-semibold text-slate-600 sm:text-sm">點牌可直接猜測</span>
+                        </div>
+                        <div className="min-h-0 flex-1 overflow-y-auto py-2 pr-1">
+                            <div className="grid grid-cols-5 gap-1.5 md:grid-cols-8 md:gap-2">
+                                {cards.map((card, index) => {
+                                    const isTarget = isWon && targetCard?.id === card.id;
+                                    const label = `${card.isEliminated ? '已排除，' : ''}猜測${SUIT_LABELS[card.suit]}${card.value}${isTarget ? '，目標牌' : ''}`;
+                                    return (
+                                        <motion.button
+                                            key={card.id}
+                                            type="button"
+                                            onClick={() => handleDirectGuess(card)}
+                                            disabled={card.isEliminated || disabled}
+                                            aria-label={label}
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: index * 0.01 }}
+                                            className={`relative flex min-h-11 aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg border-2 bg-white shadow-sm outline-none transition-all focus-visible:ring-4 focus-visible:ring-blue-300 ${card.isEliminated ? 'border-slate-300 bg-slate-200 opacity-60 grayscale' : isTarget ? 'border-emerald-500 bg-emerald-100 shadow-lg' : 'border-slate-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md active:scale-95'}`}
+                                        >
+                                            <span className={`flex flex-col items-center justify-center font-bold leading-none ${card.color === 'RED' ? 'text-red-600' : 'text-slate-900'}`}>
+                                                <span className="text-sm sm:text-base">{card.value}</span>
+                                                <span className="mt-1 text-xl sm:text-2xl">{card.suit}</span>
+                                            </span>
+                                            {card.isEliminated && <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center text-4xl font-black text-red-600/80">×</span>}
+                                            {isTarget && <span aria-hidden="true" className="absolute inset-0 rounded-md border-2 border-emerald-500" />}
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
+                support={(
+                    <div className="h-full min-h-0 overflow-y-auto pr-1" style={{ contain: 'layout paint' }}>
+                        <section className="rounded-xl border border-blue-100 bg-white p-2.5 shadow-sm sm:p-3">
+                            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-blue-900 sm:text-base"><HelpCircle aria-hidden="true" className="h-4 w-4" />發問區</h2>
+                            <div className="space-y-3">
+                                <div>
+                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">顏色與奇偶</h3>
+                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                        <button type="button" onClick={() => handleQuickAsk('RED')} disabled={disabled} className={`${controlClass} border-red-200 bg-red-50 text-red-700 hover:bg-red-100`}>紅色</button>
+                                        <button type="button" onClick={() => handleQuickAsk('BLACK')} disabled={disabled} className={`${controlClass} border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200`}>黑色</button>
+                                        <button type="button" onClick={() => handleQuickAsk('EVEN')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>雙數</button>
+                                        <button type="button" onClick={() => handleQuickAsk('ODD')} disabled={disabled} className={`${controlClass} border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}>單數</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">字母與數字</h3>
+                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                        <button type="button" onClick={() => handleQuickAsk('FACE')} disabled={disabled} className={`${controlClass} border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100`}>字母 (J/Q/K/A)</button>
+                                        <button type="button" onClick={() => handleQuickAsk('NUM')} disabled={disabled} className={`${controlClass} border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100`}>數字 (2~10)</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">單一花色</h3>
+                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                        {(['SPADE', 'HEART', 'DIAMOND', 'CLUB'] as const).map(type => {
+                                            const suit = type === 'SPADE' ? '♠' : type === 'HEART' ? '♥' : type === 'DIAMOND' ? '♦' : '♣';
+                                            const name = type === 'SPADE' ? '黑桃' : type === 'HEART' ? '愛心' : type === 'DIAMOND' ? '方塊' : '梅花';
+                                            return <button key={type} type="button" onClick={() => handleQuickAsk(type)} disabled={disabled} aria-label={`詢問${name}`} className={`${controlClass} text-lg ${suit === '♥' || suit === '♦' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-slate-200 text-slate-900 hover:bg-slate-50'}`}>{suit}</button>;
+                                        })}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="mb-1 text-xs font-bold text-slate-500 sm:text-sm">精確數字</h3>
+                                    <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-1.5 sm:gap-2">
+                                        <label className="sr-only" htmlFor="guess-card-compare-op">比較方式</label>
+                                        <select id="guess-card-compare-op" aria-label="比較方式" value={compareOp} onChange={event => setCompareOp(event.target.value as '>'|'<'|'==')} disabled={disabled} className="min-h-11 min-w-0 rounded-lg border-2 border-blue-200 bg-white px-1.5 text-sm font-bold">
+                                            <option value=">">大於</option><option value="<">小於</option><option value="==">等於</option>
+                                        </select>
+                                        <label className="sr-only" htmlFor="guess-card-compare-value">比較數值</label>
+                                        <select id="guess-card-compare-value" aria-label="比較數值" value={compareVal} onChange={event => setCompareVal(event.target.value)} disabled={disabled} className="min-h-11 min-w-0 rounded-lg border-2 border-blue-200 bg-white px-1.5 text-sm font-bold">
+                                            {VALUES.map(value => <option key={value} value={value}>{value}</option>)}
+                                        </select>
+                                        <button type="button" onClick={handleNumberAsk} disabled={disabled} className="min-h-11 rounded-lg bg-blue-700 px-2 text-sm font-bold text-white hover:bg-blue-600">發問</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section className="mt-2 rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-sm leading-relaxed text-blue-900 sm:p-3">
+                            先用能大幅排除候選牌的問題，再觀察剩餘牌的花色與數字；直接猜錯會扣 30 分。
+                        </section>
+                    </div>
+                )}
+                feedback={feedback}
+            />
+            </div>
+        </GameShell>
     );
 };
 
