@@ -96,6 +96,19 @@
   }
 }
 
+/* Blackjack is a full-screen table. App only provides min-height, so h-full on
+ * the game root does not establish a definite viewport height. Pin these
+ * screens to the dynamic viewport so the table/player regions consume all
+ * remaining phone space instead of exposing the App background below them. */
+.blackjack-setup,
+.blackjack-play,
+.blackjack-gameover {
+  box-sizing: border-box;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+
 /*
  * Blackjack uses two short-landscape tiers.
  * <=370px keeps the component's ultra-compact 56x84 treatment for 640x360.
