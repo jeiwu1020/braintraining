@@ -10,6 +10,7 @@ describe('Blackjack LIGHT acceptance', () => {
       <BlackjackGame difficulty="NORMAL" onBack={() => undefined} />,
     );
     const source = readFileSync(new URL('../components/BlackjackGame.tsx', import.meta.url), 'utf8');
+    const globalStyles = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
 
     expect(markup).toContain('data-blackjack-screen="setup"');
     expect(markup).toContain('公開 21 點');
@@ -38,5 +39,11 @@ describe('Blackjack LIGHT acceptance', () => {
     expect(source).not.toContain('max-[700px]:landscape');
     expect(source).toContain('aspect-[2/3]');
     expect(source).toContain('min-h-11');
+
+    expect(globalStyles).toContain('(min-height: 371px) and (max-height: 480px)');
+    expect(globalStyles).toContain('.blackjack-card');
+    expect(globalStyles).toContain('width: 64px !important');
+    expect(globalStyles).toContain('height: 96px !important');
+    expect(globalStyles).toContain('justify-content: center !important');
   });
 });
