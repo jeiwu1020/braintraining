@@ -183,7 +183,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                       const stack = currentB[i];
                       if (stack.length > 0 && stack[stack.length - 1].player === 1) {
                           const p = stack[stack.length - 1];
-                          for (let b=0; b < 9; b++) {
+                          for (let b = 0; b < 9; b++) {
                               if (i !== b && canPlace(b, p, currentB)) {
                                   const result = applyGobbletMove(
                                       currentB,
