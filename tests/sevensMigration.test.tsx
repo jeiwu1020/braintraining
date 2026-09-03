@@ -29,6 +29,8 @@ describe('SevensGame grid-focus migration', () => {
     expect(markup).toContain('data-layout-region="support"');
     expect(markup).toContain('data-layout-region="feedback"');
     expect(markup).toContain('黑桃7後面可以接哪一張？');
+    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇黑桃8"'));
+    expect(markup.indexOf('aria-label="選擇黑桃8"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
   });
 
   it('keeps cards accessible and protects the playable-card answer result', () => {
