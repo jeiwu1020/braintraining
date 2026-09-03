@@ -17,13 +17,29 @@ describe('GomokuGame board-sidebar migration', () => {
     expect(markup).toContain('data-layout-preset="board-sidebar"');
     expect(markup).toContain('data-layout-region="board"');
     expect(markup).toContain('data-layout-region="sidebar"');
-    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).not.toContain('data-layout-region="feedback"');
     expect(markup).toContain('五子棋');
     expect(markup).toContain('目前模式：單人');
     expect(markup).toContain('黑棋回合');
     expect(markup).toContain('A1');
     expect(markup).toContain('A1，黑棋');
     expect(markup).toContain('在 B1 落黑棋');
+  });
+
+  it('renders all positions as fixed board intersections with canonical star points', () => {
+    const markup = renderToStaticMarkup(
+      <GomokuGame difficulty="NORMAL" initialBoard={emptyBoard()} onBack={() => undefined} />,
+    );
+
+    expect(markup).toContain('data-board-coordinate-model="intersection"');
+    expect((markup.match(/data-gomoku-intersection=/g) ?? [])).toHaveLength(100);
+    expect(markup).toContain('data-gomoku-intersection="A1"');
+    expect(markup).toContain('data-gomoku-intersection="J10"');
+    expect((markup.match(/data-star-point=/g) ?? [])).toHaveLength(4);
+    expect(markup).toContain('data-star-point="D4"');
+    expect(markup).toContain('data-star-point="G4"');
+    expect(markup).toContain('data-star-point="D7"');
+    expect(markup).toContain('data-star-point="G7"');
   });
 
   it('preserves horizontal, vertical, and both diagonal five-in-a-row rules', () => {

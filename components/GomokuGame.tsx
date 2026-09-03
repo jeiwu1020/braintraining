@@ -291,19 +291,54 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
       <div
         className="grid aspect-square h-auto max-w-full gap-0.5"
         style={{
-          width: 'min(100%, calc(100dvh - 9rem))',
+          width: 'min(100%, calc(100dvh - 6rem))',
           gridTemplateColumns: '1.25rem minmax(0, 1fr)',
           gridTemplateRows: '1.25rem minmax(0, 1fr)',
         }}
       >
         <span aria-hidden="true" />
-        <div className="grid grid-cols-10 items-center text-center text-[10px] font-bold text-stone-700 sm:text-xs">
-          {COLS.map(label => <span key={label}>{label}</span>)}
+        <div className="relative text-[10px] font-bold text-stone-700 sm:text-xs">
+          {COLS.map((label, index) => (
+            <span
+              key={label}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${8 + index * (84 / 9)}%`, top: '50%' }}
+            >
+              {label}
+            </span>
+          ))}
         </div>
-        <div className="grid grid-rows-10 items-center text-center text-[10px] font-bold text-stone-700 sm:text-xs">
-          {ROWS.map(label => <span key={label}>{label}</span>)}
+        <div className="relative text-[10px] font-bold text-stone-700 sm:text-xs">
+          {ROWS.map((label, index) => (
+            <span
+              key={label}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: '50%', top: `${8 + index * (84 / 9)}%` }}
+            >
+              {label}
+            </span>
+          ))}
         </div>
-        <div className="relative grid grid-cols-10 grid-rows-10 overflow-hidden rounded-sm border-2 border-stone-800 bg-[#DEB887] shadow-xl">
+        <div
+          data-board-coordinate-model="intersection"
+          className="relative overflow-hidden rounded-sm border-2 border-stone-800 bg-[#DEB887] shadow-xl"
+        >
+          <div className="pointer-events-none absolute inset-[8%]" aria-hidden="true">
+            {Array.from({ length: GRID_SIZE }, (_, index) => (
+              <span
+                key={`horizontal-${index}`}
+                className="absolute left-0 right-0 h-px -translate-y-1/2 bg-black/80"
+                style={{ top: `${index * (100 / 9)}%` }}
+              />
+            ))}
+            {Array.from({ length: GRID_SIZE }, (_, index) => (
+              <span
+                key={`vertical-${index}`}
+                className="absolute bottom-0 top-0 w-px -translate-x-1/2 bg-black/80"
+                style={{ left: `${index * (100 / 9)}%` }}
+              />
+            ))}
+          </div>
           {Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => {
             const r = Math.floor(index / GRID_SIZE);
             const c = index % GRID_SIZE;
@@ -313,18 +348,27 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
             const isOccupied = cell !== CELL_EMPTY;
             const isDisabled = isOccupied || Boolean(winner) || (gameMode === 'PVE' && !isBlackTurn);
             const pieceLabel = cell === CELL_BLACK ? '黑棋' : '白棋';
+            const isStarPoint = (r === 3 || r === 6) && (c === 3 || c === 6);
 
             return (
               <button
                 key={coordinate}
                 type="button"
                 data-coordinate={coordinate}
+                data-gomoku-intersection={coordinate}
+                {...(isStarPoint ? { 'data-star-point': coordinate } : {})}
                 aria-label={isOccupied ? `${coordinate}，${pieceLabel}` : `在 ${coordinate} 落${turnLabel}`}
                 disabled={isDisabled}
                 onClick={() => handleCellClick(r, c)}
-                className="relative flex min-h-0 min-w-0 items-center justify-center border-b border-r border-black/60 bg-[#DEB887] p-0 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:cursor-not-allowed"
+                className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full p-0 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:cursor-not-allowed"
+                style={{
+                  left: `${8 + c * (84 / 9)}%`,
+                  top: `${8 + r * (84 / 9)}%`,
+                  width: `${84 / 9}%`,
+                  height: `${84 / 9}%`,
+                }}
               >
-                {((r === 3 || r === 6) && (c === 3 || c === 6)) && (
+                {isStarPoint && (
                   <span aria-hidden="true" className="absolute h-1.5 w-1.5 rounded-full bg-black" />
                 )}
                 {isOccupied && (
@@ -410,7 +454,6 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
         <BoardSidebarLayout
           board={boardView}
           sidebar={sidebarView}
-          feedback={<span className="flex items-center gap-2"><Trophy aria-hidden="true" className="h-4 w-4" />{statusText}</span>}
           boardLabel="五子棋棋盤"
           sidebarLabel="五子棋狀態與操作"
           boardClassName="flex min-h-0 items-center justify-center bg-stone-200/70"
