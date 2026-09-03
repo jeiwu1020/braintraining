@@ -11,4 +11,4 @@
 - Known risk: 正式建置仍有既有的單一主 bundle 超過 500 kB 警告，之後宜另開效能批次處理程式碼分割。
 - Data-contract status: `BOARD_TABLE` contract 已正式化為第六個 layout preset；公開 21 點維持獨立牌桌型版面。`BOARD_SIDEBAR` 的 `BoardSidebarLayout` 已通過四子棋 reference gate，五子棋、黑白棋、數獨與點格棋完成後續遷移，尚未擴大到其他 BOARD 遊戲。
 - Type-check risk: `npm exec -- tsc --noEmit` 目前被既有 `fixMissingData.ts` 的無效字元與未結束 template literal 阻擋，尚未檢查到其餘型別錯誤。
-- Next safest task: 先由 reviewer 檢查點格棋第五款 `BOARD_SIDEBAR` 遷移，再決定是否批次遷移下一款棋盤遊戲；保持每款獨立驗證。
+- Next safest task: reviewer 先檢查 `docs/REMAINING_BOARD_MIGRATION_AUDIT.md` 的七款 BOARD 稽核矩陣，再依 KEEP／LIGHT／FULL 路徑逐款安排工作；標準化不要求每款都做結構性遷移，並保持每款獨立驗證。
