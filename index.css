@@ -53,6 +53,15 @@
   .grid-focus-layout:has(.grid-focus-layout__feedback) {
     grid-template-rows: minmax(0, 1fr) auto;
   }
+
+  .board-sidebar-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.28fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .board-sidebar-layout:has(.board-sidebar-layout__feedback) {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
 }
 
 @media (orientation: portrait) {
@@ -74,6 +83,12 @@
 
   .grid-focus-layout:has([data-layout-region='support']):has(.grid-focus-layout__feedback) {
     grid-template-rows: minmax(15rem, 1fr) auto auto;
+  }
+
+  .board-sidebar-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(15rem, 1fr) auto auto;
+    overflow-y: auto;
   }
 }
 

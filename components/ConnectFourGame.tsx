@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
+import { RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import BoardSidebarLayout from './game-ui/BoardSidebarLayout';
 
 interface Props {
   onBack: () => void;
   difficulty?: Difficulty;
+  initialBoard?: number[][];
 }
 
 const ROWS = 6;
@@ -17,8 +20,51 @@ const AI = 2;     // Yellow
 
 const COL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const [board, setBoard] = useState<number[][]>([]);
+const createEmptyBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+
+export const getConnectFourValidRow = (b: number[][], col: number) => {
+  for (let r = ROWS - 1; r >= 0; r -= 1) {
+    if (b[r]?.[col] === EMPTY) return r;
+  }
+  return -1;
+};
+
+export const findConnectFourWinningCells = (b: number[][], player: number) => {
+  for (let r = 0; r < ROWS; r += 1) {
+    for (let c = 0; c < COLS - 3; c += 1) {
+      if (b[r]?.[c] === player && b[r]?.[c + 1] === player && b[r]?.[c + 2] === player && b[r]?.[c + 3] === player) {
+        return [{ r, c }, { r, c: c + 1 }, { r, c: c + 2 }, { r, c: c + 3 }];
+      }
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r += 1) {
+    for (let c = 0; c < COLS; c += 1) {
+      if (b[r]?.[c] === player && b[r + 1]?.[c] === player && b[r + 2]?.[c] === player && b[r + 3]?.[c] === player) {
+        return [{ r, c }, { r: r + 1, c }, { r: r + 2, c }, { r: r + 3, c }];
+      }
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r += 1) {
+    for (let c = 0; c < COLS - 3; c += 1) {
+      if (b[r]?.[c] === player && b[r + 1]?.[c + 1] === player && b[r + 2]?.[c + 2] === player && b[r + 3]?.[c + 3] === player) {
+        return [{ r, c }, { r: r + 1, c: c + 1 }, { r: r + 2, c: c + 2 }, { r: r + 3, c: c + 3 }];
+      }
+    }
+  }
+  for (let r = 3; r < ROWS; r += 1) {
+    for (let c = 0; c < COLS - 3; c += 1) {
+      if (b[r]?.[c] === player && b[r - 1]?.[c + 1] === player && b[r - 2]?.[c + 2] === player && b[r - 3]?.[c + 3] === player) {
+        return [{ r, c }, { r: r - 1, c: c + 1 }, { r: r - 2, c: c + 2 }, { r: r - 3, c: c + 3 }];
+      }
+    }
+  }
+  return null;
+};
+
+const cloneBoard = (value: number[][]) => value.map(row => [...row]);
+
+const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoard }) => {
+  const [board, setBoard] = useState<number[][]>(() => initialBoard ? cloneBoard(initialBoard) : createEmptyBoard());
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [winner, setWinner] = useState<number | null>(null);
   const [winningCells, setWinningCells] = useState<{r:number, c:number}[]>([]);
@@ -36,7 +82,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
   }, [gameMode]);
 
   const resetGame = () => {
-    const newBoard = Array(ROWS).fill(0).map(() => Array(COLS).fill(EMPTY));
+    const newBoard = initialBoard ? cloneBoard(initialBoard) : createEmptyBoard();
     setBoard(newBoard);
     setIsPlayerTurn(true);
     setWinner(null);
@@ -45,43 +91,12 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     setTurnHistory([]);
   };
 
-  const checkWin = (b: number[][], player: number) => {
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS - 3; c++) {
-        if (b[r][c] === player && b[r][c+1] === player && b[r][c+2] === player && b[r][c+3] === player) return [{r,c}, {r,c:c+1}, {r,c:c+2}, {r,c:c+3}];
-      }
-    }
-    for (let r = 0; r < ROWS - 3; r++) {
-      for (let c = 0; c < COLS; c++) {
-        if (b[r][c] === player && b[r+1][c] === player && b[r+2][c] === player && b[r+3][c] === player) return [{r,c}, {r:r+1,c}, {r:r+2,c}, {r:r+3,c}];
-      }
-    }
-    for (let r = 0; r < ROWS - 3; r++) {
-      for (let c = 0; c < COLS - 3; c++) {
-        if (b[r][c] === player && b[r+1][c+1] === player && b[r+2][c+2] === player && b[r+3][c+3] === player) return [{r,c}, {r:r+1,c:c+1}, {r:r+2,c:c+2}, {r:r+3,c:c+3}];
-      }
-    }
-    for (let r = 3; r < ROWS; r++) {
-      for (let c = 0; c < COLS - 3; c++) {
-        if (b[r][c] === player && b[r-1][c+1] === player && b[r-2][c+2] === player && b[r-3][c+3] === player) return [{r,c}, {r:r-1,c:c+1}, {r:r-2,c:c+2}, {r:r-3,c:c+3}];
-      }
-    }
-    return null;
-  };
-
-  const getValidRow = (b: number[][], col: number) => {
-    for (let r = ROWS - 1; r >= 0; r--) {
-      if (b[r][col] === EMPTY) return r;
-    }
-    return -1;
-  };
-
   const handleColumnClick = (col: number) => {
     if (winner) return;
     if (gameMode === 'PVE' && !isPlayerTurn) return;
 
     const currentPlayer = isPlayerTurn ? PLAYER : AI;
-    const r = getValidRow(board, col);
+    const r = getConnectFourValidRow(board, col);
     if (r === -1) return;
 
     setHistory([...history, board.map(row => [...row])]);
@@ -92,7 +107,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     setBoard(newBoard);
     soundService.playGameSound('FALL');
 
-    const win = checkWin(newBoard, currentPlayer);
+    const win = findConnectFourWinningCells(newBoard, currentPlayer);
     if (win) {
       setWinner(currentPlayer);
       setWinningCells(win);
@@ -137,22 +152,22 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
         
         // 1. Check for Immediate Win (AI)
         for (let c = 0; c < COLS; c++) {
-            const r = getValidRow(board, c);
+            const r = getConnectFourValidRow(board, c);
             if (r !== -1) {
                 const tempBoard = board.map(row => [...row]);
                 tempBoard[r][c] = AI;
-                if (checkWin(tempBoard, AI)) { bestCol = c; break; }
+                if (findConnectFourWinningCells(tempBoard, AI)) { bestCol = c; break; }
             }
         }
 
         // 2. Check for Immediate Block (Player Win)
         if (bestCol === -1) {
             for (let c = 0; c < COLS; c++) {
-                const r = getValidRow(board, c);
+                const r = getConnectFourValidRow(board, c);
                 if (r !== -1) {
                     const tempBoard = board.map(row => [...row]);
                     tempBoard[r][c] = PLAYER;
-                    if (checkWin(tempBoard, PLAYER)) { bestCol = c; break; }
+                    if (findConnectFourWinningCells(tempBoard, PLAYER)) { bestCol = c; break; }
                 }
             }
         }
@@ -163,7 +178,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
             const centerCol = Math.floor(COLS / 2);
 
             for (let c = 0; c < COLS; c++) {
-                const r = getValidRow(board, c);
+                const r = getConnectFourValidRow(board, c);
                 if (r === -1) continue;
 
                 let score = 0;
@@ -178,7 +193,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
                     tempBoard[r][c] = AI; // Assume we play here
                     // Check if player wins by playing at r-1
                     tempBoard[r-1][c] = PLAYER;
-                    if (checkWin(tempBoard, PLAYER)) {
+                    if (findConnectFourWinningCells(tempBoard, PLAYER)) {
                         score -= 1000; // Terrible move
                     }
                 }
@@ -196,12 +211,12 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
         }
 
         if (bestCol !== -1) {
-            const r = getValidRow(board, bestCol);
+            const r = getConnectFourValidRow(board, bestCol);
             const newBoard = board.map(row => [...row]);
             newBoard[r][bestCol] = AI;
             setBoard(newBoard);
             soundService.playGameSound('LOW');
-            const win = checkWin(newBoard, AI);
+            const win = findConnectFourWinningCells(newBoard, AI);
             if (win) {
                 setWinner(AI);
                 setWinningCells(win);
@@ -217,114 +232,166 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     }
   }, [isPlayerTurn, winner, board, gameMode]);
 
-  return (
-    <div className="flex flex-col landscape:flex-row h-[100dvh] bg-blue-50 overflow-hidden text-blue-900">
-        {/* Header / Sidebar */}
-        <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
-            <button onClick={onBack} className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-800 hover:bg-blue-100">
-                <ArrowLeft size={18} />
-            </button>
-            <div className="flex portrait:flex-row landscape:flex-col gap-2">
-                <button 
-                    onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 landscape:p-2 bg-blue-50 rounded-full text-xs sm:text-sm font-bold text-blue-900 border border-blue-200"
+  const modeLabel = gameMode === 'PVE' ? '單人' : '雙人';
+  const difficultyLabel = difficulty === 'ADVANCED' ? '進階' : '一般';
+  const statusText = winner === 1
+    ? '紅方獲勝！'
+    : winner === 2
+      ? '黃方獲勝！'
+      : winner === 3
+        ? '平局'
+        : (isPlayerTurn ? '紅方回合' : '黃方回合');
+
+  const boardView = (
+    <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
+      <div className="relative flex h-full max-h-full w-full max-w-full items-center justify-center">
+        <div
+          className="connect-four-board relative aspect-[7/6] h-auto max-w-full rounded-b-2xl rounded-t-xl bg-blue-600 p-2 pt-3 shadow-2xl sm:p-3 sm:pt-4"
+          style={{ width: 'min(100%, calc((100dvh - 8rem) * 7 / 6))' }}
+        >
+          <div className="absolute -top-1 left-0 flex w-full justify-around px-2 text-xs font-bold text-blue-900 sm:text-sm">
+            {COL_LABELS.map(label => <span key={label} className="w-full text-center">{label}</span>)}
+          </div>
+
+          <div className="grid h-full w-full grid-cols-7 gap-1 rounded-lg border-4 border-blue-800 bg-blue-700 p-1.5 sm:gap-1.5 sm:p-2">
+            {COL_LABELS.map((label, c) => {
+              const isColumnFull = board[0]?.[c] !== EMPTY;
+              const isColumnPlayable = !winner && (gameMode === 'PVP' || isPlayerTurn) && !isColumnFull;
+
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  data-column={label}
+                  aria-label={`在 ${label} 欄落子`}
+                  aria-describedby="connect-four-turn"
+                  disabled={!isColumnPlayable}
+                  onClick={() => handleColumnClick(c)}
+                  className="group relative flex min-h-0 min-w-0 flex-1 flex-col gap-1 rounded-md p-0.5 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80"
                 >
-                    {gameMode === 'PVE' ? <User size={14} /> : <Users size={14} />}
-                    <span className="landscape:hidden">{gameMode === 'PVE' ? '單人' : '雙人'}</span>
+                  {Array.from({ length: ROWS }, (_, r) => {
+                    const cell = board[r]?.[c] ?? EMPTY;
+                    const isWin = winningCells.some(w => w.r === r && w.c === c);
+
+                    return (
+                      <span
+                        key={`${r}-${c}`}
+                        aria-hidden="true"
+                        className={`min-h-0 flex-1 rounded-full border border-black/10 shadow-inner transition-colors duration-300 ${
+                          cell === EMPTY ? 'bg-blue-900/30' : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'
+                        } ${isWin ? 'ring-4 ring-white ring-offset-1 ring-offset-blue-700 animate-pulse' : ''}`}
+                      />
+                    );
+                  })}
                 </button>
-                <button 
-                    onClick={handleUndo} 
-                    disabled={history.length === 0}
-                    className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-900 border border-blue-200 hover:bg-blue-100 disabled:opacity-50 flex items-center justify-center"
-                >
-                    <Undo2 size={16} />
-                </button>
-                <button 
-                    onClick={() => setShowRules(true)} 
-                    className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-900 border border-blue-200 hover:bg-blue-100 flex items-center justify-center"
-                >
-                    <HelpCircle size={16} />
-                </button>
-            </div>
-            <button onClick={resetGame} className="p-1.5 md:p-2 bg-blue-50 rounded-full text-blue-800 hover:bg-blue-100">
-                <RefreshCw size={18} />
-            </button>
+              );
+            })}
+          </div>
+
+          <div className="absolute -bottom-4 left-4 h-4 w-3 rounded-b bg-blue-800" />
+          <div className="absolute -bottom-4 right-4 h-4 w-3 rounded-b bg-blue-800" />
         </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            {/* Status */}
-            <div className="flex-none text-center py-1 sm:py-2 font-bold text-blue-900 text-sm sm:text-lg bg-blue-100/50">
-                {winner ? (winner === 1 ? "紅方獲勝！" : "黃方獲勝！") : (isPlayerTurn ? "紅方回合" : "黃方回合")}
-            </div>
-
-            {/* Main Board */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden w-full h-full">
-                {/* Scaled Wrapper: Constrain by width or height */}
-                <div className="relative bg-blue-600 rounded-b-xl rounded-t-lg shadow-2xl p-2 sm:p-3 pt-8" style={{ height: 'min(75vh, 600px, 90vw * 6 / 7)', aspectRatio: '7/6' }}>
-                
-                {/* Labels Top - moved inside container relative to top */}
-                <div className="absolute top-1 left-0 w-full flex justify-around px-2">
-                    {COL_LABELS.map((label, c) => (
-                        <div key={c} className="w-full text-center font-bold text-blue-100 text-xs sm:text-sm">{label}</div>
-                    ))}
-                </div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-7 gap-1.5 sm:gap-2 bg-blue-700 p-2 rounded-lg border-4 border-blue-800 h-full w-full">
-                    {board.map((row, r) => (
-                        row.map((cell, c) => {
-                            const isWin = winningCells.some(w => w.r === r && w.c === c);
-                            // Determine if column is interactive
-                            const isColumnFull = board[0][c] !== EMPTY;
-                            const isInteractable = !winner && (gameMode === 'PVP' || isPlayerTurn) && !isColumnFull;
-
-                            return (
-                                <div 
-                                    key={`${r}-${c}`} 
-                                    onClick={() => handleColumnClick(c)}
-                                    className={`
-                                        w-full h-full rounded-full shadow-inner border border-black/10 transition-colors duration-300
-                                        ${cell === EMPTY ? 'bg-blue-900/30' : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'}
-                                        ${isWin ? 'ring-4 ring-white animate-pulse' : ''}
-                                        ${isInteractable ? 'cursor-pointer' : ''}
-                                        ${isInteractable && cell === EMPTY ? 'hover:bg-blue-800/40' : ''}
-                                    `}
-                                />
-                            );
-                        })
-                    ))}
-                </div>
-                
-                {/* Legs */}
-                <div className="absolute -bottom-4 left-4 w-3 h-4 bg-blue-800 rounded-b"></div>
-                <div className="absolute -bottom-4 right-4 w-3 h-4 bg-blue-800 rounded-b"></div>
-            </div>
-            </div>
-        </div>
-
-        {/* Rules Modal */}
-        {showRules && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-blue-900"><HelpCircle /> 遊戲規則</h2>
-                    <ul className="list-disc pl-5 space-y-2 text-stone-700 mb-6 text-sm">
-                        <li>雙方輪流將棋子從頂部對應行數放下。</li>
-                        <li>棋子會垂直落下直到抵達最底部或其他的棋子上。</li>
-                        <li>先將4顆自己的棋子連成一線（橫、豎、斜）的玩家獲勝。</li>
-                        <li>若棋盤被填滿且無人連成4子，則為平局。</li>
-                    </ul>
-                    <button 
-                        onClick={() => setShowRules(false)} 
-                        className="w-full py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
-                    >
-                        了解，開始遊戲！
-                    </button>
-                </div>
-            </div>
-        )}
-
+      </div>
     </div>
+  );
+
+  const sidebarView = (
+    <div className="flex h-full min-h-0 flex-col gap-2 rounded-xl border border-blue-100 bg-white/90 p-2 text-blue-900 shadow-sm sm:gap-3 sm:p-3">
+      <div id="connect-four-turn" className="rounded-lg bg-blue-50 p-2 text-center">
+        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-blue-700">
+          <Trophy aria-hidden="true" className="h-4 w-4" /> 目前狀態
+        </div>
+        <strong className="mt-1 block text-base">{statusText}</strong>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
+        aria-label={`切換遊戲模式，目前為${modeLabel}`}
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-sm font-bold text-blue-900 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+      >
+        {gameMode === 'PVE' ? <User aria-hidden="true" className="h-5 w-5" /> : <Users aria-hidden="true" className="h-5 w-5" />}
+        {gameMode === 'PVE' ? '雙人模式' : '單人模式'}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleUndo}
+        disabled={history.length === 0}
+        aria-label="悔棋"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-2 py-1 text-sm font-bold text-blue-900 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Undo2 aria-hidden="true" className="h-5 w-5" /> 悔棋
+      </button>
+
+      <p className="mt-auto rounded-lg bg-slate-50 p-2 text-xs leading-relaxed text-slate-700 sm:text-sm">
+        點選欄位落子，率先連成四子即可獲勝。
+      </p>
+    </div>
+  );
+
+  return (
+    <GameShell
+      title="四子棋"
+      subtitle="率先連成四子"
+      onBack={onBack}
+      status={<div className="flex items-center gap-2 text-xs sm:text-sm"><span>{difficultyLabel}</span><span aria-label="遊戲模式">{modeLabel}</span></div>}
+      actions={(
+        <>
+          <button
+            type="button"
+            onClick={() => setShowRules(true)}
+            aria-label="查看遊戲規則"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+          >
+            <HelpCircle aria-hidden="true" className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={resetGame}
+            aria-label="重設遊戲"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+          >
+            <RefreshCw aria-hidden="true" className="h-5 w-5" />
+          </button>
+        </>
+      )}
+      contentClassName="bg-blue-50 text-blue-900"
+    >
+      <div className="relative h-full min-h-0">
+        <BoardSidebarLayout
+          board={boardView}
+          sidebar={sidebarView}
+          feedback={<span className="flex items-center gap-2"><Trophy aria-hidden="true" className="h-4 w-4" />{statusText}</span>}
+          boardLabel="四子棋棋盤"
+          sidebarLabel="四子棋狀態與操作"
+          boardClassName="flex min-h-0 items-center justify-center"
+          sidebarClassName="flex min-h-0 flex-col"
+          feedbackClassName="border-blue-200 text-blue-900"
+        />
+
+        {showRules && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+            <div role="dialog" aria-modal="true" aria-labelledby="connect-four-rules-title" className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+              <h2 id="connect-four-rules-title" className="mb-4 flex items-center gap-2 text-xl font-bold text-blue-900"><HelpCircle aria-hidden="true" /> 遊戲規則</h2>
+              <ul className="mb-6 list-disc space-y-2 pl-5 text-sm text-stone-700">
+                <li>雙方輪流將棋子從頂部對應行數放下。</li>
+                <li>棋子會垂直落下直到抵達最底部或其他的棋子上。</li>
+                <li>先將4顆自己的棋子連成一線（橫、豎、斜）的玩家獲勝。</li>
+                <li>若棋盤被填滿且無人連成4子，則為平局。</li>
+              </ul>
+              <button
+                type="button"
+                onClick={() => setShowRules(false)}
+                className="min-h-11 w-full rounded-lg bg-blue-600 px-3 py-2 font-bold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+              >
+                了解，開始遊戲！
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </GameShell>
   );
 };
 
