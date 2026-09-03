@@ -2,7 +2,7 @@
 
 ## Scope and method
 
-本文件是診斷性稽核，不代表開始 migration，也不增加完成數。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；象棋暗棋與播棋現已依本文件完成 LIGHT acceptance，其餘五款仍待 reviewer 排程：尋寶迷宮指路、圍棋、西洋跳棋、奇雞連連與公開 21 點。
+本文件是診斷性稽核，並記錄 KEEP／LIGHT／FULL acceptance 路徑。原稽核對象為七款尚未完成 BOARD acceptance 的遊戲；尋寶迷宮指路、象棋暗棋與播棋現已依本文件完成 LIGHT acceptance，其餘四款仍待 reviewer 排程：圍棋、西洋跳棋、奇雞連連與公開 21 點。
 
 實機檢查使用本機開發頁面，主驗收尺寸為 640×360，並檢查 844×390、932×430、390×844 與一個桌面代表尺寸。每款均觀察初始狀態，並在可安全操作時檢查至少一個代表性控制或中途狀態；同時以 DOM 量測 document scroll 尺寸、主要棋盤／桌面區及控制尺寸。以下結論針對「是否需要結構性重做」而非是否完全沒有改善空間。
 
@@ -10,7 +10,7 @@
 
 | Game | Preset | Decision | 640×360 | Primary issue | Required fixes | Shared mode selector? | Migration recommendation | Risk |
 |---|---|---|---|---|---|---|---|---|
-| 尋寶迷宮指路 | BOARD_SIDEBAR | **LIGHT** | Landscape fits; portrait maze collapses/overlaps | Portrait geometry; icon-only labels | Portrait stack/re-size maze; add accessible names; preserve left controls | No (GROUP/FACILITATED) | Keep custom left-controls + maze; targeted responsive/accessibility patch | Low |
+| 尋寶迷宮指路 | BOARD_SIDEBAR | **LIGHT COMPLETE** | Landscape and portrait maze fit after stack | Portrait geometry; icon-only labels（已修正） | Portrait stack/re-size maze、accessible names（已完成） | No (GROUP/FACILITATED) | Keep custom left-controls + maze; LIGHT standardization complete | Low |
 | 圍棋 | BOARD_SIDEBAR | **LIGHT** | 9×9 board and panel fit, no document scroll | Many mode/action targets are 23–34px; specialized panel is dense | Increase core touch targets and clarify labels; retain `WeiqiLandscapeLayout` | No (AI/PVP/PUZZLE semantics) | Keep specialized landscape architecture; do not force generic BoardSidebar | Medium |
 | 播棋（寶石棋） | BOARD_SIDEBAR | **LIGHT COMPLETE** | Wide board fully visible and touchable | 原 player labels overlap pit rows/status、current-mode toggle ambiguous（已修正） | Reserved label bands、shared two-option mode selector、icon labels（已完成） | Yes | Keep dedicated wide table; LIGHT standardization complete | Low–medium |
 | 象棋暗棋 | BOARD_SIDEBAR | **LIGHT COMPLETE** | 8×4 board clear, no document scroll | Toolbar/mode controls are icon-only and ~30–32px（已修正） | Shared mode selector, ≥44px core actions, accessible labels、圓形棋子 | Yes | Keep custom board + toolbar; targeted visual/control patch complete | Low |
@@ -30,17 +30,17 @@
 
 **Current architecture.** 自製全高 flex-row：左側語音／方向控制，右側 7×9（進階 9×13）迷宮，規則使用 `RulesModal`，勝利時顯示局部 overlay。此 arrangement 與「指令控制＋迷宮表面」的玩法相符，不應為了套用共用元件而改成棋盤側欄。
 
-**640×360 findings.** Landscape 的迷宮約 272×216px，方向鍵約 80×80px、聲控按鈕約 256×78px；document 640×360，沒有水平或垂直 overflow，主要控制可直接操作。初始隨機迷宮與規則按鈕可見。主要 finding：**MAJOR**（portrait-only）與 **MINOR**（accessibility）：直向畫面仍維持左右排列，迷宮被壓成狹窄且多列內容互相遮疊；返回、規則與方向按鈕主要依 icon，缺少明確 accessible name。
+**640×360 findings.** Landscape 的迷宮約 272×216px，方向鍵約 80×80px、聲控按鈕約 256×78px；document 640×360，沒有水平或垂直 overflow，主要控制可直接操作。初始隨機迷宮與規則按鈕可見；本輪保留此尺寸與左右結構，補齊可操作控制的 accessible names。
 
 **844×390 / 932×430.** Landscape 仍無 document overflow，迷宮與方向控制有額外空間；沒有發現需要 scroll 的主要內容。
 
-**390×844.** 實機畫面可操作方向鍵與返回，但迷宮縮得很小且列高重疊，難以可靠辨識玩家、牆與寶藏；應改為直向堆疊或重新分配尺寸。
+**390×844.** 已改為迷宮在上、控制區在下的直向堆疊；NORMAL 迷宮約 320×253px、ADVANCED 約 342×272px，列與欄不重疊，玩家、牆與寶藏可辨識，方向鍵、聲控、返回與規則均可到達，document 無 overflow。
 
-**Representative states tested.** 初始隨機迷宮、開啟聲控按鈕、上下左右控制及規則入口；未宣稱已完成勝利路徑的完整手動測試。
+**Representative states tested.** NORMAL／ADVANCED 初始隨機迷宮、上下左右控制、鍵盤方向鍵、聲控按鈕狀態與規則入口；語音辨識本身受測試環境權限限制，未宣稱麥克風成功辨識。
 
-**Mode / accessibility / duplication.** 僅 GROUP/FACILITATED，沒有 PVE/PVP，因此不需要 `GameModeSelector`。方向鍵約 80px，觸控尺寸良好；icon-only controls 與部分 10px 輔助文字需要補語意。沒有持續重複的 score/status 區。
+**Mode / accessibility / duplication.** 僅 GROUP/FACILITATED，沒有 PVE/PVP，因此不需要 `GameModeSelector`。方向鍵約 80px，返回／規則／聲控與方向控制均有明確 accessible names；沒有持續重複的 score/status 區。
 
-**Decision: LIGHT.** 保留左控件＋迷宮。最低修改：只在 portrait 重新排列／提高迷宮格可讀性、補返回／規則／方向按鈕 accessible names，並確認勝利 overlay 在直向仍可用。沒有 FULL 的理由。
+**Decision: LIGHT COMPLETE.** 保留左控件＋迷宮；已完成 portrait 直向堆疊、NORMAL／ADVANCED 穩定 grid 尺寸、返回／規則／聲控／方向按鈕 accessible names，並維持勝利 overlay 與原 gameplay。沒有 FULL 的理由。
 
 ### 圍棋（WeiqiGame）
 
@@ -151,7 +151,7 @@
 ### 2. LIGHT fixes（建議順序）
 
 1. **Mancala**：先修 player label／pit overlap，再導入 shared `GameModeSelector`，風險低且收益明確。
-2. **Maze**：portrait stack 與 button labels；不涉及棋規。
+2. **Maze**：已完成 portrait stack 與 button labels；不涉及棋規。
 3. **Gobblet**：640 寬度 inventory clipping，需保護兩側 source inventory。
 4. **Checkers**：portrait controls visibility，需小心 animation／Undo。
 5. **Blackjack**：setup/playing compacting；維持 BOARD_TABLE 專用語意。
@@ -163,4 +163,4 @@
 
 ## Audit conclusion
 
-本輪暗棋與播棋已完成 LIGHT acceptance；其餘五款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。兩款均沒有結構性 migration，僅以既有架構完成標準化。
+本輪迷宮、暗棋與播棋已完成 LIGHT acceptance；其餘四款仍是 future work candidates，待 reviewer 接受矩陣後再逐款以 KEEP／LIGHT／FULL 路徑關閉或修正。三款均沒有結構性 migration，僅以既有架構完成標準化。

@@ -406,7 +406,8 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
     <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-indigo-50 p-2 sm:p-4">
       <button 
         onClick={onBack}
-        className="absolute top-2 left-2 p-2 bg-white rounded-full shadow-md text-indigo-600 hover:bg-indigo-100 z-50 transition-colors"
+        aria-label="返回"
+        className="absolute top-2 left-2 min-h-11 min-w-11 p-2 bg-white rounded-full shadow-md text-indigo-600 hover:bg-indigo-100 z-50 transition-colors flex items-center justify-center"
       >
         <ArrowLeft size={20} />
       </button>
@@ -414,7 +415,8 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       <div className="absolute top-4 right-4 flex gap-2 z-50">
           <button 
               onClick={() => setShowRules(true)}
-              className="p-2 sm:p-2 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors active:scale-95 flex items-center justify-center"
+              aria-label="遊戲規則"
+              className="min-h-11 min-w-11 p-2 sm:p-2 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors active:scale-95 flex items-center justify-center"
               title="遊戲規則"
           >
               <HelpCircle size={24} />
@@ -433,14 +435,15 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           ]}
       />
 
-      <div className="w-full h-full max-w-6xl flex flex-row items-center justify-center gap-4 sm:gap-10 p-4 pt-12 sm:pt-4">
+      <div className="w-full flex-1 max-w-6xl flex flex-col landscape:flex-row items-center justify-center gap-4 sm:gap-10 p-4 pt-12 sm:pt-4">
           
           {/* Controls Left */}
-          <div className="flex flex-col gap-4 shrink-0 justify-center min-w-[140px] sm:min-w-[180px]">
+          <div className="order-2 landscape:order-1 flex flex-col gap-4 shrink-0 justify-center min-w-[140px] sm:min-w-[180px] max-w-full">
               {/* Voice Control Toggle */}
               <button 
                   onClick={toggleListening}
-                  className={`py-3 px-4 rounded-2xl shadow-md border flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isListening ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50'}`}
+                  aria-label={isListening ? '停止語音控制' : '開始語音控制'}
+                  className={`min-h-11 py-3 px-4 rounded-2xl shadow-md border flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isListening ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50'}`}
               >
                   {isListening ? <Mic size={28} /> : <MicOff size={28} />}
                   <span className="text-xs sm:text-sm font-bold">{isListening ? '收音中...' : '開啟聲控'}</span>
@@ -467,20 +470,23 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               {/* Always render controls, but disable when win */}
               <div className={`flex flex-col gap-2 transition-opacity duration-500 ${isWin ? 'opacity-30 pointer-events-none' : ''}`}>
                   <div className="flex justify-center">
-                      <button onClick={() => move(-1, 0)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowUp size={32} /></button>
+                      <button aria-label="向上移動" onClick={() => move(-1, 0)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowUp size={32} /></button>
                   </div>
                   <div className="flex gap-2">
-                      <button onClick={() => move(0, -1)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowLeft size={32} /></button>
-                      <button onClick={() => move(1, 0)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowDown size={32} /></button>
-                      <button onClick={() => move(0, 1)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowRight size={32} /></button>
+                      <button aria-label="向左移動" onClick={() => move(0, -1)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowLeft size={32} /></button>
+                      <button aria-label="向下移動" onClick={() => move(1, 0)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowDown size={32} /></button>
+                      <button aria-label="向右移動" onClick={() => move(0, 1)} className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-indigo-600 rounded-2xl shadow-md border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 active:scale-95 transition-all"><ArrowRight size={32} /></button>
                   </div>
               </div>
           </div>
 
           {/* Maze Grid */}
-          <div className="flex flex-col items-center relative flex-1">
+          <div className="order-1 landscape:order-2 flex flex-col items-center relative flex-1 min-w-0 min-h-0 max-w-full">
             <div 
-                className="bg-white p-2 rounded-2xl shadow-xl border-4 border-indigo-100 grid gap-1 relative"
+                data-maze-grid="true"
+                data-maze-rows={ROWS}
+                data-maze-cols={COLS}
+                className="bg-white p-2 rounded-2xl shadow-xl border-4 border-indigo-100 grid gap-1 relative max-w-full"
                 style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
             >
                 {Array.from({ length: ROWS * COLS }).map((_, idx) => {
@@ -493,7 +499,8 @@ const MazeNavigatorGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                     return (
                         <div 
                             key={idx} 
-                            className={`w-[6vw] h-[6vw] max-w-[3rem] max-h-[3rem] min-w-[1.5rem] min-h-[1.5rem] sm:w-[5vh] sm:h-[5vh] rounded-lg flex items-center justify-center text-lg sm:text-2xl transition-all duration-300 ${
+                            data-maze-cell={`${r}-${c}`}
+                            className={`${isAdvanced ? 'w-[6vw] h-[6vw] portrait:w-[6vw] portrait:h-[6vw] max-w-[1.75rem] max-h-[1.75rem]' : 'w-[6vw] h-[6vw] portrait:w-[8vw] portrait:h-[8vw] max-w-[3rem] max-h-[3rem]'} min-w-[1.5rem] min-h-[1.5rem] sm:w-[5vh] sm:h-[5vh] rounded-lg flex items-center justify-center text-lg sm:text-2xl transition-all duration-300 ${
                                 isWall ? 'bg-slate-700 shadow-inner' : 'bg-indigo-50 border border-indigo-100/50'
                             }`}
                         >
