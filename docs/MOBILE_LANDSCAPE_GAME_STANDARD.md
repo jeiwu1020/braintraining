@@ -37,7 +37,7 @@
 
 `BOARD_SIDEBAR` 的共用組裝元件為 `components/game-ui/BoardSidebarLayout.tsx`。橫向時主棋盤與輔助側欄並列，feedback 佔滿底部保留列；直向時依序堆疊棋盤、側欄與 feedback。棋盤區不可捲動並取得主要空間，側欄可在必要時局部垂直捲動，常用控制應在最低橫向尺寸直接可操作。feedback 為 optional：若 current turn／status 已持續顯示於 sidebar，且底部 feedback 只會重複相同資訊並壓縮主棋盤，可省略底部 feedback。
 
-四子棋是第一個 `BOARD_SIDEBAR` reference implementation；五子棋已以相同元件驗證 10×10 正方形棋盤與逐格操作，不需修改 shared API。
+四子棋是第一個 `BOARD_SIDEBAR` reference implementation；五子棋已以相同元件驗證 10×10 正方形棋盤與逐格操作，黑白棋則驗證 8×8 cell-based 棋盤與合法步提示，均不需修改 shared API。
 
 ## 4. 尺寸與互動規則
 
