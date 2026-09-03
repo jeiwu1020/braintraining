@@ -153,6 +153,7 @@
 - 金字塔已以瀏覽器實測 640 × 360 與 844 × 390 的 SETUP、NORMAL／ADVANCED PLAYING、選取／配對、stock／waste、recycle 與 timeout 結算；無 document overflow。
 - 邏輯猜牌已以瀏覽器實測 640 × 360 與 844 × 390 的 NORMAL 24/24、ADVANCED 52/52、首／中／末列直接猜牌、紅色提問排除與固定牌位；候選牌無垂直或水平捲動，無 document overflow。
 - 四子棋已建立 `BoardSidebarLayout` reference：640 × 360、844 × 390、932 × 430 橫向與 390 × 844 直向均完成代表狀態檢查，棋盤 7 × 6 完整可見，欄位操作、PVE／PVP、AI 延遲、悔棋、勝利與規則對話框均保留。
+- PVE／PVP 模式控制一致性已補齊：四子棋、五子棋、黑白棋與點格棋改用共用 `GameModeSelector`，同時呈現單人／雙人並移除 header 重複模式文字；此為 UX consistency correction，不增加遷移數量。未來 KEEP／LIGHT／FULL audit 應一併檢查此契約。
 - 黑白棋已使用核准的 `BoardSidebarLayout` 完成 8 × 8 cell-based 棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，初始合法步、翻子、PVE／PVP、AI 延遲、悔棋、計數與規則對話框均保留。
 - 數獨已使用核准的 `BoardSidebarLayout` 完成 4 × 4／9 × 9 cell-based 資料輸入棋盤遷移：棋盤、子區塊粗分隔線、固定／玩家數字、auto／manual target 與 1–9 輸入控制均保留。
 - 點格棋已使用核准的 `BoardSidebarLayout` 完成 edge-based 棋盤遷移：25 個 dots、40 條 selectable edges、16 個 boxes、方格 ownership、完成方格後續手與 PVE／PVP／悔棋均保留。

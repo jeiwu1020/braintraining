@@ -31,6 +31,11 @@ describe('DotsAndBoxesGame board-sidebar migration', () => {
     expect(markup).toContain('點格棋');
     expect(markup).toContain('紅方');
     expect(markup).toContain('電腦');
+    expect(markup).toContain('data-game-mode-selector="true"');
+    expect(markup).toContain('data-game-mode-option="PVE"');
+    expect(markup).toContain('data-game-mode-option="PVP"');
+    expect(markup).toMatch(/data-game-mode-option="PVE"[^>]*aria-pressed="true"/);
+    expect(markup).not.toContain('切換遊戲模式');
   });
 
   it('preserves single and double box completion semantics', () => {

@@ -26,6 +26,11 @@ describe('ConnectFourGame board-sidebar migration', () => {
     expect(markup).toContain('單人');
     expect(markup).toContain('紅方回合');
     expect(markup).toContain('在 A 欄落子');
+    expect(markup).toContain('data-game-mode-selector="true"');
+    expect(markup).toContain('data-game-mode-option="PVE"');
+    expect(markup).toContain('data-game-mode-option="PVP"');
+    expect(markup).toMatch(/data-game-mode-option="PVE"[^>]*aria-pressed="true"/);
+    expect(markup).not.toContain('切換遊戲模式');
     expect(markup).toContain('A');
     expect(markup).toContain('B');
     expect(markup).toContain('C');

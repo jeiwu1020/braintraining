@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Trophy, Users, User, Undo2, HelpCircle } from 'lucide-react';
+import { RefreshCw, Trophy, Undo2, HelpCircle } from 'lucide-react';
 import { Difficulty } from '../types';
 import { soundService } from '../services/soundService';
 import GameShell from './game-ui/GameShell';
 import BoardSidebarLayout from './game-ui/BoardSidebarLayout';
+import GameModeSelector from './game-ui/GameModeSelector';
 
 interface Props {
   onBack: () => void;
@@ -275,7 +276,6 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
     }
   }, [isBlackTurn, winner, board, gameMode]);
 
-  const modeLabel = gameMode === 'PVE' ? '單人' : '雙人';
   const difficultyLabel = difficulty === 'ADVANCED' ? '進階' : '一般';
   const statusText = winner === 1
     ? '黑棋獲勝！'
@@ -396,15 +396,7 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
         <strong className="mt-1 block text-base">{statusText}</strong>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setGameMode(prev => prev === 'PVE' ? 'PVP' : 'PVE')}
-        aria-label={`切換遊戲模式，目前為${modeLabel}`}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-stone-300 bg-stone-100 px-2 py-1 text-sm font-bold text-stone-800 transition-colors hover:bg-stone-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
-      >
-        {gameMode === 'PVE' ? <User aria-hidden="true" className="h-5 w-5" /> : <Users aria-hidden="true" className="h-5 w-5" />}
-        目前模式：{modeLabel}
-      </button>
+      <GameModeSelector value={gameMode} onChange={setGameMode} />
 
       <button
         type="button"
@@ -427,7 +419,7 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
       title="五子棋"
       subtitle="先連成五子或以上"
       onBack={onBack}
-      status={<div className="flex items-center gap-2 text-xs sm:text-sm"><span>{difficultyLabel}</span><span aria-label="遊戲模式">{modeLabel}</span></div>}
+      status={<span>{difficultyLabel}</span>}
       actions={(
         <>
           <button

@@ -19,7 +19,11 @@ describe('GomokuGame board-sidebar migration', () => {
     expect(markup).toContain('data-layout-region="sidebar"');
     expect(markup).not.toContain('data-layout-region="feedback"');
     expect(markup).toContain('五子棋');
-    expect(markup).toContain('目前模式：單人');
+    expect(markup).toContain('data-game-mode-selector="true"');
+    expect(markup).toContain('data-game-mode-option="PVE"');
+    expect(markup).toContain('data-game-mode-option="PVP"');
+    expect(markup).toMatch(/data-game-mode-option="PVE"[^>]*aria-pressed="true"/);
+    expect(markup).not.toContain('切換遊戲模式');
     expect(markup).toContain('黑棋回合');
     expect(markup).toContain('A1');
     expect(markup).toContain('A1，黑棋');

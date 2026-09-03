@@ -39,6 +39,8 @@
 
 四子棋是第一個 `BOARD_SIDEBAR` reference implementation；本輪已修正其手機橫向圓形孔洞幾何、A–G 座標可見性／對比與重複底部狀態，並驗證省略 feedback 時不保留空白列。五子棋已以相同元件驗證 10×10 正方形棋盤與逐格操作，黑白棋則驗證 8×8 cell-based 棋盤與合法步提示，數獨驗證 4×4／9×9 cell-based 資料輸入棋盤，點格棋驗證 5×5 dots／4×4 boxes 的 edge-based 操作模型，均不需修改 shared API。
 
+支援 PVE／PVP 的遊戲統一使用 `components/game-ui/GameModeSelector.tsx`：同時顯示「單人」與「雙人」，以明確選取狀態（`aria-pressed`、外框與字重）標示目前模式，不使用會改變語意的單一切換按鈕。當 selector 持續顯示於側欄時，GameShell header 不重複顯示模式；未來 KEEP／LIGHT／FULL audit 也必須檢查此模式控制契約。
+
 ## 4. 尺寸與互動規則
 
 - 主要觸控目標最小 `44 × 44 px`；相鄰主要操作至少保留 `8 px` 間距。

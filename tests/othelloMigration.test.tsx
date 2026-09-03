@@ -39,6 +39,11 @@ describe('OthelloGame board-sidebar migration', () => {
     expect(markup).toContain('白棋');
     expect((markup.match(/<strong class="text-lg">2<\/strong>/g) ?? [])).toHaveLength(2);
     expect(markup).toContain('黑方回合');
+    expect(markup).toContain('data-game-mode-selector="true"');
+    expect(markup).toContain('data-game-mode-option="PVE"');
+    expect(markup).toContain('data-game-mode-option="PVP"');
+    expect(markup).toMatch(/data-game-mode-option="PVE"[^>]*aria-pressed="true"/);
+    expect(markup).not.toContain('切換遊戲模式');
   });
 
   it('preserves initial legal moves, flipping, and invalid move semantics', () => {
