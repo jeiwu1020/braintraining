@@ -42,7 +42,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const items = isAdvanced ? ADVANCED_ITEMS : NORMAL_ITEMS;
   
   const [currentItem, setCurrentItem] = useState(items[0]);
-  const [zoomLevel, setZoomLevel] = useState(isAdvanced ? 8 : 5);
+  const [zoomLevel, setZoomLevel] = useState(isAdvanced ? 10 : 6);
   const [isRevealed, setIsRevealed] = useState(false);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
@@ -59,7 +59,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   const initGame = () => {
     const firstIndex = Math.floor(Math.random() * items.length);
     setCurrentItem(items[firstIndex]);
-    setZoomLevel(isAdvanced ? 8 : 5);
+    setZoomLevel(isAdvanced ? 10 : 6);
     setIsRevealed(false);
     setRound(1);
     setScore(0);
@@ -82,7 +82,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     }
     
     setCurrentItem(items[nextIndex]);
-    setZoomLevel(isAdvanced ? 8 : 5);
+    setZoomLevel(isAdvanced ? 10 : 6);
     setIsRevealed(false);
     setRound(prev => prev + 1);
     setUsedIndices(prev => [...prev, nextIndex]);
@@ -117,6 +117,12 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   return (
     <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
+      <style>{`\
+        @media (orientation: landscape) and (max-height: 480px) {\
+          .zoom-game-completion { margin-bottom: 0; padding: 0.75rem; }\
+          .zoom-game-completion-icon { width: 4rem; height: 4rem; margin-bottom: 0.5rem; }\
+        }\
+      `}</style>
       <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
         <button onClick={onBack} aria-label="返回遊戲選單" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={24} />
@@ -130,10 +136,10 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
+      <div className={`flex-1 min-h-0 flex flex-col items-center p-4 w-full ${isComplete ? 'justify-center overflow-hidden' : 'justify-start overflow-y-auto'}`}>
         
         {/* Stats Bar */}
-        <div className="w-full max-w-2xl flex justify-between items-center gap-2 bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
+        {!isComplete && <div className="w-full max-w-2xl flex justify-between items-center gap-2 bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Timer className="text-blue-500" />
             第 {round} / {TOTAL_ROUNDS} 關
@@ -146,14 +152,14 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
             <Trophy className="text-yellow-500" />
             總分：{score}
           </div>
-        </div>
+        </div>}
 
         {isComplete ? (
-          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-8 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-2xl mt-12">
-            <CheckCircle2 className="w-20 h-20 text-green-500 mb-4" />
-            <h3 className="text-3xl font-bold text-green-600 mb-4">挑戰完成！</h3>
-            <p className="text-2xl text-gray-700 font-bold mb-2">總得分：{score} 分</p>
-            <p className="text-xl text-gray-600 font-bold">答對題數：{correctCount} / {TOTAL_ROUNDS} 題</p>
+          <div data-zoom-completion="true" className="zoom-game-completion mb-4 flex min-h-0 flex-1 flex-col items-center justify-center rounded-3xl border-4 border-green-200 bg-white p-4 shadow-lg landscape:p-3 sm:p-8">
+            <CheckCircle2 className="zoom-game-completion-icon mb-2 h-16 w-16 text-green-500 sm:mb-4 sm:h-20 sm:w-20" />
+            <h3 className="mb-2 text-2xl font-bold text-green-600 sm:mb-4 sm:text-3xl">挑戰完成！</h3>
+            <p className="mb-1 text-xl font-bold text-gray-700 sm:mb-2 sm:text-2xl">總得分：{score} 分</p>
+            <p className="text-base font-bold text-gray-600 sm:text-xl">答對題數：{correctCount} / {TOTAL_ROUNDS} 題</p>
           </div>
         ) : (
           <div className="flex flex-col landscape:flex-row lg:flex-col items-center justify-center gap-4 lg:gap-8 w-full">
@@ -162,7 +168,7 @@ const ZoomGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 className="text-[150px] landscape:text-[100px] lg:text-[200px] leading-none"
                 style={{ 
                   transform: `scale(${zoomLevel})`,
-                  transition: zoomLevel === (isAdvanced ? 8 : 5) ? 'none' : 'transform 0.3s ease-out'
+                  transition: zoomLevel === (isAdvanced ? 10 : 6) ? 'none' : 'transform 0.3s ease-out'
                 }}
               >
                 {currentItem.emoji}
