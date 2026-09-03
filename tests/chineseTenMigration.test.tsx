@@ -24,6 +24,8 @@ describe('ChineseTenGame grid-focus migration', () => {
     expect(markup).toContain('data-layout-region="support"');
     expect(markup).toContain('data-layout-region="feedback"');
     expect(markup).toContain('桌面有方塊7，手牌哪一張能湊十？');
+    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇紅心3"'));
+    expect(markup.indexOf('aria-label="選擇紅心3"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
   });
 
   it('keeps answer cards accessible and protects the production answer resolver', () => {
