@@ -22,14 +22,15 @@
 
 沉浸式活動（呼吸、音景、曼陀羅、指尖星空）可隱藏一般頁首，但仍須提供至少 `44 × 44 px` 的固定返回控制，並自行套用安全區。
 
-## 3. 五種版面預設
+## 3. 六種版面預設
 
 遊戲在 `data/gameCatalog.ts` 必須指定一種 `layoutPreset`：
 
 | 預設 | 適用內容 | 橫向結構 |
 | --- | --- | --- |
 | `SPLIT_CHOICE` | 題目＋選項 | 左側題目，右側操作與選項；使用 `components/game-ui/SplitChoiceLayout.tsx` |
-| `BOARD_SIDEBAR` | 棋盤、迷宮、桌遊 | 主棋盤佔較大區域，側欄放狀態與操作 |
+| `BOARD_SIDEBAR` | 五子棋、四子棋、黑白棋、數獨、迷宮與棋盤策略遊戲 | 主棋盤佔最大視覺區域，側欄放狀態與操作 |
+| `BOARD_TABLE` | 公開資訊牌桌、雙玩家／多玩家對等桌面 | 桌面區為主，可有左右／上下對等玩家區；狀態與操作集中於 header／control region，不強迫使用 board sidebar |
 | `GRID_FOCUS` | 配對、搜尋、拼圖 | 中央網格為主，資訊列保持精簡 |
 | `FACILITATOR` | 團體帶領、故事、社交題 | 展示區與帶領控制分離，避免控制誤觸 |
 | `IMMERSIVE` | 放鬆與感官活動 | 全畫面體驗，控制最少且可淡出 |
@@ -67,8 +68,9 @@
 1. 題目＋選項類（`SPLIT_CHOICE`）。
 2. 網格認知類（`GRID_FOCUS`）。
 3. 棋盤類（`BOARD_SIDEBAR`）。
-4. 團體帶領類（`FACILITATOR`）。
-5. 沉浸式活動（`IMMERSIVE`）。
+4. 桌面型牌桌類（`BOARD_TABLE`）。
+5. 團體帶領類（`FACILITATOR`）。
+6. 沉浸式活動（`IMMERSIVE`）。
 
 每批先選一個代表遊戲成為參考實作，再遷移同型遊戲。珠璣妙算是第一個採用共用 `GameShell` 的示範；快樂市集是 `SPLIT_CHOICE` 的參考實作。時間管家、情緒氣象台、生活步驟、情境應對、分類大師、影子猜猜看、顏色陷阱、圖形推理王與聽音辨位已依同一規格完成遷移；其中認知選擇題共用 `components/game-ui/CognitiveChoiceScreen.tsx`，統一題目／選項分區、進度、分數與不遮擋內容的回饋列。檢視互動方式後，安全辨識與邏輯猜牌歸入 `GRID_FOCUS`，公開 21 點歸入 `BOARD_TABLE`，轉念練習歸入 `FACILITATOR`。
 

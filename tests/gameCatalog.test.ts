@@ -3,6 +3,7 @@ import { GameState } from '../types';
 import {
   GAME_CATALOG,
   GAME_CATEGORIES,
+  GAME_LAYOUT_PRESETS,
   getGameDescription,
   getGamesByCategory,
   parseGameCategoryId,
@@ -77,5 +78,21 @@ describe('game catalogue', () => {
 
     expect(blackjack?.layoutPreset).toBe('BOARD_TABLE');
     expect(guessCard?.layoutPreset).toBe('GRID_FOCUS');
+  });
+
+  it('keeps every layout preset in the canonical six-value contract', () => {
+    expect(GAME_LAYOUT_PRESETS).toEqual([
+      'SPLIT_CHOICE',
+      'BOARD_SIDEBAR',
+      'BOARD_TABLE',
+      'GRID_FOCUS',
+      'FACILITATOR',
+      'IMMERSIVE',
+    ]);
+    expect(new Set(GAME_LAYOUT_PRESETS).size).toBe(GAME_LAYOUT_PRESETS.length);
+
+    for (const game of GAME_CATALOG) {
+      expect(GAME_LAYOUT_PRESETS).toContain(game.layoutPreset);
+    }
   });
 });

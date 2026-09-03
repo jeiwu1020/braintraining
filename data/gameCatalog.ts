@@ -2,12 +2,15 @@ import { Difficulty, GameState } from '../types';
 
 export type GameCategoryId = 'COGNITIVE' | 'STRATEGY' | 'TABLETOP' | 'LIFE_SOCIAL' | 'RELAX';
 export type PlayerMode = 'SOLO' | 'GROUP' | 'FACILITATED';
-export type GameLayoutPreset =
-  | 'SPLIT_CHOICE'
-  | 'BOARD_SIDEBAR'
-  | 'GRID_FOCUS'
-  | 'FACILITATOR'
-  | 'IMMERSIVE';
+export const GAME_LAYOUT_PRESETS = [
+  'SPLIT_CHOICE',
+  'BOARD_SIDEBAR',
+  'BOARD_TABLE',
+  'GRID_FOCUS',
+  'FACILITATOR',
+  'IMMERSIVE',
+] as const;
+export type GameLayoutPreset = typeof GAME_LAYOUT_PRESETS[number];
 
 export type GameTag =
   | 'ATTENTION'

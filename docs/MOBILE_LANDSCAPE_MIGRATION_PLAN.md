@@ -72,14 +72,9 @@
 - Modal 限制最大高度並允許內部捲動。
 - 動畫應尊重 `prefers-reduced-motion`。
 
-### 3.4 已知的版型資料契約落差
+### 3.4 版型資料契約決策
 
-目前 `GameLayoutPreset` 型別與既有規格文件只宣告五種版型，但公開 21 點的目錄資料實際使用第六種 `BOARD_TABLE`。因此本計劃書依實際資料將它獨立列出，但在開始棋盤類遷移前，必須先決定：
-
-- 正式把 `BOARD_TABLE` 加入型別與規格；或
-- 將公開 21 點重新歸入 `BOARD_SIDEBAR`，再以變體參數處理牌桌差異。
-
-這項決策需要由 Sol 或人工審查確認，不應讓低成本模型自行猜測並修改資料契約。
+`BOARD_TABLE` 已正式定義為第六個 layout preset，並加入 `GameLayoutPreset` 與 `GAME_LAYOUT_PRESETS` 的 canonical contract。公開 21 點維持獨立牌桌型版面，不併入 `BOARD_SIDEBAR`；本輪只完成資料契約標準化，尚未開始任何 BOARD 遊戲 migration。
 
 ## 4. 目前進度
 
@@ -264,7 +259,7 @@
 | 風險 | 等級 | 處理方式 |
 | --- | --- | --- |
 | 工作區累積多批尚未提交的修改 | 高 | 完整驗證後建立可回復的版本控制檢查點；提交前由使用者決定 |
-| `BOARD_TABLE` 已被資料使用，但尚未加入版型型別與五版型規格 | 高 | 棋盤階段開始前先決定正式新增或合併，並補型別／目錄測試 |
+| `BOARD_TABLE` contract | 已完成 | 已正式加入第六個 preset、規格文件與 catalog contract tests；公開 21 點仍待未來版面 migration |
 | `tsc --noEmit` 被既有 `fixMissingData.ts` 語法錯誤阻擋 | 高 | 先修正該腳本或從應用程式 tsconfig 排除，再把型別檢查加入每批 Gate |
 | 後續棋盤遊戲可能同時牽涉規則與版面 | 高 | 嚴格分離規則測試與 UI 遷移，複雜判定使用 Sol 複核 |
 | 主 bundle 超過 500 kB | 中 | 不阻擋版面遷移，另開效能批次做動態載入與分包 |
