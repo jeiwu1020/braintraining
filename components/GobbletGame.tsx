@@ -183,7 +183,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                       const stack = currentB[i];
                       if (stack.length > 0 && stack[stack.length - 1].player === 1) {
                           const p = stack[stack.length - 1];
-                          for (let b = 0; b < 9; b++) {
+                          for (let b=0; b < 9; b++) {
                               if (i !== b && canPlace(b, p, currentB)) {
                                   const result = applyGobbletMove(
                                       currentB,
@@ -301,7 +301,7 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     <div className="gobblet-game flex flex-col landscape:flex-row h-[100dvh] bg-orange-50 overflow-hidden text-orange-900">
         <style>{`@media (orientation: landscape) and (max-height: 480px) {
           .gobblet-game [data-gobblet-layout="inventory-board-inventory"] { gap: 0.25rem; padding: 0.25rem; }
-          .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 0; width: auto; }
+          .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 0.5rem; row-gap: 0.5rem; padding: 0.375rem; width: auto; }
           .gobblet-game .gobblet-board-frame { width: min(72vh, 88vw) !important; }
           .gobblet-game [data-gobblet-piece-context="inventory"].gobblet-piece-s,
           .gobblet-game [data-gobblet-piece-context="board"].gobblet-piece-s { width: 1.75rem; height: 1.75rem; }
