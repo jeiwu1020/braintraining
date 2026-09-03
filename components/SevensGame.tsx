@@ -1,15 +1,47 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Difficulty } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles, Clock, Zap } from 'lucide-react';
+import { RotateCcw, HelpCircle, CheckCircle2, XCircle, Award, Users, Sparkles } from 'lucide-react';
 import { RulesModal } from './RulesModal';
 import { soundService } from '../services/soundService';
+import GameShell from './game-ui/GameShell';
+import GridFocusLayout from './game-ui/GridFocusLayout';
 
 interface SevensGameProps {
   onBack: () => void;
   difficulty?: Difficulty;
   isAdvanced?: boolean;
+  initialQuestions?: SevensQuestion[];
 }
+
+interface SevensRoundLayoutProps {
+  difficulty: Difficulty;
+  currentIndex: number;
+  totalQuestions: number;
+  score: number;
+  elapsedTime: number;
+  board: ReactNode;
+  support: ReactNode;
+  feedback?: ReactNode;
+  teamMode?: 'SOLO' | 'TEAM';
+  teamAScore?: number;
+  teamBScore?: number;
+  currentTeam?: 'A' | 'B';
+  onBack: () => void;
+  onToggleTeam: () => void;
+  onShowRules: () => void;
+  onRestart: () => void;
+}
+
+export const SevensRoundLayout: React.FC<SevensRoundLayoutProps> = ({ difficulty, currentIndex, totalQuestions, score, elapsedTime, board, support, feedback, teamMode = 'SOLO', teamAScore = 0, teamBScore = 0, currentTeam = 'A', onBack, onToggleTeam, onShowRules, onRestart }) => (
+  <GameShell title="歡樂排七接龍" subtitle="沿著七的上下順序延伸牌桌" onBack={onBack} className="bg-gradient-to-br from-indigo-950 via-slate-900 to-sky-950" status={(
+    <div className="flex items-center gap-1.5"><span className="rounded-full bg-indigo-500 px-2 py-1 text-xs font-bold text-white">{difficulty === 'ADVANCED' ? '進階卡牌' : '經典排七'}</span><span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-900 sm:px-3 sm:text-sm">第 {currentIndex + 1}/{totalQuestions} 題</span>{teamMode === 'TEAM' ? <span className="rounded-full bg-indigo-900 px-2 py-1 text-xs font-bold text-white">{currentTeam} 組 · A {teamAScore} / B {teamBScore}</span> : <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-900 sm:px-3 sm:text-sm">{score} 分</span>}</div>
+  )} actions={(
+    <><span className="hidden rounded-xl bg-indigo-900 px-2 py-1 text-xs font-bold text-indigo-200 sm:inline">{elapsedTime.toFixed(1)}s</span><button type="button" onClick={onToggleTeam} aria-label="切換單人或分組模式" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-indigo-900 text-indigo-200"><Users aria-hidden="true" className="h-5 w-5" /></button><button type="button" onClick={onShowRules} aria-label="遊戲規則" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-indigo-900 text-indigo-200"><HelpCircle aria-hidden="true" className="h-5 w-5" /></button><button type="button" onClick={onRestart} aria-label="重新開始" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-indigo-900 text-indigo-200"><RotateCcw aria-hidden="true" className="h-5 w-5" /></button></>
+  )}>
+    <GridFocusLayout playfieldLabel="排七牌桌" supportLabel="排七回合與手牌" className="bg-gradient-to-br from-indigo-950 via-slate-900 to-sky-950" playfieldClassName="overflow-hidden rounded-xl border border-indigo-700/60 bg-indigo-950/70 p-2 text-white" supportClassName="overflow-hidden rounded-xl border border-indigo-700/60 bg-indigo-950/70 p-2 text-white" feedbackClassName="rounded-xl border-indigo-700/60 bg-indigo-950/95 px-2 text-white" playfield={board} support={support} feedback={feedback} />
+  </GameShell>
+);
 
 export type SevensSuit = 'spade' | 'heart' | 'diamond' | 'club';
 
@@ -69,6 +101,8 @@ export const SevensCard: React.FC<{
       whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={!disabled ? onClick : undefined}
       disabled={disabled}
+      aria-label={`${onClick && !disabled ? '選擇' : '排七牌'}${card.name}`}
+      aria-pressed={onClick ? selected : undefined}
       className={`relative ${sizeClasses[size]} rounded-xl bg-white border-2 lg:border-[3px] shadow-md flex flex-col justify-between p-1 sm:p-1.5 lg:p-2.5 transition-all select-none overflow-hidden shrink-0
         ${suitInfo.color}
         ${isSeven ? 'ring-2 lg:ring-3 ring-amber-400 border-amber-400 bg-amber-50/90' : ''}
@@ -278,10 +312,15 @@ const calculateTimeScore = (seconds: number): { score: number; label: string; ic
   return { score: 40, label: '穩紮穩打', icon: '🛡️' };
 };
 
-const SevensGame: React.FC<SevensGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false }) => {
+export const resolveSevensAnswer = ({ optionId, correctOptionId, elapsedSeconds }: { optionId?: string; correctOptionId: string; elapsedSeconds: number }) => {
+  const isCorrect = optionId === correctOptionId;
+  return { isAnswered: true, isCorrect, earnedScore: isCorrect ? calculateTimeScore(elapsedSeconds).score : 0 };
+};
+
+export const SevensGame: React.FC<SevensGameProps> = ({ onBack, difficulty = 'NORMAL', isAdvanced = false, initialQuestions }) => {
   const isAdv = isAdvanced || difficulty === 'ADVANCED';
 
-  const [questions, setQuestions] = useState<SevensQuestion[]>([]);
+  const [questions, setQuestions] = useState<SevensQuestion[]>(() => initialQuestions ?? []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -326,7 +365,7 @@ const SevensGame: React.FC<SevensGameProps> = ({ onBack, difficulty = 'NORMAL', 
 
   const restart = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const list = generateSevensPool(isAdv);
+    const list = initialQuestions ?? generateSevensPool(isAdv);
     setQuestions(list);
     setCurrentIndex(0);
     setSelectedOptionId(null);
@@ -356,13 +395,14 @@ const SevensGame: React.FC<SevensGameProps> = ({ onBack, difficulty = 'NORMAL', 
     setSelectedOptionId(opt.id);
     setIsAnswered(true);
 
-    const correct = opt.id === currentQ.correctOptionId;
+    const answerResult = resolveSevensAnswer({ optionId: opt.id, correctOptionId: currentQ.correctOptionId, elapsedSeconds: finalSec });
+    const correct = answerResult.isCorrect;
     setIsCorrect(correct);
 
     if (correct) {
       soundService.playCorrect();
       const speedCalc = calculateTimeScore(finalSec);
-      const earned = speedCalc.score;
+      const earned = answerResult.earnedScore;
       setLastEarnedScore(earned);
       setLastSpeedInfo({ label: speedCalc.label, icon: speedCalc.icon, time: finalSec });
 
@@ -405,256 +445,34 @@ const SevensGame: React.FC<SevensGameProps> = ({ onBack, difficulty = 'NORMAL', 
   ];
 
   return (
-    <div className="h-screen max-h-screen w-full bg-gradient-to-br from-indigo-950 via-slate-900 to-sky-950 text-white flex flex-col p-1.5 sm:p-3 select-none overflow-hidden justify-between">
+    <>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} title="排七接龍 規則說明" rules={rules} />
-
-      {/* Top Compact Bar */}
-      <div className="flex items-center justify-between gap-1.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 bg-indigo-800 hover:bg-indigo-700 active:scale-95 text-indigo-100 rounded-xl font-bold text-xs sm:text-sm lg:text-base transition shadow"
-        >
-          <ArrowLeft size={16} />
-          <span>返回</span>
-        </button>
-
-        {/* Title */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="px-2 py-0.5 lg:px-3 lg:py-1 bg-indigo-500 text-white rounded-full text-[10px] sm:text-xs lg:text-sm font-black">
-            {isAdv ? '進階卡牌' : '經典排七'}
-          </span>
-          <h1 className="text-xs sm:text-base lg:text-xl font-black text-indigo-300 tracking-wide truncate max-w-[130px] sm:max-w-none">
-            排七接龍
-          </h1>
-          {currentQ && (
-            <span className="text-[11px] sm:text-xs lg:text-sm text-indigo-200 font-bold hidden sm:inline">
-              ({currentIndex + 1}/{questions.length})
-            </span>
-          )}
-        </div>
-
-        {/* Live Timer & Score */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {!isAnswered && !gameComplete && (
-            <div className="flex items-center gap-1 px-2 py-0.5 lg:px-3 lg:py-1 bg-indigo-900/90 border border-indigo-600/70 rounded-xl text-indigo-300 text-xs lg:text-sm font-bold shadow-inner">
-              <Clock size={14} className="text-indigo-400 animate-spin" />
-              <span>{elapsedTime.toFixed(1)}s</span>
-            </div>
-          )}
-
-          {teamMode === 'TEAM' ? (
-            <div className="flex items-center gap-1">
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'A' ? 'bg-amber-400 text-gray-950' : 'bg-indigo-900 text-indigo-300'}`}>
-                A:{teamAScore}
-              </span>
-              <span className={`px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg font-bold text-xs lg:text-sm ${currentTeam === 'B' ? 'bg-sky-400 text-gray-950' : 'bg-indigo-900 text-indigo-300'}`}>
-                B:{teamBScore}
-              </span>
-            </div>
-          ) : (
-            <div className="px-2.5 py-0.5 lg:px-3 lg:py-1 bg-indigo-900/90 border border-indigo-700 rounded-xl text-indigo-300 font-black text-xs sm:text-sm lg:text-base">
-              {score}分
-            </div>
-          )}
-
-          <button
-            onClick={() => setTeamMode(m => (m === 'SOLO' ? 'TEAM' : 'SOLO'))}
-            className={`p-1 sm:px-2 sm:py-1 lg:px-3 lg:py-1.5 rounded-xl font-bold text-xs lg:text-sm transition shadow ${
-              teamMode === 'TEAM' ? 'bg-amber-500 text-gray-950' : 'bg-indigo-800 text-indigo-200'
-            }`}
-            title="模式切換"
-          >
-            <Users size={16} />
-          </button>
-
-          <button
-            onClick={() => setShowRules(true)}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-indigo-800 hover:bg-indigo-700 text-indigo-200 rounded-xl transition shadow"
-            title="規則說明"
-          >
-            <HelpCircle size={16} />
-          </button>
-
-          <button
-            onClick={restart}
-            className="p-1 sm:p-1.5 lg:px-2.5 lg:py-2 bg-indigo-800 hover:bg-indigo-700 text-indigo-200 rounded-xl transition shadow"
-            title="重新開始"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Single Page Layout with Min-h-0 & Compact Height */}
       {!gameComplete && currentQ ? (
-        <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between my-1 lg:my-2.5 bg-indigo-950/80 border border-indigo-700/50 rounded-2xl p-2 sm:p-3 lg:p-5 xl:p-6 shadow-xl backdrop-blur-md overflow-hidden min-h-0">
-          
-          {/* Question Banner */}
-          <div className="flex items-center justify-between gap-2 border-b border-indigo-800/80 pb-1 lg:pb-2.5 shrink-0">
-            <div className="flex items-center gap-1.5 lg:gap-3">
-              <span className="bg-indigo-800 text-indigo-300 border border-indigo-600/50 text-[10px] sm:text-xs lg:text-sm xl:text-base font-black px-2 py-0.5 lg:px-3 lg:py-1 rounded-lg whitespace-nowrap">
-                {currentQ.badge}
-              </span>
-              <h2 className="text-xs sm:text-sm lg:text-lg xl:text-xl font-bold text-white leading-tight">
-                {currentQ.prompt}
-              </h2>
-            </div>
-          </div>
-
-          {/* Board Display */}
-          <div className="my-auto py-1 lg:py-4 xl:py-6 flex flex-col items-center justify-center bg-black/40 rounded-xl lg:rounded-2xl border border-indigo-800/70 shadow-inner shrink-0">
-            <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-indigo-300 font-bold mb-0.5 lg:mb-2 flex items-center gap-1">
-              <Sparkles size={14} className="text-indigo-400" />
-              <span>當前牌桌接龍狀況</span>
-            </span>
-
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 lg:gap-6">
-              {currentQ.boardCards.map((b, idx) => (
-                <div key={idx} className="flex items-center gap-1 sm:gap-1.5 lg:gap-3 bg-indigo-900/60 p-1 sm:p-1.5 lg:p-3 rounded-xl lg:rounded-2xl border border-indigo-700/50">
-                  <span className="text-xs sm:text-sm lg:text-xl xl:text-2xl font-black text-amber-300 px-1">
-                    {SUIT_DISPLAY[b.suit].symbol}
-                  </span>
-                  <div className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-indigo-100 flex items-center gap-1 lg:gap-2">
-                    {b.min === b.max ? (
-                      <span className="bg-amber-400 text-gray-950 px-1.5 py-0.5 lg:px-2.5 lg:py-1 rounded lg:rounded-lg font-black text-xs sm:text-sm lg:text-base">
-                        {RANK_LABELS[b.min]}
-                      </span>
-                    ) : (
-                      <span>
-                        <span className="font-black text-indigo-200">{RANK_LABELS[b.min]}</span>
-                        <span className="text-gray-400 mx-0.5 lg:mx-1">~</span>
-                        <span className="bg-amber-400 text-gray-950 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded lg:rounded-md font-black text-xs sm:text-sm lg:text-base">7</span>
-                        <span className="text-gray-400 mx-0.5 lg:mx-1">~</span>
-                        <span className="font-black text-indigo-200">{RANK_LABELS[b.max]}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Hand Cards Options */}
-          <div className="shrink-0 flex flex-col items-center my-0.5 lg:my-2">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-6 xl:gap-8 w-full max-w-lg lg:max-w-3xl xl:max-w-4xl justify-items-center">
-              {currentQ.options.map(opt => {
-                const isSelected = selectedOptionId === opt.id;
-                const isOptCorrect = opt.id === currentQ.correctOptionId;
-                let highlight = false;
-                if (isAnswered && isOptCorrect) highlight = true;
-
-                return (
-                  <div key={opt.id} className="flex flex-col items-center">
-                    <SevensCard
-                      card={opt}
-                      size="md"
-                      selected={isSelected}
-                      highlight={highlight}
-                      disabled={isAnswered}
-                      onClick={() => handleSelect(opt)}
-                      isSeven={opt.rank === 7}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom Feedback Banner & Next Button - Compact & NEVER Clipped */}
-          <div className="shrink-0 min-h-[38px] lg:min-h-[56px] flex items-center">
-            <AnimatePresence mode="wait">
-              {isAnswered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`w-full p-1.5 sm:p-2 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center justify-between gap-2 shadow border text-xs lg:text-base shrink-0 ${
-                    isCorrect
-                      ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
-                      : 'bg-rose-950/95 border-rose-500 text-rose-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 lg:gap-3 overflow-hidden">
-                    {isCorrect ? (
-                      <CheckCircle2 className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-400 shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-rose-400 shrink-0" />
-                    )}
-                    <div className="truncate flex items-center gap-1 lg:gap-2">
-                      {isCorrect && lastSpeedInfo && (
-                        <span className="bg-emerald-800 text-indigo-200 px-1 py-0.2 lg:px-2 lg:py-0.5 rounded font-black text-[10px] lg:text-xs whitespace-nowrap">
-                          +{lastEarnedScore}分 {lastSpeedInfo.icon} {lastSpeedInfo.time}s
-                        </span>
-                      )}
-                      <span className="font-bold truncate text-xs lg:text-base">{currentQ.explanation}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleNext}
-                    className="shrink-0 px-3 py-1 sm:px-4 sm:py-1.5 lg:px-6 lg:py-2.5 bg-indigo-400 hover:bg-indigo-300 text-gray-950 font-black rounded-lg lg:rounded-xl text-xs sm:text-sm lg:text-base shadow active:scale-95 transition"
-                  >
-                    {currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      ) : (
-        /* End Screen */
-        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center p-3 gap-2.5">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="p-2.5 bg-indigo-500 text-white rounded-2xl shadow-xl"
-          >
-            <Award className="w-10 h-10 sm:w-14 sm:h-14" />
-          </motion.div>
-
-          <h2 className="text-lg sm:text-2xl font-black text-indigo-300">
-            🎴 排七接龍大師通關！
-          </h2>
-
-          {teamMode === 'TEAM' ? (
-            <div className="bg-indigo-900/60 border border-indigo-500/50 rounded-2xl p-3 max-w-sm w-full">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-amber-500/20 border border-amber-400 p-2 rounded-xl">
-                  <p className="text-xs text-amber-300 font-bold">A 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamAScore} 分</p>
-                </div>
-                <div className="bg-sky-500/20 border border-sky-400 p-2 rounded-xl">
-                  <p className="text-xs text-sky-300 font-bold">B 組得分</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{teamBScore} 分</p>
+        <SevensRoundLayout difficulty={isAdv ? 'ADVANCED' : 'NORMAL'} currentIndex={currentIndex} totalQuestions={questions.length} score={score} elapsedTime={elapsedTime} teamMode={teamMode} teamAScore={teamAScore} teamBScore={teamBScore} currentTeam={currentTeam} onBack={onBack} onToggleTeam={() => setTeamMode(mode => mode === 'SOLO' ? 'TEAM' : 'SOLO')} onShowRules={() => setShowRules(true)} onRestart={restart}
+          board={(
+            <div className="flex h-full min-h-0 flex-col justify-between gap-2 overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-indigo-800/70 bg-black/40 p-2 shadow-inner">
+                <span className="mb-2 flex shrink-0 items-center gap-1 text-[10px] font-bold text-indigo-300 sm:text-xs"><Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-indigo-400" />當前牌桌接龍狀況</span>
+                <div className="flex max-w-full flex-wrap items-center justify-center gap-2 sm:gap-4">
+                  {currentQ.boardCards.map((b, idx) => <div key={idx} className="flex items-center gap-1 rounded-xl border border-indigo-700/50 bg-indigo-900/60 p-1.5 sm:gap-1.5 sm:p-2"><span className="px-1 text-lg font-black text-amber-300 sm:text-xl">{SUIT_DISPLAY[b.suit].symbol}</span><div className="flex items-center gap-1 text-sm font-bold text-indigo-100 sm:text-base">{b.min === b.max ? <span className="rounded bg-amber-400 px-1.5 py-0.5 font-black text-gray-950">{RANK_LABELS[b.min]}</span> : <><span className="font-black text-indigo-200">{RANK_LABELS[b.min]}</span><span className="text-gray-400">~</span><span className="rounded bg-amber-400 px-1 font-black text-gray-950">7</span><span className="text-gray-400">~</span><span className="font-black text-indigo-200">{RANK_LABELS[b.max]}</span></>}</div></div>)}
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-indigo-900/60 border border-indigo-700/50 rounded-2xl p-3 max-w-sm w-full">
-              <p className="text-indigo-300 text-xs font-bold">總積分</p>
-              <p className="text-2xl sm:text-4xl font-black text-indigo-300">{score} 分</p>
-              <p className="text-[11px] sm:text-xs text-indigo-200 mt-1">接龍節奏明快，卡牌防守與搶出兼備！</p>
+          )}
+          support={(
+            <div className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
+              <div className="rounded-xl border border-indigo-800/70 bg-indigo-900/40 p-3 shadow-inner"><div className="flex flex-wrap items-center gap-1.5"><span className="rounded-lg border border-indigo-600/50 bg-indigo-800 px-2 py-1 text-xs font-black text-indigo-300 sm:text-sm">{currentQ.badge}</span><span className="text-xs font-bold text-indigo-300">第 {currentIndex + 1}/{questions.length} 題</span></div><h2 className="mt-2 line-clamp-3 text-sm font-bold leading-snug text-white sm:text-base lg:text-lg">{currentQ.prompt}</h2></div>
+              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-indigo-800/70 bg-black/40 p-2"><div className="shrink-0 border-b border-indigo-800/80 pb-1 text-center text-xs font-bold tracking-wide text-indigo-300">🎴 請選擇可出的牌</div><div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-1"><div className="grid w-full grid-cols-2 justify-items-center gap-2 sm:gap-3">{currentQ.options.map(opt => <SevensCard key={opt.id} card={opt} size="md" selected={selectedOptionId === opt.id} highlight={isAnswered && opt.id === currentQ.correctOptionId} disabled={isAnswered} onClick={() => handleSelect(opt)} isSeven={opt.rank === 7} />)}</div></div></div>
             </div>
           )}
-
-          <div className="flex gap-2.5 justify-center mt-1">
-            <button
-              onClick={restart}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-400 hover:bg-indigo-300 text-gray-950 font-black rounded-xl text-xs sm:text-sm shadow transition flex items-center gap-1"
-            >
-              <RotateCcw size={15} />
-              再玩一局
-            </button>
-            <button
-              onClick={onBack}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-800 hover:bg-indigo-700 text-indigo-200 font-bold rounded-xl text-xs sm:text-sm shadow transition"
-            >
-              回遊戲選單
-            </button>
-          </div>
-        </div>
+          feedback={(
+            <div className="flex min-h-[40px] shrink-0 items-center"><AnimatePresence mode="wait">{isAnswered ? <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`flex w-full items-center justify-between gap-2 rounded-xl border p-1.5 text-xs shadow sm:p-2 ${isCorrect ? 'border-emerald-500 bg-emerald-950/95 text-emerald-100' : 'border-rose-500 bg-rose-950/95 text-rose-100'}`}><div className="flex min-w-0 items-center gap-1.5 overflow-hidden">{isCorrect ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" /> : <XCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-rose-400" />}<span className="truncate font-bold">{currentQ.explanation}</span></div><button type="button" onClick={handleNext} className="min-h-11 shrink-0 rounded-lg bg-indigo-400 px-3 py-1 text-xs font-black text-gray-950 shadow transition hover:bg-indigo-300">{currentIndex + 1 < questions.length ? '下一題 ➔' : '查看結算 🏆'}</button></motion.div> : <span className="px-1 text-sm text-indigo-800">點選一張牌完成這題</span>}</AnimatePresence></div>
+          )}
+        />
+      ) : (
+        <GameShell title="歡樂排七接龍" subtitle="本局挑戰完成" onBack={onBack} className="h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-sky-950 text-white"><div className="mx-auto flex h-full w-full max-w-5xl flex-col items-center justify-center gap-2.5 p-3 text-center"><motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="rounded-2xl bg-indigo-500 p-2.5 text-white shadow-xl"><Award className="h-10 w-10 sm:h-14 sm:w-14" /></motion.div><h2 className="text-lg font-black text-indigo-300 sm:text-2xl">🎴 排七接龍大師通關！</h2>{teamMode === 'TEAM' ? <div className="w-full max-w-sm rounded-2xl border border-indigo-500/50 bg-indigo-900/60 p-3"><div className="grid grid-cols-2 gap-2 text-center"><div className="rounded-xl border border-amber-400 bg-amber-500/20 p-2"><p className="text-xs font-bold text-amber-300">A 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamAScore} 分</p></div><div className="rounded-xl border border-sky-400 bg-sky-500/20 p-2"><p className="text-xs font-bold text-sky-300">B 組得分</p><p className="text-xl font-black text-white sm:text-2xl">{teamBScore} 分</p></div></div></div> : <div className="w-full max-w-sm rounded-2xl border border-indigo-700/50 bg-indigo-900/60 p-3"><p className="text-xs font-bold text-indigo-300">總積分</p><p className="text-2xl font-black text-indigo-300 sm:text-4xl">{score} 分</p><p className="mt-1 text-[11px] text-indigo-200 sm:text-xs">接龍節奏明快，卡牌防守與搶出兼備！</p></div>}<div className="mt-1 flex justify-center gap-2.5"><button type="button" onClick={restart} className="flex min-h-11 items-center gap-1 rounded-xl bg-indigo-400 px-3.5 py-1.5 text-xs font-black text-gray-950 shadow transition hover:bg-indigo-300 sm:px-4 sm:py-2 sm:text-sm"><RotateCcw aria-hidden="true" size={15} />再玩一局</button><button type="button" onClick={onBack} className="min-h-11 rounded-xl bg-indigo-800 px-3.5 py-1.5 text-xs font-bold text-indigo-200 shadow transition hover:bg-indigo-700 sm:px-4 sm:py-2 sm:text-sm">回遊戲選單</button></div></div></GameShell>
       )}
-    </div>
+    </>
   );
 };
 
