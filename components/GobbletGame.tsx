@@ -287,11 +287,11 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   const PieceRender = ({ p, isBoard = false }: { p: Piece, isBoard?: boolean }) => {
       const sizeClasses = isBoard 
-           ? [ 'w-[40%] h-[40%]', 'w-[65%] h-[65%]', 'w-[90%] h-[90%]' ]
+           ? [ 'gobblet-piece-s gobblet-piece-board w-[40%] h-[40%]', 'gobblet-piece-m gobblet-piece-board w-[65%] h-[65%]', 'gobblet-piece-l gobblet-piece-board w-[90%] h-[90%]' ]
            : [ 'gobblet-piece-s w-6 h-6 sm:w-10 sm:h-10', 'gobblet-piece-m w-10 h-10 sm:w-14 sm:h-14', 'gobblet-piece-l w-14 h-14 sm:w-20 sm:h-20' ];
       const colorClass = p.player === 1 ? 'bg-blue-500 border-blue-700' : 'bg-orange-500 border-orange-700';
       return (
-           <div className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`} aria-hidden="true">
+           <div data-gobblet-piece-context={isBoard ? 'board' : 'inventory'} className={`${sizeClasses[p.size]} ${colorClass} aspect-square rounded-full border-b-4 flex items-center justify-center shadow-lg font-black text-white text-xs sm:text-base z-10 transition-all`} aria-hidden="true">
               {gobbletSizeCodes[p.size]}
           </div>
       );
@@ -303,9 +303,12 @@ const GobbletGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           .gobblet-game [data-gobblet-layout="inventory-board-inventory"] { gap: 0.25rem; padding: 0.25rem; }
           .gobblet-game [data-gobblet-inventory] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 0; width: auto; }
           .gobblet-game .gobblet-board-frame { width: min(72vh, 88vw) !important; }
-          .gobblet-game .gobblet-piece-s { width: 1.5rem; height: 1.5rem; }
-          .gobblet-game .gobblet-piece-m { width: 2rem; height: 2rem; }
-          .gobblet-game .gobblet-piece-l { width: 2.5rem; height: 2.5rem; }
+          .gobblet-game [data-gobblet-piece-context="inventory"].gobblet-piece-s,
+          .gobblet-game [data-gobblet-piece-context="board"].gobblet-piece-s { width: 1.75rem; height: 1.75rem; }
+          .gobblet-game [data-gobblet-piece-context="inventory"].gobblet-piece-m,
+          .gobblet-game [data-gobblet-piece-context="board"].gobblet-piece-m { width: 2.75rem; height: 2.75rem; }
+          .gobblet-game [data-gobblet-piece-context="inventory"].gobblet-piece-l,
+          .gobblet-game [data-gobblet-piece-context="board"].gobblet-piece-l { width: 3.5rem; height: 3.5rem; }
         }`}</style>
         <div className="flex-none p-2 flex landscape:flex-col justify-between items-center bg-white shadow-sm z-10 portrait:h-14 landscape:w-16 landscape:h-full">
             <button type="button" onClick={onBack} aria-label="返回" className="min-h-11 min-w-11 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200">

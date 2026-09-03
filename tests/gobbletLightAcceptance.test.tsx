@@ -26,7 +26,13 @@ describe('Gobblet LIGHT acceptance', () => {
     expect(markup).toContain('aria-label="A1，空位"');
     expect(markup).toContain('data-gobblet-board-frame="true"');
     expect(markup).toContain('width: min(72vh, 88vw)');
-    expect(markup).toContain('.gobblet-piece-s { width: 1.5rem; height: 1.5rem; }');
+    expect(markup).toContain('data-gobblet-piece-context="inventory"');
+    expect(source).toContain('data-gobblet-piece-context={isBoard ? \'board\' : \'inventory\'}');
+    expect(source).toContain('[data-gobblet-piece-context="inventory"].gobblet-piece-s');
+    expect(source).toContain('[data-gobblet-piece-context="board"].gobblet-piece-s');
+    expect(source).toContain('.gobblet-piece-s { width: 1.75rem; height: 1.75rem; }');
+    expect(source).toContain('.gobblet-piece-m { width: 2.75rem; height: 2.75rem; }');
+    expect(source).toContain('.gobblet-piece-l { width: 3.5rem; height: 3.5rem; }');
     expect(source).not.toContain('max-width: 700px');
     expect(source).not.toContain('max-[700px]:landscape:');
     expect(source).not.toContain('max-[480px]:landscape:');
