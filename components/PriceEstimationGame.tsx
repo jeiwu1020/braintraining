@@ -198,24 +198,24 @@ const PriceEstimationGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' })
   const currentItem = items[currentItemIndex];
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
+    <div data-price-root="true" className={`app-safe-screen flex flex-col h-[100dvh] max-h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
       <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={onBack} aria-label="返回遊戲選單" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">
           <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>價格估算</h2>
           <p className="text-xs text-gray-500">{isAdvanced ? '高單價與生活規費' : '日常用品與小吃'}</p>
         </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={initGame} aria-label="重新開始" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <RefreshCw size={24} />
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
+      <div data-price-main="true" className="price-estimation-main flex min-h-0 flex-1 flex-col items-center justify-start p-4 overflow-y-auto w-full">
         
         {/* Stats Bar */}
-        <div className="w-full max-w-4xl flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
+        {!isComplete && <div data-price-stats="true" className="w-full max-w-4xl flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100">
           <div className="flex items-center gap-2 text-lg font-bold text-gray-700">
             <Timer className="text-blue-500" />
             第 {round} / {TOTAL_ROUNDS} 關
@@ -224,10 +224,10 @@ const PriceEstimationGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' })
             <Trophy className="text-yellow-500" />
             分數: {score}
           </div>
-        </div>
+        </div>}
 
         {isComplete ? (
-          <div className="mb-4 animate-bounce-in flex flex-col items-center bg-white p-8 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-2xl mt-12">
+          <div data-price-completion="true" className="price-estimation-completion mb-4 animate-bounce-in flex flex-col items-center bg-white p-8 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-2xl">
             <CheckCircle2 className="w-20 h-20 text-green-500 mb-4" />
             <h3 className="text-3xl font-bold text-green-600 mb-4">挑戰完成！</h3>
             <p className="text-2xl text-gray-700 font-bold mb-2">答對題數：{correctCount} / {TOTAL_ROUNDS} 題</p>

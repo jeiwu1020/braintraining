@@ -362,10 +362,11 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
   const categoryGames = selectedCategory ? getGamesByCategory(selectedCategory) : [];
 
   return (
-    <div className={`fixed inset-0 ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
+    <div data-main-menu-root="true" className={`fixed inset-0 ${theme.bg} flex flex-col sm:flex-row overflow-hidden transition-colors duration-500`}>
       
       {/* Sidebar / Header Area */}
-      <div className="w-full sm:w-1/3 shrink-0 p-4 sm:p-6 md:p-12 landscape:p-3 landscape:py-2 flex flex-col justify-start sm:justify-center items-center sm:items-start text-center sm:text-left z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent overflow-y-auto max-h-full">
+      <div data-main-menu-sidebar="true" className="w-full sm:w-1/3 shrink-0 p-4 sm:p-6 md:p-12 landscape:p-3 landscape:py-2 flex flex-col z-10 relative shadow-md sm:shadow-none bg-white/40 sm:bg-transparent overflow-y-auto max-h-full">
+        <div className="app-safe-screen w-full flex flex-1 flex-col justify-start sm:justify-center items-center sm:items-start text-center sm:text-left">
         <div className="inline-flex items-center justify-center p-2.5 sm:p-4 landscape:p-2 bg-white rounded-2xl sm:rounded-3xl shadow-lg mb-3 sm:mb-6 landscape:mb-2 animate-fade-in shrink-0">
           {isAdvanced ? <Zap className="text-purple-600 w-6 h-6 sm:w-10 sm:h-10 landscape:w-6 landscape:h-6 mr-2 sm:mr-3" /> : <Sparkles className="text-emerald-500 w-6 h-6 sm:w-10 sm:h-10 landscape:w-6 landscape:h-6 mr-2 sm:mr-3" />}
           <h1 className={`text-xl sm:text-2xl md:text-4xl landscape:text-xl font-bold ${theme.titleColor} tracking-wide whitespace-nowrap`}>綜合腦訓練</h1>
@@ -402,10 +403,12 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
         <div className="mt-auto pt-2 sm:pt-4 text-gray-400 text-xs sm:text-sm shrink-0">
             Designed for Occupational Therapy
         </div>
+        </div>
       </div>
 
       {/* Cards Scroll Area */}
-      <div ref={scrollContainerRef} className="w-full sm:w-2/3 p-3 sm:p-6 md:p-12 landscape:p-3 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
+      <div data-main-menu-cards="true" ref={scrollContainerRef} className="w-full sm:w-2/3 p-3 sm:p-6 md:p-12 landscape:p-3 overflow-y-auto h-full flex-1 bg-white/30 backdrop-blur-sm sm:rounded-l-[3rem] shadow-inner">
+        <div className="app-safe-screen w-full min-h-full">
         
         {!selectedCategory ? (
             // CATEGORY LISTING
@@ -467,6 +470,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                 </div>
             </div>
         )}
+        </div>
       </div>
     </div>
   );

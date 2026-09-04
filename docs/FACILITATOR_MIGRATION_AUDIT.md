@@ -8,7 +8,7 @@
 - `FACILITATOR`: `4/11` — Conditional Snap, Zoom, Verbal Memory, and Story Cards LIGHT complete and reviewer real-device accepted.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
-- Platform note: the user reported an intermittent iOS Home Screen Web App top blank strip during standalone launch; PWA metadata and the 100dvh root chain are now implemented, with reinstall QA still pending.
+- Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration is implemented and pending real-device QA.
 
 ## Methodology
 
@@ -33,7 +33,7 @@ The classification means:
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | Setup uses `py-6`, `p-6`, several large margins, and a full-height settings stack; at short landscape setup controls are likely below the fold. The play grid is capped at `60vh`. | Keep the map/grid and preview/radar settings; compact setup spacing and preserve the map as the dominant region. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
 | 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | Current card is only `80×112` in landscape and three choice buttons use `py-1`; Rules is an unlabeled icon with no modal height limit. | Keep the two-team simultaneous prediction layout; enlarge core choices modestly and constrain the rules modal. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | HIGH | Luna High | Current/previous card, both teams, prediction controls, round result |
-| 價格估算 | `components/PriceEstimationGame.tsx` | LIGHT | The landscape answer column is one vertical stack of three options; after answering, the next action is a second conditional control and the main area can rely on local scrolling. | Keep prompt plus three-option answer semantics; reserve a predictable compact action area and label header/actions. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna Medium | Prompt, three options, answered state, next/final result |
+| 價格估算 | `components/PriceEstimationGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: normal gameplay is usable, but the final 挑戰完成 state exceeds phone landscape; the edge-to-edge screen can also place content under the Dynamic Island/unsafe horizontal region. | Keep prompt plus three-option answer semantics; apply the non-GameShell safe-area contract, compact and center completion, and label header/actions without changing gameplay. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion/safe-area) | MEDIUM | Luna High | Prompt, three options, completion bounds, safe-area ownership |
 | 轉念練習 | `components/PositiveReappraisalGame.tsx` | LIGHT | Landscape deliberately reduces progress text to `10px` and the reveal/next controls to compact heights; the fixed bottom bar competes with the two-column text stage. | Keep the event/negative-thought/reframe split and local text scrolling; restore minimum readability and predictable controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna High | Scenario text, reveal, reframe list, next action, bottom bar |
 
 ## Detailed game reports
@@ -794,11 +794,11 @@ CURRENT STRUCTURE
 
 VIEWPORT FINDINGS
 
-640×360: the landscape answer column is one vertical stack; each option has `landscape:py-3`, but the question card, stats bar, three choices, and conditional next action compete for the flex region. A long item name can make the local main scroll the only path to the next action.
+640×360: REAL-DEVICE CONFIRMED pre-fix — normal gameplay is generally usable, while the final completion card exceeded the phone landscape viewport and edge-to-edge content could enter the unsafe horizontal region.
 
-844×390: the same landscape row and one-column options remain. Width is adequate for two columns, but height remains short enough that post-answer action placement should be explicit.
+844×390: REAL-DEVICE CONFIRMED pre-fix — normal prompt/options composition was accepted; completion required a separate compact treatment.
 
-932×430: still below `lg`, so the options do not become the three-column desktop arrangement; the phone landscape layout remains vertically stacked on the answer side.
+932×430: REAL-DEVICE CONFIRMED pre-fix — normal landscape composition remained intact, with the completion state and horizontal safe-area ownership as the correction targets.
 
 390×844: portrait stacks question and answer areas and allows main local scrolling; no horizontal overflow is implied by the source.
 
@@ -818,11 +818,11 @@ Keep the prompt/options semantics and round progression. A LIGHT pass should res
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on fixed root/overflow, main `overflow-y-auto`, landscape two-column wrapper, one-column option grid, and conditional duplicate next buttons.
+REAL-DEVICE CONFIRMED — reviewer observed completion overflow and Dynamic Island/unsafe horizontal overlap after edge-to-edge rendering. Source correction uses one non-GameShell safe-area owner and a bounded short-landscape completion state.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-At 640×360, selecting an answer can make the next action appear low in the local panel; the facilitator may see the question and options but need an extra scroll for progression.
+The final 「挑戰完成」 card previously exceeded the phone landscape viewport, and some edge-to-edge content could be covered by the Dynamic Island.
 
 GAMEPLAY / STATE LOCK
 
@@ -834,11 +834,11 @@ MEDIUM — the correction is presentation-focused but the conditional post-answe
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/PriceEstimationGame.tsx`; later add `tests/priceEstimationFacilitatorAcceptance.test.tsx`.
+`components/PriceEstimationGame.tsx`, `index.css`, and `tests/priceEstimationFacilitatorAcceptance.test.tsx`.
 
 RECOMMENDED MODEL
 
-Luna Medium — single-file compact layout and accessible naming correction.
+Luna High — targeted safe-area ownership and compact completion correction with preserved gameplay.
 
 REVIEWER SHOULD CHECK
 
@@ -846,7 +846,9 @@ REVIEWER SHOULD CHECK
 2. After answering, Next/看結果 is immediately reachable without document scrolling.
 3. Long item labels and final score remain readable at 844×390 and portrait.
 
-Final audit line: 價格估算 — Recommendation: LIGHT. Why: the existing prompt/options split is correct, but post-answer action placement and header targets need tightening. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: prompt/options/next continuity.
+After implementation: Price Estimation — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE. Safe-area integration is implemented; PWA reinstall QA remains a separate platform gate.
+
+Final audit line: 價格估算 — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED completion overflow and Dynamic Island overlap can be corrected with local safe-area ownership and compact completion spacing while preserving the accepted prompt/options composition. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; post-fix pending reviewer acceptance.
 
 ## 轉念練習
 
@@ -964,7 +966,7 @@ This is a future implementation contract, not production code in this audit:
 2. **Story Cards — LIGHT — Luna Medium.** Reuses a bounded visual stage with compact card/zoom accessibility concerns and low-to-medium state risk.
 3. **Verbal Memory — LIGHT — Luna Medium.** Establishes a facilitator grid standard for NORMAL/ADVANCED whole-grid visibility.
 4. **Zoom — LIGHT — Luna Medium.** Applies the single-stimulus sizing/accessibility standard to timer/reveal state.
-5. **Price Estimation — LIGHT — Luna Medium.** Reuses predictable prompt/options/action allocation with moderate state risk.
+5. **Price Estimation — LIGHT — Luna High.** Reuses predictable prompt/options/action allocation with moderate state risk plus dedicated safe-area integration.
 6. **Word Chain — LIGHT — Luna High.** Adds timer and timeout modal checks after the simpler stages are stable.
 7. **Positive Reappraisal — LIGHT — Luna High.** Handles long text, local scroll, and fixed action layering.
 8. **Guess Who — LIGHT — Luna High.** Correct the advanced candidate grid only after grid and local-scroll standards are proven; retain elimination/history semantics.
@@ -975,8 +977,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, and Story Cards LIGHT complete and reviewer accepted.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, and Story Cards LIGHT complete and reviewer accepted; Price Estimation LIGHT implementation complete, reviewer acceptance pending.
 - Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `46/59`; FACILITATOR is `4/11` after Conditional Snap, Zoom, Verbal Memory, and Story Cards reviewer real-device acceptance.
+- Overall standardization is `46/59`; FACILITATOR is `4/11` after Conditional Snap, Zoom, Verbal Memory, and Story Cards reviewer real-device acceptance. Price Estimation remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance.

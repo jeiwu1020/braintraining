@@ -29,6 +29,14 @@
 }
 
 @layer components {
+  .app-safe-screen {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
   .game-shell {
     box-sizing: border-box;
     height: 100dvh;
@@ -190,6 +198,34 @@
 
   .blackjack-player > .mt-auto {
     margin-top: 0.75rem !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .price-estimation-main {
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .price-estimation-completion {
+    margin-top: 0 !important;
+    margin-bottom: 0.5rem !important;
+    padding: 1rem !important;
+  }
+
+  .price-estimation-completion svg {
+    width: 4rem !important;
+    height: 4rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .price-estimation-completion h3 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .price-estimation-completion p {
+    font-size: 1.125rem !important;
   }
 }
 
