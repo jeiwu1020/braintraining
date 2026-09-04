@@ -108,6 +108,7 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
           .verbal-memory-grid { height: min(100%, 30rem); width: auto; max-width: 100%; aspect-ratio: 1 / 1; }\
           .verbal-memory-grid[data-verbal-memory-mode="ADVANCED"] { aspect-ratio: 5 / 4; }\
           .verbal-memory-grid--complete { height: min(8rem, 30%); max-height: 8rem; }\
+          .verbal-memory-card-face { font-size: clamp(2.75rem, 13vh, 4rem); line-height: 1; }\
         }\
         @media (orientation: portrait) {\
           .verbal-memory-root { height: auto; min-height: 100dvh; max-height: none; overflow-y: auto; }\
@@ -167,7 +168,7 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
               `}
             >
               {card.isFlipped || card.isMatched ? (
-                <span className="animate-fade-in">{card.content}</span>
+                <span className="verbal-memory-card-face animate-fade-in">{card.content}</span>
               ) : (
                 <span className="text-white font-bold text-4xl landscape:text-2xl md:text-6xl">{index + 1}</span>
               )}
