@@ -215,7 +215,7 @@
 
 這一階段的核心不是單純左右切版，而是將「參與者看到的內容」與「帶領者控制」分離，避免誤觸、答案提前曝光或操作資訊佔滿畫面。
 
-FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame 與 Verbal Memory 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 3/11`；Story Cards 已完成 LIGHT implementation，等待 reviewer 實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。
+FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame 與 Verbal Memory 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 3/11`；Story Cards UI 已通過 reviewer 實機驗收，本輪完成 60-card content expansion，等待 final reviewer acceptance，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。
 
 ### 6.4 第四優先：沉浸式 6 款
 

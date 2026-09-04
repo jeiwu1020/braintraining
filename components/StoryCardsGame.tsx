@@ -7,52 +7,128 @@ interface Props {
   isAdvanced?: boolean;
 }
 
-const CARDS = [
+export const CARDS = [
   // 人
   { text: '警察', emoji: '👮', type: '人' },
   { text: '奶奶', emoji: '👵', type: '人' },
   { text: '小偷', emoji: '🦹', type: '人' },
   { text: '醫生', emoji: '👨‍⚕️', type: '人' },
   { text: '小孩', emoji: '👦', type: '人' },
+  { text: '老師', emoji: '👩‍🏫', type: '人' },
+  { text: '廚師', emoji: '👨‍🍳', type: '人' },
+  { text: '消防員', emoji: '👨‍🚒', type: '人' },
+  { text: '運動員', emoji: '🏅', type: '人' },
+  { text: '上班族', emoji: '👔', type: '人' },
+  { text: '郵差', emoji: '📮', type: '人' },
+  { text: '司機', emoji: '🚕', type: '人' },
   // 事
   { text: '追趕', emoji: '🏃', type: '事' },
   { text: '跳舞', emoji: '💃', type: '事' },
   { text: '睡覺', emoji: '🛌', type: '事' },
   { text: '唱歌', emoji: '🎤', type: '事' },
   { text: '跌倒', emoji: '🤸', type: '事' },
+  { text: '找東西', emoji: '🔍', type: '事' },
+  { text: '吃飯', emoji: '🍽️', type: '事' },
+  { text: '拍照', emoji: '📸', type: '事' },
+  { text: '等車', emoji: '🚏', type: '事' },
+  { text: '打電話', emoji: '📞', type: '事' },
+  { text: '迷路', emoji: '🧭', type: '事' },
+  { text: '寫信', emoji: '✉️', type: '事' },
   // 時
   { text: '早上', emoji: '🌅', type: '時' },
   { text: '半夜', emoji: '🌙', type: '時' },
   { text: '下雨天', emoji: '🌧️', type: '時' },
   { text: '冬天', emoji: '☃️', type: '時' },
+  { text: '中午', emoji: '☀️', type: '時' },
+  { text: '黃昏', emoji: '🌇', type: '時' },
+  { text: '週末', emoji: '📅', type: '時' },
+  { text: '夏天', emoji: '🌞', type: '時' },
+  { text: '颱風天', emoji: '🌀', type: '時' },
+  { text: '生日', emoji: '🎂', type: '時' },
+  { text: '過年', emoji: '🧧', type: '時' },
+  { text: '放學後', emoji: '🔔', type: '時' },
   // 地
   { text: '公園', emoji: '🏞️', type: '地' },
   { text: '醫院', emoji: '🏥', type: '地' },
   { text: '學校', emoji: '🏫', type: '地' },
   { text: '海邊', emoji: '🏖️', type: '地' },
   { text: '家裡', emoji: '🏠', type: '地' },
+  { text: '市場', emoji: '🛒', type: '地' },
+  { text: '車站', emoji: '🚉', type: '地' },
+  { text: '餐廳', emoji: '🍴', type: '地' },
+  { text: '便利商店', emoji: '🏪', type: '地' },
+  { text: '圖書館', emoji: '📚', type: '地' },
+  { text: '夜市', emoji: '🎪', type: '地' },
+  { text: '山上', emoji: '⛰️', type: '地' },
   // 物
   { text: '蘋果', emoji: '🍎', type: '物' },
   { text: '手機', emoji: '📱', type: '物' },
   { text: '鑰匙', emoji: '🔑', type: '物' },
   { text: '錢包', emoji: '👛', type: '物' },
-  { text: '腳踏車', emoji: '🚲', type: '物' }
+  { text: '腳踏車', emoji: '🚲', type: '物' },
+  { text: '雨傘', emoji: '☂️', type: '物' },
+  { text: '眼鏡', emoji: '👓', type: '物' },
+  { text: '背包', emoji: '🎒', type: '物' },
+  { text: '相機', emoji: '📷', type: '物' },
+  { text: '禮物', emoji: '🎁', type: '物' },
+  { text: '保溫杯', emoji: '🥤', type: '物' },
+  { text: '地圖', emoji: '🗺️', type: '物' }
 ];
+
+type StoryCardContent = (typeof CARDS)[number];
+export type StoryCard = StoryCardContent & { id: number; active: boolean };
+
+const CATEGORY_ORDER = ['人', '事', '時', '地', '物'] as const;
+
+const shuffle = <T,>(items: T[], random: () => number): T[] => {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
+};
+
+const cardKey = (card: Pick<StoryCardContent, 'type' | 'text'>) => `${card.type}:${card.text}`;
+
+export const generateStoryCards = ({
+  count,
+  advanced,
+  exclude = [],
+  random = Math.random,
+}: {
+  count: number;
+  advanced: boolean;
+  exclude?: Array<Pick<StoryCardContent, 'type' | 'text'>>;
+  random?: () => number;
+}): StoryCard[] => {
+  const excludedKeys = new Set(exclude.map(cardKey));
+  const available = CARDS.filter(card => !excludedKeys.has(cardKey(card)));
+  const categories = advanced
+    ? [...CATEGORY_ORDER]
+    : shuffle([...CATEGORY_ORDER], random).slice(0, count);
+  const selected = categories.map(type => {
+    const candidates = available.filter(card => card.type === type);
+    return shuffle(candidates, random)[0];
+  });
+
+  return shuffle(selected, random).map((card, id) => ({ ...card, id, active: false }));
+};
 
 const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   const numCards = isAdvanced ? 5 : 4; // Use 4 or 5 cards
   
-  const getRandomCards = () => {
-    // Try to pick from different categories if possible to make interesting stories
-    const shuffled = [...CARDS].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, numCards).map((card, idx) => ({ id: idx, ...card, active: false }));
-  };
+  const getRandomCards = (exclude: StoryCard[] = []) => generateStoryCards({
+    count: numCards,
+    advanced: Boolean(isAdvanced),
+    exclude,
+  });
 
   const [cards, setCards] = useState(getRandomCards());
   const [zoomIndex, setZoomIndex] = useState<number | null>(null);
 
   const handleRefresh = () => {
-    setCards(getRandomCards());
+    setCards(getRandomCards(cards));
     setZoomIndex(null);
     soundService.playTone(500, 'triangle', 0.1);
   };

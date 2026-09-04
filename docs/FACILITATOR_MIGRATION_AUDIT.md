@@ -5,7 +5,7 @@
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
 - Current overall standardization: `44/59`
-- `FACILITATOR`: `3/11` — Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer real-device accepted; Story Cards LIGHT implementation is pending reviewer acceptance.
+- `FACILITATOR`: `3/11` — Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer real-device accepted; Story Cards UI is accepted and content expansion is pending final reviewer acceptance.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 
@@ -27,7 +27,7 @@ The classification means:
 | 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the memory field was held toward the upper area, leaving a large unused lower region; direct emoji-size refinement was also accepted. | Keep the memory grid and flip state; size the complete 4×4/5×4 field from remaining landscape height and center it, then label/reset controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix allocation) | MEDIUM | Luna Medium | NORMAL/ADVANCED whole-grid visibility, balance, card selection, completion |
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
 | 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | At `sm` width, advanced mode changes to six columns while avatars remain `80px`; the candidate grid can overflow its roughly half-width region. Question chips are also compact. | The existing candidate-grid plus question/history split is the right facilitator composition; a short-height grid/size correction is enough, not a new shell. | STATIC SOURCE INFERENCE | BORDERLINE | MAJOR ISSUE | HIGH | MEDIUM | Luna High | All candidate cards, question controls, elimination, history scroll |
-| 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: overall card sizing/layout is acceptable; selected card edge is slightly clipped, and the zoom control works but is small and slightly clipped. Advanced five-card spacing also shows minor edge overlap. | Keep the 4/5-card stage and current card size; remove scale-based clipping, inset the zoom control, make it a visible 44px touch target, and preserve card state. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix clipping) | MEDIUM | Luna Medium | Selected state, five-card separation, zoom touch, refresh, Back |
+| 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED: overall card sizing/layout, selected-state clipping fix, five-card edge separation, zoom size, and upper-left zoom position. Remaining reviewer request: content repetition is too high. | Keep the accepted 4/5-card stage and UI; expand the pool to 60, enforce category-diverse NORMAL/ADVANCED draws, and exclude the immediately previous set without changing the visual composition. | REAL-DEVICE CONFIRMED | YES | ACCEPTED | MEDIUM (content variety) | MEDIUM | Luna Medium | 60-card pool, category distribution, refresh exclusion, accepted touch UI |
 | 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | Setup uses `py-6`, `p-6`, several large margins, and a full-height settings stack; at short landscape setup controls are likely below the fold. The play grid is capped at `60vh`. | Keep the map/grid and preview/radar settings; compact setup spacing and preserve the map as the dominant region. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
@@ -437,9 +437,9 @@ REVIEWER SHOULD CHECK
 2. Card labels and emoji remain readable; zoom works with touch rather than hover.
 3. Zoom-in/full-card view and Back do not create page overflow.
 
-After implementation: Story Cards — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE.
+After UI correction: Story Cards layout — LIGHT COMPLETE and reviewer real-device accepted. After content enhancement: CONTENT EXPANSION COMPLETE; PENDING REVIEWER FINAL ACCEPTANCE.
 
-Final audit line: 故事聯想卡 — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED selected-card clipping, minor advanced edge overlap, and a small/slightly clipped zoom control; overall card size/layout remains accepted. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; post-fix is pending reviewer acceptance. What reviewer should visually check: distinct card boundaries and touch zoom.
+Final audit line: 故事聯想卡 — Recommendation: LIGHT. Why: accepted UI corrections are complete; reviewer-approved content enhancement expands the pool 24→60, provides 12 cards in each 人／事／時／地／物 category, enforces 4 distinct NORMAL categories and all 5 ADVANCED categories, and excludes the immediately previous set. Evidence: UI REAL-DEVICE ACCEPTED; content enhancement pending final reviewer acceptance. What reviewer should visually check: variety, category scaffolding, and refresh non-repetition.
 
 ## 條件反應大挑戰
 
@@ -974,7 +974,7 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer accepted; Story Cards LIGHT implementation complete, reviewer acceptance pending.
+- Production implementation: Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer accepted; Story Cards UI LIGHT complete and reviewer accepted, content expansion complete and final reviewer acceptance pending.
 - Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
