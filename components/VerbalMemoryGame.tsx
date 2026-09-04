@@ -94,25 +94,45 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
+    <div
+      data-verbal-memory-root="true"
+      data-verbal-memory-mode={isAdvanced ? 'ADVANCED' : 'NORMAL'}
+      className={`verbal-memory-root flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'}`}
+    >
+      <style>{`\
+        .verbal-memory-root { box-sizing: border-box; }\
+        .verbal-memory-main { min-height: 0; }\
+        .verbal-memory-grid { box-sizing: border-box; }\
+        @media (orientation: landscape) and (max-height: 480px) {\
+          .verbal-memory-main { overflow: hidden; }\
+          .verbal-memory-grid { height: min(100%, 30rem); width: auto; max-width: 100%; aspect-ratio: 1 / 1; }\
+          .verbal-memory-grid[data-verbal-memory-mode="ADVANCED"] { aspect-ratio: 5 / 4; }\
+          .verbal-memory-grid--complete { height: min(8rem, 30%); max-height: 8rem; }\
+        }\
+        @media (orientation: portrait) {\
+          .verbal-memory-root { height: auto; min-height: 100dvh; max-height: none; overflow-y: auto; }\
+          .verbal-memory-main { overflow-y: auto; }\
+          .verbal-memory-grid { width: min(90vw, 64rem); max-width: 100%; }\
+        }\
+      `}</style>
       <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={onBack} aria-label="返回遊戲選單" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">
           <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>記憶翻牌 (團體版)</h2>
           <p className="text-xs text-gray-500">{isAdvanced ? '20張牌挑戰' : '16張牌挑戰'}</p>
         </div>
-        <button onClick={initGame} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button onClick={initGame} aria-label="重新開始" className="min-h-11 min-w-11 flex items-center justify-center p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <RefreshCw size={24} />
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto w-full">
+      <div data-verbal-memory-main="true" className={`verbal-memory-main flex min-h-0 flex-1 flex-col items-center justify-center p-4 w-full ${isComplete ? 'overflow-hidden' : 'overflow-y-auto landscape:overflow-hidden'}`}>
         {isComplete && (
-          <div className="mb-6 animate-bounce-in flex flex-col items-center bg-white p-6 rounded-3xl shadow-lg border-4 border-green-200 w-full max-w-md">
+          <div data-verbal-memory-completion="true" className="mb-2 flex w-full max-w-md shrink-0 flex-col items-center rounded-3xl border-4 border-green-200 bg-white p-4 shadow-lg animate-bounce-in landscape:p-3">
             <CheckCircle2 className="w-16 h-16 text-green-500 mb-2" />
-            <h3 className="text-2xl font-bold text-green-600 mb-4">全部配對成功！</h3>
+            <h3 className="text-2xl font-bold text-green-600 mb-2">全部配對成功！</h3>
             <div className="flex gap-6">
               <div className="flex flex-col items-center">
                 <Timer className="text-blue-500 mb-1" />
@@ -127,7 +147,9 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
         )}
 
         <div 
-          className={`grid gap-2 landscape:gap-1 lg:gap-4 w-full max-w-[90vw] landscape:max-w-[60vh] lg:max-w-4xl ${isComplete ? 'opacity-50 pointer-events-none' : ''}`}
+          data-verbal-memory-grid="true"
+          data-verbal-memory-mode={isAdvanced ? 'ADVANCED' : 'NORMAL'}
+          className={`verbal-memory-grid grid shrink-0 gap-2 landscape:gap-1 lg:gap-4 w-full max-w-[90vw] lg:max-w-4xl ${isComplete ? 'verbal-memory-grid--complete opacity-50 pointer-events-none' : ''}`}
           style={{ 
             gridTemplateColumns: `repeat(${isAdvanced ? 5 : 4}, minmax(0, 1fr))` 
           }}
@@ -136,8 +158,10 @@ const VerbalMemoryGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) =>
             <button
               key={card.id}
               onClick={() => handleCardClick(index)}
+              data-verbal-memory-card="true"
+              aria-label={`第 ${index + 1} 張牌${card.isFlipped || card.isMatched ? `，${card.content}` : ''}${card.isMatched ? '，已配對' : ''}`}
               className={`
-                aspect-[4/3] landscape:aspect-square sm:aspect-[3/2] rounded-xl text-3xl landscape:text-2xl md:text-5xl flex items-center justify-center shadow-md transition-all duration-300 transform border-2
+                aspect-[4/3] landscape:aspect-square rounded-xl text-3xl landscape:text-2xl md:text-5xl flex items-center justify-center shadow-md transition-all duration-300 transform border-2
                 ${card.isFlipped || card.isMatched ? 'bg-white border-gray-200' : 'bg-blue-500 border-blue-600 hover:bg-blue-600 active:scale-95'}
                 ${card.isMatched ? 'opacity-50' : ''}
               `}

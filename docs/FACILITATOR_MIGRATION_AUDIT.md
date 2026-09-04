@@ -4,8 +4,8 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `43/59`
-- `FACILITATOR`: `1/11` — Conditional Snap LIGHT complete and reviewer real-device accepted; Zoom LIGHT correction complete, pending final reviewer acceptance.
+- Current overall standardization: `44/59`
+- `FACILITATOR`: `2/11` — Conditional Snap and Zoom LIGHT complete and reviewer real-device accepted; Verbal Memory LIGHT implementation is pending reviewer acceptance.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 
@@ -24,7 +24,7 @@ The classification means:
 | Game | Component | Classification | Primary visible issue | Why change / why keep | Evidence level | Primary stimulus dominance | Touch targets | Overflow risk | Gameplay-state risk | Recommended model | Reviewer should check |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 局部猜全貌 | `components/ZoomGame.tsx` | LIGHT | Scoring and normal gameplay passed reviewer real-device check; completion screen overflowed in landscape, and reviewer requested stronger initial crop. | Keep the single-stage image/reveal flow and current landscape footprint; compact completion state and use the approved NORMAL/ADVANCED initial zoom values. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion overflow) | MEDIUM | Luna Medium | Initial crop, potential score, completion card, header actions |
-| 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | Grid is capped at `60vh` (`216px` at 360px height); advanced five-column cards become very small. | Keep the memory grid and flip state; use available landscape space more effectively and label/reset controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna Medium | NORMAL/ADVANCED grid readability, card selection, completion |
+| 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: the memory field is held toward the upper area, leaving a large unused lower region; source root cause is the `landscape:max-w-[60vh]` width cap plus top-aligned main content. | Keep the memory grid and flip state; size the complete 4×4/5×4 field from remaining landscape height and center it, then label/reset controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix allocation) | MEDIUM | Luna Medium | NORMAL/ADVANCED whole-grid visibility, balance, card selection, completion |
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
 | 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | At `sm` width, advanced mode changes to six columns while avatars remain `80px`; the candidate grid can overflow its roughly half-width region. Question chips are also compact. | The existing candidate-grid plus question/history split is the right facilitator composition; a short-height grid/size correction is enough, not a new shell. | STATIC SOURCE INFERENCE | BORDERLINE | MAJOR ISSUE | HIGH | MEDIUM | Luna High | All candidate cards, question controls, elimination, history scroll |
 | 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | Five-card advanced mode keeps `sm:w-36 sm:h-48` inside an `overflow-hidden` row, so cards can crowd or clip at short landscape. Zoom control is hover-only and unnamed. | Keep the card stage and zoom overlay; compact the card row and expose the zoom action without changing card state. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | MEDIUM | Luna Medium | Four/five cards, zoom, shuffle/refresh, prompt text |
@@ -53,7 +53,7 @@ HIGH
 
 CURRENT STRUCTURE
 
-- Root: fixed `h-[100dvh]` column with `overflow-hidden`.
+- Root: fixed `h-[100dvh]` / `max-h-[100dvh]` column with `overflow-hidden`.
 - Header: title/subtitle with icon-only Back and Reset buttons using `p-2`.
 - Primary: zoomable emoji/image stage, `w-64 h-64` normally but `landscape:w-40 landscape:h-40`.
 - Controls: zoom out, reveal, then correct/wrong response buttons.
@@ -138,16 +138,16 @@ CURRENT STRUCTURE
 - Primary: a 4-column NORMAL or 5-column ADVANCED memory grid.
 - Controls: each card is the interaction; Reset is in the header.
 - Status: card numbers and a completion score/time card.
-- Scroll: main region is `overflow-y-auto`.
+- Scroll: landscape main region is centered and `overflow-hidden`; portrait retains controlled local scrolling.
 - Modal: no modal; completion is an in-flow card.
 
 VIEWPORT FINDINGS
 
-640×360: the grid is capped by `landscape:max-w-[60vh]`, approximately `216px` wide at source level. NORMAL cards are about four columns inside that box; ADVANCED cards are five columns, so the visual card and number become compact for group call-outs.
+640×360: REAL-DEVICE CONFIRMED — the grid is held toward the upper area and leaves a large unused lower region. The old `landscape:max-w-[60vh]` cap contributed to the constrained allocation.
 
-844×390: the cap becomes approximately `234px`, still independent of the extra width. Both modes remain square-grid layouts, but the advanced cards remain the tighter case.
+844×390: REAL-DEVICE CONFIRMED — the available main-area height and width were not being used as a centered whole-grid allocation.
 
-932×430: the cap is approximately `258px`; the same landscape rule applies because `lg` is not active. No short-height-specific expansion exists.
+932×430: REAL-DEVICE CONFIRMED — the same upper-biased allocation leaves lower space unused instead of scaling from the remaining playable area.
 
 390×844: `max-w-[90vw]` applies and the portrait grid has more width, but the main region can scroll for the completion state. Card interaction remains conceptually clear.
 
@@ -155,11 +155,11 @@ VIEWPORT FINDINGS
 
 PRIMARY STIMULUS DOMINANCE
 
-BORDERLINE — the grid is central but source-capped to roughly 60% of viewport height, leaving horizontal space unused and reducing card call-out size.
+MINOR ISSUE — the complete card field is the primary content, but the pre-fix width cap plus `justify-start` left substantial lower space unused.
 
 TOUCH TARGETS
 
-MINOR ISSUE — cards are interactive, but ADVANCED compact cards can approach or fall below a comfortable 44px visual target; header buttons are about 40px and unnamed.
+MINOR ISSUE — cards are interactive; header buttons were about 40px and unnamed before this LIGHT pass.
 
 WHY CHANGE / WHY KEEP
 
@@ -167,11 +167,11 @@ Keep the 4×4/5×4 memory model and card renderer. Change only compact grid allo
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `landscape:max-w-[60vh]`, `landscape:aspect-square`, the 4/5 column template, fixed viewport root, and local main scroll. Runtime dimensions were not measured.
+REAL-DEVICE CONFIRMED — reviewer observed the upper-constrained field and large unused lower space. Root cause was `landscape:max-w-[60vh]` combined with top-aligned main content. The implementation now uses a centered, remaining-height landscape stage; runtime dimensions were not measured in this environment.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-The facilitator must lean in or call out very small numbered cards, especially in ADVANCED mode; reset is a small icon with no spoken accessible name.
+The facilitator previously saw the memory field concentrated near the top with a large unused lower region; reset was a small icon with no spoken accessible name.
 
 GAMEPLAY / STATE LOCK
 
@@ -183,7 +183,7 @@ MEDIUM — card click/flip timing and completion state are sensitive to DOM rest
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/VerbalMemoryGame.tsx`; later add `tests/verbalMemoryFacilitatorAcceptance.test.tsx` for NORMAL/ADVANCED grid contracts.
+`components/VerbalMemoryGame.tsx` and `tests/verbalMemoryFacilitatorAcceptance.test.tsx`.
 
 RECOMMENDED MODEL
 
@@ -195,7 +195,9 @@ REVIEWER SHOULD CHECK
 2. Card numbers/content remain readable for group call-outs and cards remain tappable.
 3. Reset and completion feedback do not introduce page-level scrolling.
 
-Final audit line: 記憶翻牌（口語版） — Recommendation: LIGHT. Why: the memory grid is correct but short-height allocation makes compact cards too small. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: NORMAL/ADVANCED whole-grid readability.
+After implementation: Verbal Memory — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE.
+
+Final audit line: 記憶翻牌（口語版） — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED upper-biased allocation left a large unused lower region; the fix centers a remaining-height 4×4/5×4 grid without changing gameplay. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; post-fix is pending reviewer acceptance. What reviewer should visually check: whole-grid visibility, balance, and card call-out readability.
 
 ## 語意聯想
 
