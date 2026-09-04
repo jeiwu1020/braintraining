@@ -227,7 +227,7 @@ const App: React.FC = () => {
   const bgClass = difficulty === 'NORMAL' ? 'bg-[#f0fdf4]' : 'bg-slate-100';
 
   return (
-    <div className={`min-h-screen ${bgClass} transition-colors duration-500`}>
+    <div className={`min-h-[100dvh] ${bgClass} transition-colors duration-500`}>
       {renderContent()}
     </div>
   );
