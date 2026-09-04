@@ -11,7 +11,7 @@
 
 ### Acceptance 路徑政策
 
-本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前正式完成的標準化進度為 49/59；Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who、Gobblet、Checkers 與 Blackjack 均已由 reviewer 實機接受。Treasure 已完成 LIGHT implementation，等待 reviewer 實機驗收，尚未計入完成。
+本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前正式完成的標準化進度為 50/59；Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who、Treasure、Gobblet、Checkers 與 Blackjack 均已由 reviewer 實機接受。Higher/Lower 已完成 LIGHT implementation，等待 reviewer 實機驗收，尚未計入完成。
 
 平台備註：使用者回報的 iOS Home Screen Web App standalone 啟動頂部整條空白區域，已在重新安裝後由 REAL-DEVICE PASS 確認解決；edge-to-edge 後發現的 Dynamic Island／safe-area overlap 也已由 reviewer 實機接受，safe-area integration 與 MainMenu／Price ownership 為 REAL-DEVICE PASS。
 
@@ -101,9 +101,9 @@
 | `GRID_FOCUS` | 19 | 19 | 完成 |
 | `BOARD_SIDEBAR` | 11 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋、Gobblet 與 Checkers 以 LIGHT 路徑完成標準化 |
 | `BOARD_TABLE` | 1 | 1 | Blackjack LIGHT complete，reviewer real-device accepted |
-| `FACILITATOR` | 7 | 11 | Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who LIGHT 完成並通過 reviewer 實機驗收；Treasure LIGHT implementation complete，等待 reviewer 實機驗收 |
+| `FACILITATOR` | 8 | 11 | Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who、Treasure LIGHT 完成並通過 reviewer 實機驗收；Higher/Lower LIGHT implementation complete，等待 reviewer 實機驗收 |
 | `IMMERSIVE` | 0 | 6 | 尚未進入統一遷移 |
-| 合計 | 49 | 59 | 進行中 |
+| 合計 | 50 | 59 | 進行中 |
 
 「0」表示尚未依本次固定規格完成系統性遷移與驗收，不代表該遊戲目前完全沒有手機橫向樣式。
 
@@ -217,7 +217,7 @@
 
 這一階段的核心不是單純左右切版，而是將「參與者看到的內容」與「帶領者控制」分離，避免誤觸、答案提前曝光或操作資訊佔滿畫面。
 
-FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain 與 Guess Who 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 7/11`；Treasure 本批完成 dedicated LIGHT implementation，等待 reviewer 實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Treasure 通過 reviewer 後預期為 `50/59`、`FACILITATOR 8/11`；其後剩餘 Roulette、Higher/Lower、Positive Reappraisal。
+FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who 與 Treasure 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 8/11`；Higher/Lower 本批完成 dedicated LIGHT implementation，等待 reviewer 實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Higher/Lower 通過 reviewer 後預期為 `51/59`、`FACILITATOR 9/11`；其後剩餘 Positive Reappraisal 與 Roulette。
 
 ### 6.4 第四優先：沉浸式 6 款
 

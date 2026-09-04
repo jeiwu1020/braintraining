@@ -4,8 +4,8 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `49/59`
-- `FACILITATOR`: `7/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, and Guess Who LIGHT complete and reviewer real-device accepted. Treasure LIGHT implementation is complete and pending reviewer real-device acceptance.
+- Current overall standardization: `50/59`
+- `FACILITATOR`: `8/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, and Treasure LIGHT complete and reviewer real-device accepted. Higher/Lower LIGHT implementation is complete and pending reviewer real-device acceptance.
 - Runtime/browser tooling: in-app browser runtime was available at a fixed `655×552` viewport for this batch. Unmeasured target viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided findings are labeled `REAL-DEVICE CONFIRMED` or `REAL-DEVICE ACCEPTED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 - Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
@@ -32,7 +32,7 @@ The classification means:
 | 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | LIGHT implementation complete: dedicated safe-stage ownership, compact two-column setup, 44px-class controls, compact status, and remaining-stage 4×4/5×5 board sizing are implemented; target phone landscape still awaits reviewer device acceptance. | Keep the map/grid, preview/radar settings, inline game-over banner, and original state machine; use scoped responsive spacing and remaining-stage sizing. | STATIC SOURCE INFERENCE | YES | ACCEPTANCE PENDING | MEDIUM | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, radar, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
-| 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | Current card is only `80×112` in landscape and three choice buttons use `py-1`; Rules is an unlabeled icon with no modal height limit. | Keep the two-team simultaneous prediction layout; enlarge core choices modestly and constrain the rules modal. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | HIGH | Luna High | Current/previous card, both teams, prediction controls, round result |
+| 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | LIGHT implementation complete: dedicated safe-stage ownership, height-aware card/action sizing, six simultaneous 44px-class choices, selected-state semantics, and bounded locally-scrollable Rules dialog are implemented; target phone landscape still awaits reviewer device acceptance. | Keep the two-team simultaneous prediction/card flow, original card rules and score semantics, and use scoped short-height layout corrections. | STATIC SOURCE INFERENCE | YES | ACCEPTANCE PENDING | MEDIUM | HIGH | Luna High | Current/previous card, both teams, prediction controls, round result, Rules bounds |
 | 價格估算 | `components/PriceEstimationGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: normal gameplay is usable, but the final 挑戰完成 state exceeds phone landscape; the edge-to-edge screen can also place content under the Dynamic Island/unsafe horizontal region. | Keep prompt plus three-option answer semantics; apply the non-GameShell safe-area contract, compact and center completion, and label header/actions without changing gameplay. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion/safe-area) | MEDIUM | Luna High | Prompt, three options, completion bounds, safe-area ownership |
 | 轉念練習 | `components/PositiveReappraisalGame.tsx` | LIGHT | Landscape deliberately reduces progress text to `10px` and the reveal/next controls to compact heights; the fixed bottom bar competes with the two-column text stage. | Keep the event/negative-thought/reframe split and local text scrolling; restore minimum readability and predictable controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna High | Scenario text, reveal, reframe list, next action, bottom bar |
 
@@ -715,33 +715,33 @@ HIGH
 
 CURRENT STRUCTURE
 
-- Root: `min-h-screen` landscape-padded column.
+- Root: dedicated `100dvh` edge-to-edge screen with `overflow-hidden`; `.app-safe-screen` owns safe-area insets and the inner layout owns visual spacing.
 - Header: Back, title, Rules icon, and Reset.
 - Primary: previous/current card pair in a centered card area.
-- Controls: A/B team prediction buttons (`大`, `小`, `PASS`) and reveal/next action.
+- Controls: A/B team prediction buttons (`大`, `小`, `PASS`) and reveal/next action; all six choices remain simultaneously visible with practical 44px-class targets and `aria-pressed` selected state.
 - Status: two team score panels, round counter, choice/result feedback.
-- Scroll: no intentional local scroll; root can grow; Rules overlay is absolute.
-- Modal: custom rules overlay with no explicit max-height/internal scroll.
+- Scroll: short landscape uses a bounded fullscreen stage with no document scroll; portrait may grow vertically.
+- Modal: custom Rules overlay remains local to Higher/Lower, safe-area-aware, bounded by `calc(100dvh - ...)`, and internally scrollable when needed.
 
 VIEWPORT FINDINGS
 
-640×360: source compact card sizes are previous `56×80` and current `80×112`; three team choices use `landscape:py-1`, so controls are compact. The score/team row, cards, and `landscape:h-16` action region are plausible but leave little reserve for long result text.
+640×360: short-height CSS uses a remaining-stage layout, height-aware previous/current card clamps, compact scoreboard, six 44px-class choices, and a reserved compact action region. Whole-screen fit remains STATIC SOURCE INFERENCE pending reviewer device acceptance.
 
-844×390: same landscape branch; the card pair gains horizontal room but not substantially larger cards because `landscape:sm` is still not active at 844px. The Rules overlay remains unbounded.
+844×390: the same max-height branch preserves readable height-derived card geometry and keeps the Rules dialog bounded with local scroll.
 
-932×430: still below `lg`; card and team controls remain compact despite extra width/height.
+932×430: extra short-landscape height is used by the card stage while the team choices remain compact-width, 44px-class controls.
 
-390×844: portrait falls back to larger base cards and vertical document flow; primary actions remain available, but the rules overlay needs a bounded mobile contract.
+390×844: portrait keeps the fuller base presentation and allows inner vertical growth; primary actions remain available and Rules retains the bounded local dialog contract.
 
 1280×720: `lg`/base sizing creates a readable card game and enough room for team panels.
 
 PRIMARY STIMULUS DOMINANCE
 
-BORDERLINE — the current card is central, but 80×112px is modest for group viewing and team score/action chrome competes above it.
+YES — current card remains larger than previous card; short-landscape sizing derives card geometry from viewport height while preserving the two-card stage.
 
 TOUCH TARGETS
 
-MINOR ISSUE — Back/Reset have `p-3`, but Rules is icon-only without a practical target and team choices use compact `py-1` landscape sizing.
+ACCEPTANCE PENDING — header, Rules, Reset, choices, reveal, next, and replay use 44px-class practical targets; final device usability remains for reviewer confirmation.
 
 WHY CHANGE / WHY KEEP
 
@@ -749,11 +749,11 @@ Keep the current two-team prediction/card flow. Increase only the primary predic
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `min-h-screen`, `landscape:w-20 landscape:h-28`, `landscape:py-1`, and the absolute Rules overlay without max-height.
+STATIC SOURCE INFERENCE — implementation was validated by source contracts and acceptance tests; target iPhone dimensions and Dynamic Island behavior remain unmeasured in this environment.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-The facilitator sees a small current card and must tap compact `大`/`小`/`PASS` controls; opening rules can cover or extend beyond a short landscape viewport.
+The facilitator should retain a readable current card, six simultaneous `大`/`小`/`PASS` controls, reachable actions, and a Rules dialog that can scroll locally within the usable short-landscape viewport.
 
 GAMEPLAY / STATE LOCK
 
@@ -765,7 +765,7 @@ HIGH — card/deck and simultaneous choice state must remain unchanged while but
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/HigherLowerGame.tsx`; later add `tests/higherLowerFacilitatorAcceptance.test.tsx`.
+`components/HigherLowerGame.tsx`, `index.css`, and `tests/higherLowerFacilitatorAcceptance.test.tsx`. No shared FACILITATOR layout or GameShell migration.
 
 RECOMMENDED MODEL
 
@@ -777,7 +777,7 @@ REVIEWER SHOULD CHECK
 2. Both teams can choose all three options with clear selected state.
 3. Rules, reveal, next round, and game-over controls fit without page overflow.
 
-Final audit line: 步步高升 — Recommendation: LIGHT. Why: the card and prediction architecture is valid, but compact controls/card scale and rules bounds need correction. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: current card and simultaneous team choices.
+Final audit line: 步步高升 — Recommendation: LIGHT. Why: the valid card/prediction architecture now has scoped safe-area, short-height sizing, practical controls, selected-state semantics, and bounded Rules behavior. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: current card, simultaneous team choices, result actions, game-over, and Rules local scroll.
 
 ## 價格估算
 
@@ -988,8 +988,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, and Guess Who LIGHT complete and reviewer accepted; Treasure LIGHT implementation complete, reviewer acceptance pending.
-- Production files changed in the Treasure batch: `components/TreasureGame.tsx` and `index.css`; shared FACILITATOR layout and `GameShell` remain unchanged.
-- Acceptance test added in this batch: `tests/treasureFacilitatorAcceptance.test.tsx`.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, and Treasure LIGHT complete and reviewer accepted; Higher/Lower LIGHT implementation complete, reviewer acceptance pending.
+- Production files changed in the Higher/Lower batch: `components/HigherLowerGame.tsx` and `index.css`; shared FACILITATOR layout and `GameShell` remain unchanged.
+- Acceptance test added in this batch: `tests/higherLowerFacilitatorAcceptance.test.tsx`.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `49/59`; FACILITATOR is `7/11` after Guess Who real-device acceptance. Treasure remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance; after that gate, expected status is `50/59` and `FACILITATOR 8/11`, with Roulette, Higher/Lower, and Positive Reappraisal remaining.
+- Overall standardization is `50/59`; FACILITATOR is `8/11` after Treasure real-device acceptance. Higher/Lower remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance; after that gate, expected status is `51/59` and `FACILITATOR 9/11`, with Positive Reappraisal and Roulette remaining.

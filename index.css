@@ -723,6 +723,297 @@
   }
 }
 
+[data-higher-lower-root] {
+  box-sizing: border-box;
+}
+
+[data-higher-lower-root] .higher-lower-layout,
+[data-higher-lower-root] .higher-lower-card,
+[data-higher-lower-root] .higher-lower-card-stage,
+[data-higher-lower-root] .higher-lower-current-card,
+[data-higher-lower-root] .higher-lower-previous-card,
+[data-higher-lower-root] .higher-lower-rules-dialog {
+  box-sizing: border-box;
+}
+
+[data-higher-lower-root] .higher-lower-choice,
+[data-higher-lower-root] .higher-lower-action-button,
+[data-higher-lower-root] .higher-lower-replay,
+[data-higher-lower-root] .higher-lower-rules button {
+  touch-action: manipulation;
+}
+
+[data-higher-lower-root] [data-higher-lower-card-stage],
+[data-higher-lower-root] .higher-lower-card-stage {
+  min-height: 0;
+}
+
+[data-higher-lower-root] .higher-lower-action {
+  min-height: 7rem;
+}
+
+[data-higher-lower-root] .higher-lower-current-card,
+[data-higher-lower-root] .higher-lower-previous-card {
+  aspect-ratio: 2 / 3;
+}
+
+[data-higher-lower-root] .higher-lower-rules-dialog {
+  max-height: calc(100dvh - 2rem);
+}
+
+[data-higher-lower-rules] {
+  overscroll-behavior: contain;
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  [data-higher-lower-root] .higher-lower-layout {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-header {
+    gap: 0.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-card {
+    padding: 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-scoreboard {
+    gap: 0.5rem;
+    padding-right: 0;
+    padding-bottom: 0.25rem;
+    padding-left: 0;
+  }
+
+  [data-higher-lower-root] .higher-lower-team {
+    border-width: 2px;
+    padding: 0.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team-name {
+    margin-bottom: 0.125rem;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team-score {
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice-row {
+    gap: 0.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice {
+    min-height: 44px;
+    padding: 0.375rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice-icon {
+    display: none;
+  }
+
+  [data-higher-lower-root] .higher-lower-round-value {
+    padding: 0.375rem 0.5rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-round > span:first-child {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-play {
+    gap: 0.5rem;
+  }
+
+  [data-higher-lower-root] [data-higher-lower-card-stage],
+  [data-higher-lower-root] .higher-lower-card-stage {
+    gap: 1rem;
+    padding: 0.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-card-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-previous {
+    transform: none;
+  }
+
+  [data-higher-lower-root] .higher-lower-previous-card {
+    width: clamp(3.5rem, 15dvh, 6rem);
+    height: clamp(5.25rem, 22.5dvh, 9rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-previous-rank {
+    font-size: clamp(1.25rem, 4.5vh, 2rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-previous-suit {
+    margin-top: 0.25rem;
+    font-size: clamp(1.5rem, 5vh, 2.25rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-previous-joker {
+    font-size: clamp(1.75rem, 6vh, 3rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-current-card {
+    width: clamp(5.5rem, 20dvh, 8.5rem);
+    height: clamp(8.25rem, 30dvh, 12.75rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-current-rank {
+    font-size: clamp(2rem, 8vh, 3.5rem);
+    line-height: 1;
+  }
+
+  [data-higher-lower-root] .higher-lower-current-suit {
+    margin-top: 0.5rem;
+    font-size: clamp(1.75rem, 6vh, 3rem);
+    line-height: 1;
+  }
+
+  [data-higher-lower-root] .higher-lower-current-corner {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-current-joker {
+    font-size: clamp(2.5rem, 10vh, 4.5rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-current-joker-label {
+    margin-top: 0.5rem;
+    font-size: clamp(1.25rem, 5vh, 2rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-action {
+    height: clamp(4rem, 18dvh, 6rem);
+    min-height: clamp(4rem, 18dvh, 6rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-action-button {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-result {
+    margin-bottom: 0.375rem;
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-gameover-card {
+    padding: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-gameover-title {
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-final-scores {
+    margin-bottom: 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-final-scores span:first-child {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-final-score {
+    font-size: 2.75rem;
+    line-height: 1;
+  }
+
+  [data-higher-lower-root] .higher-lower-winner {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-replay {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-rules-positioner {
+    padding: 0.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-rules-dialog {
+    max-height: calc(100dvh - 1rem);
+    padding: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-rules-dialog .space-y-4 {
+    row-gap: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+@media (orientation: portrait) {
+  [data-higher-lower-root] {
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  [data-higher-lower-root] [data-higher-lower-safe-stage] {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  [data-higher-lower-root] .higher-lower-layout {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  [data-higher-lower-root] .higher-lower-card {
+    flex: none;
+    overflow: visible;
+  }
+
+  [data-higher-lower-root] .higher-lower-play,
+  [data-higher-lower-root] .higher-lower-gameover {
+    flex: none;
+    overflow: visible;
+  }
+
+  [data-higher-lower-root] [data-higher-lower-card-stage],
+  [data-higher-lower-root] .higher-lower-card-stage {
+    flex: none;
+    min-height: 20rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .game-shell *,
   .game-shell *::before,

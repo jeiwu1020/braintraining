@@ -8,14 +8,14 @@ interface HigherLowerGameProps {
   difficulty: Difficulty;
 }
 
-const SUITS = [
+export const SUITS = [
     { symbol: '♠️', name: '黑桃', value: 4, color: 'text-slate-800' },
     { symbol: '♥️', name: '紅心', value: 3, color: 'text-red-500' },
     { symbol: '♦️', name: '方塊', value: 2, color: 'text-red-500' },
     { symbol: '♣️', name: '梅花', value: 1, color: 'text-slate-800' }
 ];
 
-interface CardData {
+export interface CardData {
     value: number; // 1-13 for standard, 99 for joker
     suitSymbol: string;
     suitValue: number;
@@ -25,11 +25,134 @@ interface CardData {
     isJoker: boolean;
 }
 
-type Choice = 'HIGHER' | 'LOWER' | 'PASS' | null;
+export type Choice = 'HIGHER' | 'LOWER' | 'PASS' | null;
+
+export const MAX_ROUNDS = 10;
+
+type SelectedChoice = Exclude<Choice, null>;
+type ComparableCard = Pick<CardData, 'absoluteValue' | 'isJoker'>;
+
+export interface RoundResult {
+  aMsg: string;
+  bMsg: string;
+  mainMsg: string;
+  aDelta: number;
+  bDelta: number;
+}
+
+export const buildHigherLowerDeck = (
+  isAdvanced: boolean,
+  random: () => number = Math.random,
+): CardData[] => {
+  const newDeck: CardData[] = [];
+  const maxVal = isAdvanced ? 13 : 10;
+
+  for (let v = 1; v <= maxVal; v++) {
+    for (const suit of SUITS) {
+      let display = v.toString();
+      if (isAdvanced) {
+        if (v === 1) display = 'A';
+        if (v === 11) display = 'J';
+        if (v === 12) display = 'Q';
+        if (v === 13) display = 'K';
+      }
+      newDeck.push({
+        value: v,
+        suitSymbol: suit.symbol,
+        suitValue: suit.value,
+        color: suit.color,
+        display,
+        absoluteValue: v * 10 + suit.value,
+        isJoker: false,
+      });
+    }
+  }
+
+  if (isAdvanced) {
+    newDeck.push({
+      value: 99, suitSymbol: '🃏', suitValue: 5, color: 'text-purple-600', display: 'JOKER', absoluteValue: 999, isJoker: true,
+    });
+    newDeck.push({
+      value: 99, suitSymbol: '🃏', suitValue: 5, color: 'text-orange-500', display: 'JOKER', absoluteValue: 999, isJoker: true,
+    });
+  }
+
+  const shuffled = newDeck.sort(() => 0.5 - random());
+
+  if (isAdvanced) {
+    const last11 = shuffled.slice(-11);
+    const hasJoker = last11.some(card => card.isJoker);
+    if (!hasJoker) {
+      const jokerIndex = shuffled.findIndex(card => card.isJoker);
+      const swapIndex = shuffled.length - 11 + Math.floor(random() * 10);
+      const temp = shuffled[jokerIndex];
+      shuffled[jokerIndex] = shuffled[swapIndex];
+      shuffled[swapIndex] = temp;
+    }
+    if (shuffled[shuffled.length - 1].isJoker) {
+      const normalIndex = shuffled.findIndex(card => !card.isJoker);
+      const temp = shuffled[normalIndex];
+      shuffled[normalIndex] = shuffled[shuffled.length - 1];
+      shuffled[shuffled.length - 1] = temp;
+    }
+  }
+
+  return shuffled;
+};
+
+export const drawNextCard = (deck: CardData[], currentCard: CardData) => {
+  const newDeck = [...deck];
+  let nextCard = newDeck.pop()!;
+  const skippedCards: CardData[] = [];
+
+  while (nextCard && !nextCard.isJoker && !currentCard.isJoker && nextCard.value === currentCard.value) {
+    skippedCards.push(nextCard);
+    nextCard = newDeck.pop()!;
+  }
+
+  if (!nextCard) nextCard = skippedCards.pop()!;
+  if (skippedCards.length > 0) newDeck.unshift(...skippedCards);
+
+  return { deck: newDeck, nextCard };
+};
+
+export const resolveHigherLowerRound = (
+  currentCard: ComparableCard,
+  nextCard: ComparableCard,
+  teamAChoice: SelectedChoice,
+  teamBChoice: SelectedChoice,
+): RoundResult => {
+  if (nextCard.isJoker) {
+    return {
+      mainMsg: '幸運鬼牌！雙方直接加20分！🎉',
+      aMsg: '+20',
+      bMsg: '+20',
+      aDelta: 20,
+      bDelta: 20,
+    };
+  }
+
+  const isHigher = nextCard.absoluteValue > currentCard.absoluteValue;
+  const getTeamResult = (choice: SelectedChoice) => {
+    if (choice === 'PASS') return { msg: '0 (Pass)', delta: 0 };
+    const isCorrect = (choice === 'HIGHER' && isHigher) || (choice === 'LOWER' && !isHigher);
+    return isCorrect ? { msg: '+10', delta: 10 } : { msg: '-10', delta: -10 };
+  };
+  const aResult = getTeamResult(teamAChoice);
+  const bResult = getTeamResult(teamBChoice);
+
+  return {
+    aMsg: aResult.msg,
+    bMsg: bResult.msg,
+    mainMsg: isHigher ? '結果是... 更大！' : '結果是... 更小！',
+    aDelta: aResult.delta,
+    bDelta: bResult.delta,
+  };
+};
 
 const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty }) => {
   const isAdvanced = difficulty === 'ADVANCED';
-  const maxRounds = 10;
+  const maxRounds = MAX_ROUNDS;
 
   const [deck, setDeck] = useState<CardData[]>([]);
   const [currentCard, setCurrentCard] = useState<CardData | null>(null);
@@ -45,66 +168,7 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
   const [roundResult, setRoundResult] = useState<{aMsg: string, bMsg: string, mainMsg: string}>({ aMsg: '', bMsg: '', mainMsg: '' });
   const [showRules, setShowRules] = useState(false);
 
-  const generateDeck = (): CardData[] => {
-      let newDeck: CardData[] = [];
-      const maxVal = isAdvanced ? 13 : 10;
-      
-      for (let v = 1; v <= maxVal; v++) {
-          for (const suit of SUITS) {
-              let display = v.toString();
-              if (isAdvanced) {
-                  if (v === 1) display = 'A';
-                  if (v === 11) display = 'J';
-                  if (v === 12) display = 'Q';
-                  if (v === 13) display = 'K';
-              }
-              newDeck.push({
-                  value: v,
-                  suitSymbol: suit.symbol,
-                  suitValue: suit.value,
-                  color: suit.color,
-                  display,
-                  absoluteValue: v * 10 + suit.value,
-                  isJoker: false
-              });
-          }
-      }
-
-      if (isAdvanced) {
-          // Add 2 Jokers
-          newDeck.push({
-              value: 99, suitSymbol: '🃏', suitValue: 5, color: 'text-purple-600', display: 'JOKER', absoluteValue: 999, isJoker: true
-          });
-          newDeck.push({
-              value: 99, suitSymbol: '🃏', suitValue: 5, color: 'text-orange-500', display: 'JOKER', absoluteValue: 999, isJoker: true
-          });
-      }
-
-      // Shuffle
-      let shuffled = newDeck.sort(() => 0.5 - Math.random());
-      
-      if (isAdvanced) {
-          // Guarantee at least one Joker in the first 11 drawn cards (last 11 elements)
-          const last11 = shuffled.slice(-11);
-          const hasJoker = last11.some(c => c.isJoker);
-          if (!hasJoker) {
-              const jokerIndex = shuffled.findIndex(c => c.isJoker);
-              // Avoid index at length - 1 (the very first card)
-              const swapIndex = shuffled.length - 11 + Math.floor(Math.random() * 10);
-              const temp = shuffled[jokerIndex];
-              shuffled[jokerIndex] = shuffled[swapIndex];
-              shuffled[swapIndex] = temp;
-          }
-          // Make absolutely sure the very first card (last element) is NOT a Joker
-          if (shuffled[shuffled.length - 1].isJoker) {
-              const normalIndex = shuffled.findIndex(c => !c.isJoker);
-              const temp = shuffled[normalIndex];
-              shuffled[normalIndex] = shuffled[shuffled.length - 1];
-              shuffled[shuffled.length - 1] = temp;
-          }
-      }
-      return shuffled;
-  };
+  const generateDeck = (): CardData[] => buildHigherLowerDeck(isAdvanced);
 
   const initGame = () => {
       const newDeck = generateDeck();
@@ -129,63 +193,18 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
       if (!currentCard || deck.length === 0) return;
       if (!teamAChoice || !teamBChoice) return;
 
-      const newDeck = [...deck];
-      let nextCard = newDeck.pop()!;
-      let skippedCards: CardData[] = [];
-
-      // Avoid drawing a card with the exact same number (unless it's a Joker)
-      while (nextCard && !nextCard.isJoker && !currentCard.isJoker && nextCard.value === currentCard.value) {
-          skippedCards.push(nextCard);
-          nextCard = newDeck.pop()!;
-      }
-
-      if (!nextCard) {
-          // Fallback if deck only had cards of the same number
-          nextCard = skippedCards.pop()!;
-      }
-
-      // Put skipped cards back at the bottom of the deck
-      if (skippedCards.length > 0) {
-          newDeck.unshift(...skippedCards);
-      }
+       const { deck: newDeck, nextCard } = drawNextCard(deck, currentCard);
 
       setDeck(newDeck);
       setPreviousCard(currentCard);
       setCurrentCard(nextCard);
       
-      let aMsg = '';
-      let bMsg = '';
-      let mainMsg = '';
-      let aDelta = 0;
-      let bDelta = 0;
-
-      if (nextCard.isJoker) {
-          mainMsg = '幸運鬼牌！雙方直接加20分！🎉';
-          aMsg = '+20';
-          bMsg = '+20';
-          aDelta = 20;
-          bDelta = 20;
-      } else {
-          const isHigher = nextCard.absoluteValue > currentCard.absoluteValue;
-          
-          if (teamAChoice === 'PASS') {
-              aMsg = '0 (Pass)';
-              aDelta = 0;
-          } else {
-              const aCorrect = (teamAChoice === 'HIGHER' && isHigher) || (teamAChoice === 'LOWER' && !isHigher);
-              if (aCorrect) { aMsg = '+10'; aDelta = 10; } else { aMsg = '-10'; aDelta = -10; }
-          }
-
-          if (teamBChoice === 'PASS') {
-              bMsg = '0 (Pass)';
-              bDelta = 0;
-          } else {
-              const bCorrect = (teamBChoice === 'HIGHER' && isHigher) || (teamBChoice === 'LOWER' && !isHigher);
-              if (bCorrect) { bMsg = '+10'; bDelta = 10; } else { bMsg = '-10'; bDelta = -10; }
-          }
-
-          mainMsg = isHigher ? '結果是... 更大！' : '結果是... 更小！';
-      }
+       const { aMsg, bMsg, mainMsg, aDelta, bDelta } = resolveHigherLowerRound(
+           currentCard,
+           nextCard,
+           teamAChoice,
+           teamBChoice,
+       );
 
       setTeamAScore(s => s + aDelta);
       setTeamBScore(s => s + bDelta);
@@ -219,55 +238,75 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col items-center py-6 px-4 landscape:py-1 relative">
-      <div className="w-full max-w-4xl flex items-center justify-between mb-4 landscape:mb-1">
+    <div
+      data-higher-lower-root="true"
+      className="higher-lower-root relative h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-green-50"
+    >
+      <div data-higher-lower-safe-stage="true" className="app-safe-screen h-full w-full">
+        <div
+          data-higher-lower-layout="true"
+          className="higher-lower-layout flex h-full min-h-0 flex-col items-center gap-3 overflow-hidden px-4 py-3"
+        >
+      <header data-higher-lower-header="true" className="higher-lower-header flex w-full max-w-4xl shrink-0 items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="p-3 bg-white rounded-full shadow-md text-gray-600 hover:bg-gray-50 transition-colors"
+          aria-label="返回遊戲選單"
+          className="min-h-11 min-w-11 rounded-full bg-white p-2.5 text-gray-600 shadow-md transition-colors hover:bg-gray-50"
         >
           <ArrowLeft size={24} />
         </button>
-        <div className="text-center flex items-center justify-center gap-2">
-          <h2 className="text-2xl font-bold text-green-800">步步高升 (猜大小)</h2>
-          <button onClick={() => setShowRules(true)} className="text-green-600 hover:text-green-800">
+        <div className="higher-lower-title-group flex items-center justify-center gap-2 text-center">
+          <h2 className="higher-lower-title text-2xl font-bold text-green-800">步步高升 (猜大小)</h2>
+          <button
+            onClick={() => setShowRules(true)}
+            aria-label="查看遊戲規則"
+            className="min-h-11 min-w-11 rounded-full text-green-600 transition-colors hover:text-green-800"
+          >
              <HelpCircle size={24} />
           </button>
         </div>
         <button
           onClick={initGame}
-          className="p-3 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors"
+          aria-label="重新開始"
+          className="min-h-11 min-w-11 rounded-full bg-green-500 p-2.5 text-white shadow-md transition-colors hover:bg-green-600"
         >
           <RefreshCw size={24} />
         </button>
-      </div>
+      </header>
 
-      <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 landscape:p-2 w-full max-w-4xl flex flex-col items-center flex-1">
+      <main className="higher-lower-card flex min-h-0 w-full max-w-4xl flex-1 flex-col items-center overflow-hidden rounded-3xl bg-white p-4 shadow-lg">
         
         {/* Header / Score Board */}
-        <div className="flex w-full justify-between items-center mb-2 sm:mb-4 landscape:mb-1 px-2 sm:px-4 gap-4 sm:gap-8">
-            <div className={`flex-1 rounded-2xl p-2 sm:p-4 landscape:p-1 flex flex-col items-center border-4 transition-colors
+        <div data-higher-lower-scoreboard="true" className="higher-lower-scoreboard flex w-full shrink-0 items-center justify-between gap-4 px-2 pb-3">
+            <div className={`higher-lower-team higher-lower-team-a flex-1 rounded-2xl border-4 p-2 transition-colors sm:p-4
                 ${teamAChoice ? 'bg-blue-100 border-blue-400' : 'bg-blue-50 border-blue-200'}`}>
-                <span className="text-lg sm:text-xl landscape:text-xs font-bold text-blue-800 mb-1">A 組</span>
-                <span className="text-3xl sm:text-4xl font-black text-blue-600 mb-2 landscape:mb-0">{teamAScore}</span>
+                <span className="higher-lower-team-name mb-1 text-lg font-bold text-blue-800 sm:text-xl">A 組</span>
+                <span className="higher-lower-team-score mb-2 text-3xl font-black text-blue-600">{teamAScore}</span>
                 {gameState === 'BETTING' && (
-                    <div className="flex gap-2">
+                    <div className="higher-lower-choice-row flex w-full gap-2">
                         <button 
                             onClick={() => setTeamAChoice('HIGHER')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="A 組選擇大"
+                            aria-pressed={teamAChoice === 'HIGHER'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamAChoice === 'HIGHER' ? 'bg-rose-500 text-white ring-2 ring-rose-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
-                            <ArrowUpCircle className="landscape:hidden" size={20} /> 大
+                            <ArrowUpCircle className="higher-lower-choice-icon" size={20} /> 大
                         </button>
                         <button 
                             onClick={() => setTeamAChoice('PASS')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="A 組選擇 PASS"
+                            aria-pressed={teamAChoice === 'PASS'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamAChoice === 'PASS' ? 'bg-slate-500 text-white ring-2 ring-slate-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
                             PASS
                         </button>
                         <button 
                             onClick={() => setTeamAChoice('LOWER')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamAChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="A 組選擇小"
+                            aria-pressed={teamAChoice === 'LOWER'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamAChoice === 'LOWER' ? 'bg-indigo-500 text-white ring-2 ring-indigo-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
-                            <ArrowDownCircle className="landscape:hidden" size={20} /> 小
+                            <ArrowDownCircle className="higher-lower-choice-icon" size={20} /> 小
                         </button>
                     </div>
                 )}
@@ -284,34 +323,40 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                 )}
             </div>
             
-            <div className="flex flex-col items-center shrink-0">
+            <div className="higher-lower-round flex shrink-0 flex-col items-center">
                 <span className="text-sm font-bold text-gray-400">回合</span>
-                <span className="text-2xl sm:text-3xl font-black text-green-700 bg-green-100 px-4 py-2 landscape:px-2 landscape:py-1 rounded-xl">{round} / {maxRounds}</span>
+                <span className="higher-lower-round-value rounded-xl bg-green-100 px-3 py-2 text-2xl font-black text-green-700 sm:text-3xl">{round} / {maxRounds}</span>
             </div>
 
-            <div className={`flex-1 rounded-2xl p-2 sm:p-4 landscape:p-1 flex flex-col items-center border-4 transition-colors
+            <div className={`higher-lower-team higher-lower-team-b flex-1 rounded-2xl border-4 p-2 transition-colors sm:p-4
                 ${teamBChoice ? 'bg-red-100 border-red-400' : 'bg-red-50 border-red-200'}`}>
-                <span className="text-lg sm:text-xl landscape:text-xs font-bold text-red-800 mb-1">B 組</span>
-                <span className="text-3xl sm:text-4xl font-black text-red-600 mb-2 landscape:mb-0">{teamBScore}</span>
+                <span className="higher-lower-team-name mb-1 text-lg font-bold text-red-800 sm:text-xl">B 組</span>
+                <span className="higher-lower-team-score mb-2 text-3xl font-black text-red-600">{teamBScore}</span>
                 {gameState === 'BETTING' && (
-                    <div className="flex gap-2">
+                    <div className="higher-lower-choice-row flex w-full gap-2">
                         <button 
                             onClick={() => setTeamBChoice('HIGHER')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'HIGHER' ? 'bg-rose-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="B 組選擇大"
+                            aria-pressed={teamBChoice === 'HIGHER'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamBChoice === 'HIGHER' ? 'bg-rose-500 text-white ring-2 ring-rose-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
-                            <ArrowUpCircle className="landscape:hidden" size={20} /> 大
+                            <ArrowUpCircle className="higher-lower-choice-icon" size={20} /> 大
                         </button>
                         <button 
                             onClick={() => setTeamBChoice('PASS')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'PASS' ? 'bg-slate-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="B 組選擇 PASS"
+                            aria-pressed={teamBChoice === 'PASS'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamBChoice === 'PASS' ? 'bg-slate-500 text-white ring-2 ring-slate-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
                             PASS
                         </button>
                         <button 
                             onClick={() => setTeamBChoice('LOWER')}
-                            className={`px-4 py-2 landscape:px-2 landscape:py-1 rounded-lg font-bold flex items-center gap-1 ${teamBChoice === 'LOWER' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-500 border border-gray-300'}`}
+                            aria-label="B 組選擇小"
+                            aria-pressed={teamBChoice === 'LOWER'}
+                            className={`higher-lower-choice min-h-11 min-w-0 flex-1 rounded-lg px-2 py-2 font-bold ${teamBChoice === 'LOWER' ? 'bg-indigo-500 text-white ring-2 ring-indigo-700 ring-offset-1' : 'border border-gray-300 bg-white text-gray-500'}`}
                         >
-                            <ArrowDownCircle className="landscape:hidden" size={20} /> 小
+                            <ArrowDownCircle className="higher-lower-choice-icon" size={20} /> 小
                         </button>
                     </div>
                 )}
@@ -330,40 +375,40 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
         </div>
 
         {gameState === 'GAMEOVER' ? (
-            <div className="flex-1 flex flex-col items-center justify-center w-full">
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-green-100 p-8 rounded-3xl text-center w-full max-w-md border-4 border-green-300">
-                    <h3 className="text-4xl font-black text-green-800 mb-6">遊戲結束！</h3>
-                    <div className="flex justify-around mb-8">
+            <section data-higher-lower-gameover="true" className="higher-lower-gameover flex min-h-0 w-full flex-1 flex-col items-center justify-center">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="higher-lower-gameover-card w-full max-w-md rounded-3xl border-4 border-green-300 bg-green-100 p-8 text-center">
+                    <h3 className="higher-lower-gameover-title mb-6 text-4xl font-black text-green-800">遊戲結束！</h3>
+                    <div className="higher-lower-final-scores mb-8 flex justify-around">
                         <div className="flex flex-col items-center">
                             <span className="text-2xl font-bold text-blue-800">A 組</span>
-                            <span className="text-6xl font-black text-blue-600">{teamAScore}</span>
+                            <span className="higher-lower-final-score text-6xl font-black text-blue-600">{teamAScore}</span>
                         </div>
                         <div className="flex flex-col items-center">
                             <span className="text-2xl font-bold text-red-800">B 組</span>
-                            <span className="text-6xl font-black text-red-600">{teamBScore}</span>
+                            <span className="higher-lower-final-score text-6xl font-black text-red-600">{teamBScore}</span>
                         </div>
                     </div>
-                    {teamAScore > teamBScore && <p className="text-3xl font-black text-blue-600">A 組獲勝！🎉</p>}
-                    {teamBScore > teamAScore && <p className="text-3xl font-black text-red-600">B 組獲勝！🎉</p>}
-                    {teamAScore === teamBScore && <p className="text-3xl font-black text-yellow-600">平手！🤝</p>}
-                    <button onClick={initGame} className="mt-8 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all hover:scale-105">再玩一次</button>
+                    {teamAScore > teamBScore && <p className="higher-lower-winner text-3xl font-black text-blue-600">A 組獲勝！🎉</p>}
+                    {teamBScore > teamAScore && <p className="higher-lower-winner text-3xl font-black text-red-600">B 組獲勝！🎉</p>}
+                    {teamAScore === teamBScore && <p className="higher-lower-winner text-3xl font-black text-yellow-600">平手！🤝</p>}
+                    <button onClick={initGame} className="higher-lower-replay mt-8 min-h-11 rounded-xl bg-green-500 px-8 py-4 text-xl font-bold text-white transition-all hover:scale-105 hover:bg-green-600">再玩一次</button>
                 </motion.div>
-            </div>
+            </section>
         ) : (
-            <div className="flex flex-col items-center justify-center gap-4 landscape:gap-1 w-full flex-1">
+            <section className="higher-lower-play flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-3">
                 {/* Cards Area */}
-                <div className="flex flex-row items-center justify-center gap-4 sm:gap-12 landscape:gap-4 py-4 sm:py-8 landscape:py-1 px-4 w-full bg-slate-50 rounded-3xl shadow-inner border border-slate-200">
+                <div data-higher-lower-card-stage="true" className="higher-lower-card-stage flex min-h-0 w-full flex-1 flex-row items-center justify-center gap-4 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-inner sm:gap-12 sm:py-8">
                     {/* Previous Card (Small) */}
-                    <div className="flex flex-col items-center opacity-60 scale-75 sm:scale-100 origin-right">
-                        <span className="mb-2 landscape:mb-0 font-bold text-gray-500">上一張</span>
-                        <div className="w-24 h-36 sm:w-32 sm:h-48 landscape:w-14 landscape:h-20 landscape:sm:w-16 landscape:sm:h-24 bg-white rounded-xl shadow-md border-2 border-gray-200 flex flex-col items-center justify-center relative">
+                    <div className="higher-lower-previous flex origin-right scale-75 flex-col items-center opacity-60 sm:scale-100">
+                        <span className="higher-lower-card-label mb-2 font-bold text-gray-500">上一張</span>
+                        <div className="higher-lower-previous-card relative flex h-36 w-24 flex-col items-center justify-center rounded-xl border-2 border-gray-200 bg-white shadow-md sm:h-48 sm:w-32">
                             {previousCard ? (
                                 previousCard.isJoker ? (
-                                    <span className="text-5xl landscape:text-2xl">{previousCard.suitSymbol}</span>
+                                    <span className="higher-lower-previous-joker text-5xl">{previousCard.suitSymbol}</span>
                                 ) : (
                                     <>
-                                        <span className={`text-3xl sm:text-4xl landscape:text-xl font-black ${previousCard.color}`}>{previousCard.display}</span>
-                                        <span className="text-4xl sm:text-5xl landscape:text-2xl mt-2 landscape:mt-0">{previousCard.suitSymbol}</span>
+                                        <span className={`higher-lower-previous-rank text-3xl font-black sm:text-4xl ${previousCard.color}`}>{previousCard.display}</span>
+                                        <span className="higher-lower-previous-suit mt-2 text-4xl sm:text-5xl">{previousCard.suitSymbol}</span>
                                     </>
                                 )
                             ) : (
@@ -374,32 +419,32 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
 
                     {/* Current Card (Large) */}
                     <div className="flex flex-col items-center">
-                        <span className="mb-2 landscape:mb-0 font-bold text-green-700 text-lg sm:text-xl landscape:text-xs">現在的牌</span>
+                        <span className="higher-lower-card-label mb-2 text-lg font-bold text-green-700 sm:text-xl">現在的牌</span>
                         <AnimatePresence mode="popLayout">
                             <motion.div 
                                 key={currentCard?.display + (currentCard?.suitSymbol || '')}
                                 initial={{ x: 100, opacity: 0, rotateY: 90 }}
                                 animate={{ x: 0, opacity: 1, rotateY: 0 }}
                                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                                className="w-40 h-60 sm:w-48 sm:h-72 landscape:w-20 landscape:h-28 landscape:sm:w-24 landscape:sm:h-32 bg-white rounded-2xl shadow-xl border-4 border-gray-200 flex flex-col items-center justify-center relative overflow-hidden shrink-0"
+                                className="higher-lower-current-card relative flex h-60 w-40 shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border-4 border-gray-200 bg-white shadow-xl sm:h-72 sm:w-48"
                             >
                                 {currentCard && (
                                     currentCard.isJoker ? (
                                         <div className="flex flex-col items-center justify-center h-full w-full bg-purple-50">
-                                            <span className="text-8xl landscape:text-5xl">{currentCard.suitSymbol}</span>
-                                            <span className={`text-3xl landscape:text-lg font-black mt-4 landscape:mt-1 ${currentCard.color}`}>{currentCard.display}</span>
+                                            <span className="higher-lower-current-joker text-8xl">{currentCard.suitSymbol}</span>
+                                            <span className={`higher-lower-current-joker-label mt-4 text-3xl font-black ${currentCard.color}`}>{currentCard.display}</span>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className={`absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col items-center ${currentCard.color}`}>
-                                                <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
-                                                <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
+                                            <div className={`higher-lower-current-corner absolute left-2 top-2 flex flex-col items-center sm:left-3 sm:top-3 ${currentCard.color}`}>
+                                                <span className="font-black">{currentCard.display}</span>
+                                                <span>{currentCard.suitSymbol}</span>
                                             </div>
-                                            <span className={`text-6xl sm:text-8xl landscape:text-4xl font-black ${currentCard.color}`}>{currentCard.display}</span>
-                                            <span className="text-5xl sm:text-7xl landscape:text-3xl mt-2 sm:mt-4 landscape:mt-1">{currentCard.suitSymbol}</span>
-                                            <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 flex flex-col items-center rotate-180 ${currentCard.color}`}>
-                                                <span className="text-xl sm:text-2xl landscape:text-sm font-black">{currentCard.display}</span>
-                                                <span className="text-lg sm:text-xl landscape:text-xs">{currentCard.suitSymbol}</span>
+                                            <span className={`higher-lower-current-rank font-black ${currentCard.color}`}>{currentCard.display}</span>
+                                            <span className="higher-lower-current-suit mt-2 sm:mt-4">{currentCard.suitSymbol}</span>
+                                            <div className={`higher-lower-current-corner absolute bottom-2 right-2 flex flex-col items-center rotate-180 sm:bottom-3 sm:right-3 ${currentCard.color}`}>
+                                                <span className="font-black">{currentCard.display}</span>
+                                                <span>{currentCard.suitSymbol}</span>
                                             </div>
                                         </>
                                     )
@@ -410,44 +455,59 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                 </div>
                 
                 {/* Center Control / Result Area */}
-                <div className="h-24 landscape:h-16 flex items-center justify-center w-full mt-4 landscape:mt-1">
+                <div data-higher-lower-action="true" className="higher-lower-action flex h-24 w-full shrink-0 items-center justify-center">
                     {gameState === 'BETTING' ? (
                         <button
                             onClick={handleReveal}
                             disabled={!teamAChoice || !teamBChoice}
-                            className={`px-8 py-4 landscape:px-6 landscape:py-2 rounded-full font-black text-2xl flex items-center gap-3 transition-all
+                            aria-label="開牌！"
+                            className={`higher-lower-action-button min-h-11 rounded-full px-8 py-4 text-2xl font-black transition-all
                                 ${teamAChoice && teamBChoice 
                                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xl hover:scale-105' 
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                         >
-                            <Play className="landscape:w-5 landscape:h-5" size={28} />
+                            <Play className="higher-lower-action-icon" size={28} />
                             開牌！
                         </button>
                     ) : (
                         <div className="flex flex-col items-center">
-                            <span className="text-3xl font-black text-green-700 mb-4 landscape:mb-1">{roundResult.mainMsg}</span>
+                            <span className="higher-lower-result mb-4 text-3xl font-black text-green-700">{roundResult.mainMsg}</span>
                             <button
                                 onClick={handleNextRound}
-                                className="px-8 py-3 landscape:px-6 landscape:py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xl shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+                                aria-label={round >= maxRounds ? '查看結果' : '下一回合'}
+                                className="higher-lower-action-button min-h-11 rounded-full bg-emerald-500 px-8 py-3 text-xl font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-emerald-600"
                             >
-                                {round >= maxRounds ? '查看結果' : '下一回合'} <ArrowLeft className="rotate-180 landscape:w-5 landscape:h-5" size={24} />
+                                {round >= maxRounds ? '查看結果' : '下一回合'} <ArrowLeft className="rotate-180" size={24} />
                             </button>
                         </div>
                     )}
                 </div>
-            </div>
+            </section>
         )}
+      </main>
+        </div>
       </div>
 
       {showRules && (
-          <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
-                  <button onClick={() => setShowRules(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                      <X size={28} />
-                  </button>
-                  <h3 className="text-2xl font-black text-green-800 mb-4 flex items-center gap-2">
+          <div data-higher-lower-rules="true" className="higher-lower-rules fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="app-safe-screen higher-lower-rules-safe-stage h-full w-full">
+                  <div className="higher-lower-rules-positioner flex h-full w-full items-center justify-center p-4">
+                      <motion.div
+                          role="dialog"
+                          aria-modal="true"
+                          aria-labelledby="higher-lower-rules-title"
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="higher-lower-rules-dialog relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8"
+                      >
+                  <div className="flex items-start justify-between gap-3">
+                  <h3 id="higher-lower-rules-title" className="mb-4 flex items-center gap-2 text-2xl font-black text-green-800">
                       <HelpCircle size={28} /> 遊戲規則
                   </h3>
+                  <button onClick={() => setShowRules(false)} aria-label="關閉遊戲規則" className="min-h-11 min-w-11 shrink-0 rounded-full text-gray-400 transition-colors hover:text-gray-600">
+                      <X size={28} />
+                  </button>
+                  </div>
                   <div className="space-y-4 text-gray-700">
                       <p><strong>基本玩法：</strong> 猜測下一張牌比目前的牌「更大」或「更小」。</p>
                       <ul className="list-disc pl-5 space-y-1">
@@ -471,10 +531,12 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                           </div>
                       )}
                   </div>
-                  <button onClick={() => setShowRules(false)} className="mt-6 w-full py-3 bg-green-500 text-white rounded-xl font-bold text-lg hover:bg-green-600 transition-colors">
+                  <button onClick={() => setShowRules(false)} className="higher-lower-rules-ack mt-6 min-h-11 w-full rounded-xl bg-green-500 py-3 text-lg font-bold text-white transition-colors hover:bg-green-600">
                       我明白了
                   </button>
-              </motion.div>
+                      </motion.div>
+                  </div>
+              </div>
           </div>
       )}
     </div>
