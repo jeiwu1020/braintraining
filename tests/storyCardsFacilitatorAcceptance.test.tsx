@@ -21,6 +21,8 @@ describe('Story Cards facilitator LIGHT acceptance', () => {
     expect(source).toContain('min-h-11 min-w-11');
     expect(source).toContain('min-h-11 min-w-11');
     expect(source).toContain('@media (hover: hover) and (pointer: fine)');
+    expect(source).toContain('story-cards-zoom absolute top-1 left-1');
+    expect(source).not.toContain('story-cards-zoom absolute top-1 right-1');
     expect(source).not.toContain('absolute -top-1 -right-1');
     expect(source).not.toContain('scale-105');
     expect(source).toContain('overflow-visible');

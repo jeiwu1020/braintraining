@@ -127,7 +127,7 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                             <button
                                 onClick={() => setZoomIndex(idx)}
                                 aria-label={`放大第 ${idx + 1} 張卡：${card.text}`}
-                                className="story-cards-zoom absolute top-1 right-1 min-h-11 min-w-11 flex items-center justify-center p-2 bg-white border border-slate-200 rounded-full text-slate-600 shadow-md transition-opacity hover:bg-amber-50 hover:text-amber-600 z-10"
+                                className="story-cards-zoom absolute top-1 left-1 min-h-11 min-w-11 flex items-center justify-center p-2 bg-white border border-slate-200 rounded-full text-slate-600 shadow-md transition-opacity hover:bg-amber-50 hover:text-amber-600 z-10"
                                 title="放大單張"
                             >
                                 <ZoomIn size={12} className="sm:w-5 sm:h-5" />
