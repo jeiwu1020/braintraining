@@ -217,7 +217,7 @@
 
 這一階段的核心不是單純左右切版，而是將「參與者看到的內容」與「帶領者控制」分離，避免誤觸、答案提前曝光或操作資訊佔滿畫面。
 
-FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who 與 Treasure 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 8/11`；Higher/Lower 本批完成 final visual refinement，等待 reviewer 最終實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Higher/Lower 通過 reviewer 後預期為 `51/59`、`FACILITATOR 9/11`；其後剩餘 Positive Reappraisal 與 Roulette。
+FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who、Treasure 與 Higher/Lower 已完成 `LIGHT` 並通過 reviewer 實機驗收，目前為 `FACILITATOR 9/11`、整體 `51/59`；Positive Reappraisal 本批完成 `LIGHT` implementation，等待 reviewer 最終實機驗收，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Positive Reappraisal 通過 reviewer 後預期為 `52/59`、`FACILITATOR 10/11`；其後僅剩 Roulette。
 
 ### 6.4 第四優先：沉浸式 6 款
 

@@ -40,25 +40,28 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
     const isLast = currentIndex === scenarios.length - 1;
 
     return (
-        <div className="h-[100dvh] bg-amber-50 flex flex-col font-sans overflow-hidden">
-            <header className="px-2 py-2 md:p-6 landscape:py-1 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10 w-full">
+        <div data-positive-root="true" className="positive-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-amber-50 font-sans">
+            <div data-positive-safe-stage="true" className="app-safe-screen h-full w-full">
+                <div data-positive-layout="true" className="positive-layout flex h-full min-h-0 flex-col overflow-hidden px-2 py-2">
+            <header data-positive-header="true" className="positive-header flex w-full shrink-0 items-center justify-between bg-white px-2 py-2 shadow-sm md:p-6">
                 <button
                     onClick={onBack}
-                    className="flex items-center text-amber-600 hover:text-amber-800 transition-colors font-bold text-sm md:text-xl shrink-0"
+                    aria-label="返回遊戲選單"
+                    className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-amber-600 transition-colors hover:text-amber-800 md:text-xl"
                 >
                     <ArrowLeft className="mr-1 md:mr-2 w-5 h-5 md:w-8 md:h-8" />
                     <span className="hidden sm:inline landscape:hidden">返回目錄</span>
                 </button>
                 <div className="flex-1 flex justify-center items-center px-2 md:px-4">
-                    <div className="flex items-center bg-amber-50 px-3 md:px-4 py-1 landscape:py-0.5 rounded-full border border-amber-100 max-w-[200px] sm:max-w-[300px] w-full">
-                        <span className="text-amber-600 font-bold text-xs sm:text-sm landscape:text-[10px] shrink-0">第 {currentIndex + 1} 題</span>
-                        <div className="flex-1 mx-2 bg-amber-200 rounded-full h-1.5 md:h-2 landscape:h-1">
+                    <div className="positive-progress flex w-full max-w-[300px] items-center rounded-full border border-amber-100 bg-amber-50 px-3 py-1 md:px-4">
+                        <span className="text-xs font-bold text-amber-600 sm:text-sm">第 {currentIndex + 1} 題</span>
+                        <div className="mx-2 h-1.5 flex-1 rounded-full bg-amber-200 md:h-2">
                             <div 
-                                className="bg-amber-500 h-1.5 md:h-2 landscape:h-1 rounded-full transition-all duration-300"
+                                className="h-1.5 rounded-full bg-amber-500 transition-all duration-300 md:h-2"
                                 style={{ width: `${((currentIndex + 1) / scenarios.length) * 100}%` }}
                             ></div>
                         </div>
-                        <span className="text-amber-600 font-bold text-xs sm:text-sm landscape:text-[10px] shrink-0">共 {scenarios.length} 題</span>
+                        <span className="text-xs font-bold text-amber-600 sm:text-sm">共 {scenarios.length} 題</span>
                     </div>
                 </div>
                 <div className="flex items-center space-x-1 md:space-x-2 text-amber-800 shrink-0">
@@ -67,39 +70,39 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl w-full mx-auto p-2 sm:p-4 md:p-8 landscape:p-1.5 flex flex-col pb-20 md:pb-24 overflow-y-auto landscape:pb-16">
+             <main data-positive-main="true" className="positive-main mx-auto flex flex-1 min-h-0 w-full max-w-5xl flex-col overflow-hidden p-2 sm:p-4 md:p-8">
                 
-                <div className="flex flex-col md:flex-row landscape:flex-row gap-2 sm:gap-4 md:gap-8 landscape:gap-2 flex-1 min-h-0">
+                 <div className="positive-columns flex flex-1 min-h-0 flex-col gap-2 md:flex-row md:gap-8 landscape:flex-row">
                     
                     {/* Left: Event and Negative Thought */}
-                    <div className="w-full md:w-1/2 landscape:w-1/2 flex flex-col gap-2 sm:gap-4 md:gap-6 landscape:gap-1.5">
-                        <div className="bg-white p-3 md:p-8 landscape:p-2 rounded-2xl md:rounded-3xl border-2 border-slate-200 shadow-md shrink-0">
+                    <div className="positive-left flex min-h-0 w-full flex-col gap-2 md:w-1/2 md:gap-6 landscape:w-1/2">
+                        <div data-positive-event="true" className="positive-event shrink-0 rounded-2xl border-2 border-slate-200 bg-white p-3 shadow-md md:rounded-3xl md:p-8">
                             <h2 className="text-xs sm:text-sm md:text-xl font-bold text-slate-500 mb-0.5 sm:mb-1 md:mb-2 landscape:mb-0">發生的事件：</h2>
-                            <p className="text-sm sm:text-xl md:text-3xl landscape:text-base text-slate-800 font-medium leading-tight md:leading-relaxed">
+                            <p className="positive-event-text text-sm font-medium leading-tight text-slate-800 sm:text-xl md:text-3xl md:leading-relaxed">
                                 {currentScenario.event}
                             </p>
                         </div>
                         
-                        <div className="bg-slate-800 p-3 md:p-8 landscape:p-2 rounded-2xl md:rounded-3xl shadow-lg relative overflow-hidden flex-1 flex flex-col min-h-[0]">
+                         <div data-positive-negative="true" className="positive-negative relative flex flex-1 min-h-0 flex-col overflow-hidden rounded-2xl bg-slate-800 p-3 shadow-lg md:rounded-3xl md:p-8">
                             <CloudRain className="absolute right-[-10px] top-[-10px] sm:right-[-20px] sm:top-[-20px] w-16 h-16 md:w-32 md:h-32 text-slate-700 opacity-50" />
-                            <h2 className="text-xs sm:text-sm md:text-xl landscape:text-base font-bold text-slate-400 mb-1 md:mb-4 landscape:mb-0.5 flex items-center shrink-0">
+                            <h2 className="positive-negative-heading mb-1 flex shrink-0 items-center text-xs font-bold text-slate-400 sm:text-sm md:mb-4 md:text-xl">
                                 <MessageSquareQuote className="w-4 h-4 md:w-6 md:h-6 landscape:w-5 landscape:h-5 mr-1 sm:mr-2 outline-none" />
-                                <span className="hidden sm:inline landscape:hidden">容易產生的自動化負面想法（認知扭曲）：</span>
-                                <span className="sm:hidden landscape:inline">自動化負面想法：</span>
+                                <span className="positive-negative-heading-full hidden sm:inline">容易產生的自動化負面想法（認知扭曲）：</span>
+                                <span className="positive-negative-heading-short sm:hidden">自動化負面想法：</span>
                             </h2>
-                            <div className="flex-1 overflow-y-auto min-h-0">
-                                <p className="text-sm sm:text-lg md:text-3xl landscape:text-base text-white font-medium italic relative z-10 leading-tight md:leading-relaxed">
+                            <div className="positive-negative-content min-h-0 flex-1 overflow-y-auto">
+                                <p className="positive-negative-text relative z-10 text-sm font-medium italic leading-tight text-white sm:text-lg md:text-3xl md:leading-relaxed">
                                     {currentScenario.negativeThought}
                                 </p>
                             </div>
                             
                             {!showReframes && (
-                                <div className="mt-2 sm:mt-4 landscape:mt-1 text-center shrink-0">
+                                <div data-positive-reveal="true" className="positive-reveal mt-2 shrink-0 text-center sm:mt-4">
                                     <button
                                         onClick={() => setShowReframes(true)}
-                                        className="w-full max-w-[280px] mx-auto py-2 sm:py-3 md:py-4 landscape:py-1.5 bg-amber-500 text-white rounded-xl font-bold text-sm sm:text-lg md:text-xl landscape:text-base hover:bg-amber-600 transition-colors shadow-md relative z-10 flex justify-center items-center"
+                                        className="positive-reveal-button mx-auto flex min-h-11 w-full max-w-[280px] items-center justify-center rounded-xl bg-amber-500 px-3 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-amber-600 md:py-4 md:text-xl"
                                     >
-                                        <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 landscape:w-3 landscape:h-3 mr-1 sm:mr-2" />
+                                        <Lightbulb className="mr-1 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                                         顯示轉念思考 (解套方法)
                                     </button>
                                 </div>
@@ -108,28 +111,28 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                     </div>
 
                     {/* Right: Positive Reframes */}
-                    <div className="w-full md:w-1/2 landscape:w-1/2 h-full flex flex-col min-h-0">
+                    <div data-positive-reframes="true" className="positive-reframes flex min-h-0 h-full w-full flex-col md:w-1/2 landscape:w-1/2">
                         {showReframes ? (
-                            <div className="bg-amber-100 p-4 md:p-8 landscape:p-2 rounded-3xl border-4 border-amber-300 shadow-xl h-full flex flex-col overflow-y-auto animate-fade-in flex-1">
-                                <div className="flex items-center gap-2 md:gap-3 landscape:gap-1 mb-4 md:mb-6 landscape:mb-2 shrink-0">
-                                    <Sun className="w-8 h-8 md:w-10 md:h-10 landscape:w-5 landscape:h-5 text-amber-500" />
-                                    <h2 className="text-xl md:text-3xl landscape:text-xl font-extrabold text-amber-800">
+                            <div className="positive-reframes-panel flex min-h-0 flex-1 flex-col overflow-y-auto rounded-3xl border-4 border-amber-300 bg-amber-100 p-4 shadow-xl animate-fade-in md:p-8">
+                                <div className="positive-reframes-heading mb-4 flex shrink-0 items-center gap-2 md:mb-6 md:gap-3">
+                                    <Sun className="h-8 w-8 text-amber-500 md:h-10 md:w-10" />
+                                    <h2 className="text-xl font-extrabold text-amber-800 md:text-3xl">
                                         可以試著這樣想：
                                     </h2>
                                 </div>
-                                <div className="flex flex-col gap-3 md:gap-4 landscape:gap-1.5 flex-1">
+                                <div className="positive-reframe-list flex min-h-0 flex-1 flex-col gap-3 md:gap-4">
                                     {currentScenario.reframes.map((reframe, idx) => (
-                                        <div key={idx} className="bg-white p-3 md:p-5 landscape:p-1.5 rounded-2xl landscape:rounded-lg shadow-sm border-l-4 rounded-l-md border-amber-400 transform transition-transform hover:translate-x-2">
-                                            <p className="text-lg md:text-2xl landscape:text-sm text-amber-900 font-medium leading-tight">✨ {reframe}</p>
+                                        <div key={idx} className="positive-reframe-card rounded-2xl rounded-l-md border-l-4 border-amber-400 bg-white p-3 shadow-sm transition-transform hover:translate-x-2 md:p-5">
+                                            <p className="positive-reframe-text text-sm font-medium leading-tight text-amber-900 md:text-2xl">✨ {reframe}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         ) : (
-                            <div className="h-full border-4 border-dashed border-amber-200 rounded-3xl flex items-center justify-center p-8 landscape:p-2 bg-white/50">
+                            <div className="positive-prompt flex h-full items-center justify-center rounded-3xl border-4 border-dashed border-amber-200 bg-white/50 p-8">
                                 <div className="text-center">
-                                    <MessageSquareQuote className="w-16 h-16 landscape:w-8 landscape:h-8 text-amber-300 mx-auto mb-4 landscape:mb-1" />
-                                    <p className="text-xl md:text-2xl landscape:text-lg text-amber-600 font-bold">
+                                    <MessageSquareQuote className="positive-prompt-icon mx-auto mb-4 h-16 w-16 text-amber-300" />
+                                    <p className="positive-prompt-text text-xl font-bold text-amber-600 md:text-2xl">
                                         如果換個角度想，<br/>我們可以怎麼看待這件事？
                                     </p>
                                 </div>
@@ -139,15 +142,18 @@ const PositiveReappraisalGame: React.FC<Props> = ({ onBack, difficulty }) => {
                 </div>
             </main>
 
-            {/* Bottom bar for Next button */}
-            <div className={`fixed bottom-0 left-0 right-0 p-4 landscape:p-2 bg-white border-t border-amber-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-transform duration-300 flex justify-center ${showReframes ? 'translate-y-0' : 'translate-y-full'}`}>
-                <button
-                    onClick={nextScenario}
-                    className="w-full max-w-md py-4 landscape:py-2 bg-amber-600 text-white rounded-full font-bold text-xl md:text-2xl landscape:text-base hover:bg-amber-700 shadow-lg flex items-center justify-center transform hover:scale-105 transition-all"
-                >
-                    {isLast ? "完成挑戰" : "下一個情境"}
-                    {!isLast && <ChevronRight className="ml-2 w-6 h-6 md:w-8 md:h-8 landscape:w-4 landscape:h-4" />}
-                </button>
+            {showReframes && (
+                <footer data-positive-footer="true" className="positive-footer flex shrink-0 justify-center border-t border-amber-100 bg-white px-4 py-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <button
+                        onClick={nextScenario}
+                        className="positive-next-button inline-flex min-h-11 w-full max-w-md items-center justify-center whitespace-nowrap rounded-full bg-amber-600 px-6 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-amber-700 md:text-2xl"
+                    >
+                        {isLast ? "完成挑戰" : "下一個情境"}
+                        {!isLast && <ChevronRight className="ml-2 h-6 w-6 md:h-8 md:w-8" />}
+                    </button>
+                </footer>
+            )}
+                </div>
             </div>
         </div>
     );

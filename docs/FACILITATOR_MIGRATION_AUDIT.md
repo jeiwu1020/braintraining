@@ -5,7 +5,7 @@
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
 - Current overall standardization: `50/59`
-- `FACILITATOR`: `8/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, and Treasure LIGHT complete and reviewer real-device accepted. Higher/Lower is functionally acceptable on real iPhone landscape; its final visual refinement is implemented and pending final reviewer real-device acceptance.
+- `FACILITATOR`: `9/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, and Higher/Lower LIGHT complete and reviewer real-device accepted. Positive Reappraisal has a LIGHT implementation complete and is pending reviewer real-device acceptance.
 - Runtime/browser tooling: in-app browser runtime was available at a fixed `655×552` viewport for this batch. Unmeasured target viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided findings are labeled `REAL-DEVICE CONFIRMED` or `REAL-DEVICE ACCEPTED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 - Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
@@ -134,7 +134,7 @@ HIGH
 
 CURRENT STRUCTURE
 
-- Root: fixed `h-[100dvh]` column with `overflow-hidden`.
+- Root: dedicated `100dvh` edge-to-edge column with `.app-safe-screen` ownership and `overflow-hidden`.
 - Header: title/subtitle plus icon-only Back and Reset.
 - Primary: a 4-column NORMAL or 5-column ADVANCED memory grid.
 - Controls: each card is the interaction; Reset is in the header.
@@ -880,20 +880,20 @@ CURRENT STRUCTURE
 - Root: fixed `h-[100dvh]` column with `overflow-hidden`.
 - Header: Back, progress pill, and title.
 - Primary: left event plus negative-thought stage; right reframe stage/placeholder.
-- Controls: reveal-reframes button, then fixed bottom next button.
+- Controls: 44px-class reveal button, then conditional in-flow next button.
 - Status: question progress, event, negative thought, and reframe cards.
-- Scroll: main and the negative/reframe regions use local overflow behavior; bottom action is fixed.
+- Scroll: short landscape keeps the fullscreen stage bounded; long negative-thought and reframe content use local overflow, and the next action consumes in-flow space.
 - Modal: no modal; reveal and next are in-stage/fixed surfaces.
 
 VIEWPORT FINDINGS
 
-640×360: generic `landscape:` styles reduce progress labels to `10px`, negative thought/event text to about `16px`, reveal padding to `py-1.5`, and next to `py-2`. The two columns fit structurally, but the fixed bottom bar consumes usable height and the initial right placeholder leaves the main task visually split.
+640×360: the compact max-height branch keeps progress/helper text readable, uses height-aware two-column allocation, and keeps Reveal/Next at practical touch height. Long therapeutic text remains locally scrollable without a fixed bottom overlay.
 
-844×390: the same landscape branch applies with no short-height-specific distinction; long negative thoughts/reframes rely on local scroll and should be checked for readable visible lines above the fixed bottom bar.
+844×390: the same short-height branch preserves readable event/negative-thought/prompt text and gives the main stage the remaining height; post-reveal content scrolls locally above the in-flow action.
 
-932×430: extra height helps, but progress and reframe text remain in the generic landscape compact branch until desktop breakpoints.
+932×430: extra height is available to the two-column stage while progress, prompt, and reframe typography remain facilitator-readable.
 
-390×844: portrait uses larger text classes and a vertical two-column flow, while main local scrolling protects long scenario/reframe content; the fixed next bar remains reachable after reveal.
+390×844: portrait retains the stacked flow and may grow vertically; the next action follows the reframes instead of overlaying them.
 
 1280×720: desktop typography/padding improves and the two-column therapy prompt/reframe composition is appropriate.
 
@@ -903,19 +903,19 @@ BORDERLINE — the scenario and negative thought are central, but the blank refr
 
 TOUCH TARGETS
 
-MINOR ISSUE — reveal and next are visually clear but compact in landscape; the Back control collapses to an icon with no explicit accessible name and the progress text is below the proposed 12px helper minimum.
+LIGHT COMPLETE — Back, Reveal, and Next have explicit practical targets; progress remains visible above the compact landscape readability floor.
 
 WHY CHANGE / WHY KEEP
 
-Keep the event → negative thought → reframe progression and local text scroll. A LIGHT pass should keep the short-height two-column stage, restore minimum progress/helper readability, and make reveal/next/Back practical without changing scenario progression or reveal semantics.
+Keep the event → negative thought → reframe progression and local text scroll. The LIGHT pass keeps the short-height two-column stage, restores minimum progress/helper readability, makes Reveal/Next/Back practical, and removes the fixed action overlay without changing scenario progression or reveal semantics.
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on fixed `h-[100dvh] overflow-hidden`, generic `landscape:` typography/padding, local `overflow-y-auto`, and fixed bottom action bar.
+STATIC SOURCE INFERENCE — based on dedicated safe-stage hooks, short-height media rules, local `overflow-y-auto`, and the in-flow footer structure. Target iPhone/Dynamic Island behavior remains pending reviewer acceptance.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-The facilitator sees tiny progress labels and a reveal button near 40px; after revealing, the bottom Next bar can cover the lowest reframe content, requiring local scrolling while the central scenario is already dense.
+The implementation addresses the prior tiny progress/reveal controls and fixed Next overlay by reserving actual footer space and keeping long therapeutic text in local scroll containers.
 
 GAMEPLAY / STATE LOCK
 
@@ -927,7 +927,7 @@ MEDIUM — state is simple but reveal/next visibility is coupled to progression 
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/PositiveReappraisalGame.tsx`; later add `tests/positiveReappraisalFacilitatorAcceptance.test.tsx`.
+`components/PositiveReappraisalGame.tsx`, `index.css`, and `tests/positiveReappraisalFacilitatorAcceptance.test.tsx`.
 
 RECOMMENDED MODEL
 
@@ -939,7 +939,7 @@ REVIEWER SHOULD CHECK
 2. Reveal and Next are reachable without covering the key scenario text.
 3. Reframe list local scrolling, progress labels, and portrait behavior remain usable.
 
-Final audit line: 轉念練習 — Recommendation: LIGHT. Why: the therapy-specific split is correct, but landscape compact text and fixed action space need targeted correction. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: scenario readability and reveal/next layering.
+Final audit line: 轉念練習 — Recommendation: LIGHT. Why: the therapy-specific split is correct; the implementation adds dedicated safe-area ownership, height-aware two-column landscape allocation, readable controls, local long-text scroll, and an in-flow next action without changing therapeutic content or progression. Evidence: STATIC SOURCE INFERENCE. Status: `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. What reviewer should visually check: scenario readability, local scroll ownership, Reveal/Next reachability, and iPhone safe-area behavior.
 
 ## Reference-layout decision
 
