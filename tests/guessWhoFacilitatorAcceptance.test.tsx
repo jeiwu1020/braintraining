@@ -86,7 +86,15 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
     expect(source).toContain('aria-label="查看遊戲規則"');
     expect(source).toContain('aria-label={isWin ? \'下一局\' : \'重新開始\'}');
     expect(source).toContain('人物下方發問區');
-    expect(source).toContain('overflow-x-auto');
+    expect(source).toContain('data-guess-who-question-grid');
+    expect(source).toContain('shortLabel');
+    expect(source).toContain('{q.shortLabel}');
+    expect(source).toContain("shortLabel: '男生？'");
+    expect(source).toContain("shortLabel: '戴眼鏡？'");
+    expect(source).toContain("shortLabel: '短髮？'");
+    expect(source).toContain("text: '是男生嗎？'");
+    expect(source).toContain("text: '是短髮嗎？'");
+    expect(source).not.toContain('overflow-x-auto');
     expect(source).toContain('data-guess-who-history');
     expect(source).toMatch(/className="guess-who-history[^"\n]*flex-1[^"\n]*overflow-y-auto/);
     expect(source).not.toContain('guess-who-board flex-1 min-w-0 min-h-0 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-y-auto');
@@ -97,6 +105,11 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
 
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px) and (max-width: 759px)');
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px) and (min-width: 760px)');
+    expect(css).toContain('.guess-who-question-grid');
+    expect(css).toContain('grid-template-columns: repeat(5, minmax(0, 1fr))');
+    expect(css).toContain('grid-template-rows: repeat(2, minmax(0, 1fr))');
+    expect(css).toContain('overflow-y: hidden');
+    expect(css).not.toContain('.guess-who-question-strip');
     expect(css).not.toMatch(/\.guess-who-root\s*\{[^}]*padding\s*:/s);
     expect(css).not.toContain('.guess-who-back {');
     expect(css).not.toContain('.guess-who-board-header {');

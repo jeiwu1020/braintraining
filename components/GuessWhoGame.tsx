@@ -134,16 +134,16 @@ const CHARACTERS: CharacterDef[] = [
 ];
 
 const QUESTIONS = [
-  { id: 'q1', text: '是男生嗎？', check: (f: string[]) => f.includes('男生') },
-  { id: 'q2', text: '是女生嗎？', check: (f: string[]) => f.includes('女生') },
-  { id: 'q3', text: '有戴眼鏡嗎？', check: (f: string[]) => f.includes('戴眼鏡') },
-  { id: 'q4', text: '沒戴眼鏡嗎？', check: (f: string[]) => f.includes('沒戴眼鏡') },
-  { id: 'q5', text: '有戴帽子嗎？', check: (f: string[]) => f.includes('戴帽子') },
-  { id: 'q6', text: '有鬍子嗎？', check: (f: string[]) => f.includes('有鬍子') },
-  { id: 'q7', text: '是白髮嗎？', check: (f: string[]) => f.includes('白髮') },
-  { id: 'q8', text: '是金髮嗎？', check: (f: string[]) => f.includes('金髮') },
-  { id: 'q9', text: '是長髮嗎？', check: (f: string[]) => f.includes('長髮') },
-  { id: 'q10', text: '是短髮嗎？', check: (f: string[]) => f.includes('短髮') },
+  { id: 'q1', text: '是男生嗎？', shortLabel: '男生？', check: (f: string[]) => f.includes('男生') },
+  { id: 'q2', text: '是女生嗎？', shortLabel: '女生？', check: (f: string[]) => f.includes('女生') },
+  { id: 'q3', text: '有戴眼鏡嗎？', shortLabel: '戴眼鏡？', check: (f: string[]) => f.includes('戴眼鏡') },
+  { id: 'q4', text: '沒戴眼鏡嗎？', shortLabel: '沒眼鏡？', check: (f: string[]) => f.includes('沒戴眼鏡') },
+  { id: 'q5', text: '有戴帽子嗎？', shortLabel: '戴帽子？', check: (f: string[]) => f.includes('戴帽子') },
+  { id: 'q6', text: '有鬍子嗎？', shortLabel: '有鬍子？', check: (f: string[]) => f.includes('有鬍子') },
+  { id: 'q7', text: '是白髮嗎？', shortLabel: '白髮？', check: (f: string[]) => f.includes('白髮') },
+  { id: 'q8', text: '是金髮嗎？', shortLabel: '金髮？', check: (f: string[]) => f.includes('金髮') },
+  { id: 'q9', text: '是長髮嗎？', shortLabel: '長髮？', check: (f: string[]) => f.includes('長髮') },
+  { id: 'q10', text: '是短髮嗎？', shortLabel: '短髮？', check: (f: string[]) => f.includes('短髮') },
 ];
 
 const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
@@ -258,19 +258,19 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                   </button>
               ))}
           </div>
-          <div data-guess-who-questions className="guess-who-questions flex items-center gap-2 mt-2 shrink-0 min-w-0">
+          <div data-guess-who-questions className="guess-who-questions flex flex-col gap-1 mt-2 shrink-0 min-w-0">
               <h3 className="shrink-0 text-sm sm:text-base font-bold text-blue-800 flex items-center gap-1">
                   <HelpCircle size={18} /> 發問區
               </h3>
-              <div className="guess-who-question-strip flex min-w-0 flex-1 flex-nowrap gap-2 overflow-x-auto overflow-y-hidden">
+              <div data-guess-who-question-grid className="guess-who-question-grid grid min-w-0 grid-cols-2 gap-1">
                    {QUESTIONS.map(q => (
                        <button
                            key={q.id}
                            onClick={() => askQuestion(q.id)}
                            disabled={isWin || history.some(h => h.question === q.text)}
-                           className="guess-who-question min-h-11 px-2 py-1 bg-blue-100 text-blue-700 text-xs sm:text-sm rounded-lg font-medium hover:bg-blue-200 disabled:opacity-50 transition-colors"
+                           className="guess-who-question min-h-11 min-w-0 whitespace-nowrap px-2 py-1 bg-blue-100 text-blue-700 text-xs sm:text-sm rounded-lg font-medium hover:bg-blue-200 disabled:opacity-50 transition-colors"
                        >
-                           {q.text}
+                           {q.shortLabel}
                        </button>
                    ))}
               </div>
