@@ -5,7 +5,7 @@
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
 - Current overall standardization: `44/59`
-- `FACILITATOR`: `2/11` — Conditional Snap and Zoom LIGHT complete and reviewer real-device accepted; Verbal Memory LIGHT implementation is pending reviewer acceptance.
+- `FACILITATOR`: `3/11` — Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer real-device accepted; Story Cards LIGHT implementation is pending reviewer acceptance.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 
@@ -24,10 +24,10 @@ The classification means:
 | Game | Component | Classification | Primary visible issue | Why change / why keep | Evidence level | Primary stimulus dominance | Touch targets | Overflow risk | Gameplay-state risk | Recommended model | Reviewer should check |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 局部猜全貌 | `components/ZoomGame.tsx` | LIGHT | Scoring and normal gameplay passed reviewer real-device check; completion screen overflowed in landscape, and reviewer requested stronger initial crop. | Keep the single-stage image/reveal flow and current landscape footprint; compact completion state and use the approved NORMAL/ADVANCED initial zoom values. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion overflow) | MEDIUM | Luna Medium | Initial crop, potential score, completion card, header actions |
-| 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: the memory field is held toward the upper area, leaving a large unused lower region; source root cause is the `landscape:max-w-[60vh]` width cap plus top-aligned main content. | Keep the memory grid and flip state; size the complete 4×4/5×4 field from remaining landscape height and center it, then label/reset controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix allocation) | MEDIUM | Luna Medium | NORMAL/ADVANCED whole-grid visibility, balance, card selection, completion |
+| 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the memory field was held toward the upper area, leaving a large unused lower region; direct emoji-size refinement was also accepted. | Keep the memory grid and flip state; size the complete 4×4/5×4 field from remaining landscape height and center it, then label/reset controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix allocation) | MEDIUM | Luna Medium | NORMAL/ADVANCED whole-grid visibility, balance, card selection, completion |
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
 | 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | At `sm` width, advanced mode changes to six columns while avatars remain `80px`; the candidate grid can overflow its roughly half-width region. Question chips are also compact. | The existing candidate-grid plus question/history split is the right facilitator composition; a short-height grid/size correction is enough, not a new shell. | STATIC SOURCE INFERENCE | BORDERLINE | MAJOR ISSUE | HIGH | MEDIUM | Luna High | All candidate cards, question controls, elimination, history scroll |
-| 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | Five-card advanced mode keeps `sm:w-36 sm:h-48` inside an `overflow-hidden` row, so cards can crowd or clip at short landscape. Zoom control is hover-only and unnamed. | Keep the card stage and zoom overlay; compact the card row and expose the zoom action without changing card state. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | MEDIUM | Luna Medium | Four/five cards, zoom, shuffle/refresh, prompt text |
+| 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: overall card sizing/layout is acceptable; selected card edge is slightly clipped, and the zoom control works but is small and slightly clipped. Advanced five-card spacing also shows minor edge overlap. | Keep the 4/5-card stage and current card size; remove scale-based clipping, inset the zoom control, make it a visible 44px touch target, and preserve card state. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix clipping) | MEDIUM | Luna Medium | Selected state, five-card separation, zoom touch, refresh, Back |
 | 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | Setup uses `py-6`, `p-6`, several large margins, and a full-height settings stack; at short landscape setup controls are likely below the fold. The play grid is capped at `60vh`. | Keep the map/grid and preview/radar settings; compact setup spacing and preserve the map as the dominant region. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
@@ -380,16 +380,16 @@ CURRENT STRUCTURE
 - Primary: 4 NORMAL or 5 ADVANCED story cards, each selectable and zoomable.
 - Controls: card selection, refresh, and per-card ZoomIn action.
 - Status: selected-card styling and full-card zoom text.
-- Scroll: the card row is explicitly `overflow-hidden` rather than locally scrollable.
+- Scroll: the landscape root/stage is bounded with controlled overflow; the card row remains non-scrollable so all cards stay visible.
 - Modal: zoom is an in-stage full-size view, not a shared modal.
 
 VIEWPORT FINDINGS
 
-640×360: `sm` activates, making each card `sm:w-36 sm:h-48` while the row has `sm:gap-4`, `sm:max-w-[10rem]`, and `overflow-hidden`. Four cards are tight; five advanced cards have a credible clipping/crowding risk.
+640×360: REAL-DEVICE CONFIRMED pre-fix selected-card edges and the zoom control could clip; normal/advanced card sizing itself was accepted. The correction removes scale expansion and keeps zoom within the card bounds.
 
-844×390: the same fixed 144×192 card size applies. Width is more forgiving, but the stage still does not use a short-height-specific geometry and the row cannot scroll if content exceeds it.
+844×390: REAL-DEVICE CONFIRMED pre-fix overall row proportions were acceptable; selected-card expansion and inset zoom geometry are the targeted corrections.
 
-932×430: extra width reduces risk but the `sm` branch remains fixed until `lg`; the card stage should not be assumed to scale naturally.
+932×430: REAL-DEVICE CONFIRMED pre-fix advanced five-card neighbors had very slight edge overlap; removing scale expansion preserves five distinct card boundaries without shrinking the row.
 
 390×844: portrait cards use the smaller flexible branch and stack within the stage; the zoom view is readable, but Back and per-card zoom semantics still need labels.
 
@@ -397,11 +397,11 @@ VIEWPORT FINDINGS
 
 PRIMARY STIMULUS DOMINANCE
 
-BORDERLINE — cards are the stage, but advanced five-card compression and hidden overflow can make the primary content feel clipped.
+YES — reviewer accepted the card size and overall 4/5-card composition; selection now uses a non-geometric ring/shadow cue so it remains visible without clipping.
 
 TOUCH TARGETS
 
-MINOR ISSUE — refresh is reasonably padded; Back is about 40px and the ZoomIn button is `opacity-0 group-hover:opacity-100`, which is unreliable on touch and has no explicit accessible name.
+MINOR ISSUE — pre-fix Back was about 40px and unnamed; ZoomIn was small, slightly clipped, hover-dependent, and unnamed. The LIGHT correction adds explicit names and 44px-class controls.
 
 WHY CHANGE / WHY KEEP
 
@@ -409,11 +409,11 @@ Keep the card stage, active-card toggle, and zoom view. A LIGHT correction shoul
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `min-h-[100dvh]`, `overflow-hidden`, `sm:w-36 sm:h-48`, five-card advanced mode, and hover-only ZoomIn visibility.
+REAL-DEVICE CONFIRMED — reviewer observed acceptable overall sizing plus selected-edge clipping, a small/slightly clipped zoom control, and minor advanced five-card edge overlap. Runtime measurements were not collected in this environment.
 
 EXPECTED / OBSERVED USER SYMPTOM
 
-At short landscape, the fifth card or its zoom affordance may be crowded/hidden; the facilitator sees a clipped row and cannot depend on hover to enlarge a card on a phone.
+The facilitator previously saw a selected card edge and zoom affordance clipped; advanced neighboring cards were also extremely close. Zoom is now discoverable on touch and the selection cue does not expand card geometry.
 
 GAMEPLAY / STATE LOCK
 
@@ -425,7 +425,7 @@ MEDIUM — responsive changes touch selectable card and zoom hit areas, but not 
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/StoryCardsGame.tsx`; later add `tests/storyCardsFacilitatorAcceptance.test.tsx`.
+`components/StoryCardsGame.tsx` and `tests/storyCardsFacilitatorAcceptance.test.tsx`.
 
 RECOMMENDED MODEL
 
@@ -437,7 +437,9 @@ REVIEWER SHOULD CHECK
 2. Card labels and emoji remain readable; zoom works with touch rather than hover.
 3. Zoom-in/full-card view and Back do not create page overflow.
 
-Final audit line: 故事聯想卡 — Recommendation: LIGHT. Why: the card stage is right but short landscape can clip advanced cards and hide zoom. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: complete card row and touch zoom.
+After implementation: Story Cards — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE.
+
+Final audit line: 故事聯想卡 — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED selected-card clipping, minor advanced edge overlap, and a small/slightly clipped zoom control; overall card size/layout remains accepted. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; post-fix is pending reviewer acceptance. What reviewer should visually check: distinct card boundaries and touch zoom.
 
 ## 條件反應大挑戰
 
@@ -972,8 +974,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap LIGHT complete; Zoom LIGHT correction complete, final reviewer acceptance pending.
+- Production implementation: Conditional Snap, Zoom, and Verbal Memory LIGHT complete and reviewer accepted; Story Cards LIGHT implementation complete, reviewer acceptance pending.
 - Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `43/59`; FACILITATOR is `1/11` after Conditional Snap reviewer real-device acceptance. Zoom remains pending final reviewer acceptance.
+- Overall standardization is `45/59`; FACILITATOR is `3/11` after Conditional Snap, Zoom, and Verbal Memory reviewer real-device acceptance. Story Cards remains pending reviewer acceptance.

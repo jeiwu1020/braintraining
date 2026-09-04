@@ -65,10 +65,17 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-amber-50 p-2 sm:p-4">
+    <div className="story-cards-root flex flex-col items-center justify-center min-h-[100dvh] bg-amber-50 p-2 sm:p-4 overflow-hidden">
+      <style>{`\
+        @media (hover: hover) and (pointer: fine) {\
+          .story-cards-zoom { opacity: 0.72; }\
+          .story-cards-zoom:hover { opacity: 1; }\
+        }\
+      `}</style>
       <button 
         onClick={onBack}
-        className="absolute top-2 left-2 p-2 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-100 z-50 transition-colors"
+        aria-label="返回遊戲選單"
+        className="absolute top-2 left-2 min-h-11 min-w-11 flex items-center justify-center p-2 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-100 z-50 transition-colors"
       >
         <ArrowLeft size={24} />
       </button>
@@ -83,7 +90,8 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                 <span className="text-3xl sm:text-4xl font-bold text-slate-700 mt-2 sm:mt-4">{cards[zoomIndex].text}</span>
                 <button 
                     onClick={() => setZoomIndex(null)}
-                    className="absolute top-0 right-0 p-4 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors shadow-md"
+                    aria-label="關閉放大檢視"
+                    className="absolute top-0 right-0 min-h-11 min-w-11 flex items-center justify-center p-2 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors shadow-md"
                 >
                     <ZoomOut size={32} />
                 </button>
@@ -94,22 +102,22 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                     <h2 className="text-xl sm:text-3xl font-bold text-amber-900">故事聯想卡</h2>
                     <button 
                         onClick={handleRefresh}
-                        className="flex items-center gap-1 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-amber-500 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-amber-600 transition-all shadow-md active:scale-95"
+                        className="min-h-11 flex items-center gap-1 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-amber-500 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-amber-600 transition-all shadow-md active:scale-95"
                     >
                         <RefreshCw size={18} />
                         換一組
                     </button>
                 </div>
                 
-                <div className="flex flex-row justify-center items-center gap-1 sm:gap-4 w-full flex-1 px-1 sm:px-2 h-full min-h-[120px] overflow-hidden">
+                <div className="story-cards-stage flex flex-row justify-center items-center gap-1 sm:gap-4 w-full flex-1 px-1 sm:px-2 h-full min-h-[120px] overflow-visible">
                     {cards.map((card, idx) => (
                         <div key={card.id} className="relative group flex-1 min-w-0 max-w-[5rem] sm:max-w-[10rem] h-full flex flex-col justify-center">
                             <button
                                 onClick={() => toggleActive(idx)}
                                 className={`w-full aspect-[2/3] sm:w-36 sm:h-48 sm:aspect-auto flex flex-col items-center justify-center rounded-xl sm:rounded-3xl transition-all duration-300 shadow-sm sm:shadow-md border-2 sm:border-4 ${
                                     card.active 
-                                        ? 'bg-amber-100 border-amber-400 scale-105 shadow-amber-200' 
-                                        : 'bg-gradient-to-br from-white to-slate-50 border-slate-200 hover:border-amber-300 hover:scale-105'
+                                        ? 'bg-amber-100 border-amber-400 ring-2 sm:ring-4 ring-amber-500 shadow-amber-200'
+                                        : 'bg-gradient-to-br from-white to-slate-50 border-slate-200 hover:border-amber-300'
                                 }`}
                             >
                                 <span className="text-[9px] sm:text-xs font-bold text-slate-400 mb-0.5 sm:mb-1">{card.type}</span>
@@ -118,7 +126,8 @@ const StoryCardsGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                             </button>
                             <button
                                 onClick={() => setZoomIndex(idx)}
-                                className="absolute -top-1 -right-1 sm:-top-3 sm:-right-3 p-1 sm:p-2 bg-white border border-slate-200 rounded-full text-slate-600 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-amber-50 hover:text-amber-600 z-10"
+                                aria-label={`放大第 ${idx + 1} 張卡：${card.text}`}
+                                className="story-cards-zoom absolute top-1 right-1 min-h-11 min-w-11 flex items-center justify-center p-2 bg-white border border-slate-200 rounded-full text-slate-600 shadow-md transition-opacity hover:bg-amber-50 hover:text-amber-600 z-10"
                                 title="放大單張"
                             >
                                 <ZoomIn size={12} className="sm:w-5 sm:h-5" />
