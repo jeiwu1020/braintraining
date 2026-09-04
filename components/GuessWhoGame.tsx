@@ -24,7 +24,7 @@ const Avatar = ({
   beard: boolean 
 }) => {
   return (
-    <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-sm">
+    <svg viewBox="0 0 100 100" className="guess-who-avatar w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-sm">
       {/* Shoulders */}
       <path d="M 15 100 Q 50 70 85 100 Z" fill={gender === 'f' ? '#f472b6' : '#60a5fa'} />
       
@@ -198,16 +198,17 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch justify-center min-h-[100dvh] bg-blue-50 p-2 gap-2">
+    <div data-guess-who-root className="guess-who-root app-safe-screen relative flex flex-col sm:flex-row items-stretch justify-center h-[100dvh] min-h-[100dvh] max-h-[100dvh] bg-blue-50 p-2 gap-2 overflow-hidden">
       <button 
+        aria-label="返回遊戲選單"
         onClick={onBack}
-        className="absolute top-2 left-2 p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 z-50 transition-colors"
+        className="guess-who-back absolute top-2 left-2 min-h-11 min-w-11 p-2 bg-white rounded-full shadow-md text-blue-600 hover:bg-blue-100 z-50 transition-colors"
       >
         <ArrowLeft size={20} />
       </button>
 
       {/* Left side: Character Grid */}
-      <div className="flex-1 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-y-auto relative">
+      <div data-guess-who-board className="guess-who-board flex-1 min-w-0 min-h-0 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-hidden relative">
           <RulesModal 
               isOpen={showRules} 
               onClose={() => setShowRules(false)}
@@ -219,24 +220,25 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               ]}
           />
           
-          <div className="flex justify-between items-center mb-4 ml-10 sm:ml-0">
+          <div className="guess-who-board-header flex justify-between items-center mb-4 ml-10 sm:ml-0">
               <div className="flex items-center gap-2">
                   <h2 className="text-2xl font-bold text-blue-900">猜猜我是誰</h2>
                   <button 
+                      aria-label="查看遊戲規則"
                       onClick={() => setShowRules(true)}
-                      className="p-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                      className="min-h-11 min-w-11 p-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
                   >
                       <Info size={20} />
                   </button>
               </div>
               {isWin && (
-                  <span className="text-xl font-bold text-green-600 animate-bounce">
+                  <span className="guess-who-win text-xl font-bold text-green-600 animate-bounce">
                       答對了！得分：{score}
                   </span>
               )}
           </div>
           
-          <div className={`grid gap-2 ${isAdvanced ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-4'}`}>
+          <div data-guess-who-grid data-guess-who-mode={isAdvanced ? 'ADVANCED' : 'NORMAL'} className="guess-who-grid grid grid-cols-4 gap-2">
               {cards.map(card => (
                   <button
                       key={card.id}
@@ -246,7 +248,7 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                           card.isEliminated 
                               ? 'bg-slate-100 opacity-30 border-slate-200 scale-95 grayscale' 
                               : isWin && card.id === targetId
-                                  ? 'bg-green-100 border-green-500 scale-105 shadow-lg shadow-green-200'
+                                  ? 'bg-green-100 border-green-500 shadow-lg shadow-green-200'
                                   : 'bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-md'
                       }`}
                   >
@@ -258,18 +260,18 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
       </div>
 
       {/* Right side: Questions and Log */}
-      <div className="w-full sm:w-80 flex flex-col gap-2 shrink-0 h-[40vh] sm:h-auto">
-          <div className="bg-white p-2 sm:p-4 rounded-2xl shadow-md border border-blue-100 flex-1 flex flex-col min-h-0">
+      <div data-guess-who-support className="guess-who-support w-full sm:w-80 flex flex-col gap-2 shrink-0 h-[40vh] sm:h-auto min-h-0">
+          <div className="guess-who-support-panel bg-white p-2 sm:p-4 rounded-2xl shadow-md border border-blue-100 flex-1 flex flex-col min-h-0">
               <h3 className="text-base sm:text-lg font-bold text-blue-800 mb-1 sm:mb-2 flex items-center gap-2 shrink-0">
                   <HelpCircle size={18} /> 發問區
               </h3>
-              <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-4 shrink-0 overflow-y-auto max-h-[25vh] sm:max-h-[35vh]">
+              <div data-guess-who-questions className="guess-who-questions flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-4 shrink-0 overflow-y-auto max-h-[25vh] sm:max-h-[35vh]">
                   {QUESTIONS.map(q => (
                       <button
                           key={q.id}
                           onClick={() => askQuestion(q.id)}
                           disabled={isWin || history.some(h => h.question === q.text)}
-                          className="px-2 py-1 bg-blue-100 text-blue-700 text-xs sm:text-sm rounded-lg font-medium hover:bg-blue-200 disabled:opacity-50 transition-colors"
+                          className="guess-who-question min-h-11 px-2 py-1 bg-blue-100 text-blue-700 text-xs sm:text-sm rounded-lg font-medium hover:bg-blue-200 disabled:opacity-50 transition-colors"
                       >
                           {q.text}
                       </button>
@@ -277,10 +279,10 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
               </div>
 
               <h3 className="text-sm sm:text-base font-bold text-slate-700 mb-1 sm:mb-2 border-t pt-1 sm:pt-2 shrink-0">對話紀錄</h3>
-              <div className="flex-1 overflow-y-auto bg-slate-50 rounded-xl p-2 flex flex-col gap-1 sm:gap-2 min-h-0">
+              <div data-guess-who-history className="guess-who-history flex-1 overflow-y-auto bg-slate-50 rounded-xl p-2 flex flex-col gap-1 sm:gap-2 min-h-0">
                   {history.map((h, i) => (
                       <div key={i} className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-lg shadow-sm text-xs sm:text-sm shrink-0">
-                          <span className="text-slate-700 truncate mr-2">{h.question}</span>
+                          <span className="text-slate-700 break-words mr-2">{h.question}</span>
                           {h.answer ? (
                               <span className="text-green-600 font-bold flex items-center gap-1 shrink-0"><Check size={14}/> 是</span>
                           ) : (
@@ -296,7 +298,8 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
           
           <button 
               onClick={reset}
-              className="w-full py-2 sm:py-3 bg-blue-500 text-white rounded-2xl font-bold hover:bg-blue-600 transition-colors shadow-md flex justify-center items-center gap-2 shrink-0 text-sm sm:text-base"
+              aria-label={isWin ? '下一局' : '重新開始'}
+              className="min-h-11 w-full py-2 sm:py-3 bg-blue-500 text-white rounded-2xl font-bold hover:bg-blue-600 transition-colors shadow-md flex justify-center items-center gap-2 shrink-0 text-sm sm:text-base"
           >
               <RefreshCw size={18} /> {isWin ? '下一局' : '重新開始'}
           </button>

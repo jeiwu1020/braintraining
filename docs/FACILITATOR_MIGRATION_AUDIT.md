@@ -4,8 +4,8 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `47/59`
-- `FACILITATOR`: `5/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation LIGHT complete and reviewer real-device accepted.
+- Current overall standardization: `48/59`
+- `FACILITATOR`: `6/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain LIGHT complete and reviewer real-device accepted.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 - Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
@@ -360,7 +360,9 @@ REVIEWER SHOULD CHECK
 2. Question chips, Rules, Back, and Reset are practical without hiding the candidate grid.
 3. Eliminated cards, history scroll, and win feedback remain understandable.
 
-Final audit line: 猜猜我是誰 — Recommendation: LIGHT. Why: the advanced six-column grid is too aggressive at the `sm` boundary, but the existing split composition is correct. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: complete candidate grid and question ergonomics.
+Pre-implementation audit line: 猜猜我是誰 — Recommendation: LIGHT. Why: the advanced six-column grid is too aggressive at the `sm` boundary, but the existing split composition is correct. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: complete candidate grid and question ergonomics.
+
+Post-implementation status: 猜猜我是誰 — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE. The dedicated fullscreen root now owns the non-GameShell safe-area contract, short landscape uses a 4×3 advanced grid at 640-class widths and a 6×2 grid from 760px upward, question/history regions retain local scrolling, and Back/Rules/Reset controls meet the practical touch contract. Gameplay, characters, questions, deduction, scoring, sounds, and win semantics are unchanged. Evidence remains STATIC SOURCE INFERENCE because browser and iPhone runtime measurements are unavailable in this environment.
 
 ## 故事聯想卡
 
@@ -979,8 +981,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation LIGHT complete and reviewer accepted; Word Chain LIGHT implementation complete, reviewer acceptance pending.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain LIGHT complete and reviewer accepted; Guess Who LIGHT implementation complete, reviewer acceptance pending.
 - Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `47/59`; FACILITATOR is `5/11` after Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation reviewer real-device acceptance. Word Chain remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance.
+- Overall standardization is `48/59`; FACILITATOR is `6/11` after Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain reviewer real-device acceptance. Guess Who remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance.
