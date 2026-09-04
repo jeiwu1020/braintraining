@@ -105,6 +105,16 @@ describe('Higher/Lower facilitator LIGHT acceptance', () => {
     expect(source).toContain('aria-label="關閉遊戲規則"');
     expect(source).toContain('role="dialog"');
     expect(source).toContain('aria-modal="true"');
+    expect(source).toContain('higher-lower-team-header');
+    expect(source).toContain('higher-lower-reveal-choice');
+    expect(source).toContain('higher-lower-reveal-delta');
+    expect(source).toContain('higher-lower-card-group');
+    expect(source).toContain('higher-lower-action-bar');
+    expect(source).toContain('higher-lower-action-button--reveal');
+    expect(source).toContain('higher-lower-action-button--next');
+    expect(source).toContain('inline-flex');
+    expect(source).toContain('whitespace-nowrap');
+    expect(source).not.toContain('higher-lower-card-label absolute');
 
     expect(css).toContain('[data-higher-lower-root]');
     expect(css).toContain('[data-higher-lower-card-stage]');
@@ -112,5 +122,9 @@ describe('Higher/Lower facilitator LIGHT acceptance', () => {
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px)');
     expect(css).toContain('max-height: calc(100dvh');
     expect(css).toContain('overflow-y: auto');
+    expect(css).toContain('.higher-lower-team-header');
+    expect(css).toContain('.higher-lower-reveal-choice');
+    expect(css).toContain('.higher-lower-action-bar');
+    expect(css).toContain('white-space: nowrap');
   });
 });

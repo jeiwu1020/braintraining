@@ -611,6 +611,87 @@
   }
 }
 
+@media (orientation: landscape) and (min-height: 481px) and (max-height: 600px) {
+  [data-higher-lower-root] .higher-lower-card {
+    padding: 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team {
+    padding: 0.625rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team-name {
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team-score {
+    font-size: 1.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice-row {
+    gap: 0.375rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice {
+    min-height: 44px;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-choice-icon {
+    display: none;
+  }
+
+  [data-higher-lower-root] [data-higher-lower-card-stage],
+  [data-higher-lower-root] .higher-lower-card-stage {
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-card-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-previous-card {
+    width: clamp(3.5rem, 15dvh, 6rem);
+    height: clamp(5.25rem, 22.5dvh, 9rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-current-card {
+    width: clamp(5.5rem, 20dvh, 8.5rem);
+    height: clamp(8.25rem, 30dvh, 12.75rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-current-rank {
+    font-size: clamp(2rem, 8vh, 3.5rem);
+    line-height: 1;
+  }
+
+  [data-higher-lower-root] .higher-lower-current-suit {
+    margin-top: 0.5rem;
+    font-size: clamp(1.75rem, 6vh, 3rem);
+    line-height: 1;
+  }
+
+  [data-higher-lower-root] .higher-lower-action {
+    height: 6rem;
+    min-height: 6rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-action-bar {
+    gap: 0.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-result {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+}
+
 @media (orientation: portrait) {
   [data-treasure-root] {
     height: auto;
@@ -752,6 +833,55 @@
   min-height: 7rem;
 }
 
+[data-higher-lower-root] .higher-lower-team-header {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-higher-lower-root] .higher-lower-team-name {
+  white-space: nowrap;
+}
+
+[data-higher-lower-root] .higher-lower-team-score {
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+[data-higher-lower-root] .higher-lower-reveal-content {
+  width: 100%;
+  min-height: 2.5rem;
+}
+
+[data-higher-lower-root] .higher-lower-reveal-choice {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-higher-lower-root] .higher-lower-card-group {
+  flex: 0 0 auto;
+}
+
+[data-higher-lower-root] .higher-lower-action-bar {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-higher-lower-root] .higher-lower-action-button--reveal,
+[data-higher-lower-root] .higher-lower-action-button--next {
+  white-space: nowrap;
+}
+
+[data-higher-lower-root] .higher-lower-result {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-higher-lower-root] .higher-lower-result--joker {
+  white-space: normal;
+}
+
 [data-higher-lower-root] .higher-lower-current-card,
 [data-higher-lower-root] .higher-lower-previous-card {
   aspect-ratio: 2 / 3;
@@ -803,7 +933,25 @@
   }
 
   [data-higher-lower-root] .higher-lower-team-score {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0;
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-team-header {
+    min-height: 1.75rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-reveal-content {
+    min-height: 2.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-reveal-choice {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-reveal-delta {
     font-size: 1.25rem;
     line-height: 1.5rem;
   }
@@ -912,6 +1060,25 @@
     padding: 0.5rem 0.75rem;
     font-size: 1rem;
     line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-action-bar {
+    gap: 0.5rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-result {
+    font-size: clamp(0.875rem, 3.5vh, 1.125rem);
+    line-height: 1.25rem;
+  }
+
+  [data-higher-lower-root] .higher-lower-action-button--reveal {
+    min-width: clamp(10rem, 24vw, 14rem);
+  }
+
+  [data-higher-lower-root] .higher-lower-action-button--next {
+    min-width: 7.5rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
   }
 
   [data-higher-lower-root] .higher-lower-action-icon {

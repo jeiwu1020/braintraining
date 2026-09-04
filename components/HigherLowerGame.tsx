@@ -278,10 +278,12 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
         
         {/* Header / Score Board */}
         <div data-higher-lower-scoreboard="true" className="higher-lower-scoreboard flex w-full shrink-0 items-center justify-between gap-4 px-2 pb-3">
-            <div className={`higher-lower-team higher-lower-team-a flex-1 rounded-2xl border-4 p-2 transition-colors sm:p-4
+            <div className={`higher-lower-team higher-lower-team-a flex flex-1 flex-col rounded-2xl border-4 p-2 transition-colors sm:p-4
                 ${teamAChoice ? 'bg-blue-100 border-blue-400' : 'bg-blue-50 border-blue-200'}`}>
-                <span className="higher-lower-team-name mb-1 text-lg font-bold text-blue-800 sm:text-xl">A 組</span>
-                <span className="higher-lower-team-score mb-2 text-3xl font-black text-blue-600">{teamAScore}</span>
+                <div className="higher-lower-team-header flex items-center justify-between gap-2">
+                    <span className="higher-lower-team-name text-lg font-bold text-blue-800 sm:text-xl">A 組</span>
+                    <span className="higher-lower-team-score text-3xl font-black text-blue-600">{teamAScore}</span>
+                </div>
                 {gameState === 'BETTING' && (
                     <div className="higher-lower-choice-row flex w-full gap-2">
                         <button 
@@ -311,11 +313,11 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                     </div>
                 )}
                 {gameState === 'REVEAL' && (
-                    <div className="flex flex-col items-center">
-                        <span className="text-sm font-bold text-gray-500">選擇: {teamAChoice === 'HIGHER' ? '大' : (teamAChoice === 'LOWER' ? '小' : (teamAChoice === 'PASS' ? 'PASS' : '無'))}</span>
-                        <motion.span 
+                    <div className="higher-lower-reveal-content flex min-h-10 items-center justify-between gap-2">
+                        <span className="higher-lower-reveal-choice min-w-0 text-sm font-bold text-gray-500">選擇: {teamAChoice === 'HIGHER' ? '大' : (teamAChoice === 'LOWER' ? '小' : (teamAChoice === 'PASS' ? 'PASS' : '無'))}</span>
+                        <motion.span
                             initial={{ scale: 0 }} animate={{ scale: 1 }}
-                            className={`text-2xl font-black ${roundResult.aMsg.includes('+') ? 'text-green-600' : roundResult.aMsg.includes('-') ? 'text-red-500' : 'text-gray-500'}`}
+                            className={`higher-lower-reveal-delta shrink-0 text-2xl font-black ${roundResult.aMsg.includes('+') ? 'text-green-600' : roundResult.aMsg.includes('-') ? 'text-red-500' : 'text-gray-500'}`}
                         >
                             {roundResult.aMsg}
                         </motion.span>
@@ -328,10 +330,12 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                 <span className="higher-lower-round-value rounded-xl bg-green-100 px-3 py-2 text-2xl font-black text-green-700 sm:text-3xl">{round} / {maxRounds}</span>
             </div>
 
-            <div className={`higher-lower-team higher-lower-team-b flex-1 rounded-2xl border-4 p-2 transition-colors sm:p-4
+            <div className={`higher-lower-team higher-lower-team-b flex flex-1 flex-col rounded-2xl border-4 p-2 transition-colors sm:p-4
                 ${teamBChoice ? 'bg-red-100 border-red-400' : 'bg-red-50 border-red-200'}`}>
-                <span className="higher-lower-team-name mb-1 text-lg font-bold text-red-800 sm:text-xl">B 組</span>
-                <span className="higher-lower-team-score mb-2 text-3xl font-black text-red-600">{teamBScore}</span>
+                <div className="higher-lower-team-header flex items-center justify-between gap-2">
+                    <span className="higher-lower-team-name text-lg font-bold text-red-800 sm:text-xl">B 組</span>
+                    <span className="higher-lower-team-score text-3xl font-black text-red-600">{teamBScore}</span>
+                </div>
                 {gameState === 'BETTING' && (
                     <div className="higher-lower-choice-row flex w-full gap-2">
                         <button 
@@ -361,11 +365,11 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                     </div>
                 )}
                 {gameState === 'REVEAL' && (
-                    <div className="flex flex-col items-center">
-                        <span className="text-sm font-bold text-gray-500">選擇: {teamBChoice === 'HIGHER' ? '大' : (teamBChoice === 'LOWER' ? '小' : (teamBChoice === 'PASS' ? 'PASS' : '無'))}</span>
-                        <motion.span 
+                    <div className="higher-lower-reveal-content flex min-h-10 items-center justify-between gap-2">
+                        <span className="higher-lower-reveal-choice min-w-0 text-sm font-bold text-gray-500">選擇: {teamBChoice === 'HIGHER' ? '大' : (teamBChoice === 'LOWER' ? '小' : (teamBChoice === 'PASS' ? 'PASS' : '無'))}</span>
+                        <motion.span
                             initial={{ scale: 0 }} animate={{ scale: 1 }}
-                            className={`text-2xl font-black ${roundResult.bMsg.includes('+') ? 'text-green-600' : roundResult.bMsg.includes('-') ? 'text-red-500' : 'text-gray-500'}`}
+                            className={`higher-lower-reveal-delta shrink-0 text-2xl font-black ${roundResult.bMsg.includes('+') ? 'text-green-600' : roundResult.bMsg.includes('-') ? 'text-red-500' : 'text-gray-500'}`}
                         >
                             {roundResult.bMsg}
                         </motion.span>
@@ -397,8 +401,9 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
         ) : (
             <section className="higher-lower-play flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-3">
                 {/* Cards Area */}
-                <div data-higher-lower-card-stage="true" className="higher-lower-card-stage flex min-h-0 w-full flex-1 flex-row items-center justify-center gap-4 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-inner sm:gap-12 sm:py-8">
-                    {/* Previous Card (Small) */}
+                 <div data-higher-lower-card-stage="true" className="higher-lower-card-stage flex min-h-0 w-full flex-1 flex-row items-center justify-center gap-4 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-inner sm:gap-12 sm:py-8">
+                     <div className="higher-lower-card-group flex items-center justify-center gap-4 sm:gap-12">
+                     {/* Previous Card (Small) */}
                     <div className="higher-lower-previous flex origin-right scale-75 flex-col items-center opacity-60 sm:scale-100">
                         <span className="higher-lower-card-label mb-2 font-bold text-gray-500">上一張</span>
                         <div className="higher-lower-previous-card relative flex h-36 w-24 flex-col items-center justify-center rounded-xl border-2 border-gray-200 bg-white shadow-md sm:h-48 sm:w-32">
@@ -450,9 +455,10 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                                     )
                                 )}
                             </motion.div>
-                        </AnimatePresence>
-                    </div>
-                </div>
+                         </AnimatePresence>
+                     </div>
+                     </div>
+                 </div>
                 
                 {/* Center Control / Result Area */}
                 <div data-higher-lower-action="true" className="higher-lower-action flex h-24 w-full shrink-0 items-center justify-center">
@@ -461,7 +467,7 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                             onClick={handleReveal}
                             disabled={!teamAChoice || !teamBChoice}
                             aria-label="開牌！"
-                            className={`higher-lower-action-button min-h-11 rounded-full px-8 py-4 text-2xl font-black transition-all
+                             className={`higher-lower-action-button higher-lower-action-button--reveal inline-flex min-h-12 min-w-[10rem] items-center justify-center whitespace-nowrap rounded-2xl px-6 py-3 text-xl font-black transition-all
                                 ${teamAChoice && teamBChoice 
                                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xl hover:scale-105' 
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
@@ -470,12 +476,12 @@ const HigherLowerGame: React.FC<HigherLowerGameProps> = ({ onBack, difficulty })
                             開牌！
                         </button>
                     ) : (
-                        <div className="flex flex-col items-center">
-                            <span className="higher-lower-result mb-4 text-3xl font-black text-green-700">{roundResult.mainMsg}</span>
-                            <button
+                         <div className="higher-lower-action-bar flex w-full min-w-0 items-center justify-center gap-3">
+                             <span className={`higher-lower-result min-w-0 flex-1 text-center text-3xl font-black text-green-700 ${roundResult.mainMsg.includes('幸運鬼牌') ? 'higher-lower-result--joker' : ''}`}>{roundResult.mainMsg}</span>
+                             <button
                                 onClick={handleNextRound}
                                 aria-label={round >= maxRounds ? '查看結果' : '下一回合'}
-                                className="higher-lower-action-button min-h-11 rounded-full bg-emerald-500 px-8 py-3 text-xl font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-emerald-600"
+                                 className="higher-lower-action-button higher-lower-action-button--next inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-2xl bg-emerald-500 px-5 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-emerald-600"
                             >
                                 {round >= maxRounds ? '查看結果' : '下一回合'} <ArrowLeft className="rotate-180" size={24} />
                             </button>
