@@ -87,35 +87,35 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
-      <div className="flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
-        <button onClick={onBack} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+    <div data-word-chain-root className={`app-safe-screen flex flex-col h-[100dvh] max-h-[100dvh] ${isAdvanced ? 'bg-indigo-50' : 'bg-emerald-50'} overflow-hidden`}>
+      <div className="word-chain-header flex-none p-4 flex justify-between items-center bg-white shadow-sm z-10">
+        <button aria-label="返回遊戲選單" onClick={onBack} className="min-h-11 min-w-11 p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">
           <h2 className={`text-xl font-bold ${isAdvanced ? 'text-indigo-800' : 'text-emerald-800'}`}>語意聯想</h2>
           <p className="text-xs text-gray-500">{isAdvanced ? '進階條件限制' : '生活類別聯想'}</p>
         </div>
-        <button onClick={() => initGame(false)} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+        <button aria-label="換一個題目" onClick={() => initGame(false)} className="min-h-11 min-w-11 p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
           <RefreshCw size={24} />
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col landscape:flex-row lg:flex-col items-center justify-center p-4 gap-4 lg:gap-0">
+      <div data-word-chain-main className="word-chain-main min-h-0 flex-1 flex flex-col landscape:flex-row lg:flex-col items-center justify-center p-4 gap-4 lg:gap-0">
         
         <div className="flex-1 flex flex-col items-center justify-center w-full">
-          <div className="text-center mb-4 lg:mb-12">
+          <div data-word-chain-prompt className="word-chain-prompt text-center mb-4 lg:mb-12">
             <h3 className="text-xl landscape:text-lg lg:text-2xl text-gray-600 mb-2 font-medium">請說出屬於以下類別的詞彙：</h3>
             <div className="text-4xl landscape:text-3xl lg:text-6xl font-bold text-blue-600 bg-white px-6 py-4 lg:px-8 lg:py-6 rounded-3xl shadow-md border-4 border-blue-100">
               {category}
             </div>
           </div>
 
-          <div className="mt-4 lg:mt-12 flex gap-4">
+          <div className="word-chain-actions mt-4 lg:mt-12 flex gap-4">
             {!isActive && timeLeft === 60 ? (
               <button 
                 onClick={startGame}
-                className="px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 bg-green-500 text-white rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all"
+                className="min-h-11 px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 bg-green-500 text-white rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all"
               >
                 開始計時
               </button>
@@ -123,7 +123,7 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               <button 
                 onClick={handleAddScore}
                 disabled={!isActive}
-                className={`flex items-center gap-2 px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg transition-all ${isActive ? 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                className={`min-h-11 flex items-center gap-2 px-8 py-3 landscape:px-6 landscape:py-2 lg:px-12 lg:py-4 rounded-full font-bold text-xl landscape:text-lg lg:text-2xl shadow-lg transition-all ${isActive ? 'bg-blue-500 text-white hover:bg-blue-600 active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
               >
                 <Plus size={24} className="lg:w-8 lg:h-8" />
                 加 1 分
@@ -132,31 +132,31 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         </div>
 
-        <div className="flex flex-row landscape:flex-col lg:flex-row gap-4 lg:gap-8 items-center justify-center w-full max-w-3xl flex-1">
+        <div data-word-chain-status className="word-chain-status flex flex-row landscape:flex-col lg:flex-row gap-4 lg:gap-8 items-center justify-center w-full max-w-3xl flex-1">
           
           {/* Timer */}
-          <div className="flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
+          <div className="word-chain-status-card flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
             <Timer size={32} className={`lg:w-12 lg:h-12 ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-gray-400'}`} />
-            <div className={`text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 ${timeLeft <= 10 && isActive ? 'text-red-500' : 'text-gray-800'}`}>
+            <div className={`word-chain-status-value text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 ${timeLeft <= 10 && isActive ? 'text-red-500' : 'text-gray-800'}`}>
               {timeLeft}
             </div>
-            <div className="text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">剩餘秒數</div>
+            <div className="word-chain-status-label text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">剩餘秒數</div>
           </div>
 
           {/* Score */}
-          <div className="flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
+          <div className="word-chain-status-card flex flex-col items-center bg-white p-4 lg:p-6 rounded-3xl shadow-lg border-2 border-gray-100 w-40 landscape:w-48 lg:w-64">
             <Trophy size={32} className="text-yellow-500 lg:w-12 lg:h-12" />
-            <div className="text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 text-gray-800">
+            <div className="word-chain-status-value text-4xl lg:text-6xl font-bold mt-2 lg:mt-4 text-gray-800">
               {score}
             </div>
-            <div className="text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">成功聯想數</div>
+            <div className="word-chain-status-label text-gray-500 mt-1 lg:mt-2 font-medium text-sm lg:text-base">成功聯想數</div>
           </div>
 
         </div>
 
         {!isActive && timeLeft === 0 && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
-            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-md w-full mx-4 animate-bounce-in">
+          <div data-word-chain-timeout className="word-chain-timeout app-safe-screen fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
+            <div className="word-chain-timeout-card bg-white p-8 md:p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-md w-full mx-4 animate-bounce-in">
               <Trophy className="w-24 h-24 text-yellow-500 mb-4" />
               <h3 className="text-4xl font-bold text-gray-800 mb-4">時間到！</h3>
               <p className="text-2xl text-gray-600 mb-8 text-center">
@@ -166,7 +166,7 @@ const WordChainGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               </p>
               <button 
                 onClick={() => initGame(false)} 
-                className="w-full py-4 bg-green-500 text-white rounded-full font-bold text-2xl hover:bg-green-600 active:scale-95 transition-all shadow-lg"
+                className="min-h-11 w-full py-4 bg-green-500 text-white rounded-full font-bold text-2xl hover:bg-green-600 active:scale-95 transition-all shadow-lg"
               >
                 再玩一次
               </button>

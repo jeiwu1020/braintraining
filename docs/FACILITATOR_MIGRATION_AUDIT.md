@@ -4,11 +4,11 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `46/59`
-- `FACILITATOR`: `4/11` — Conditional Snap, Zoom, Verbal Memory, and Story Cards LIGHT complete and reviewer real-device accepted.
+- Current overall standardization: `47/59`
+- `FACILITATOR`: `5/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation LIGHT complete and reviewer real-device accepted.
 - Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
-- Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration is implemented and pending real-device QA.
+- Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
 
 ## Methodology
 
@@ -278,7 +278,9 @@ REVIEWER SHOULD CHECK
 2. Start/add-score is reachable while timer and score remain visible.
 3. Timeout result, score, and restart fit without document overflow.
 
-Final audit line: 語意聯想 — Recommendation: LIGHT. Why: the facilitator stage already works, but header semantics and timeout sizing need protection. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: prompt dominance and timer/timeout reachability.
+Pre-implementation audit line: 語意聯想 — Recommendation: LIGHT. Why: the facilitator stage already works, but header semantics and timeout sizing need protection. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: prompt dominance and timer/timeout reachability.
+
+Post-implementation status: 語意聯想 — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE. The dedicated fullscreen root now owns the existing non-GameShell safe-area contract, the fixed timeout overlay has its own safe-area content boundary, and short-landscape spacing is compacted by viewport height while preserving the prompt, timer, score, 60-second timer, and +1 scoring semantics. Evidence remains STATIC SOURCE INFERENCE because iPhone runtime measurements are unavailable in this environment.
 
 ## 猜猜我是誰
 
@@ -846,9 +848,9 @@ REVIEWER SHOULD CHECK
 2. After answering, Next/看結果 is immediately reachable without document scrolling.
 3. Long item labels and final score remain readable at 844×390 and portrait.
 
-After implementation: Price Estimation — LIGHT IMPLEMENTATION COMPLETE; PENDING REVIEWER REAL-DEVICE ACCEPTANCE. Safe-area integration is implemented; PWA reinstall QA remains a separate platform gate.
+After implementation: Price Estimation — LIGHT COMPLETE; reviewer real-device accepted. Safe-area integration and PWA reinstall QA are REAL-DEVICE PASS; the platform contract remains available for later dedicated-screen work.
 
-Final audit line: 價格估算 — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED completion overflow and Dynamic Island overlap can be corrected with local safe-area ownership and compact completion spacing while preserving the accepted prompt/options composition. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; post-fix pending reviewer acceptance.
+Final audit line: 價格估算 — Recommendation: LIGHT. Why: REAL-DEVICE CONFIRMED completion overflow and Dynamic Island overlap were corrected with local safe-area ownership and compact completion spacing while preserving the accepted prompt/options composition. Evidence: REAL-DEVICE CONFIRMED pre-fix issue; reviewer real-device accepted.
 
 ## 轉念練習
 
@@ -977,8 +979,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, and Story Cards LIGHT complete and reviewer accepted; Price Estimation LIGHT implementation complete, reviewer acceptance pending.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation LIGHT complete and reviewer accepted; Word Chain LIGHT implementation complete, reviewer acceptance pending.
 - Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
 - Shared layout files changed in this batch: zero.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `46/59`; FACILITATOR is `4/11` after Conditional Snap, Zoom, Verbal Memory, and Story Cards reviewer real-device acceptance. Price Estimation remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance.
+- Overall standardization is `47/59`; FACILITATOR is `5/11` after Conditional Snap, Zoom, Verbal Memory, Story Cards, and Price Estimation reviewer real-device acceptance. Word Chain remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance.
