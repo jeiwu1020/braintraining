@@ -83,6 +83,16 @@
   }
 }
 
+@media (orientation: landscape) and (min-width: 768px) {
+  [data-main-menu-sidebar='true'] {
+    width: 28%;
+  }
+
+  [data-main-menu-cards='true'] {
+    width: 72%;
+  }
+}
+
 @media (orientation: portrait) {
   .split-choice-layout {
     grid-template-columns: minmax(0, 1fr);
