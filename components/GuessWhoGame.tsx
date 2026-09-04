@@ -201,7 +201,7 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
     <div data-guess-who-root className="guess-who-root relative flex h-[100dvh] min-h-[100dvh] max-h-[100dvh] bg-blue-50 overflow-hidden">
       <div data-guess-who-safe-stage className="app-safe-screen h-full w-full overflow-hidden">
         <div data-guess-who-layout className="guess-who-layout h-full w-full flex flex-col sm:flex-row items-stretch justify-center p-2 gap-2 overflow-hidden">
-          {/* Left side: Character Grid and question dock */}
+          {/* Left side: Character Grid */}
           <div data-guess-who-board className="guess-who-board flex-1 min-w-0 min-h-0 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-hidden relative flex flex-col">
           <RulesModal 
               isOpen={showRules} 
@@ -258,7 +258,10 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                   </button>
               ))}
           </div>
-          <div data-guess-who-questions className="guess-who-questions flex flex-col gap-1 mt-2 shrink-0 min-w-0">
+          </div>
+
+          {/* Middle: question panel */}
+          <div data-guess-who-questions data-guess-who-question-panel className="guess-who-questions guess-who-question-panel w-full sm:w-40 flex flex-col gap-1 shrink-0 min-w-0 min-h-0">
               <h3 className="shrink-0 text-sm sm:text-base font-bold text-blue-800 flex items-center gap-1">
                   <HelpCircle size={18} /> 發問區
               </h3>
@@ -275,10 +278,9 @@ const GuessWhoGame: React.FC<Props> = ({ onBack, isAdvanced }) => {
                    ))}
               </div>
           </div>
-          </div>
 
           {/* Right side: conversation history */}
-          <div data-guess-who-support className="guess-who-support w-full sm:w-80 flex flex-col gap-2 shrink-0 min-h-0">
+          <div data-guess-who-support className="guess-who-support w-full sm:w-56 flex flex-col gap-2 shrink-0 min-h-0">
               <div className="guess-who-history-panel bg-white p-2 sm:p-4 rounded-2xl shadow-md border border-blue-100 flex-1 flex flex-col min-h-0">
                   <h3 className="text-base sm:text-lg font-bold text-slate-700 mb-2 border-b pb-2 shrink-0">對話紀錄</h3>
                   <div data-guess-who-history className="guess-who-history flex-1 min-h-0 overflow-y-auto bg-slate-50 rounded-xl p-2 flex flex-col gap-1 sm:gap-2">

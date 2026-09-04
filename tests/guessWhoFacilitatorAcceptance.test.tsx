@@ -65,7 +65,7 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
     expect(source).toContain('QUESTIONS.map');
   });
 
-  it('uses a separate safe stage and reflows questions below candidates with history on the right', () => {
+  it('uses a three-column landscape layout with a non-scrolling question panel', () => {
     const source = readFileSync('components/GuessWhoGame.tsx', 'utf8');
     const css = readFileSync('index.css', 'utf8');
     const boardIndex = source.indexOf('data-guess-who-board');
@@ -76,6 +76,7 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
     expect(source).toContain('data-guess-who-safe-stage');
     expect(source).toContain('data-guess-who-layout');
     expect(source).toContain('data-guess-who-header');
+    expect(source).toContain('data-guess-who-question-panel');
     expect(source).toMatch(/data-guess-who-safe-stage[^>]*className="app-safe-screen[^"p]*"/);
     expect(source).not.toMatch(/data-guess-who-root[^>]*app-safe-screen/);
     expect(source).not.toContain('guess-who-back absolute');
@@ -98,6 +99,7 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
     expect(source).toContain('data-guess-who-history');
     expect(source).toMatch(/className="guess-who-history[^"\n]*flex-1[^"\n]*overflow-y-auto/);
     expect(source).not.toContain('guess-who-board flex-1 min-w-0 min-h-0 bg-white p-4 rounded-2xl shadow-md border border-blue-100 overflow-y-auto');
+    expect(source.slice(boardIndex, questionsIndex)).not.toContain('data-guess-who-questions');
     expect(boardIndex).toBeGreaterThan(-1);
     expect(questionsIndex).toBeGreaterThan(boardIndex);
     expect(supportIndex).toBeGreaterThan(questionsIndex);
@@ -105,11 +107,14 @@ describe('Guess Who facilitator LIGHT acceptance', () => {
 
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px) and (max-width: 759px)');
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px) and (min-width: 760px)');
+    expect(css).toContain('.guess-who-question-panel');
     expect(css).toContain('.guess-who-question-grid');
-    expect(css).toContain('grid-template-columns: repeat(5, minmax(0, 1fr))');
+    expect(css).toMatch(/\.guess-who-question-grid\s*\{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)[^}]*grid-template-rows: repeat\(5, minmax\(0, 1fr\)\)/s);
     expect(css).toContain('grid-template-rows: repeat(2, minmax(0, 1fr))');
-    expect(css).toContain('overflow-y: hidden');
-    expect(css).not.toContain('.guess-who-question-strip');
+    expect(css).toContain('min-width: 2.5rem');
+    expect(css).toContain('min-height: 2.5rem');
+    expect(css).not.toMatch(/\.guess-who-question-grid[^}]*overflow\s*:/s);
+    expect(css).not.toMatch(/\.guess-who-grid > button\s*\{[^}]*overflow\s*:\s*hidden/s);
     expect(css).not.toMatch(/\.guess-who-root\s*\{[^}]*padding\s*:/s);
     expect(css).not.toContain('.guess-who-back {');
     expect(css).not.toContain('.guess-who-board-header {');

@@ -269,12 +269,14 @@
   .guess-who-grid > button {
     min-height: 0;
     padding: 0.25rem !important;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .guess-who-avatar {
     width: clamp(2.5rem, 12vh, 3.25rem) !important;
     height: clamp(2.5rem, 12vh, 3.25rem) !important;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
   }
 
   .guess-who-grid > button > span {
@@ -292,10 +294,9 @@
   }
 
   .guess-who-question-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, minmax(0, 1fr));
     gap: 0.25rem !important;
-    overflow-y: hidden;
   }
 
   .guess-who-question {
@@ -303,8 +304,12 @@
     font-size: 0.75rem !important;
   }
 
+  .guess-who-question-panel {
+    width: clamp(8.5rem, 17vw, 11rem) !important;
+  }
+
   .guess-who-support {
-    width: clamp(12rem, 26vw, 18rem) !important;
+    width: clamp(10rem, 22vw, 14rem) !important;
     height: auto !important;
   }
 
@@ -426,27 +431,12 @@
   .guess-who-grid[data-guess-who-mode='ADVANCED'] {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-
-  .guess-who-grid > button {
-    padding: 0 !important;
-  }
-
-  .guess-who-avatar {
-    width: clamp(1.75rem, 7vh, 2.5rem) !important;
-    height: clamp(1.75rem, 7vh, 2.5rem) !important;
-    margin-bottom: 0 !important;
-  }
-
-  .guess-who-grid > button > span {
-    font-size: 0.75rem !important;
-    line-height: 0.875rem !important;
-  }
 }
 
 @media (orientation: landscape) and (min-height: 481px) {
   .guess-who-question-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, minmax(0, 1fr));
   }
 }
 
