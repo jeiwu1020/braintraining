@@ -4,9 +4,9 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `48/59`
-- `FACILITATOR`: `6/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain LIGHT complete and reviewer real-device accepted.
-- Runtime/browser tooling: unavailable in this environment. Unmeasured viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided real-device findings are labeled `REAL-DEVICE CONFIRMED`.
+- Current overall standardization: `49/59`
+- `FACILITATOR`: `7/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, and Guess Who LIGHT complete and reviewer real-device accepted. Treasure LIGHT implementation is complete and pending reviewer real-device acceptance.
+- Runtime/browser tooling: in-app browser runtime was available at a fixed `655×552` viewport for this batch. Unmeasured target viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided findings are labeled `REAL-DEVICE CONFIRMED` or `REAL-DEVICE ACCEPTED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 - Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
 
@@ -27,10 +27,10 @@ The classification means:
 | 局部猜全貌 | `components/ZoomGame.tsx` | LIGHT | Scoring and normal gameplay passed reviewer real-device check; completion screen overflowed in landscape, and reviewer requested stronger initial crop. | Keep the single-stage image/reveal flow and current landscape footprint; compact completion state and use the approved NORMAL/ADVANCED initial zoom values. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion overflow) | MEDIUM | Luna Medium | Initial crop, potential score, completion card, header actions |
 | 記憶翻牌（口語版） | `components/VerbalMemoryGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the memory field was held toward the upper area, leaving a large unused lower region; direct emoji-size refinement was also accepted. | Keep the memory grid and flip state; size the complete 4×4/5×4 field from remaining landscape height and center it, then label/reset controls. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix allocation) | MEDIUM | Luna Medium | NORMAL/ADVANCED whole-grid visibility, balance, card selection, completion |
 | 語意聯想 | `components/WordChainGame.tsx` | LIGHT | The landscape row is viable, but icon-only Back/Reset are about 40px and the timeout modal has no height contract. | Keep the prompt plus timer/score rail; make controls accessible and protect the timed modal. | STATIC SOURCE INFERENCE | YES | MINOR ISSUE | MEDIUM | HIGH | Luna High | Prompt dominance, timer, add-score/start, timeout modal |
-| 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: the fixed 5×2 dock below candidates squeezed/clipped all avatars in phone landscape. | Keep the accepted safe-area/header/history semantics, but use horizontal width for a `candidate | questions | history` three-column landscape composition. | REAL-DEVICE CONFIRMED | YES | MAJOR ISSUE (pre-fix squeeze) | HIGH (pre-fix) | MEDIUM | Luna High | Avatar visibility, 2×5 questions, history review |
+| 猜猜我是誰 | `components/GuessWhoGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED: the three-column correction keeps candidates, 2×5 questions, and history usable in phone landscape. | Keep the accepted safe-area/header/history semantics, with horizontal `candidate | questions | history` composition. | REAL-DEVICE ACCEPTED | YES | ACCEPTED | LOW | MEDIUM | Luna High | Avatar visibility, 2×5 questions, history review |
 | 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED: 4/5-card layout, clipping fixes, ADVANCED spacing, zoom size/upper-left position, 60-card pool, category-diverse draws, and immediate repeat prevention. | Keep the accepted 4/5-card stage and UI; content enhancement is complete without changing the visual composition. | REAL-DEVICE CONFIRMED | YES | ACCEPTED | LOW | MEDIUM | Luna Medium | Final content variety and accepted touch UI |
 | 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
-| 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | Setup uses `py-6`, `p-6`, several large margins, and a full-height settings stack; at short landscape setup controls are likely below the fold. The play grid is capped at `60vh`. | Keep the map/grid and preview/radar settings; compact setup spacing and preserve the map as the dominant region. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | HIGH | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, game-over |
+| 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | LIGHT implementation complete: dedicated safe-stage ownership, compact two-column setup, 44px-class controls, compact status, and remaining-stage 4×4/5×5 board sizing are implemented; target phone landscape still awaits reviewer device acceptance. | Keep the map/grid, preview/radar settings, inline game-over banner, and original state machine; use scoped responsive spacing and remaining-stage sizing. | STATIC SOURCE INFERENCE | YES | ACCEPTANCE PENDING | MEDIUM | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, radar, game-over |
 | 命運轉盤 | `components/RouletteGame.tsx` | FULL | Short landscape must fit two betting panels, a `200px` minimum center column, spin/result controls, event guide, and a tall setup card; 640px leaves no reliable room for readable panel controls plus a dominant wheel. | The current three-region row is semantically correct, but the primary wheel and two independent facilitator controls need a new compact composition. | STATIC SOURCE INFERENCE | NO | MAJOR ISSUE | HIGH | HIGH | Luna Max | Wheel dominance, both bets, spin/result, setup and game-over |
 | 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | Current card is only `80×112` in landscape and three choice buttons use `py-1`; Rules is an unlabeled icon with no modal height limit. | Keep the two-team simultaneous prediction layout; enlarge core choices modestly and constrain the rules modal. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | HIGH | Luna High | Current/previous card, both teams, prediction controls, round result |
 | 價格估算 | `components/PriceEstimationGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: normal gameplay is usable, but the final 挑戰完成 state exceeds phone landscape; the edge-to-edge screen can also place content under the Dynamic Island/unsafe horizontal region. | Keep prompt plus three-option answer semantics; apply the non-GameShell safe-area contract, compact and center completion, and label header/actions without changing gameplay. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion/safe-area) | MEDIUM | Luna High | Prompt, three options, completion bounds, safe-area ownership |
@@ -52,7 +52,7 @@ CONFIDENCE
 
 HIGH
 
-CURRENT STRUCTURE
+CURRENT STRUCTURE (PRE-IMPLEMENTATION)
 
 - Root: fixed `h-[100dvh]` / `max-h-[100dvh]` column with `overflow-hidden`.
 - Header: title/subtitle with icon-only Back and Reset buttons using `p-2`.
@@ -600,7 +600,7 @@ HIGH — preview timer, random map, scoring, and game-over updates are tightly c
 
 EXPECTED IMPLEMENTATION FILES
 
-`components/TreasureGame.tsx`; later add `tests/treasureFacilitatorAcceptance.test.tsx` for setup and 4×4/5×5 contracts.
+`components/TreasureGame.tsx`, `index.css`, and `tests/treasureFacilitatorAcceptance.test.tsx`. No shared FACILITATOR layout or GameShell migration.
 
 RECOMMENDED MODEL
 
@@ -609,10 +609,11 @@ Luna High — responsive work crosses timed preview, grid state, and terminal fe
 REVIEWER SHOULD CHECK
 
 1. Setup Back/Start, preview toggle/time, and radar toggle are visible at 640×360.
-2. NORMAL 4×4 and ADVANCED 5×5 grids remain fully visible with coordinate/cell identity clear.
+2. NORMAL 4×4 and ADVANCED 5×5 grids remain fully visible with cell identity clear.
 3. Preview, playing, radar result, and game-over messages do not cause page-level overflow.
+4. Reviewer should confirm iPhone Home Screen Web App safe-area behavior, touch comfort, and no blank-strip regression.
 
-Final audit line: 尋寶大冒險 — Recommendation: LIGHT. Why: setup rhythm and grid sizing need short-height correction, but map plus settings remain one coherent game-specific composition. Evidence: STATIC SOURCE INFERENCE. What reviewer should visually check: setup completion and whole-map dominance.
+Final audit line: 尋寶大冒險 — Recommendation: LIGHT. Why: setup rhythm, safe-area ownership, touch targets, and remaining-stage grid sizing are implemented without changing the map state machine. Evidence: STATIC SOURCE INFERENCE for target dimensions plus fixed `655×552` in-app browser confirmation. Status: `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. What reviewer should visually check: setup completion, whole-map dominance, and status/game-over fit.
 
 ## 命運轉盤
 
@@ -987,8 +988,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain LIGHT complete and reviewer accepted; Guess Who three-column correction implemented, reviewer acceptance pending.
-- Production files changed in the Conditional Snap batch: `components/ConditionalSnapGame.tsx`.
-- Shared layout files changed in this batch: zero.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, and Guess Who LIGHT complete and reviewer accepted; Treasure LIGHT implementation complete, reviewer acceptance pending.
+- Production files changed in the Treasure batch: `components/TreasureGame.tsx` and `index.css`; shared FACILITATOR layout and `GameShell` remain unchanged.
+- Acceptance test added in this batch: `tests/treasureFacilitatorAcceptance.test.tsx`.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `48/59`; FACILITATOR is `6/11` after Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, and Word Chain reviewer real-device acceptance. Guess Who remains `THREE-COLUMN CORRECTION IMPLEMENTED`, pending reviewer real-device acceptance.
+- Overall standardization is `49/59`; FACILITATOR is `7/11` after Guess Who real-device acceptance. Treasure remains `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance; after that gate, expected status is `50/59` and `FACILITATOR 8/11`, with Roulette, Higher/Lower, and Positive Reappraisal remaining.
