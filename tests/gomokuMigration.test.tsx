@@ -46,14 +46,20 @@ describe('GomokuGame board-sidebar migration', () => {
     expect(markup).toContain('data-star-point="G7"');
   });
 
-  it('constrains the square board to the actual board-region height', () => {
+  it('keeps a width-driven square frame with safe-area clearance', () => {
     const markup = renderToStaticMarkup(
       <GomokuGame difficulty="NORMAL" initialBoard={emptyBoard()} onBack={() => undefined} />,
     );
 
-    expect(markup).toContain('data-gomoku-board-frame');
-    expect(markup).toMatch(/data-gomoku-board-frame[^>]*class="[^"]*max-h-full/);
-    expect(markup).not.toContain('calc(100dvh - 6rem)');
+    // Static markup protects sizing intent; true 1:1 bounding-box equality still requires browser/device QA.
+    const frame = markup.match(/<div data-gomoku-board-frame="true"[^>]*>/)?.[0] ?? '';
+    expect(frame).toContain('data-gomoku-board-frame');
+    expect(frame).toContain('aspect-square');
+    expect(frame).not.toContain(' w-full ');
+    expect(frame).not.toContain(' max-h-full');
+    expect(frame).toContain(
+      'width:min(100%, calc(100dvh - 6rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 0.25rem))',
+    );
   });
 
   it('preserves horizontal, vertical, and both diagonal five-in-a-row rules', () => {

@@ -290,8 +290,9 @@ const GomokuGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoa
     <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
       <div
         data-gomoku-board-frame="true"
-        className="grid aspect-square h-auto max-h-full w-full max-w-full gap-0.5"
+        className="grid aspect-square h-auto max-w-full gap-0.5"
         style={{
+          width: 'min(100%, calc(100dvh - 6rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 0.25rem))',
           gridTemplateColumns: '1.25rem minmax(0, 1fr)',
           gridTemplateRows: '1.25rem minmax(0, 1fr)',
         }}
