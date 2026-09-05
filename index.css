@@ -28,6 +28,17 @@
   }
 }
 
+/* iOS standalone can briefly report a shorter dynamic viewport during a cold
+ * launch. Keep the normal browser contract on 100dvh, but let the outer app
+ * surface use the stable standalone viewport without changing inner screens. */
+@media (display-mode: standalone) {
+  body,
+  #root,
+  #root > div[class~="min-h-[100dvh]"] {
+    min-height: 100vh;
+  }
+}
+
 @layer components {
   .app-safe-screen {
     box-sizing: border-box;
