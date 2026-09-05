@@ -21,4 +21,14 @@
     font-size: 0.8125rem;
     line-height: 1.125rem;
   }
+
+  /* Final IMMERSIVE reviewer polish: give the Starry Back control a little more left clearance. */
+  [data-starry-root] .starry-back {
+    left: 0.75rem;
+  }
+
+  /* Ambient Sound: nudge only the five-character title right without moving the helper/session layout. */
+  [data-ambient-root] .ambient-title {
+    padding-left: 1rem;
+  }
 }
