@@ -337,7 +337,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
               type="button"
               onClick={onBack}
               aria-label="返回遊戲選單"
-              className="roulette-back min-h-11 min-w-11 shrink-0 rounded-full bg-white text-gray-600 shadow-md transition-colors hover:bg-gray-50"
+              className="roulette-back inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white p-0 text-gray-600 shadow-md transition-colors hover:bg-gray-50"
             >
               <ArrowLeft size={24} aria-hidden="true" />
             </button>
@@ -350,7 +350,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
               onClick={resetGame}
               aria-label="重新設定遊戲"
               title="重新開始遊戲"
-              className="roulette-settings min-h-11 min-w-11 shrink-0 rounded-full bg-white text-rose-600 shadow-md transition-colors hover:bg-rose-50"
+              className="roulette-settings inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white p-0 text-rose-600 shadow-md transition-colors hover:bg-rose-50"
             >
               <Settings size={24} aria-hidden="true" />
             </button>
