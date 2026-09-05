@@ -151,8 +151,8 @@ const moreOddAdv = [
     { items: ["走", "跑", "跳", "站"], correctIndex: 3, reason: "站是靜止動作" } // 26 items
 ];
 
-let itemsN = moreOddNormal.map(x => \`  createOddOne([\${x.items.map(s => \`{text: "", icon: "\${s}"}\`).join(',')}], \${x.correctIndex}, "\${x.reason}")\`).join(',\\n');
-let itemsA = moreOddAdv.map(x => \`  createOddOne([\${x.items.map(s => \`{text: "\${s}", icon: ""}\`).join(',')}], \${x.correctIndex}, "\${x.reason}")\`).join(',\\n');
+let itemsN = moreOddNormal.map(x => `  createOddOne([${x.items.map(s => `{text: "", icon: "${s}"}`).join(',')}], ${x.correctIndex}, "${x.reason}")`).join(',\\n');
+let itemsA = moreOddAdv.map(x => `  createOddOne([${x.items.map(s => `{text: "${s}", icon: ""}`).join(',')}], ${x.correctIndex}, "${x.reason}")`).join(',\\n');
 
 content = content.replace(
     /\];\n\nexport const STATIC_ODD_ONE_LEVELS = ODD_ONE_NORMAL_POOL;/, 
