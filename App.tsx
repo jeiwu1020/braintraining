@@ -8,71 +8,65 @@ import {
   parseGameCategoryId,
 } from './data/gameCatalog';
 import type { GameCategoryId, GameDefinition } from './data/gameCatalog';
-import SortingGame from './components/SortingGame';
-import MemoryGame from './components/MemoryGame';
-import BreathingExercise from './components/BreathingExercise';
-import SentenceGame from './components/SentenceGame';
-import FindGame from './components/FindGame';
-import MarketGame from './components/MarketGame';
-import StepsGame from './components/StepsGame';
-import ShadowGame from './components/ShadowGame';
-import StroopGame from './components/StroopGame';
-import DotGame from './components/DotGame';
-import EmotionGame from './components/EmotionGame';
-// New Games
-import PatternGame from './components/PatternGame';
-import TimeGame from './components/TimeGame';
-import OddOneGame from './components/OddOneGame';
-import SoundGame from './components/SoundGame';
-import PuzzleGame from './components/PuzzleGame';
-import SudokuGame from './components/SudokuGame';
-import SpotDiffGame from './components/SpotDiffGame';
-import ZoomGame from './components/ZoomGame';
-import VerbalMemoryGame from './components/VerbalMemoryGame';
-import WordChainGame from './components/WordChainGame';
-import SimonSaysGame from './components/SimonSaysGame';
-import PriceEstimationGame from './components/PriceEstimationGame';
-// Mental Health Games
-import SocialContextGame from './components/SocialContextGame';
-import HazardIdentificationGame from './components/HazardIdentificationGame';
-import PositiveReappraisalGame from './components/PositiveReappraisalGame';
-// Board Games
-import WeiqiGame from './components/WeiqiGame';
-import GomokuGame from './components/GomokuGame';
-import DarkChessGame from './components/DarkChessGame';
-import ConnectFourGame from './components/ConnectFourGame';
-import OthelloGame from './components/OthelloGame';
-import DotsAndBoxesGame from './components/DotsAndBoxesGame';
-import MancalaGame from './components/MancalaGame';
-import CheckersGame from './components/CheckersGame';
-import GobbletGame from './components/GobbletGame';
-
-import TreasureGame from './components/TreasureGame';
-import RouletteGame from './components/RouletteGame';
-import HigherLowerGame from './components/HigherLowerGame';
-import BlackjackGame from './components/BlackjackGame';
-import GuessCardGame from './components/GuessCardGame';
-import MastermindGame from './components/MastermindGame';
-import SetGame from './components/SetGame';
-import PyramidGame from './components/PyramidGame';
-
-// Relaxing Games
-import AmbientSoundGame from './components/AmbientSoundGame';
-import MandalaGame from './components/MandalaGame';
-import AffirmationCardGame from './components/AffirmationCardGame';
-import StarryRippleGame from './components/StarryRippleGame';
-import MuscleRelaxationGame from './components/MuscleRelaxationGame';
-import GuessWhoGame from "./components/GuessWhoGame";
-import StoryCardsGame from "./components/StoryCardsGame";
-import ConditionalSnapGame from "./components/ConditionalSnapGame";
-import RevealPictureGame from "./components/RevealPictureGame";
-import MazeNavigatorGame from "./components/MazeNavigatorGame";
-import WordTileGame from "./components/WordTileGame";
-import MahjongMeldsGame from "./components/MahjongMeldsGame";
-import RummikubGame from "./components/RummikubGame";
-import QwirkleGame from "./components/QwirkleGame";
-import SevensGame from "./components/SevensGame";
-import ChineseTenGame from "./components/ChineseTenGame";
+const SortingGame = React.lazy(() => import('./components/SortingGame'));
+const MemoryGame = React.lazy(() => import('./components/MemoryGame'));
+const BreathingExercise = React.lazy(() => import('./components/BreathingExercise'));
+const SentenceGame = React.lazy(() => import('./components/SentenceGame'));
+const FindGame = React.lazy(() => import('./components/FindGame'));
+const MarketGame = React.lazy(() => import('./components/MarketGame'));
+const StepsGame = React.lazy(() => import('./components/StepsGame'));
+const ShadowGame = React.lazy(() => import('./components/ShadowGame'));
+const StroopGame = React.lazy(() => import('./components/StroopGame'));
+const DotGame = React.lazy(() => import('./components/DotGame'));
+const EmotionGame = React.lazy(() => import('./components/EmotionGame'));
+const PatternGame = React.lazy(() => import('./components/PatternGame'));
+const TimeGame = React.lazy(() => import('./components/TimeGame'));
+const OddOneGame = React.lazy(() => import('./components/OddOneGame'));
+const SoundGame = React.lazy(() => import('./components/SoundGame'));
+const PuzzleGame = React.lazy(() => import('./components/PuzzleGame'));
+const SudokuGame = React.lazy(() => import('./components/SudokuGame'));
+const SpotDiffGame = React.lazy(() => import('./components/SpotDiffGame'));
+const ZoomGame = React.lazy(() => import('./components/ZoomGame'));
+const VerbalMemoryGame = React.lazy(() => import('./components/VerbalMemoryGame'));
+const WordChainGame = React.lazy(() => import('./components/WordChainGame'));
+const SimonSaysGame = React.lazy(() => import('./components/SimonSaysGame'));
+const PriceEstimationGame = React.lazy(() => import('./components/PriceEstimationGame'));
+const SocialContextGame = React.lazy(() => import('./components/SocialContextGame'));
+const HazardIdentificationGame = React.lazy(() => import('./components/HazardIdentificationGame'));
+const PositiveReappraisalGame = React.lazy(() => import('./components/PositiveReappraisalGame'));
+const WeiqiGame = React.lazy(() => import('./components/WeiqiGame'));
+const GomokuGame = React.lazy(() => import('./components/GomokuGame'));
+const DarkChessGame = React.lazy(() => import('./components/DarkChessGame'));
+const ConnectFourGame = React.lazy(() => import('./components/ConnectFourGame'));
+const OthelloGame = React.lazy(() => import('./components/OthelloGame'));
+const DotsAndBoxesGame = React.lazy(() => import('./components/DotsAndBoxesGame'));
+const MancalaGame = React.lazy(() => import('./components/MancalaGame'));
+const CheckersGame = React.lazy(() => import('./components/CheckersGame'));
+const GobbletGame = React.lazy(() => import('./components/GobbletGame'));
+const TreasureGame = React.lazy(() => import('./components/TreasureGame'));
+const RouletteGame = React.lazy(() => import('./components/RouletteGame'));
+const HigherLowerGame = React.lazy(() => import('./components/HigherLowerGame'));
+const BlackjackGame = React.lazy(() => import('./components/BlackjackGame'));
+const GuessCardGame = React.lazy(() => import('./components/GuessCardGame'));
+const MastermindGame = React.lazy(() => import('./components/MastermindGame'));
+const SetGame = React.lazy(() => import('./components/SetGame'));
+const PyramidGame = React.lazy(() => import('./components/PyramidGame'));
+const AmbientSoundGame = React.lazy(() => import('./components/AmbientSoundGame'));
+const MandalaGame = React.lazy(() => import('./components/MandalaGame'));
+const AffirmationCardGame = React.lazy(() => import('./components/AffirmationCardGame'));
+const StarryRippleGame = React.lazy(() => import('./components/StarryRippleGame'));
+const MuscleRelaxationGame = React.lazy(() => import('./components/MuscleRelaxationGame'));
+const GuessWhoGame = React.lazy(() => import('./components/GuessWhoGame'));
+const StoryCardsGame = React.lazy(() => import('./components/StoryCardsGame'));
+const ConditionalSnapGame = React.lazy(() => import('./components/ConditionalSnapGame'));
+const RevealPictureGame = React.lazy(() => import('./components/RevealPictureGame'));
+const MazeNavigatorGame = React.lazy(() => import('./components/MazeNavigatorGame'));
+const WordTileGame = React.lazy(() => import('./components/WordTileGame'));
+const MahjongMeldsGame = React.lazy(() => import('./components/MahjongMeldsGame'));
+const RummikubGame = React.lazy(() => import('./components/RummikubGame'));
+const QwirkleGame = React.lazy(() => import('./components/QwirkleGame'));
+const SevensGame = React.lazy(() => import('./components/SevensGame'));
+const ChineseTenGame = React.lazy(() => import('./components/ChineseTenGame'));
 
 
 import {
@@ -91,6 +85,14 @@ import {
   Wind,
   Zap,
 } from 'lucide-react';
+
+const LazyGameFallback: React.FC<{ bgClass: string }> = ({ bgClass }) => (
+  <div className={`min-h-[100dvh] ${bgClass} flex items-center justify-center`}>
+    <div className="app-safe-screen h-full w-full flex items-center justify-center" role="status" aria-live="polite">
+      <span className="text-base font-semibold text-gray-600">載入遊戲中…</span>
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
@@ -228,7 +230,9 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-[100dvh] ${bgClass} transition-colors duration-500`}>
-      {renderContent()}
+       <React.Suspense fallback={<LazyGameFallback bgClass={bgClass} />}>
+         {renderContent()}
+       </React.Suspense>
     </div>
   );
 };

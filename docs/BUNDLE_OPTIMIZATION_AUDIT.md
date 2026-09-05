@@ -171,6 +171,43 @@ Required evidence should include:
 
 The warning-removal metric and the initial-download metric must be reported separately.
 
-## 10. Decision
+## 10. Batch 1 implementation results
 
-Do not implement code splitting in this audit. The preferred next step, pending approval, is game-level lazy loading with a minimal Suspense boundary, followed by targeted data-boundary work only where the selected-game graph proves it necessary. No production optimization was implemented here.
+Batch 1 implemented game-level lazy loading in `App.tsx` with one minimal `React.Suspense` fallback. No game component, data module, CSS, PWA file, Vite configuration, or dependency was changed.
+
+| Metric | Baseline | Batch 1 | Change |
+| --- | ---: | ---: | ---: |
+| Initial entry JS raw | 1,332.53 kB | 244.75 kB | −1,087.78 kB |
+| Initial entry JS gzip | 381.35 kB | 76.81 kB | −304.54 kB |
+| JS files emitted | 2 | 102 | More on-demand boundaries; not initial requests |
+| >500 kB warning | Yes | No | Warning removed |
+
+The entry is `assets/index-CS-WSqsy.js`. The build emitted 102 JavaScript files in total: the entry, 59 game dynamic entries, the existing `mancalaAI` dynamic entry, and shared/icon/dependency chunks. The larger lazy game chunks are:
+
+| Game chunk | Raw | Gzip |
+| --- | ---: | ---: |
+| `WeiqiGame-Ct2CyuKl.js` | 106.43 kB | 26.78 kB |
+| `HazardIdentificationGame-i6DEMtK1.js` | 57.27 kB | 19.52 kB |
+| `SocialContextGame-Guq__dIE.js` | 55.42 kB | 18.71 kB |
+| `PositiveReappraisalGame-DLijnvdi.js` | 50.58 kB | 18.73 kB |
+| `WordTileGame-NNDYi9y2.js` | 40.35 kB | 16.52 kB |
+| `QwirkleGame-DUDHgfws.js` | 33.70 kB | 9.32 kB |
+| `RummikubGame-D5XlJ30J.js` | 28.34 kB | 8.21 kB |
+| `MahjongMeldsGame-OYKMzBn1.js` | 23.37 kB | 7.24 kB |
+| `CheckersGame-CxotCkSV.js` | 23.28 kB | 6.80 kB |
+| `BlackjackGame-3HHimJLh.js` | 19.95 kB | 5.68 kB |
+
+Manifest verification from `dist/.vite/manifest.json`:
+
+- `index.html` is the single entry and points to `assets/index-CS-WSqsy.js`.
+- It has 0 static imports and 59 dynamic imports for the game components.
+- The manifest has 59 `components/*.tsx` dynamic entries plus the existing `utils/mancalaAI.ts` dynamic entry.
+- The 59 game implementations are therefore absent from the menu entry's static dependency graph.
+
+The warning-removal result and the initial-load result are separate: this batch achieved both. The emitted file count increased, but those files are requested on game selection rather than eagerly downloading all game implementations with MainMenu.
+
+Runtime smoke evidence in the local browser confirmed MainMenu load, the visible `載入遊戲中…` fallback, game resolution, Back navigation, second-game navigation, and re-entry. No real-device or iOS cold-start claim is made here.
+
+## 11. Decision and deferred work
+
+Batch 1 is complete. The next approved optimization should be measured data-boundary work only where selected-game profiling proves it necessary, starting with the broad `staticData.ts`/`geminiService.ts` relationship. Manual chunks, dependency cleanup, and PWA cold-start work remain separate; no Batch 2 work was implemented here.
