@@ -4,11 +4,11 @@
 
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
-- Current overall standardization: `53/59`
+- Current overall standardization: `59/59 COMPLETE`
 - `FACILITATOR`: `11/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, Higher/Lower, Positive Reappraisal, and Roulette are complete and reviewer real-device accepted. Roulette's previous FULL attempt and the later THREE-COLUMN V2 correction remain recorded as historical evidence.
 - Runtime/browser tooling: in-app browser runtime was available at a fixed `655×552` viewport for this batch. Unmeasured target viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided findings are labeled `REAL-DEVICE CONFIRMED` or `REAL-DEVICE ACCEPTED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
-- Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
+- Platform note: the later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are REAL-DEVICE PASS. The intermittent iOS Home Screen Web App cold-start bottom blank strip remains `DEFERRED` and is outside this closeout.
 
 ## Methodology
 
@@ -991,4 +991,4 @@ This is a future implementation contract, not production code in this audit:
 - Production files changed in the Roulette batch: `components/RouletteGame.tsx` and `index.css`; shared FACILITATOR layout and `GameShell` remain unchanged.
 - Acceptance test added in the Roulette batch: `tests/rouletteFacilitatorAcceptance.test.tsx`.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `53/59`; FACILITATOR is `11/11 COMPLETE` after Roulette real-device acceptance. The next phase is one six-game IMMERSIVE audit and reference selection; Breathing is the first reference implementation and is tracked separately in `docs/IMMERSIVE_MIGRATION_AUDIT.md`.
+- Overall standardization is `59/59 COMPLETE`; FACILITATOR is `11/11 COMPLETE` after Roulette real-device acceptance. The mobile-landscape standardization phase is now CLOSED. IMMERSIVE completion and the final reviewer gate are tracked in `docs/IMMERSIVE_MIGRATION_AUDIT.md`; no further migration work is required.

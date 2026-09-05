@@ -3,9 +3,9 @@
 ## Audit status
 
 - Audit scope: exactly the six catalog entries whose `layoutPreset` is `IMMERSIVE`.
-- Current formal status: `56/59`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 3/6`.
+- Current formal status: `59/59 COMPLETE`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 6/6 COMPLETE`.
 - Reference selected: `呼吸律動` / `components/BreathingExercise.tsx`.
-- Reference status: `REAL-DEVICE ACCEPTED`; Breathing is counted as the first completed IMMERSIVE migration. Affirmation and Muscle Relaxation are also `REAL-DEVICE ACCEPTED`, so three IMMERSIVE games are formally complete.
+- Reference status: `REAL-DEVICE ACCEPTED`; Breathing is counted as the first completed IMMERSIVE migration. Affirmation, Muscle Relaxation, StarryRipple, AmbientSound, and Mandala are also `REAL-DEVICE ACCEPTED`; all six IMMERSIVE games are formally complete.
 - Evidence: `STATIC SOURCE INFERENCE` for the target viewports. No target-size browser or iPhone measurements are claimed in this audit.
 - Shared component decision: **A — no shared IMMERSIVE component yet**. The first reference establishes scoped CSS and safe-stage conventions only; the six games have materially different canvas, microphone, WebAudio, timer, and content models.
 
@@ -14,10 +14,10 @@
 | Game | Component | Catalog state | Classification | Recommended model | Confidence |
 |---|---|---|---|---|---|
 | 呼吸律動 | `components/BreathingExercise.tsx` | `GameState.BREATHING` | LIGHT reference — accepted | Luna Max | High |
-| 環境白噪音 | `components/AmbientSoundGame.tsx` | `GameState.AMBIENT_SOUND` | FULL — implementation complete, pending reviewer | Luna Max | High |
-| 紓壓聲繪 | `components/MandalaGame.tsx` | `GameState.MANDALA` | FULL — implementation complete, pending reviewer | Luna Max | High |
+| 環境白噪音 | `components/AmbientSoundGame.tsx` | `GameState.AMBIENT_SOUND` | FULL — REAL-DEVICE ACCEPTED | Luna Max | High |
+| 紓壓聲繪 | `components/MandalaGame.tsx` | `GameState.MANDALA` | FULL — REAL-DEVICE ACCEPTED | Luna Max | High |
 | 正向肯定小卡 | `components/AffirmationCardGame.tsx` | `GameState.AFFIRMATION` | LIGHT — REAL-DEVICE ACCEPTED | Luna Medium | High |
-| 指尖星空 | `components/StarryRippleGame.tsx` | `GameState.STARRY_RIPPLE` | LIGHT — implementation complete, pending reviewer | Luna High | Medium |
+| 指尖星空 | `components/StarryRippleGame.tsx` | `GameState.STARRY_RIPPLE` | LIGHT — REAL-DEVICE ACCEPTED | Luna High | Medium |
 | 漸進式放鬆 | `components/MuscleRelaxationGame.tsx` | `GameState.MUSCLE_RELAXATION` | LIGHT — REAL-DEVICE ACCEPTED | Luna High | Medium-high |
 
 All six remain cataloged as `layoutPreset: IMMERSIVE`. This batch changes that classification nowhere.
@@ -169,7 +169,7 @@ Use a lower-density but still visible soundboard contract without hiding essenti
 
 ### Current batch status
 
-`FULL IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version keeps all five sound controls and volume sliders directly reachable in a short-landscape grid, moves timer/master controls into a compact session region, and preserves generated WebAudio semantics with immutable sound state and explicit node/context cleanup. PWA cold-start viewport infrastructure was not changed.
+`FULL IMPLEMENTATION COMPLETE — REAL-DEVICE ACCEPTED`. The migrated version keeps all five sound controls and volume sliders directly reachable in a short-landscape grid, moves timer/master controls into a compact session region, and preserves generated WebAudio semantics with immutable sound state and explicit node/context cleanup. PWA cold-start viewport infrastructure was not changed.
 
 ## 3. 紓壓聲繪
 
@@ -225,7 +225,7 @@ Protect the square canvas and direct touch drawing while making controls usable.
 
 ### Current batch status
 
-`FULL IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version keeps a safe-stage owner, a compact control rail, and a square dominant canvas; DRAW and VOICE controls remain directly reachable. MediaStream tracks, analyser/audio resources, and voice RAF cleanup are explicitly handled. PWA cold-start viewport infrastructure was not changed.
+`FULL IMPLEMENTATION COMPLETE — REAL-DEVICE ACCEPTED`. The migrated version keeps a safe-stage owner, a compact control rail, and a square dominant canvas; DRAW and VOICE controls remain directly reachable. MediaStream tracks, analyser/audio resources, and voice RAF cleanup are explicitly handled. PWA cold-start viewport infrastructure was not changed.
 
 ## 4. 正向肯定小卡
 
@@ -329,7 +329,7 @@ Do not put the experience inside a conventional panel. Reviewer should check edg
 
 ### Current batch status
 
-`LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version preserves an edge-to-edge canvas, places Back and instruction inside a safe overlay, sizes the backing buffer from rendered geometry with DPR support, and retains tap/drag ripple semantics with RAF and resize cleanup. No PWA cold-start viewport work was included.
+`LIGHT IMPLEMENTATION COMPLETE — REAL-DEVICE ACCEPTED`. The migrated version preserves an edge-to-edge canvas, places Back and instruction inside a safe overlay, sizes the backing buffer from rendered geometry with DPR support, and retains tap/drag ripple semantics with RAF and resize cleanup. No PWA cold-start viewport work was included.
 
 ## 6. 漸進式放鬆
 
@@ -396,11 +396,11 @@ Preserve a calm single-focus exercise while moving chrome into the safe stage an
 
 - Games: `StarryRippleGame` (`LIGHT`), `AmbientSoundGame` (`FULL`), `MandalaGame` (`FULL`).
 - Recommended model: `Luna Max`.
-- Status: implementation complete for all three games; pending reviewer real-device acceptance. Formal IMMERSIVE count remains `3/6`.
+- Status: implementation complete and `REAL-DEVICE ACCEPTED` for all three games. Formal IMMERSIVE count is `6/6 COMPLETE`.
 - Why these belong together: all need an explicit resource-lifecycle and edge-to-edge interaction review, and their primary surface is either a canvas or a multi-source audio experience. They should be migrated after the simple DOM batch proves the reference safe-stage contract, with separate per-game composition decisions.
 - Shared contracts that can safely be reused: one safe-area owner, edge-to-edge stimulus surface, safe floating controls, no document scroll in short landscape, local secondary control scrolling only where necessary, and explicit cleanup on unmount/exit.
 - Must remain game-specific: Starry Ripple canvas/RAF/ripple physics; Ambient Sound WebAudio graph, five sources, timer, volume and master controls; Mandala DRAW/VOICE modes, canvas drawing, microphone permission, analyser graph, media tracks, and RAF.
 
 ## Final audit decision
 
-Breathing remains the accepted `LIGHT` reference and its 5-cycle, 3-countdown, 4/7/8 timing and functional size guidance are unchanged. Affirmation and Muscle Relaxation are `LIGHT — REAL-DEVICE ACCEPTED`; their content, flip/step/timer/audio semantics remain game-specific. StarryRipple is `LIGHT IMPLEMENTATION COMPLETE`; AmbientSound and Mandala are `FULL IMPLEMENTATION COMPLETE`; all three are pending reviewer real-device acceptance. No shared IMMERSIVE component is justified yet. The formal status remains `56/59`, `FACILITATOR 11/11`, `IMMERSIVE 3/6`; after all three pending reviewer gates, expected status is `59/59`, `IMMERSIVE 6/6 COMPLETE`. The intermittent iOS Home Screen Web App cold-start bottom blank strip remains `DEFERRED` and was not modified in this batch.
+Breathing remains the accepted `LIGHT` reference and its 5-cycle, 3-countdown, 4/7/8 timing and functional size guidance are unchanged. Affirmation and Muscle Relaxation are `LIGHT — REAL-DEVICE ACCEPTED`; StarryRipple is `LIGHT — REAL-DEVICE ACCEPTED`; AmbientSound and Mandala are `FULL — REAL-DEVICE ACCEPTED`. Their content, canvas, audio, microphone, timer, and lifecycle semantics remain game-specific. No shared IMMERSIVE component is justified yet. The final reviewer gate is `REAL-DEVICE ACCEPTED`; formal status is `59/59 COMPLETE`, `FACILITATOR 11/11 COMPLETE`, `IMMERSIVE 6/6 COMPLETE`. The intermittent iOS Home Screen Web App cold-start bottom blank strip remains `DEFERRED` and was not modified in this batch. The mobile-landscape standardization phase is CLOSED.
