@@ -38,24 +38,147 @@ const EVENT_ITEMS_ADVANCED = [
 ];
 
 type TeamChoice = { itemId: string, amount: number } | null;
+type StandardItem = { id: string; label: string; icon: string; color: string };
+
+interface TeamBetPanelProps {
+  team: 'A' | 'B';
+  score: number;
+  choice: TeamChoice;
+  result: string | null;
+  isSpinning: boolean;
+  standardItems: StandardItem[];
+  onConfirm: (choice: { itemId: string; amount: number }) => void;
+}
+
+const TeamBetPanel: React.FC<TeamBetPanelProps> = ({
+  team,
+  score,
+  choice,
+  result,
+  isSpinning,
+  standardItems,
+  onConfirm,
+}) => {
+  const amounts = [10, 20, 50];
+  const [isEditing, setIsEditing] = useState(!choice);
+  const [draftAmount, setDraftAmount] = useState(choice?.amount ?? 10);
+  const [draftItem, setDraftItem] = useState(choice?.itemId ?? standardItems[0].id);
+
+  useEffect(() => {
+    setDraftAmount(choice?.amount ?? 10);
+    setDraftItem(choice?.itemId ?? standardItems[0].id);
+    if (!choice) setIsEditing(true);
+  }, [choice, standardItems]);
+
+  const handleConfirm = () => {
+    onConfirm({ itemId: draftItem, amount: draftAmount });
+    setIsEditing(false);
+  };
+
+  const selectedItem = choice ? standardItems.find(item => item.id === choice.itemId) : null;
+  const isAdvanced = standardItems.length === 6;
+
+  return (
+    <section className={`roulette-team-panel ${team === 'A' ? 'roulette-team-panel-a' : 'roulette-team-panel-b'}`}>
+      <div className="roulette-team-heading">
+        <span className="roulette-team-name">{team} 組</span>
+        <span className="roulette-team-score">
+          <Coins className="h-4 w-4" aria-hidden="true" />
+          {score}
+        </span>
+      </div>
+
+      {(!choice || isEditing) ? (
+        <div data-roulette-bet-controls="true" className="roulette-team-controls">
+          <div className="roulette-team-control-group">
+            <span className="roulette-team-control-label">押注項目</span>
+            <div className={`roulette-team-item-grid ${isAdvanced ? 'roulette-team-item-grid-advanced' : ''}`}>
+              {standardItems.map(item => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => setDraftItem(item.id)}
+                  aria-label={`${team} 組選擇${item.label}`}
+                  aria-pressed={draftItem === item.id}
+                  className={`roulette-team-item ${draftItem === item.id
+                    ? `${item.color} text-white border-transparent shadow-md is-selected`
+                    : 'bg-white border-gray-200 text-gray-700'}`}
+                >
+                  <span className="roulette-team-item-icon" aria-hidden="true">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="roulette-team-control-group roulette-team-amount-group">
+            <span className="roulette-team-control-label">押注金額</span>
+            <div className="roulette-team-amount-grid">
+              {amounts.map(amount => (
+                <button
+                  type="button"
+                  key={amount}
+                  onClick={() => setDraftAmount(amount)}
+                  aria-label={`${team} 組押注 ${amount} 分`}
+                  aria-pressed={draftAmount === amount}
+                  className={`roulette-team-amount ${draftAmount === amount ? 'is-selected' : ''}`}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleConfirm}
+            aria-label={`確認${team}組押注`}
+            className="roulette-team-confirm min-h-11"
+          >
+            確認押注
+          </button>
+        </div>
+      ) : (
+        <div className="roulette-team-confirmed">
+          <div className="roulette-team-bet-label">
+            <span>已押注</span>
+            <strong><span aria-hidden="true">{selectedItem?.icon}</span> {selectedItem?.label}</strong>
+            <span>{choice.amount} 分</span>
+          </div>
+          {result && <div className="roulette-team-result" aria-live="polite">{result}</div>}
+          {!isSpinning && !result && (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              aria-label={`修改${team}組押注`}
+              className="roulette-team-edit min-h-11"
+            >
+              修改押注
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+};
 
 const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
   const isAdvanced = difficulty === 'ADVANCED';
-  
+
   const standardItems = isAdvanced ? STANDARD_ITEMS_ADVANCED : STANDARD_ITEMS_NORMAL;
   const eventItems = isAdvanced ? EVENT_ITEMS_ADVANCED : EVENT_ITEMS_NORMAL;
-  
+
   const [wheelOptions, setWheelOptions] = useState([...standardItems, ...eventItems]);
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+  const [hasSpinStarted, setHasSpinStarted] = useState(false);
+
   const [teamAScore, setTeamAScore] = useState(100);
   const [teamBScore, setTeamBScore] = useState(100);
-  
+
   const [teamAChoice, setTeamAChoice] = useState<TeamChoice>(null);
   const [teamBChoice, setTeamBChoice] = useState<TeamChoice>(null);
-  const [editingTeam, setEditingTeam] = useState<'A' | 'B' | null>(null);
 
   const [resultMsg, setResultMsg] = useState<{main: string, a: string, b: string} | null>(null);
 
@@ -77,7 +200,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
       setTeamAChoice(null);
       setTeamBChoice(null);
       setResultMsg(null);
-      setEditingTeam(null);
+      setHasSpinStarted(false);
   };
 
   const startGame = () => {
@@ -88,7 +211,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
       setTeamAChoice(null);
       setTeamBChoice(null);
       setResultMsg(null);
-      setEditingTeam(null);
+      setHasSpinStarted(false);
       setGameState('PLAYING');
   };
 
@@ -96,7 +219,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
     if (isSpinning) return;
     if (!teamAChoice || !teamBChoice) return;
 
-    setEditingTeam(null);
+    setHasSpinStarted(true);
     setIsSpinning(true);
     setResultMsg(null);
 
@@ -110,7 +233,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
 
         if (ticks >= maxTicks) {
             setIsSpinning(false);
-            // Result is current index visually when stopped. 
+            // Result is current index visually when stopped.
             // Actually it will be the state at this point.
         } else {
             if (ticks > maxTicks - 15) speed += 20;
@@ -131,7 +254,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
           let mainMsg = `轉到了：${landedOption.icon} ${landedOption.label}！`;
           let deltaA = 0;
           let deltaB = 0;
-          
+
           let newA = teamAScore;
           let newB = teamBScore;
 
@@ -141,7 +264,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
               if (landedOption.id === 'minus_10') { deltaA = -10; deltaB = -10; msgA = '-10'; msgB = '-10'; }
               if (landedOption.id === 'plus_20') { deltaA = 20; deltaB = 20; msgA = '+20'; msgB = '+20'; }
               if (landedOption.id === 'bomb') { deltaA = -20; deltaB = -20; msgA = '-20'; msgB = '-20'; }
-              if (landedOption.id === 'swap') { 
+              if (landedOption.id === 'swap') {
                   newA = teamBScore;
                   newB = teamAScore;
                   msgA = '分數互換！';
@@ -171,7 +294,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
               newA += deltaA;
               newB += deltaB;
           }
-          
+
           setTeamAScore(newA);
           setTeamBScore(newB);
 
@@ -188,7 +311,6 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
   }, [isSpinning]);
 
   const resetRound = () => {
-      setEditingTeam(null);
       if (isGameOverRound) {
           setGameState('GAMEOVER');
       } else {
@@ -196,6 +318,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
           setTeamAChoice(null);
           setTeamBChoice(null);
           setResultMsg(null);
+          setHasSpinStarted(false);
       }
   };
 
@@ -204,156 +327,6 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
         if (spinInterval.current) clearTimeout(spinInterval.current);
     };
   }, []);
-
-  const BetEditor = ({
-      team,
-      choice,
-      onConfirm,
-      onCancel,
-  }: {
-      team: 'A' | 'B';
-      choice: TeamChoice;
-      onConfirm: (nextChoice: { itemId: string; amount: number }) => void;
-      onCancel: () => void;
-  }) => {
-      const amounts = [10, 20, 50];
-      const [tempAmount, setTempAmount] = useState(choice?.amount ?? 10);
-      const [tempItem, setTempItem] = useState(choice?.itemId ?? standardItems[0].id);
-
-      return (
-          <div className="roulette-editor-content">
-              <div className="roulette-editor-heading">
-                  <div>
-                      <p className="roulette-editor-eyebrow">設定押注</p>
-                      <h2 id="roulette-editor-title" className="roulette-editor-title">{team} 組</h2>
-                  </div>
-                  <button
-                      type="button"
-                      onClick={onCancel}
-                      aria-label={`取消${team}組押注`}
-                      className="roulette-editor-close min-h-11 min-w-11"
-                  >
-                      ×
-                  </button>
-              </div>
-
-              <div className="roulette-editor-section">
-                  <span className="roulette-editor-label">選擇押注項目</span>
-                  <div className={`roulette-editor-items ${isAdvanced ? 'roulette-editor-items-advanced' : ''}`}>
-                      {standardItems.map(item => (
-                          <button
-                              type="button"
-                              key={item.id}
-                              onClick={() => setTempItem(item.id)}
-                              aria-label={`${team} 組選擇${item.label}`}
-                              aria-pressed={tempItem === item.id}
-                              className={`roulette-editor-item min-h-11 ${tempItem === item.id
-                                  ? `${item.color} text-white border-transparent shadow-md`
-                                  : 'bg-white border-gray-200 text-gray-600'}`}
-                          >
-                              <span className="roulette-editor-item-icon">{item.icon}</span>
-                              <span>{item.label}</span>
-                          </button>
-                      ))}
-                  </div>
-              </div>
-
-              <div className="roulette-editor-section">
-                  <span className="roulette-editor-label">選擇押注金額</span>
-                  <div className="roulette-editor-amounts">
-                      {amounts.map(amt => (
-                          <button
-                              type="button"
-                              key={amt}
-                              onClick={() => setTempAmount(amt)}
-                              aria-label={`${team} 組押注 ${amt} 分`}
-                              aria-pressed={tempAmount === amt}
-                              className={`roulette-editor-amount min-h-11 ${tempAmount === amt
-                                  ? 'bg-indigo-500 text-white border-indigo-600 shadow-md'
-                                  : 'bg-white border-gray-300 text-gray-600'}`}
-                          >
-                              {amt} 分
-                          </button>
-                      ))}
-                  </div>
-              </div>
-
-              <div className="roulette-editor-actions">
-                  <button
-                      type="button"
-                      onClick={onCancel}
-                      aria-label={`取消${team}組押注`}
-                      className="roulette-editor-cancel min-h-11"
-                  >
-                      取消
-                  </button>
-                  <button
-                      type="button"
-                      onClick={() => onConfirm({ itemId: tempItem, amount: tempAmount })}
-                      aria-label={`確認${team}組押注`}
-                      className="roulette-editor-confirm min-h-11"
-                  >
-                      確認押注
-                  </button>
-              </div>
-          </div>
-      );
-  };
-
-  const BetSummary = ({
-      team,
-      score,
-      choice,
-      result,
-      onEdit,
-  }: {
-      team: 'A' | 'B';
-      score: number;
-      choice: TeamChoice;
-      result: string | null;
-      onEdit: () => void;
-  }) => {
-      const selectedItem = choice ? standardItems.find(item => item.id === choice.itemId) : null;
-
-      return (
-          <div className="roulette-team-summary">
-              <div className="roulette-team-heading">
-                  <span className="roulette-team-name">{team} 組</span>
-                  <span className="roulette-team-score">
-                      <Coins className="h-4 w-4" aria-hidden="true" />
-                      {score}
-                  </span>
-              </div>
-              {choice && selectedItem ? (
-                  <div className="roulette-team-bet">
-                      <span className="roulette-team-bet-label">
-                          {selectedItem.icon} {selectedItem.label} · 押注 {choice.amount} 分
-                      </span>
-                      {result && <span className="roulette-team-result">{result}</span>}
-                      {!isSpinning && !resultMsg && (
-                          <button
-                              type="button"
-                              onClick={onEdit}
-                              aria-label={`修改${team}組押注`}
-                              className="roulette-team-edit min-h-11"
-                          >
-                              修改押注
-                          </button>
-                      )}
-                  </div>
-              ) : (
-                  <button
-                      type="button"
-                      onClick={onEdit}
-                      aria-label={`設定${team}組押注`}
-                      className="roulette-team-set min-h-11"
-                  >
-                      設定 {team} 組押注
-                  </button>
-              )}
-          </div>
-      );
-  };
 
   return (
     <div data-roulette-root="true" className="roulette-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-rose-50">
@@ -474,67 +447,96 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
 
             {gameState === 'PLAYING' && (
               <div className="roulette-playing flex min-h-0 flex-1 flex-col">
-                <div data-roulette-status="true" className="roulette-status grid min-h-0 w-full items-stretch">
-                  <div data-roulette-team-a="true" className="roulette-team-card roulette-team-a">
-                    <BetSummary team="A" score={teamAScore} choice={teamAChoice} result={resultMsg?.a ?? null} onEdit={() => setEditingTeam('A')} />
+                <div data-roulette-status="true" className="roulette-landscape-columns flex min-h-0 flex-1 w-full">
+                  <div data-roulette-team-a="true" className="roulette-team-column roulette-team-a">
+                    <TeamBetPanel
+                      team="A"
+                      score={teamAScore}
+                      choice={teamAChoice}
+                      result={resultMsg?.a ?? null}
+                      isSpinning={isSpinning}
+                      standardItems={standardItems}
+                      onConfirm={choice => setTeamAChoice(choice)}
+                    />
                   </div>
-                  <div className="roulette-round-status">
-                    <span className="roulette-round-label">
-                      {gameMode === 'ROUNDS' ? `回合: ${currentRound} / ${targetValue}` : `目標分數: ${targetValue} 分`}
-                    </span>
-                    {gameMode === 'SCORE' && <span className="roulette-round-subtitle">目前第 {currentRound} 回合</span>}
-                  </div>
-                  <div data-roulette-team-b="true" className="roulette-team-card roulette-team-b">
-                    <BetSummary team="B" score={teamBScore} choice={teamBChoice} result={resultMsg?.b ?? null} onEdit={() => setEditingTeam('B')} />
-                  </div>
-                </div>
 
-                <div className="roulette-primary-stage flex min-h-0 flex-1 flex-col items-center justify-center">
-                  <div data-roulette-wheel="true" className="roulette-wheel-slot flex min-h-0 items-center justify-center">
-                    <div className="roulette-wheel-visual relative flex aspect-square items-center justify-center overflow-hidden rounded-3xl border-8 border-rose-200 bg-gray-100 shadow-inner">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={currentIndex}
-                          initial={isSpinning ? { y: -50, opacity: 0 } : false}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={isSpinning ? { y: 50, opacity: 0 } : undefined}
-                          transition={{ duration: 0.1 }}
-                          className={`absolute inset-0 flex flex-col items-center justify-center ${wheelOptions[currentIndex].color} text-white`}
+                  <div data-roulette-center="true" className="roulette-center-column">
+                    <div className="roulette-round-status">
+                      <span className="roulette-round-label">
+                        {gameMode === 'ROUNDS' ? `回合: ${currentRound} / ${targetValue}` : `目標分數: ${targetValue} 分`}
+                      </span>
+                      {gameMode === 'SCORE' && <span className="roulette-round-subtitle">目前第 {currentRound} 回合</span>}
+                    </div>
+
+                    <div data-roulette-wheel="true" className="roulette-wheel-slot flex min-h-0 items-center justify-center">
+                      <div
+                        className={`roulette-wheel-visual relative flex aspect-square items-center justify-center overflow-hidden rounded-3xl border-8 border-rose-200 shadow-inner ${hasSpinStarted ? 'bg-gray-100' : 'bg-slate-100'}`}
+                        aria-label={hasSpinStarted ? `目前輪盤：${wheelOptions[currentIndex].label}` : '輪盤尚未旋轉'}
+                      >
+                        {hasSpinStarted ? (
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={currentIndex}
+                              initial={isSpinning ? { y: -50, opacity: 0 } : false}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={isSpinning ? { y: 50, opacity: 0 } : undefined}
+                              transition={{ duration: 0.1 }}
+                              className={`absolute inset-0 flex flex-col items-center justify-center ${wheelOptions[currentIndex].color} text-white`}
+                            >
+                              <span className="roulette-wheel-icon drop-shadow-lg" aria-hidden="true">{wheelOptions[currentIndex].icon}</span>
+                              <span className="roulette-wheel-label px-2 text-center font-black tracking-wider drop-shadow-md">{wheelOptions[currentIndex].label}</span>
+                            </motion.div>
+                          </AnimatePresence>
+                        ) : (
+                          <div className="roulette-wheel-neutral flex flex-col items-center justify-center text-center" aria-hidden="true">
+                            <span className="roulette-wheel-neutral-icon">🎡</span>
+                            <span className="roulette-wheel-neutral-label">等待旋轉</span>
+                            <span className="roulette-wheel-neutral-hint">準備旋轉</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div data-roulette-action="true" className="roulette-action flex w-full min-h-0 items-center justify-center">
+                      {!isSpinning && resultMsg ? (
+                        <div data-roulette-result="true" className="roulette-result-row flex w-full min-w-0 items-center">
+                          <span className="roulette-result-message min-w-0 flex-1 font-bold text-rose-700">{resultMsg.main}</span>
+                          <button
+                            type="button"
+                            onClick={resetRound}
+                            className="roulette-next-button min-h-12 shrink-0 whitespace-nowrap rounded-full font-bold text-white shadow-md transition-all hover:scale-[1.02]"
+                          >
+                            {isGameOverRound ? '查看結果' : '下一回合'}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          data-roulette-spin="true"
+                          onClick={startSpin}
+                          aria-label={isSpinning ? '旋轉中' : '開始旋轉！'}
+                          disabled={isSpinning || !teamAChoice || !teamBChoice}
+                          className={`roulette-spin-button inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full font-black text-white shadow-xl transition-all ${isSpinning || !teamAChoice || !teamBChoice
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-rose-500 hover:bg-rose-600 hover:scale-[1.02] active:scale-[0.98]'}`}
                         >
-                          <span className="roulette-wheel-icon drop-shadow-lg">{wheelOptions[currentIndex].icon}</span>
-                          <span className="roulette-wheel-label px-2 text-center font-black tracking-wider drop-shadow-md">{wheelOptions[currentIndex].label}</span>
-                        </motion.div>
-                      </AnimatePresence>
+                          {isSpinning ? <Square className="roulette-spin-icon animate-spin" aria-hidden="true" /> : <Play className="roulette-spin-icon" size={28} aria-hidden="true" />}
+                          {isSpinning ? '旋轉中...' : '開始旋轉！'}
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  <div data-roulette-action="true" className="roulette-action flex w-full min-h-0 items-center justify-center">
-                    {!isSpinning && resultMsg ? (
-                      <div data-roulette-result="true" className="roulette-result-row flex w-full min-w-0 items-center">
-                        <span className="roulette-result-message min-w-0 flex-1 font-bold text-rose-700">{resultMsg.main}</span>
-                        <button
-                          type="button"
-                          onClick={resetRound}
-                          className="roulette-next-button min-h-12 shrink-0 whitespace-nowrap rounded-full font-bold text-white shadow-md transition-all hover:scale-[1.02]"
-                        >
-                          {isGameOverRound ? '查看結果' : '下一回合'}
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        data-roulette-spin="true"
-                        onClick={startSpin}
-                        aria-label={isSpinning ? '旋轉中' : '開始旋轉'}
-                        disabled={isSpinning || !teamAChoice || !teamBChoice}
-                        className={`roulette-spin-button inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full font-black text-white shadow-xl transition-all ${isSpinning || !teamAChoice || !teamBChoice
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-rose-500 hover:bg-rose-600 hover:scale-[1.02] active:scale-[0.98]'}`}
-                      >
-                        {isSpinning ? <Square className="roulette-spin-icon animate-spin" aria-hidden="true" /> : <Play className="roulette-spin-icon" size={28} aria-hidden="true" />}
-                        {isSpinning ? '旋轉中...' : '開始旋轉！'}
-                      </button>
-                    )}
+                  <div data-roulette-team-b="true" className="roulette-team-column roulette-team-b">
+                    <TeamBetPanel
+                      team="B"
+                      score={teamBScore}
+                      choice={teamBChoice}
+                      result={resultMsg?.b ?? null}
+                      isSpinning={isSpinning}
+                      standardItems={standardItems}
+                      onConfirm={choice => setTeamBChoice(choice)}
+                    />
                   </div>
                 </div>
 
@@ -552,23 +554,6 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ onBack, difficulty }) => {
               </div>
             )}
           </main>
-
-          {editingTeam && gameState === 'PLAYING' && (
-            <div className="roulette-editor-layer">
-              <div data-roulette-bet-editor="true" role="dialog" aria-modal="true" aria-labelledby="roulette-editor-title" className="roulette-bet-editor">
-                <BetEditor
-                  team={editingTeam}
-                  choice={editingTeam === 'A' ? teamAChoice : teamBChoice}
-                  onConfirm={(nextChoice) => {
-                    if (editingTeam === 'A') setTeamAChoice(nextChoice);
-                    if (editingTeam === 'B') setTeamBChoice(nextChoice);
-                    setEditingTeam(null);
-                  }}
-                  onCancel={() => setEditingTeam(null)}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

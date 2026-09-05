@@ -43,7 +43,7 @@ describe('Roulette facilitator FULL acceptance', () => {
     expect(source).toContain('clearTimeout(spinInterval.current);');
   });
 
-  it('uses a dedicated fullscreen stage and a single-team compact bet editor', () => {
+  it('uses a dedicated fullscreen stage and direct three-column betting panels', () => {
     const source = readFileSync('components/RouletteGame.tsx', 'utf8');
     const css = readFileSync('index.css', 'utf8');
 
@@ -56,9 +56,9 @@ describe('Roulette facilitator FULL acceptance', () => {
       'data-roulette-status',
       'data-roulette-team-a',
       'data-roulette-team-b',
+      'data-roulette-center',
       'data-roulette-wheel',
       'data-roulette-spin',
-      'data-roulette-bet-editor',
       'data-roulette-event-guide',
       'data-roulette-gameover',
     ]) {
@@ -73,25 +73,31 @@ describe('Roulette facilitator FULL acceptance', () => {
     expect(source).not.toContain('GameShell');
     expect(source).not.toContain('landscape:min-w-[200px]');
     expect(source).not.toContain('landscape:w-32');
-    expect(source).toContain("useState<'A' | 'B' | null>(null)");
-    expect(source).toContain('role="dialog"');
-    expect(source).toContain('aria-modal="true"');
-    expect(source).toContain('aria-labelledby="roulette-editor-title"');
-    expect(source).toContain('id="roulette-editor-title"');
-    expect(source.match(/<BetEditor\b/g)?.length).toBe(1);
+    expect(source).not.toContain('editingTeam');
+    expect(source).not.toContain('BetEditor');
+    expect(source).not.toContain('roulette-editor-layer');
+    expect(source).not.toContain('roulette-bet-editor');
+    expect(source).toContain('const [isEditing, setIsEditing] = useState(!choice);');
+    expect(source).toContain('TeamBetPanel');
+    expect(source).toMatch(/<TeamBetPanel\s+team="A"/);
+    expect(source).toMatch(/<TeamBetPanel\s+team="B"/);
     expect(source).toContain('standardItems.map');
-    expect(source).toContain('aria-pressed={tempItem === item.id}');
-    expect(source).toContain('aria-pressed={tempAmount === amt}');
-    expect(source).toContain('確認');
-    expect(source).toContain('取消');
-    expect(source).toContain('設定 {team} 組押注');
+    expect(source).toContain('aria-pressed={draftItem === item.id}');
+    expect(source).toContain('aria-pressed={draftAmount === amount}');
+    expect(source).toContain('確認押注');
+    expect(source).toContain('押注項目');
+    expect(source).toContain('押注金額');
     expect(source).toContain('修改${team}組押注');
+    expect(source).toContain('data-roulette-center');
+    expect(source).toContain('data-roulette-action');
 
     expect(css).toContain('[data-roulette-root]');
     expect(css).toContain('@media (orientation: landscape) and (max-height: 480px)');
+    expect(css).toContain('[data-roulette-root] .roulette-landscape-columns');
+    expect(css).toContain('[data-roulette-root] .roulette-center-column');
     expect(css).toContain('[data-roulette-root] .roulette-wheel-visual');
     expect(css).toContain('aspect-ratio: 1');
-    expect(css).toContain('max-height: calc(100dvh');
+    expect(css).not.toContain('roulette-editor-');
     expect(css).toContain('overflow-x: auto');
   });
 
@@ -109,6 +115,12 @@ describe('Roulette facilitator FULL acceptance', () => {
     expect(source).toContain('轉盤也可能轉到以下事件');
     expect(source).toContain('遊戲結束！');
     expect(source).toContain('重新設定');
+    expect(source).toContain('const [hasSpinStarted, setHasSpinStarted] = useState(false);');
+    expect(source).toContain('setHasSpinStarted(true);');
+    expect(source).toContain('setHasSpinStarted(false);');
+    expect(source).toContain('等待旋轉');
+    expect(source).toContain('準備旋轉');
+    expect(source).toContain('hasSpinStarted ?');
     expect(source).toContain('min-h-11');
     expect(source).toContain('min-h-12');
     expect(source).toContain('whitespace-nowrap');

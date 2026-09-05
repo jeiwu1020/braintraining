@@ -5,7 +5,7 @@
 - Baseline: `3816fed47be7bb519973a550bfe139a5d1ab8da3`
 - Audit type: audit plus LIGHT implementation status tracking.
 - Current overall standardization: `52/59`
-- `FACILITATOR`: `10/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, Higher/Lower, and Positive Reappraisal LIGHT complete and reviewer real-device accepted. Roulette has a FULL implementation complete and is pending reviewer real-device acceptance.
+- `FACILITATOR`: `10/11` — Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, Higher/Lower, and Positive Reappraisal LIGHT complete and reviewer real-device accepted. Roulette's previous FULL attempt was REAL-DEVICE FAILED; the THREE-COLUMN V2 correction is pending reviewer real-device acceptance.
 - Runtime/browser tooling: in-app browser runtime was available at a fixed `655×552` viewport for this batch. Unmeasured target viewport findings remain labeled `STATIC SOURCE INFERENCE`; reviewer-provided findings are labeled `REAL-DEVICE CONFIRMED` or `REAL-DEVICE ACCEPTED`.
 - Phone landscape is evaluated by short height (`640×360`, `844×390`, `932×430`), not by a width-only `max-width: 700px` rule.
 - Platform note: the intermittent iOS Home Screen Web App top blank strip was resolved after reinstall (REAL-DEVICE PASS). The later edge-to-edge pass exposed Dynamic Island overlap on MainMenu and some dedicated screens; safe-area integration, MainMenu ownership, and Price ownership are now REAL-DEVICE PASS.
@@ -31,7 +31,7 @@ The classification means:
 | 故事聯想卡 | `components/StoryCardsGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED: 4/5-card layout, clipping fixes, ADVANCED spacing, zoom size/upper-left position, 60-card pool, category-diverse draws, and immediate repeat prevention. | Keep the accepted 4/5-card stage and UI; content enhancement is complete without changing the visual composition. | REAL-DEVICE CONFIRMED | YES | ACCEPTED | LOW | MEDIUM | Luna Medium | Final content variety and accepted touch UI |
 | 條件反應大挑戰 | `components/ConditionalSnapGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED pre-fix: the bottom of the game extended beyond the phone screen in landscape; source risk was an unconstrained circle/arrow height combination. | Keep the large central stimulus and two-arrow facilitator flow; constrain it by short height and add names/targets. | REAL-DEVICE CONFIRMED (pre-fix) | YES | MINOR ISSUE | HIGH | LOW | Luna Medium | Circle visibility, target selector, arrows, rules modal |
 | 尋寶大冒險 | `components/TreasureGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED: dedicated safe-stage ownership, compact two-column setup, 44px-class controls, compact status, and remaining-stage 4×4/5×5 board sizing. | Keep the map/grid, preview/radar settings, inline game-over banner, and original state machine; use scoped responsive spacing and remaining-stage sizing. | REAL-DEVICE ACCEPTED | YES | ACCEPTED | MEDIUM | HIGH | Luna High | Setup completion, 4×4/5×5 grid, preview timer, radar, game-over |
-| 命運轉盤 | `components/RouletteGame.tsx` | FULL | FULL implementation complete: phone landscape now uses compact A/B summaries, one bounded bet editor, a height-aware dominant wheel, reserved spin/result action, and a secondary event strip; reviewer real-device acceptance is pending. | Replace the crowded permanent A/wheel/B row while preserving both-team betting semantics, all item/amount choices, wheel behavior, and game-over flow. | STATIC SOURCE INFERENCE | YES | ACCEPTANCE PENDING | HIGH | HIGH | Luna Max | Wheel dominance, summary/editor flow, both bets, spin/result, setup and game-over |
+| 命運轉盤 | `components/RouletteGame.tsx` | FULL | Previous compact-summary + popup-editor attempt was REAL-DEVICE FAILED: it reduced facilitator visibility, left large unused space, made wheel/action/footer compete, and exposed a real candidate before the first spin. This batch replaces it with a THREE-COLUMN V2 direct-control composition; reviewer acceptance is pending. | Restore immediate visibility of both teams' item/amount/confirm controls while preserving wheel behavior, neutral pre-spin state, result flow, and game-over semantics. | REAL-DEVICE CONFIRMED (previous failure) + STATIC SOURCE INFERENCE (correction) | YES | ACCEPTANCE PENDING | HIGH | HIGH | Luna Max | A｜CENTER｜B fit, all item/amount controls, neutral wheel, spin/result, event guide, setup and game-over |
 | 步步高升 | `components/HigherLowerGame.tsx` | LIGHT | REAL-DEVICE ACCEPTED after final visual refinement: team name/score hierarchy, card label spacing, horizontal reveal action, compact result/action bar, and nowrap next control. | Keep the two-team simultaneous prediction/card flow, original card rules and score semantics, and use scoped short-height layout corrections. | REAL-DEVICE ACCEPTED | YES | ACCEPTED | MEDIUM | HIGH | Luna Medium | Current/previous card, both teams, prediction controls, result/action bar, Rules bounds |
 | 價格估算 | `components/PriceEstimationGame.tsx` | LIGHT | REAL-DEVICE CONFIRMED: normal gameplay is usable, but the final 挑戰完成 state exceeds phone landscape; the edge-to-edge screen can also place content under the Dynamic Island/unsafe horizontal region. | Keep prompt plus three-option answer semantics; apply the non-GameShell safe-area contract, compact and center completion, and label header/actions without changing gameplay. | REAL-DEVICE CONFIRMED | YES | MINOR ISSUE | HIGH (pre-fix completion/safe-area) | MEDIUM | Luna High | Prompt, three options, completion bounds, safe-area ownership |
 | 轉念練習 | `components/PositiveReappraisalGame.tsx` | LIGHT | Landscape deliberately reduces progress text to `10px` and the reveal/next controls to compact heights; the fixed bottom bar competes with the two-column text stage. | Keep the event/negative-thought/reframe split and local text scrolling; restore minimum readability and predictable controls. | STATIC SOURCE INFERENCE | BORDERLINE | MINOR ISSUE | MEDIUM | MEDIUM | Luna High | Scenario text, reveal, reframe list, next action, bottom bar |
@@ -629,51 +629,49 @@ CONFIDENCE
 
 MEDIUM
 
-CURRENT STRUCTURE
+PREVIOUS FULL IMPLEMENTATION — REAL-DEVICE FAILED
 
-- Root: `min-h-screen` column with landscape-only reduced outer padding.
-- Header: Back, title/instructions, and Settings/reset icon.
-- Primary: center wheel/result surface with two independent betting panels.
-- Controls: each team chooses an item and amount, then both teams use spin/next-round actions.
-- Status: round/target, team scores, per-team result messages, event guide.
-- Scroll: no reliable local scroll contract; setup/play can grow the document.
-- Modal: no modal; game-over is an in-flow card.
+- Root and safe-stage improvements were accepted, but the playing interaction changed to compact A/B summaries with a popup bet editor.
+- The popup reduced immediate facilitator visibility and made betting slower; large unused white space appeared, while wheel, spin action, and event footer competed for height.
+- The wheel card crowded the spin action, and `currentIndex=0` rendered a real candidate before the first spin, which could bias participants.
 
-VIEWPORT FINDINGS
+CURRENT CORRECTION — THREE-COLUMN V2
 
-640×360: the play row reserves `landscape:min-w-[200px]` for the center, plus two flex panels, `gap-4`, panel borders/padding, item controls, amount controls, and a bottom event guide. The center wheel itself is only `landscape:w-32 landscape:h-32`, while the panels can wrap/overflow their controls. Setup also contains a large `p-6` card, `gap-6`, `mb-8`, and Start content, making full setup visibility unlikely.
+- Root: dedicated `100dvh` outer stage with inner `.app-safe-screen`; compact phone-landscape rule remains based on `orientation: landscape` plus `max-height: 480px`.
+- Header: Back, title/helper, and Settings/reset retain their accessible 44px-class controls.
+- Playing: direct `A | CENTER | B` grid. Each TeamBetPanel simultaneously exposes its score, all standard item choices, all 10/20/50 amounts, and team-specific confirm; confirmed bets return to in-panel edit mode without an overlay.
+- Center: round/target status, neutral pre-spin wheel frame, height-aware square wheel, and in-flow spin/result action only. The neutral state does not render or announce any wheel candidate before `startSpin`.
+- Secondary: event guide remains a compact footer with local horizontal overflow for long ADVANCED labels; game-over remains an in-flow compact card.
 
-844×390: width helps the three-region row, but the center remains only 128px and the same tall panel content is used; no short-height contract reallocates space between wheel and bets.
+VIEWPORT TARGETS
 
-932×430: the same `landscape:` branch remains below `lg`; the wheel does not become group-dominant until desktop sizing, and event guide/status continue consuming vertical space.
+640×360: source layout uses 30% / 40% / 30% columns, compact gaps, direct team controls, a remaining-height wheel slot, and a one-row event footer. Exact device fit remains pending reviewer acceptance.
 
-390×844: content stacks vertically, so the two betting panels and wheel are reachable but the setup/play flow can rely on document height rather than a bounded facilitator stage.
+844×390 and 932×430: the same three-column contract can use additional center height for the square wheel without restoring permanent side-panel duplication or width-only breakpoints.
 
-1280×720: desktop has enough width for the three-region table and the 256px wheel branch; current architecture is understandable at this size.
+390×844: portrait changes the playing grid to A / CENTER / B stacked flow and permits natural page growth.
+
+1280×720: the three-column table remains readable, with a larger center wheel and the same direct betting semantics.
 
 PRIMARY STIMULUS DOMINANCE
 
-NO — at short landscape the wheel is 128px while the two betting panels contain most of the visible controls and labels.
+YES BY SOURCE CONTRACT — the center receives a dedicated 40% column and a flexing remaining-height wheel slot; team controls remain visible without taking ownership of the center.
 
 TOUCH TARGETS
 
-MAJOR ISSUE — item buttons use `p-2`, amount buttons `px-4 py-2`, setup +/- buttons are `40×40`, and the spin/next actions use compact landscape padding. Several important facilitator actions are below a practical 44px target.
+The item, amount, confirm, modify, spin, next, setup, and reset controls use 44px-class minimum geometry where practical; ADVANCED item choices remain a 3×2 grid without default horizontal scrolling.
 
 WHY CHANGE / WHY KEEP
 
-The betting semantics and three conceptual regions are correct, so the game should not be forced into a generic board/sidebar component. However, this is the one audited game where a targeted padding change cannot simultaneously make the wheel group-readable, keep both teams' item/amount choices available, and keep spin/result controls within a 360px stage. The later implementation needs a facilitator-oriented compact composition, not merely smaller typography.
+The reviewer failure showed that hiding core facilitator controls was the wrong tradeoff. The correction restores immediate information visibility in a stable three-column composition while preserving the accepted fullscreen/safe-area architecture and all gameplay state transitions.
 
 EVIDENCE
 
-STATIC SOURCE INFERENCE — based on `min-h-screen`, setup spacing, `landscape:min-w-[200px]`, `landscape:w-32`, two independent `BettingPanel`s, and no bounded local scroll contract. Runtime measurement was unavailable, so this FULL recommendation should receive an explicit reviewer architecture check before implementation.
+Previous failure: `REAL-DEVICE CONFIRMED`. Current correction: `STATIC SOURCE INFERENCE`; browser runtime was unavailable in this environment, so no target-size or iPhone Dynamic Island measurements are claimed.
 
-EXPECTED / OBSERVED USER SYMPTOM
+GAMEPLAY / STATE LOCK
 
-On a phone sideways, the wheel looks secondary to the betting panels; the facilitator may need to scroll to finish setup or reach event/next controls, and small item/amount controls are difficult to tap.
-
-WHY LIGHT IS NOT ENOUGH
-
-LIGHT spacing changes would either leave the wheel at roughly 128px, keep the two betting panels crowded, or push setup/result content below the viewport. A likely FULL composition is `CENTER wheel/result stage + compact bottom or side rail containing Team A/Team B betting controls`, with secondary event text in a local region. Both team choices must remain visible and independent; no betting logic should change.
+Preserve wheel option shuffle, spin timer/tick count/speed, landed result evaluation, team choices and amounts, event effects, round/score end conditions, next-round transition, game-over scores, reset behavior, and currentIndex progression. Only UI state `hasSpinStarted` controls whether the center displays the neutral placeholder or the already-existing wheel option.
 
 GAMEPLAY / STATE LOCK
 
@@ -693,11 +691,12 @@ Luna Max — new compact composition across setup, betting, spin/result, and gam
 
 REVIEWER SHOULD CHECK
 
-1. At 640×360, the wheel remains visually dominant while both Team A and Team B can choose item and amount.
-2. Spin, result, next round, reset, and Back are reachable without page scrolling.
-3. ROUNDS/SCORE setup and game-over retain their existing semantics.
+1. At 640×360, the neutral pre-spin wheel, both direct TeamBetPanel controls, spin action, and event footer remain visible without hiding core information.
+2. After both confirmations, spin/result/next actions remain reachable and the wheel does not overlap the action region.
+3. ADVANCED exposes all six item choices per team, and next round returns both panels plus the center to the neutral pre-spin state.
+4. ROUNDS/SCORE setup and game-over retain their existing semantics.
 
-Final audit line: 命運轉盤 — Recommendation: FULL. Why: the previous three-region row could not keep both betting forms, spin/result controls, event information, and a group-dominant wheel readable at short landscape. Implementation: compact A/B summaries with a single-team bounded editor, height-aware wheel stage, in-flow spin/result action, compact setup/game-over, and retained event guide. Evidence: STATIC SOURCE INFERENCE; target phone viewport and Dynamic Island behavior remain pending reviewer real-device acceptance. What reviewer should visually check: editor usability, wheel dominance, both bets, result/next reachability, and no PWA blank-strip regression.
+Final audit line: 命運轉盤 — Recommendation: FULL. Previous implementation: `REAL-DEVICE FAILED` because the popup editor reduced facilitator visibility, geometry left unused space and crowded wheel/action/footer, and a real candidate appeared before the first spin. Current correction: `THREE-COLUMN V2 IMPLEMENTED` with direct A/B TeamBetPanel controls, in-panel editing, a neutral pre-spin wheel, remaining-stage sizing, and retained event guide. Evidence: `STATIC SOURCE INFERENCE`; reviewer should verify all controls, wheel/action separation, neutral reset, Dynamic Island safety, and no PWA blank-strip regression.
 
 ## 步步高升
 
@@ -988,8 +987,8 @@ This is a future implementation contract, not production code in this audit:
 ## Status and scope conclusion
 
 - FACILITATOR audit: complete for all 11 games.
-- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, Higher/Lower, and Positive Reappraisal LIGHT complete and reviewer accepted; Roulette FULL implementation complete, final reviewer acceptance pending.
+- Production implementation: Conditional Snap, Zoom, Verbal Memory, Story Cards, Price Estimation, Word Chain, Guess Who, Treasure, Higher/Lower, and Positive Reappraisal LIGHT complete and reviewer accepted; Roulette THREE-COLUMN V2 implementation complete, final reviewer acceptance pending.
 - Production files changed in the Roulette batch: `components/RouletteGame.tsx` and `index.css`; shared FACILITATOR layout and `GameShell` remain unchanged.
 - Acceptance test added in this batch: `tests/rouletteFacilitatorAcceptance.test.tsx`.
 - Recommended classifications: `KEEP 0`, `LIGHT 10`, `FULL 1`.
-- Overall standardization is `52/59`; FACILITATOR is `10/11` after Positive Reappraisal real-device acceptance. Roulette remains `FULL IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance; after that gate, expected status is `53/59` and `FACILITATOR 11/11 COMPLETE`, followed by one six-game IMMERSIVE audit and reference selection.
+- Overall standardization is `52/59`; FACILITATOR is `10/11` after Positive Reappraisal real-device acceptance. Roulette remains `THREE-COLUMN V2 IMPLEMENTED`, pending reviewer real-device acceptance; after that gate, expected status is `53/59` and `FACILITATOR 11/11 COMPLETE`, followed by one six-game IMMERSIVE audit and reference selection.
