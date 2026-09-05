@@ -17,6 +17,8 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const requestRef = useRef<number>();
+  const modeRef = useRef<Mode>('DRAW');
+  const mountedRef = useRef(true);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -45,6 +47,7 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
   useEffect(() => {
     initCanvas();
     return () => {
+      mountedRef.current = false;
       stopRecording();
     };
   }, []);
@@ -56,6 +59,10 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
       } else {
           try {
               const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+              if (modeRef.current !== 'VOICE') {
+                  stream.getTracks().forEach(track => track.stop());
+                  return;
+              }
               streamRef.current = stream;
               
               const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -71,24 +78,36 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
               drawVoice();
           } catch (err) {
               console.error('Error accessing microphone:', err);
+              stopRecording();
               alert('無法存取麥克風，請確認權限設定。');
           }
       }
   };
 
   const stopRecording = () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== undefined) {
+          cancelAnimationFrame(requestRef.current);
+          requestRef.current = undefined;
+      }
       if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
       }
       if (audioCtxRef.current) {
-          audioCtxRef.current.close();
+          void audioCtxRef.current.close();
+          audioCtxRef.current = null;
       }
-      setIsRecording(false);
+      analyserRef.current = null;
+      if (mountedRef.current) setIsRecording(false);
+  };
+
+  const handleBack = () => {
+      stopRecording();
+      onBack();
   };
 
   const drawVoice = () => {
-      if (!analyserRef.current || !canvasRef.current || mode !== 'VOICE') return;
+      if (!analyserRef.current || !canvasRef.current || modeRef.current !== 'VOICE') return;
       
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
@@ -162,10 +181,13 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
           angleRef.current += 0.05;
       }
 
-      requestRef.current = requestAnimationFrame(drawVoice);
+      if (modeRef.current === 'VOICE') {
+          requestRef.current = requestAnimationFrame(drawVoice);
+      }
   };
 
   useEffect(() => {
+      modeRef.current = mode;
       if (mode === 'DRAW' && isRecording) {
           stopRecording();
       }
@@ -258,181 +280,147 @@ const MandalaGame: React.FC<Props> = ({ onBack }) => {
       link.click();
   };
 
+  const colorNames: Record<string, string> = {
+    '#f8fafc': '白色',
+    '#fca5a5': '紅色',
+    '#fcd34d': '黃色',
+    '#86efac': '綠色',
+    '#60a5fa': '藍色',
+    '#a78bfa': '紫色',
+    '#f472b6': '粉紅色',
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-slate-950 p-4 font-sans text-slate-100 touch-none">
-      <button 
-        onClick={onBack}
-        className="absolute top-4 left-4 p-2 bg-white/10 backdrop-blur-md rounded-full shadow-md text-white hover:bg-white/20 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
+    <div
+      data-mandala-root
+      className="mandala-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-slate-950 font-sans text-slate-100"
+    >
+      <div data-mandala-safe-stage className="app-safe-screen h-full w-full">
+        <div data-mandala-layout className="mandala-layout relative flex h-full min-h-0 w-full overflow-hidden">
+          <button
+            data-mandala-back
+            type="button"
+             onClick={handleBack}
+            aria-label="返回遊戲選單"
+            className="mandala-back absolute z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-md backdrop-blur-md transition-colors hover:bg-white/20"
+          >
+            <ArrowLeft size={24} />
+          </button>
 
-      <div className="w-full h-[90dvh] sm:h-auto sm:max-h-[90dvh] landscape:h-[95dvh] max-w-6xl mt-12 landscape:mt-0 bg-slate-900/80 backdrop-blur-md p-4 sm:p-6 rounded-3xl shadow-2xl border border-slate-800 flex flex-col landscape:flex-row items-center landscape:items-stretch justify-center gap-4 landscape:gap-8 relative z-10">
-        
-        <div className="flex flex-col items-center justify-center w-full landscape:w-72 flex-shrink-0">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-200 mb-4 tracking-wider">紓壓畫板</h2>
-            
-            {/* Mode Toggle */}
-            <div className="flex bg-slate-800 p-1 rounded-full mb-4 landscape:mb-8 w-full max-w-[240px]">
-                <button 
-                    onClick={() => setMode('DRAW')}
-                    className={`flex-1 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors ${mode === 'DRAW' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+          <main className="mandala-main flex min-h-0 w-full items-center">
+            <section data-mandala-controls className="mandala-controls min-h-0">
+              <h2 className="mandala-title font-bold tracking-wider text-slate-200">紓壓畫板</h2>
+
+              <div data-mandala-mode className="mandala-mode flex rounded-full bg-slate-800 p-1">
+                <button
+                  type="button"
+                  onClick={() => setMode('DRAW')}
+                  aria-pressed={mode === 'DRAW'}
+                  className={`mandala-mode-button inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold transition-colors ${mode === 'DRAW' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                 >
-                    <PenTool size={16} /> 手繪
+                  <PenTool size={16} /> 手繪
                 </button>
-                <button 
-                    onClick={() => setMode('VOICE')}
-                    className={`flex-1 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors ${mode === 'VOICE' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                <button
+                  type="button"
+                  onClick={() => setMode('VOICE')}
+                  aria-pressed={mode === 'VOICE'}
+                  className={`mandala-mode-button inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full text-sm font-bold transition-colors ${mode === 'VOICE' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                 >
-                    <Mic size={16} /> 聲控
+                  <Mic size={16} /> 聲控
                 </button>
-            </div>
+              </div>
 
-            <div className="hidden landscape:flex flex-col w-full items-center justify-center">
-                {mode === 'DRAW' ? (
-                    <div className="flex flex-col w-full gap-6">
-                        <div className="flex justify-center gap-2 sm:gap-3">
-                            {colors.map(c => (
-                                <button 
-                                    key={c}
-                                    onClick={() => setColor(c)}
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full shadow-sm transition-transform ${color === c ? 'scale-125 ring-2 ring-offset-2 ring-offset-slate-900 ring-indigo-500' : 'hover:scale-110'}`}
-                                    style={{ backgroundColor: c }}
-                                ></button>
-                            ))}
-                        </div>
-                        <div className="flex flex-col gap-4 px-2">
-                            <div className="flex justify-center items-center gap-4 text-slate-400">
-                                <Paintbrush size={18} />
-                                <input 
-                                    type="range" 
-                                    min="1" max="10" 
-                                    value={brushSize} 
-                                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                                    className="w-32 accent-indigo-500"
-                                />
-                            </div>
-                            <div className="flex justify-center gap-6 mt-2">
-                                <button onClick={initCanvas} className="p-3 text-slate-400 hover:text-slate-200 transition-colors bg-slate-800 rounded-full">
-                                    <Eraser size={20} />
-                                </button>
-                                <button onClick={handleDownload} className="p-3 text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full">
-                                    <Download size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center w-full gap-6">
-                        <p className="text-slate-400 text-sm text-center mb-2">
-                            發出聲音，音量決定半徑與粗細，音高決定顏色。<br/>(請允許麥克風權限)
-                        </p>
-                        <div className="flex items-center gap-6">
-                            <button onClick={initCanvas} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">
-                                <RefreshCcw size={20} />
-                            </button>
-                            
-                            <button 
-                                onClick={toggleRecording}
-                                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.3)]' : 'bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105'}`}
-                            >
-                                {isRecording ? <MicOff size={28} /> : <Mic size={28} />}
-                            </button>
-                            
-                            <button onClick={handleDownload} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">
-                                <Download size={20} />
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+              {mode === 'DRAW' ? (
+                <div className="mandala-draw-tools">
+                  <div className="mandala-colors" aria-label="選擇畫筆顏色">
+                    {colors.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setColor(c)}
+                        aria-label={`選擇顏色 ${colorNames[c]}`}
+                        aria-pressed={color === c}
+                        className="mandala-color-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full shadow-sm transition-shadow"
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
 
-        <div className="flex-1 w-full h-full flex justify-center items-center min-h-0 min-w-0">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-2 ring-slate-800 bg-slate-900 w-full max-w-[400px] landscape:max-w-full landscape:max-h-full aspect-square">
+                  <label className="mandala-brush flex items-center gap-2 text-slate-400">
+                    <Paintbrush size={18} aria-hidden="true" />
+                    <input
+                      type="range"
+                      min="1" max="10"
+                      value={brushSize}
+                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                      aria-label="筆刷大小"
+                      className="mandala-brush-range min-h-11 flex-1 accent-indigo-500"
+                    />
+                  </label>
+
+                  <div className="mandala-tool-actions flex">
+                    <button type="button" onClick={initCanvas} aria-label="清除畫布" className="mandala-tool-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-colors hover:text-slate-200">
+                      <Eraser size={20} />
+                    </button>
+                    <button type="button" onClick={handleDownload} aria-label="下載作品" className="mandala-tool-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-colors hover:text-white">
+                      <Download size={20} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mandala-voice-tools">
+                  <p className="mandala-voice-helper text-slate-400">
+                    發出聲音，音量決定半徑與粗細，音高決定顏色。<br />(請允許麥克風權限)
+                  </p>
+                  <div className="mandala-tool-actions flex">
+                    <button type="button" onClick={initCanvas} aria-label="清除畫布" className="mandala-tool-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-colors hover:text-white">
+                      <RefreshCcw size={20} />
+                    </button>
+                    <button
+                      data-mandala-mic
+                      type="button"
+                      onClick={toggleRecording}
+                      aria-label={isRecording ? '停止聲控繪圖' : '開始聲控繪圖'}
+                      className={`mandala-mic-button inline-flex min-h-12 min-w-12 items-center justify-center rounded-full shadow-lg transition-colors ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-600 text-white hover:bg-indigo-500'}`}
+                    >
+                      {isRecording ? <MicOff size={28} /> : <Mic size={28} />}
+                    </button>
+                    <button type="button" onClick={handleDownload} aria-label="下載作品" className="mandala-tool-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-colors hover:text-white">
+                      <Download size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section data-mandala-canvas className="mandala-canvas-stage min-h-0 min-w-0">
+              <div className="mandala-canvas-frame relative aspect-square overflow-hidden rounded-2xl bg-slate-900 shadow-2xl ring-2 ring-slate-800">
                 <canvas
-                    ref={canvasRef}
-                    width={600}
-                    height={600}
-                    className={`w-full h-full object-contain bg-slate-900 ${mode === 'DRAW' ? 'cursor-crosshair' : 'cursor-default'}`}
-                    onMouseDown={handlePointerDown}
-                    onMouseMove={handlePointerMove}
-                    onMouseUp={handlePointerUp}
-                    onMouseOut={handlePointerUp}
-                    onTouchStart={handlePointerDown}
-                    onTouchMove={handlePointerMove}
-                    onTouchEnd={handlePointerUp}
+                  ref={canvasRef}
+                  width={600}
+                  height={600}
+                  aria-label="紓壓聲繪畫布"
+                  className={`mandala-canvas h-full w-full touch-none bg-slate-900 object-contain ${mode === 'DRAW' ? 'cursor-crosshair' : 'cursor-default'}`}
+                  onMouseDown={handlePointerDown}
+                  onMouseMove={handlePointerMove}
+                  onMouseUp={handlePointerUp}
+                  onMouseOut={handlePointerUp}
+                  onTouchStart={handlePointerDown}
+                  onTouchMove={handlePointerMove}
+                  onTouchEnd={handlePointerUp}
                 />
                 {mode === 'DRAW' && (
-                    <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
-                        <div className="absolute top-1/2 left-0 w-full h-px bg-white"></div>
-                        <div className="absolute left-1/2 top-0 w-px h-full bg-white"></div>
-                        <div className="absolute top-1/2 left-0 w-full h-px bg-white rotate-45 origin-center"></div>
-                        <div className="absolute top-1/2 left-0 w-full h-px bg-white -rotate-45 origin-center"></div>
-                    </div>
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
+                    <div className="absolute left-0 top-1/2 h-px w-full bg-white" />
+                    <div className="absolute left-1/2 top-0 h-full w-px bg-white" />
+                    <div className="absolute left-0 top-1/2 h-px w-full origin-center rotate-45 bg-white" />
+                    <div className="absolute left-0 top-1/2 h-px w-full origin-center -rotate-45 bg-white" />
+                  </div>
                 )}
-            </div>
+              </div>
+            </section>
+          </main>
         </div>
-
-        <div className="landscape:hidden w-full max-w-[400px]">
-            {mode === 'DRAW' ? (
-                <div className="flex flex-col w-full gap-4">
-                    <div className="flex justify-center gap-2 sm:gap-3">
-                        {colors.map(c => (
-                            <button 
-                                key={c}
-                                onClick={() => setColor(c)}
-                                className={`w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full shadow-sm transition-transform ${color === c ? 'scale-125 ring-2 ring-offset-2 ring-offset-slate-900 ring-indigo-500' : 'hover:scale-110'}`}
-                                style={{ backgroundColor: c }}
-                            ></button>
-                        ))}
-                    </div>
-                    <div className="flex justify-between items-center gap-4 px-2 mt-2">
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <Paintbrush size={18} />
-                            <input 
-                                type="range" 
-                                min="1" max="10" 
-                                value={brushSize} 
-                                onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                                className="w-24 accent-indigo-500"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <button onClick={initCanvas} className="p-2 text-slate-400 hover:text-slate-200 transition-colors bg-slate-800 rounded-full">
-                                <Eraser size={18} />
-                            </button>
-                            <button onClick={handleDownload} className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-full">
-                                <Download size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="flex flex-col items-center w-full gap-4">
-                    <p className="text-slate-400 text-sm text-center mb-2">
-                        發出聲音，音量決定半徑與粗細，音高決定顏色。<br/>(請允許麥克風權限)
-                    </p>
-                    <div className="flex items-center gap-6">
-                        <button onClick={initCanvas} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">
-                            <RefreshCcw size={20} />
-                        </button>
-                        
-                        <button 
-                            onClick={toggleRecording}
-                            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.3)]' : 'bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105'}`}
-                        >
-                            {isRecording ? <MicOff size={28} /> : <Mic size={28} />}
-                        </button>
-                        
-                        <button onClick={handleDownload} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">
-                            <Download size={20} />
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
-
       </div>
     </div>
   );

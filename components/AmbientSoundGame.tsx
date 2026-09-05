@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, CloudRain, Waves, Wind, Flame, TreePine, Bell, Timer, Play, Pause, Volume2 } from 'lucide-react';
+import { ArrowLeft, CloudRain, Waves, Wind, Flame, Bell, Timer, Play, Pause, Volume2 } from 'lucide-react';
 
 interface Props {
   onBack: () => void;
@@ -48,9 +48,10 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
 
   useEffect(() => {
     return () => {
-      stopAllSounds();
+      pauseAllSounds();
       if (audioCtxRef.current) {
-        audioCtxRef.current.close();
+        void audioCtxRef.current.close();
+        audioCtxRef.current = null;
       }
     };
   }, []);
@@ -149,6 +150,10 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
           });
           node.customNodes = [];
       }
+      if (node.gain) {
+          node.gain.disconnect();
+          node.gain = null;
+      }
   };
 
   const pauseAllSounds = () => {
@@ -159,13 +164,20 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
 
   const stopAllSounds = () => {
       pauseAllSounds();
-      setSounds(prev => {
-          const next = { ...prev };
-          Object.keys(next).forEach(k => {
-              next[k as SoundType].active = false;
-          });
+      setSounds(prev => Object.keys(prev).reduce((next, key) => {
+          const type = key as SoundType;
+          next[type] = { ...prev[type], active: false };
           return next;
-      });
+      }, {} as Record<SoundType, SoundState>));
+  };
+
+  const handleBack = () => {
+      stopAllSounds();
+      if (audioCtxRef.current) {
+          void audioCtxRef.current.close();
+          audioCtxRef.current = null;
+      }
+      onBack();
   };
 
   const startActiveSounds = () => {
@@ -379,25 +391,22 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
   };
 
   const toggleSound = (type: SoundType) => {
-      setSounds(prev => {
-          const next = { ...prev, [type]: { ...prev[type], active: !prev[type].active } };
-          
-          if (!isPlaying && (Object.values(next) as SoundState[]).some(s => s.active)) {
-              // If activating a sound while paused, auto-play
-              setTimeout(() => setIsPlaying(true), 0);
+      const nextActive = !sounds[type].active;
+      setSounds(prev => ({ ...prev, [type]: { ...prev[type], active: nextActive } }));
+
+      if (!isPlaying && nextActive) {
+          // If activating a sound while paused, preserve the existing auto-play behavior.
+          setTimeout(() => setIsPlaying(true), 0);
+      }
+
+      if (isPlaying) {
+          if (nextActive) {
+              const ctx = initAudio();
+              buildSoundGenerator(type, ctx);
+          } else {
+              stopSoundNode(type);
           }
-          
-          if (isPlaying) {
-              if (next[type].active) {
-                  const ctx = initAudio();
-                  buildSoundGenerator(type, ctx);
-              } else {
-                  stopSoundNode(type);
-              }
-          }
-          
-          return next;
-      });
+      }
   };
 
   const handleVolumeChange = (type: SoundType, val: number) => {
@@ -413,108 +422,124 @@ const AmbientSoundGame: React.FC<Props> = ({ onBack }) => {
   const timerOptions = [5, 15, 30, 60]; // minutes
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-slate-900 p-4 font-sans text-slate-100">
-      <button 
-        onClick={onBack}
-        className="absolute top-4 left-4 p-2 bg-slate-800 rounded-full shadow-md text-slate-400 hover:bg-slate-700 hover:text-slate-200 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
+    <div
+      data-ambient-root
+      className="ambient-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-900 text-slate-100"
+    >
+      <div data-ambient-safe-stage className="app-safe-screen h-full w-full">
+        <div
+          data-ambient-layout
+          className="ambient-layout relative flex h-full min-h-0 w-full flex-col overflow-hidden font-sans"
+        >
+          <button
+            data-ambient-back
+            type="button"
+            onClick={handleBack}
+            aria-label="返回遊戲選單"
+            className="ambient-back absolute z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-slate-800 text-slate-300 shadow-md transition-colors hover:bg-slate-700 hover:text-white"
+          >
+            <ArrowLeft size={24} />
+          </button>
 
-      <div className="w-full max-w-2xl text-center z-10 relative">
-        <h2 className="text-3xl font-bold mb-4 tracking-wider text-slate-200">環境白噪音</h2>
-        <p className="text-slate-400 mb-12">混合多種自然聲音，創造專屬的平靜空間。</p>
+          <main className="ambient-main flex min-h-0 flex-1 flex-col">
+            <header className="ambient-header text-center">
+              <h2 className="ambient-title font-bold tracking-wider text-slate-200">環境白噪音</h2>
+              <p className="ambient-helper text-slate-400">混合多種自然聲音，創造專屬的平靜空間。</p>
+            </header>
 
-        {/* Sound Controls Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <SoundControl type="RAIN" icon={<CloudRain />} label="落雨" state={sounds.RAIN} onToggle={() => toggleSound('RAIN')} onVolume={(v) => handleVolumeChange('RAIN', v)} />
-            <SoundControl type="WAVES" icon={<Waves />} label="海浪" state={sounds.WAVES} onToggle={() => toggleSound('WAVES')} onVolume={(v) => handleVolumeChange('WAVES', v)} />
-            <SoundControl type="WIND" icon={<Wind />} label="微風" state={sounds.WIND} onToggle={() => toggleSound('WIND')} onVolume={(v) => handleVolumeChange('WIND', v)} />
-            <SoundControl type="FIRE" icon={<Flame />} label="營火" state={sounds.FIRE} onToggle={() => toggleSound('FIRE')} onVolume={(v) => handleVolumeChange('FIRE', v)} />
-            <SoundControl type="BOWL" icon={<Bell />} label="頌缽" state={sounds.BOWL} onToggle={() => toggleSound('BOWL')} onVolume={(v) => handleVolumeChange('BOWL', v)} />
-        </div>
+            <section data-ambient-sounds className="ambient-sounds min-h-0">
+              <SoundControl type="RAIN" icon={<CloudRain />} label="落雨" state={sounds.RAIN} onToggle={() => toggleSound('RAIN')} onVolume={(v) => handleVolumeChange('RAIN', v)} />
+              <SoundControl type="WAVES" icon={<Waves />} label="海浪" state={sounds.WAVES} onToggle={() => toggleSound('WAVES')} onVolume={(v) => handleVolumeChange('WAVES', v)} />
+              <SoundControl type="WIND" icon={<Wind />} label="微風" state={sounds.WIND} onToggle={() => toggleSound('WIND')} onVolume={(v) => handleVolumeChange('WIND', v)} />
+              <SoundControl type="FIRE" icon={<Flame />} label="營火" state={sounds.FIRE} onToggle={() => toggleSound('FIRE')} onVolume={(v) => handleVolumeChange('FIRE', v)} />
+              <SoundControl type="BOWL" icon={<Bell />} label="頌缽" state={sounds.BOWL} onToggle={() => toggleSound('BOWL')} onVolume={(v) => handleVolumeChange('BOWL', v)} />
+            </section>
+          </main>
 
-        {/* Master Controls */}
-        <div className="bg-slate-800/50 backdrop-blur-md p-6 rounded-3xl border border-slate-700 flex flex-col items-center">
-            
-            <div className="flex gap-4 mb-6">
-                {timerOptions.map(mins => (
-                    <button
-                        key={mins}
-                        onClick={() => {
-                            setTimeLeft(mins * 60);
-                            if (!isPlaying && (Object.values(sounds) as SoundState[]).some(s => s.active)) {
-                                setIsPlaying(true);
-                            }
-                        }}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${timeLeft && timeLeft <= mins * 60 && timeLeft > (mins - 5) * 60 ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
-                    >
-                        {mins}m
-                    </button>
-                ))}
+          <aside data-ambient-session className="ambient-session rounded-3xl border border-slate-700 bg-slate-800/60 backdrop-blur-md">
+            <div className="ambient-timer-header flex items-center justify-between">
+              <span className="flex items-center gap-2 font-semibold text-slate-300"><Timer size={18} />計時</span>
+              <span className="ambient-time font-mono text-slate-300">{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</span>
+            </div>
+
+            <div className="ambient-timer-options" aria-label="播放時間">
+              {timerOptions.map(mins => (
                 <button
-                    onClick={() => setTimeLeft(null)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${timeLeft === null ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
+                  key={mins}
+                  type="button"
+                  onClick={() => {
+                    setTimeLeft(mins * 60);
+                    if (!isPlaying && (Object.values(sounds) as SoundState[]).some(s => s.active)) {
+                      setIsPlaying(true);
+                    }
+                  }}
+                  aria-label={`設定 ${mins} 分鐘計時`}
+                  aria-pressed={timeLeft !== null && timeLeft <= mins * 60 && timeLeft > (mins - 5) * 60}
+                  className={`ambient-timer-option min-h-11 rounded-full text-sm font-medium transition-colors ${timeLeft !== null && timeLeft <= mins * 60 && timeLeft > (mins - 5) * 60 ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
                 >
-                    無限
+                  {mins}m
                 </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setTimeLeft(null)}
+                aria-label="設定無限播放"
+                aria-pressed={timeLeft === null}
+                className={`ambient-timer-option min-h-11 rounded-full text-sm font-medium transition-colors ${timeLeft === null ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
+              >
+                無限
+              </button>
             </div>
 
-            <div className="flex items-center gap-8">
-                <div className="text-xl font-mono text-slate-400 w-24 text-right">
-                    {timeLeft !== null ? formatTime(timeLeft) : '--:--'}
-                </div>
-                
-                <button 
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all ${isPlaying ? 'bg-slate-700 text-indigo-400 hover:bg-slate-600' : 'bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105'}`}
-                >
-                    {isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-2" />}
-                </button>
-                
-                <div className="w-24"></div> {/* Spacer for balance */}
+            <div data-ambient-master className="ambient-master">
+              <button
+                type="button"
+                onClick={() => setIsPlaying(!isPlaying)}
+                aria-label={isPlaying ? '暫停環境音' : '開始播放環境音'}
+                className={`ambient-master-button min-h-12 w-full rounded-2xl px-4 font-bold shadow-lg transition-colors ${isPlaying ? 'bg-slate-700 text-indigo-300 hover:bg-slate-600' : 'bg-indigo-600 text-white hover:bg-indigo-500'}`}
+              >
+                {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+                <span>{isPlaying ? '暫停環境音' : '開始播放環境音'}</span>
+              </button>
             </div>
+          </aside>
         </div>
-
       </div>
     </div>
   );
 };
 
-const SoundControl = ({ type, icon, label, state, onToggle, onVolume }: { type: string, icon: React.ReactNode, label: string, state: SoundState, onToggle: () => void, onVolume: (v: number) => void }) => {
+const SoundControl = ({ type, icon, label, state, onToggle, onVolume }: { type: SoundType, icon: React.ReactNode, label: string, state: SoundState, onToggle: () => void, onVolume: (v: number) => void }) => {
     return (
-        <div className={`flex flex-col p-4 rounded-2xl border transition-colors ${state.active ? 'bg-slate-800 border-indigo-500/50' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/60'}`}>
-            <div className="flex items-center justify-between mb-4">
-                <button 
-                    onClick={onToggle}
-                    className={`flex items-center gap-3 transition-colors ${state.active ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-300'}`}
-                >
-                    <div className="p-2 rounded-full bg-slate-900/50">
-                        {icon}
-                    </div>
-                    <span className="font-medium tracking-wide">{label}</span>
-                </button>
-                
-                {/* Custom Toggle Switch */}
-                <button 
-                    onClick={onToggle}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${state.active ? 'bg-indigo-500' : 'bg-slate-700'}`}
-                >
-                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${state.active ? 'left-7' : 'left-1'}`}></div>
-                </button>
-            </div>
-            
-            <div className="flex items-center gap-3 opacity-80">
-                <Volume2 size={16} className={state.active ? 'text-indigo-400' : 'text-slate-600'} />
-                <input 
-                    type="range" 
-                    min="0" max="1" step="0.01" 
-                    value={state.volume} 
+        <div data-ambient-sound={type} className={`ambient-sound flex min-w-0 flex-col rounded-2xl border transition-colors ${state.active ? 'bg-slate-800 border-indigo-500/50' : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/60'}`}>
+            <button
+                type="button"
+                data-ambient-toggle
+                onClick={onToggle}
+                aria-label={`切換${label}`}
+                aria-pressed={state.active}
+                className={`ambient-sound-toggle inline-flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-xl text-left font-medium tracking-wide transition-colors ${state.active ? 'text-indigo-300' : 'text-slate-300 hover:text-white'}`}
+            >
+                <span className="flex min-w-0 items-center gap-2">
+                    <span className="ambient-sound-icon inline-flex shrink-0 items-center justify-center rounded-full bg-slate-900/60">{icon}</span>
+                    <span className="truncate">{label}</span>
+                </span>
+                <span className="ambient-sound-state shrink-0 rounded-full px-2 py-1 text-xs font-bold">{state.active ? '開' : '關'}</span>
+            </button>
+
+            <label className="ambient-volume-row flex min-w-0 items-center gap-2">
+                <Volume2 size={16} aria-hidden="true" className={state.active ? 'text-indigo-400' : 'text-slate-600'} />
+                <input
+                    type="range"
+                    min="0" max="1" step="0.01"
+                    value={state.volume}
                     onChange={(e) => onVolume(parseFloat(e.target.value))}
                     disabled={!state.active}
-                    className={`flex-1 h-2 rounded-full appearance-none bg-slate-900 outline-none ${state.active ? 'accent-indigo-500' : 'opacity-50'}`}
+                    aria-label={`${label}音量`}
+                    className={`ambient-volume min-w-0 flex-1 accent-indigo-500 ${state.active ? '' : 'opacity-50'}`}
                 />
-            </div>
+                <span className="ambient-volume-value w-9 shrink-0 text-right text-xs tabular-nums text-slate-500">{Math.round(state.volume * 100)}%</span>
+            </label>
         </div>
     );
 };

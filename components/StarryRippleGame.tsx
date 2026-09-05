@@ -27,6 +27,7 @@ const StarryRippleGame: React.FC<Props> = ({ onBack }) => {
   const ripplesRef = useRef<Ripple[]>([]);
   const starsRef = useRef<Star[]>([]);
   const requestRef = useRef<number>();
+  const canvasSizeRef = useRef({ width: 0, height: 0 });
 
   const colors = ['#60a5fa', '#34d399', '#a78bfa', '#f472b6', '#fbbf24'];
 
@@ -37,44 +38,53 @@ const StarryRippleGame: React.FC<Props> = ({ onBack }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initStars(canvas.width, canvas.height);
+    const initStars = (width: number, height: number) => {
+      starsRef.current = [];
+      const numStars = Math.floor((width * height) / 2000); // Density
+      for (let i = 0; i < numStars; i++) {
+        starsRef.current.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * 2,
+          alpha: Math.random(),
+          velocity: 0.005 + Math.random() * 0.01,
+        });
+      }
     };
 
-    const initStars = (width: number, height: number) => {
-        starsRef.current = [];
-        const numStars = Math.floor((width * height) / 2000); // Density
-        for (let i = 0; i < numStars; i++) {
-            starsRef.current.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                size: Math.random() * 2,
-                alpha: Math.random(),
-                velocity: 0.005 + Math.random() * 0.01
-            });
-        }
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width || canvas.parentElement?.clientWidth || window.innerWidth));
+      const height = Math.max(1, Math.floor(rect.height || canvas.parentElement?.clientHeight || window.innerHeight));
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvasSizeRef.current = { width, height };
+      initStars(width, height);
     };
 
     window.addEventListener('resize', resize);
     resize();
 
     const render = () => {
+      const { width, height } = canvasSizeRef.current;
+
       // Clear with slight trail effect
       ctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; // Slate 900 with opacity for trails
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, width, height);
 
       // Draw Stars
       starsRef.current.forEach(star => {
-          star.alpha += star.velocity;
-          if (star.alpha > 1 || star.alpha < 0) {
-              star.velocity = -star.velocity;
-          }
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, star.alpha))})`;
-          ctx.fill();
+        star.alpha += star.velocity;
+        if (star.alpha > 1 || star.alpha < 0) {
+          star.velocity = -star.velocity;
+        }
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, star.alpha))})`;
+        ctx.fill();
       });
 
       // Draw Ripples
@@ -98,7 +108,10 @@ const StarryRippleGame: React.FC<Props> = ({ onBack }) => {
 
     return () => {
       window.removeEventListener('resize', resize);
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== undefined) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = undefined;
+      }
     };
   }, []);
 
@@ -123,37 +136,49 @@ const StarryRippleGame: React.FC<Props> = ({ onBack }) => {
       radius: 0,
       maxRadius: 100 + Math.random() * 50,
       alpha: 1,
-      color: rgbStr
+      color: rgbStr,
     });
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (e.buttons !== 1) return; // Only if mouse is down
-      // Add smaller ripples when dragging
-      if (Math.random() > 0.7) {
-          handlePointerDown(e);
-      }
+    if (e.buttons !== 1) return; // Only if mouse is down
+    // Add smaller ripples when dragging
+    if (Math.random() > 0.7) {
+      handlePointerDown(e);
+    }
   };
 
   return (
-    <div className="relative w-full h-[100dvh] bg-slate-900 overflow-hidden touch-none">
-      <button 
-        onClick={onBack}
-        className="absolute top-4 left-4 p-2 bg-white/10 backdrop-blur-md rounded-full shadow-md text-white hover:bg-white/20 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
-
-      <div className="absolute top-4 left-0 w-full text-center pointer-events-none z-40">
-          <p className="text-white/50 text-sm tracking-widest">輕觸或滑動螢幕</p>
-      </div>
-
+    <div
+      data-starry-root
+      className="starry-root relative h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-slate-900 touch-none"
+    >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full cursor-crosshair"
+        data-starry-canvas
+        className="starry-canvas absolute inset-0 h-full w-full cursor-crosshair touch-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
       />
+
+      <div
+        data-starry-safe-overlay
+        className="starry-safe-overlay app-safe-screen pointer-events-none absolute inset-0 z-10 h-full w-full"
+      >
+        <button
+          data-starry-back
+          type="button"
+          onClick={onBack}
+          aria-label="返回遊戲選單"
+          className="starry-back pointer-events-auto absolute inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-md backdrop-blur-md transition-colors hover:bg-white/20"
+        >
+          <ArrowLeft size={24} />
+        </button>
+
+        <div data-starry-instruction className="starry-instruction absolute w-full text-center pointer-events-none">
+          <p className="text-white/70 tracking-widest">輕觸或滑動螢幕</p>
+        </div>
+      </div>
     </div>
   );
 };

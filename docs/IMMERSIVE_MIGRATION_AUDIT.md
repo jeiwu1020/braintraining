@@ -3,9 +3,9 @@
 ## Audit status
 
 - Audit scope: exactly the six catalog entries whose `layoutPreset` is `IMMERSIVE`.
-- Current formal status: `54/59`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 1/6`.
+- Current formal status: `56/59`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 3/6`.
 - Reference selected: `呼吸律動` / `components/BreathingExercise.tsx`.
-- Reference status: `REAL-DEVICE ACCEPTED`; Breathing is counted as the first completed IMMERSIVE migration.
+- Reference status: `REAL-DEVICE ACCEPTED`; Breathing is counted as the first completed IMMERSIVE migration. Affirmation and Muscle Relaxation are also `REAL-DEVICE ACCEPTED`, so three IMMERSIVE games are formally complete.
 - Evidence: `STATIC SOURCE INFERENCE` for the target viewports. No target-size browser or iPhone measurements are claimed in this audit.
 - Shared component decision: **A — no shared IMMERSIVE component yet**. The first reference establishes scoped CSS and safe-stage conventions only; the six games have materially different canvas, microphone, WebAudio, timer, and content models.
 
@@ -14,11 +14,11 @@
 | Game | Component | Catalog state | Classification | Recommended model | Confidence |
 |---|---|---|---|---|---|
 | 呼吸律動 | `components/BreathingExercise.tsx` | `GameState.BREATHING` | LIGHT reference — accepted | Luna Max | High |
-| 環境白噪音 | `components/AmbientSoundGame.tsx` | `GameState.AMBIENT_SOUND` | FULL | Luna Max | High |
-| 紓壓聲繪 | `components/MandalaGame.tsx` | `GameState.MANDALA` | FULL | Luna Max | High |
-| 正向肯定小卡 | `components/AffirmationCardGame.tsx` | `GameState.AFFIRMATION` | LIGHT | Luna Medium | High |
-| 指尖星空 | `components/StarryRippleGame.tsx` | `GameState.STARRY_RIPPLE` | LIGHT | Luna High | Medium |
-| 漸進式放鬆 | `components/MuscleRelaxationGame.tsx` | `GameState.MUSCLE_RELAXATION` | LIGHT | Luna High | Medium-high |
+| 環境白噪音 | `components/AmbientSoundGame.tsx` | `GameState.AMBIENT_SOUND` | FULL — implementation complete, pending reviewer | Luna Max | High |
+| 紓壓聲繪 | `components/MandalaGame.tsx` | `GameState.MANDALA` | FULL — implementation complete, pending reviewer | Luna Max | High |
+| 正向肯定小卡 | `components/AffirmationCardGame.tsx` | `GameState.AFFIRMATION` | LIGHT — REAL-DEVICE ACCEPTED | Luna Medium | High |
+| 指尖星空 | `components/StarryRippleGame.tsx` | `GameState.STARRY_RIPPLE` | LIGHT — implementation complete, pending reviewer | Luna High | Medium |
+| 漸進式放鬆 | `components/MuscleRelaxationGame.tsx` | `GameState.MUSCLE_RELAXATION` | LIGHT — REAL-DEVICE ACCEPTED | Luna High | Medium-high |
 
 All six remain cataloged as `layoutPreset: IMMERSIVE`. This batch changes that classification nowhere.
 
@@ -167,6 +167,10 @@ Decorative tile transitions may respect reduced motion, but audio playback seman
 
 Use a lower-density but still visible soundboard contract without hiding essential sound/timer controls. Reviewer should check all five sounds, volume/toggle state, timer choices, master state, safe Back, audio stopping/closing, no document overflow, and behavior after leaving/re-entering.
 
+### Current batch status
+
+`FULL IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version keeps all five sound controls and volume sliders directly reachable in a short-landscape grid, moves timer/master controls into a compact session region, and preserves generated WebAudio semantics with immutable sound state and explicit node/context cleanup. PWA cold-start viewport infrastructure was not changed.
+
 ## 3. 紓壓聲繪
 
 ### Component / current structure
@@ -219,6 +223,10 @@ Reduced motion must not remove voice-reactive or drawing feedback without a sepa
 
 Protect the square canvas and direct touch drawing while making controls usable. Reviewer should check DRAW/VOICE switching, microphone denial and stop cleanup, RAF cancellation, canvas bounds, color/brush/erase/download, safe Back, and no page overflow.
 
+### Current batch status
+
+`FULL IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version keeps a safe-stage owner, a compact control rail, and a square dominant canvas; DRAW and VOICE controls remain directly reachable. MediaStream tracks, analyser/audio resources, and voice RAF cleanup are explicitly handled. PWA cold-start viewport infrastructure was not changed.
+
 ## 4. 正向肯定小卡
 
 ### Component / current structure
@@ -266,6 +274,10 @@ The flip transition should remain meaningful; reduced motion may reduce decorati
 ### Why / reviewer checks
 
 Preserve the quiet affirmation-card experience rather than turning it into a panel dashboard. Reviewer should check card readability, flip/next semantics, no immediate repeat, safe Back, target sizes, and no short-landscape clipping.
+
+### Acceptance status
+
+`LIGHT — REAL-DEVICE ACCEPTED`. The safe-stage, two-region card composition, 44px-class actions, guarded flip timeout cleanup, and original content/progression are accepted.
 
 ## 5. 指尖星空
 
@@ -315,6 +327,10 @@ Reduced motion may reduce decorative star/ripple animation density or transition
 
 Do not put the experience inside a conventional panel. Reviewer should check edge-to-edge canvas, safe Back/instruction placement at all target orientations, ripple response, RAF cleanup, resize handling, and no blank-strip regression.
 
+### Current batch status
+
+`LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance. The migrated version preserves an edge-to-edge canvas, places Back and instruction inside a safe overlay, sizes the backing buffer from rendered geometry with DPR support, and retains tap/drag ripple semantics with RAF and resize cleanup. No PWA cold-start viewport work was included.
+
 ## 6. 漸進式放鬆
 
 ### Component / current structure
@@ -363,24 +379,28 @@ Timer and relaxation phase semantics must remain unchanged. Decorative transitio
 
 Preserve a calm single-focus exercise while moving chrome into the safe stage and allocating short landscape height intentionally. Reviewer should check step timing, play/pause/reset, music on/off and fallback, progress/timer readability, Back/music targets, completion, cleanup, and no overflow.
 
-## Migration batch 1 — completed implementation, pending reviewer
+### Acceptance status
+
+`LIGHT — REAL-DEVICE ACCEPTED`. The safe-stage/two-region layout, practical controls, completion handling, and audio/fallback cleanup were accepted with the original step, timer, and therapeutic semantics unchanged.
+
+## Migration batch 1 — completed and accepted
 
 - Games: `AffirmationCardGame` (`LIGHT`), `MuscleRelaxationGame` (`LIGHT`).
 - Recommended model: `Luna High`.
-- Status: `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance for each game.
+- Status: `LIGHT IMPLEMENTATION COMPLETE` and `REAL-DEVICE ACCEPTED` for both games.
 - Why these belong together: both are centered DOM experiences with a single dominant visual treatment, no canvas or microphone permission, and local interaction/timer work. They reuse the safe-stage/minimal-chrome/short-height allocation conventions established by Breathing without forcing identical content layouts.
 - Shared contracts that can safely be reused: outer 100dvh and inner `.app-safe-screen`, safe 44px Back/control targets, `(orientation: landscape) and (max-height: 480px)` scoping, primary-stimulus reservation, compact completion handling, and timer/transition cleanup review.
 - Must remain game-specific: affirmation flip/index/non-repeat semantics; Muscle Relaxation step durations, audio element/fallback, music state, and completion flow.
 
-### Proposed Batch 2 — resource-sensitive canvas/audio experiences
+## Migration batch 2 — final resource-sensitive batch
 
 - Games: `StarryRippleGame` (`LIGHT`), `AmbientSoundGame` (`FULL`), `MandalaGame` (`FULL`).
 - Recommended model: `Luna Max`.
-- Status: not started; wait for the Batch 1 reviewer gates before implementation.
+- Status: implementation complete for all three games; pending reviewer real-device acceptance. Formal IMMERSIVE count remains `3/6`.
 - Why these belong together: all need an explicit resource-lifecycle and edge-to-edge interaction review, and their primary surface is either a canvas or a multi-source audio experience. They should be migrated after the simple DOM batch proves the reference safe-stage contract, with separate per-game composition decisions.
 - Shared contracts that can safely be reused: one safe-area owner, edge-to-edge stimulus surface, safe floating controls, no document scroll in short landscape, local secondary control scrolling only where necessary, and explicit cleanup on unmount/exit.
 - Must remain game-specific: Starry Ripple canvas/RAF/ripple physics; Ambient Sound WebAudio graph, five sources, timer, volume and master controls; Mandala DRAW/VOICE modes, canvas drawing, microphone permission, analyser graph, media tracks, and RAF.
 
 ## Final audit decision
 
-Breathing remains the accepted `LIGHT` reference and its 5-cycle, 3-countdown, 4/7/8 timing and functional size guidance are unchanged. Affirmation and Muscle Relaxation are now `LIGHT IMPLEMENTATION COMPLETE` and pending reviewer acceptance; their content, flip/step/timer/audio semantics remain game-specific. StarryRipple, AmbientSound, and Mandala were read and classified only; none were modified. No shared IMMERSIVE component is justified yet. After both pending reviewer gates, expected status is `56/59`, `IMMERSIVE 3/6`; a single pass is `55/59`, `IMMERSIVE 2/6`.
+Breathing remains the accepted `LIGHT` reference and its 5-cycle, 3-countdown, 4/7/8 timing and functional size guidance are unchanged. Affirmation and Muscle Relaxation are `LIGHT — REAL-DEVICE ACCEPTED`; their content, flip/step/timer/audio semantics remain game-specific. StarryRipple is `LIGHT IMPLEMENTATION COMPLETE`; AmbientSound and Mandala are `FULL IMPLEMENTATION COMPLETE`; all three are pending reviewer real-device acceptance. No shared IMMERSIVE component is justified yet. The formal status remains `56/59`, `FACILITATOR 11/11`, `IMMERSIVE 3/6`; after all three pending reviewer gates, expected status is `59/59`, `IMMERSIVE 6/6 COMPLETE`. The intermittent iOS Home Screen Web App cold-start bottom blank strip remains `DEFERRED` and was not modified in this batch.
