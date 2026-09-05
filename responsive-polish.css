@@ -6,9 +6,19 @@
     padding-left: 3.75rem;
   }
 
-  /* Main menu: slightly enlarge right-side cards without returning to the old oversized layout. */
+  /* Main menu: make the right-side cards a little fuller while keeping roughly three cards visible per phone height. */
   [data-main-menu-cards='true'] .grid > button {
-    min-height: clamp(92px, 25dvh, 108px);
+    min-height: clamp(102px, 27dvh, 118px);
     align-items: center;
+  }
+
+  [data-main-menu-cards='true'] > .app-safe-screen > .grid > button > div:last-child h3 {
+    font-size: 1.125rem;
+    line-height: 1.375rem;
+  }
+
+  [data-main-menu-cards='true'] > .app-safe-screen > .grid > button > div:last-child p {
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
   }
 }
