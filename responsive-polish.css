@@ -1,0 +1,14 @@
+/* Small reviewer-driven responsive refinements kept separate from the main migration CSS. */
+@media (orientation: landscape) and (max-height: 480px) {
+  /* Breathing reference: keep the left meta/helper column clear of the 44px Back control. */
+  [data-breathing-root] .breathing-active-meta,
+  [data-breathing-root] .breathing-helper {
+    padding-left: 3.75rem;
+  }
+
+  /* Main menu: slightly enlarge right-side cards without returning to the old oversized layout. */
+  [data-main-menu-cards='true'] .grid > button {
+    min-height: clamp(92px, 25dvh, 108px);
+    align-items: center;
+  }
+}
