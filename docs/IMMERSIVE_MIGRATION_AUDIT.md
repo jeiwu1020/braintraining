@@ -3,9 +3,9 @@
 ## Audit status
 
 - Audit scope: exactly the six catalog entries whose `layoutPreset` is `IMMERSIVE`.
-- Current formal status: `53/59`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 0/6`.
+- Current formal status: `54/59`; `FACILITATOR 11/11 COMPLETE`; `IMMERSIVE 1/6`.
 - Reference selected: `呼吸律動` / `components/BreathingExercise.tsx`.
-- Reference status: `REFERENCE IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance; it is therefore not counted in `IMMERSIVE` yet.
+- Reference status: `REAL-DEVICE ACCEPTED`; Breathing is counted as the first completed IMMERSIVE migration.
 - Evidence: `STATIC SOURCE INFERENCE` for the target viewports. No target-size browser or iPhone measurements are claimed in this audit.
 - Shared component decision: **A — no shared IMMERSIVE component yet**. The first reference establishes scoped CSS and safe-stage conventions only; the six games have materially different canvas, microphone, WebAudio, timer, and content models.
 
@@ -13,7 +13,7 @@
 
 | Game | Component | Catalog state | Classification | Recommended model | Confidence |
 |---|---|---|---|---|---|
-| 呼吸律動 | `components/BreathingExercise.tsx` | `GameState.BREATHING` | LIGHT reference | Luna Max | High |
+| 呼吸律動 | `components/BreathingExercise.tsx` | `GameState.BREATHING` | LIGHT reference — accepted | Luna Max | High |
 | 環境白噪音 | `components/AmbientSoundGame.tsx` | `GameState.AMBIENT_SOUND` | FULL | Luna Max | High |
 | 紓壓聲繪 | `components/MandalaGame.tsx` | `GameState.MANDALA` | FULL | Luna Max | High |
 | 正向肯定小卡 | `components/AffirmationCardGame.tsx` | `GameState.AFFIRMATION` | LIGHT | Luna Medium | High |
@@ -110,6 +110,10 @@ It has a single central stimulus, timed active phases, a countdown, and completi
 ### What reviewer should check
 
 Dynamic Island-safe Back during countdown and active state; clear 3/2/1; readable 4/7/8 instruction and seconds; cycle `X / 5`; no clipping at maximum inhale scale; no duplicate/restarted cycle; completion message and `回到主選單` fully reachable; no PWA blank strip.
+
+### Acceptance result
+
+Breathing passed the reviewer real-device gate. Its 100dvh/safe-stage ownership, countdown, active stimulus, maximum-scale reserve, and completion presentation are now the accepted reference contract for the two simple-DOM migrations below.
 
 ## 2. 環境白噪音
 
@@ -359,15 +363,12 @@ Timer and relaxation phase semantics must remain unchanged. Decorative transitio
 
 Preserve a calm single-focus exercise while moving chrome into the safe stage and allocating short landscape height intentionally. Reviewer should check step timing, play/pause/reset, music on/off and fallback, progress/timer readability, Back/music targets, completion, cleanup, and no overflow.
 
-## Proposed next two migration batches
-
-These batches are proposed only; they are not executed in this reference batch.
-
-### Proposed Batch 1 — simple DOM immersive experiences
+## Migration batch 1 — completed implementation, pending reviewer
 
 - Games: `AffirmationCardGame` (`LIGHT`), `MuscleRelaxationGame` (`LIGHT`).
 - Recommended model: `Luna High`.
-- Why these belong together: both are centered DOM experiences with a single dominant visual treatment, no canvas or microphone permission, and local interaction/timer work. They can reuse the safe-stage/minimal-chrome/short-height allocation conventions established by Breathing without forcing identical content layouts.
+- Status: `LIGHT IMPLEMENTATION COMPLETE`, pending reviewer real-device acceptance for each game.
+- Why these belong together: both are centered DOM experiences with a single dominant visual treatment, no canvas or microphone permission, and local interaction/timer work. They reuse the safe-stage/minimal-chrome/short-height allocation conventions established by Breathing without forcing identical content layouts.
 - Shared contracts that can safely be reused: outer 100dvh and inner `.app-safe-screen`, safe 44px Back/control targets, `(orientation: landscape) and (max-height: 480px)` scoping, primary-stimulus reservation, compact completion handling, and timer/transition cleanup review.
 - Must remain game-specific: affirmation flip/index/non-repeat semantics; Muscle Relaxation step durations, audio element/fallback, music state, and completion flow.
 
@@ -375,10 +376,11 @@ These batches are proposed only; they are not executed in this reference batch.
 
 - Games: `StarryRippleGame` (`LIGHT`), `AmbientSoundGame` (`FULL`), `MandalaGame` (`FULL`).
 - Recommended model: `Luna Max`.
+- Status: not started; wait for the Batch 1 reviewer gates before implementation.
 - Why these belong together: all need an explicit resource-lifecycle and edge-to-edge interaction review, and their primary surface is either a canvas or a multi-source audio experience. They should be migrated after the simple DOM batch proves the reference safe-stage contract, with separate per-game composition decisions.
 - Shared contracts that can safely be reused: one safe-area owner, edge-to-edge stimulus surface, safe floating controls, no document scroll in short landscape, local secondary control scrolling only where necessary, and explicit cleanup on unmount/exit.
 - Must remain game-specific: Starry Ripple canvas/RAF/ripple physics; Ambient Sound WebAudio graph, five sources, timer, volume and master controls; Mandala DRAW/VOICE modes, canvas drawing, microphone permission, analyser graph, media tracks, and RAF.
 
 ## Final audit decision
 
-Breathing is the preferred reference and has been implemented as `LIGHT` without changing its 5-cycle, 3-countdown, 4/7/8 timing or functional size guidance. The other five IMMERSIVE components were read and classified only; none were modified. No shared IMMERSIVE component is justified after one reference. Re-evaluate that decision only after reviewer acceptance and at least one simple-DOM follow-up batch.
+Breathing remains the accepted `LIGHT` reference and its 5-cycle, 3-countdown, 4/7/8 timing and functional size guidance are unchanged. Affirmation and Muscle Relaxation are now `LIGHT IMPLEMENTATION COMPLETE` and pending reviewer acceptance; their content, flip/step/timer/audio semantics remain game-specific. StarryRipple, AmbientSound, and Mandala were read and classified only; none were modified. No shared IMMERSIVE component is justified yet. After both pending reviewer gates, expected status is `56/59`, `IMMERSIVE 3/6`; a single pass is `55/59`, `IMMERSIVE 2/6`.

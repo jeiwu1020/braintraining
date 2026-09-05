@@ -18,7 +18,7 @@ const steps = [
   { part: '胸部與腹部', action: '緩緩吐氣，放鬆胸腹，感受呼吸的平穩。', duration: 10, hold: false },
   { part: '雙腿與雙腳', action: '雙腿伸直，腳趾向上翹，繃緊大腿與小腿。', duration: 5, hold: true },
   { part: '雙腿與雙腳', action: '放鬆雙腿與腳趾，讓它們自然擺放。', duration: 10, hold: false },
-  { part: '全身掃描', action: '靜靜地感受全身，享受這份深度的寧靜與放鬆。', duration: 20, hold: false }
+  { part: '全身掃描', action: '靜靜地感受全身，享受這份深度的寧靜與放鬆。', duration: 20, hold: false },
 ];
 
 const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
@@ -27,9 +27,7 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
   const [timeLeft, setTimeLeft] = useState(steps[0].duration);
   const [isFinished, setIsFinished] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(false);
-  // If the mp3 file fails to load/decode (e.g. gets corrupted again during a future
-  // export/deploy step), we fall back to the synthesized ambient loop from soundService
-  // instead of the music button silently doing nothing.
+  // If the mp3 file fails to load/decode, use the synthesized ambient loop.
   const [audioFailed, setAudioFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -51,135 +49,162 @@ const MuscleRelaxationGame: React.FC<Props> = ({ onBack }) => {
   }, [isPlaying, timeLeft, currentStep]);
 
   // Play/Pause music when toggle or when playback state changes.
-  // Primary source is the real mp3 file; if it ever fails to decode (audioFailed),
-  // fall back to the generated ambient loop so the music toggle never goes silent.
+  // The mp3 remains the primary source; the generated ambient loop is the fallback.
   useEffect(() => {
-      const shouldPlay = isMusicOn && isPlaying;
-      if (audioFailed) {
-          if (shouldPlay) soundService.startRelaxAmbient();
-          else soundService.stopRelaxAmbient();
-          return () => soundService.stopRelaxAmbient();
+    const shouldPlay = isMusicOn && isPlaying;
+    if (audioFailed) {
+      if (shouldPlay) soundService.startRelaxAmbient();
+      else soundService.stopRelaxAmbient();
+      return () => soundService.stopRelaxAmbient();
+    }
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      if (shouldPlay) {
+        audioRef.current.play().catch(e => console.error('Audio play failed:', e));
+      } else {
+        audioRef.current.pause();
       }
-      if (audioRef.current) {
-          audioRef.current.volume = 0.5;
-          if (shouldPlay) {
-              audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-          } else {
-              audioRef.current.pause();
-          }
-      }
+    }
   }, [isMusicOn, isPlaying, audioFailed]);
 
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      soundService.stopRelaxAmbient();
+    };
+  }, []);
+
   const toggleMusic = () => {
-      setIsMusicOn(prev => !prev);
+    setIsMusicOn(prev => !prev);
   };
 
   const togglePlay = () => {
-      setIsPlaying(prev => !prev);
+    setIsPlaying(prev => !prev);
   };
 
   const reset = () => {
-      setCurrentStep(0);
-      setTimeLeft(steps[0].duration);
-      setIsPlaying(false);
-      setIsFinished(false);
-      if (audioRef.current) audioRef.current.pause();
-      soundService.stopRelaxAmbient();
+    setCurrentStep(0);
+    setTimeLeft(steps[0].duration);
+    setIsPlaying(false);
+    setIsFinished(false);
+    if (audioRef.current) audioRef.current.pause();
+    soundService.stopRelaxAmbient();
   };
 
   const progress = (currentStep / steps.length) * 100;
   const current = steps[currentStep];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-teal-50 p-4">
-      <audio
-        ref={audioRef}
-        src="/relaxing-music.mp3"
-        loop
-        playsInline
-        preload="auto"
-        onError={() => {
-            console.warn("relaxing-music.mp3 failed to load/decode, falling back to synthesized ambient loop.");
-            setAudioFailed(true);
-        }}
-      />
-      <button 
-        onClick={onBack}
-        className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-md text-teal-600 hover:bg-teal-100 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
+    <div
+      data-muscle-root
+      className="muscle-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-teal-50"
+    >
+      <div data-muscle-safe-stage className="app-safe-screen h-full w-full">
+        <div
+          data-muscle-layout
+          className="muscle-layout relative flex h-full min-h-0 w-full flex-col overflow-hidden"
+        >
+          <audio
+            ref={audioRef}
+            src="/relaxing-music.mp3"
+            loop
+            playsInline
+            preload="auto"
+            onError={() => {
+              console.warn('relaxing-music.mp3 failed to load/decode, falling back to synthesized ambient loop.');
+              setAudioFailed(true);
+            }}
+          />
 
-      <button
-        onClick={toggleMusic}
-        className={`absolute top-4 right-4 p-3 rounded-full shadow-md transition-colors z-50 ${isMusicOn ? 'bg-teal-500 text-white hover:bg-teal-600' : 'bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
-        title={audioFailed ? "開啟/關閉紓壓音樂（音樂檔無法載入，已切換為備用音效）" : "開啟/關閉紓壓音樂"}
-      >
-        {isMusicOn ? <Music size={20} /> : <Music2 size={20} />}
-      </button>
+          <button
+            data-muscle-back
+            type="button"
+            onClick={onBack}
+            aria-label="返回遊戲選單"
+            className="muscle-back absolute z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-teal-600 shadow-md transition-colors hover:bg-teal-100"
+          >
+            <ArrowLeft size={24} />
+          </button>
 
-      {!isFinished ? (
-          <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-teal-100 text-center">
-              <h2 className="text-2xl font-bold text-teal-900 mb-6">漸進式肌肉放鬆</h2>
-              
-              {/* Progress Bar */}
-              <div className="w-full h-2 bg-teal-100 rounded-full mb-8 overflow-hidden">
-                  <div 
-                    className="h-full bg-teal-500 transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+          <button
+            data-muscle-music
+            type="button"
+            onClick={toggleMusic}
+            aria-label={isMusicOn ? '關閉紓壓音樂' : '開啟紓壓音樂'}
+            className={`muscle-music absolute right-0 top-0 z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full shadow-md transition-colors ${isMusicOn ? 'bg-teal-500 text-white hover:bg-teal-600' : 'bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+            title={audioFailed ? '開啟/關閉紓壓音樂（音樂檔無法載入，已切換為備用音效）' : '開啟/關閉紓壓音樂'}
+          >
+            {isMusicOn ? <Music size={20} /> : <Music2 size={20} />}
+          </button>
+
+          {!isFinished ? (
+            <main data-muscle-active className="muscle-active flex min-h-0 flex-1 w-full items-center justify-center">
+              <div data-muscle-stimulus className="muscle-stimulus flex items-center justify-center">
+                <div className={`muscle-status-circle flex flex-col items-center justify-center rounded-full border-4 transition-all duration-1000 ${current.hold ? 'bg-red-50 border-red-200 scale-95' : 'bg-teal-50 border-teal-200 scale-100'}`}>
+                  <span className="muscle-part text-sm font-bold text-slate-500">{current.part}</span>
+                  <span className={`muscle-seconds font-light tabular-nums ${current.hold ? 'text-red-500' : 'text-teal-600'}`}>
+                    {timeLeft}
+                  </span>
+                  <span className="muscle-phase text-xs font-bold text-slate-400">
+                    {current.hold ? '緊繃' : '放鬆'}
+                  </span>
+                </div>
               </div>
 
-              {/* Status Display */}
-              <div className={`w-48 h-48 mx-auto rounded-full flex flex-col items-center justify-center mb-8 border-4 transition-all duration-1000 ${current.hold ? 'bg-red-50 border-red-200 scale-95' : 'bg-teal-50 border-teal-200 scale-100'}`}>
-                  <span className="text-sm font-bold text-slate-500 mb-2">{current.part}</span>
-                  <span className={`text-6xl font-light tabular-nums ${current.hold ? 'text-red-500' : 'text-teal-600'}`}>
-                      {timeLeft}
-                  </span>
-                  <span className="text-xs font-bold text-slate-400 mt-2">
-                      {current.hold ? '緊繃' : '放鬆'}
-                  </span>
-              </div>
+              <div className="muscle-active-content">
+                <h2 className="muscle-title font-bold text-teal-900">漸進式肌肉放鬆</h2>
 
-              {/* Instruction */}
-              <div className="h-24 flex items-center justify-center mb-8">
-                  <p className="text-lg text-slate-700 font-medium leading-relaxed px-4">
-                      {current.action}
+                <div className="muscle-progress w-full overflow-hidden rounded-full bg-teal-100">
+                  <div className="h-full bg-teal-500 transition-all duration-500" style={{ width: `${progress}%` }} />
+                </div>
+
+                <div data-muscle-instruction className="muscle-instruction flex items-center justify-center">
+                  <p className="muscle-instruction-text text-slate-700 font-medium leading-relaxed">
+                    {current.action}
                   </p>
-              </div>
+                </div>
 
-              {/* Controls */}
-              <div className="flex justify-center gap-4">
-                  <button 
-                      onClick={reset}
-                      className="w-14 h-14 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                <div data-muscle-controls className="muscle-controls flex justify-center">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    aria-label="重新開始放鬆練習"
+                    className="muscle-control min-h-14 min-w-14 rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
                   >
-                      <RotateCcw size={24} />
+                    <RotateCcw size={24} className="mx-auto" />
                   </button>
-                  <button 
-                      onClick={togglePlay}
-                      className="w-14 h-14 rounded-full bg-teal-500 text-white flex items-center justify-center hover:bg-teal-600 shadow-md hover:shadow-lg transition-all"
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    aria-label={isPlaying ? '暫停放鬆' : '開始放鬆'}
+                    className="muscle-control min-h-14 min-w-14 rounded-full bg-teal-500 text-white shadow-md transition-all hover:bg-teal-600 hover:shadow-lg"
                   >
-                      {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+                    {isPlaying ? <Pause size={28} className="mx-auto" /> : <Play size={28} className="mx-auto ml-1" />}
                   </button>
+                </div>
               </div>
-          </div>
-      ) : (
-          <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl text-center animate-fade-in">
-              <CheckCircle2 className="w-24 h-24 text-teal-500 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-teal-900 mb-4">放鬆完成</h2>
-              <p className="text-slate-600 mb-8 leading-relaxed">
-                  你已經完成了全身的肌肉放鬆循環。<br/>
+            </main>
+          ) : (
+            <main data-muscle-complete className="muscle-complete flex min-h-0 flex-1 w-full items-center justify-center animate-fade-in">
+              <div className="muscle-complete-card w-full max-w-md rounded-3xl bg-white text-center shadow-xl">
+                <CheckCircle2 className="muscle-complete-icon mx-auto text-teal-500" />
+                <h2 className="muscle-complete-title font-bold text-teal-900">放鬆完成</h2>
+                <p className="muscle-complete-message text-slate-600 leading-relaxed">
+                  你已經完成了全身的肌肉放鬆循環。<br />
                   帶著這份平靜，繼續美好的一天。
-              </p>
-              <button 
+                </p>
+                <button
+                  type="button"
                   onClick={onBack}
-                  className="w-full py-4 bg-teal-500 text-white rounded-xl font-bold text-lg hover:bg-teal-600 transition-colors shadow-lg"
-              >
+                  className="muscle-complete-action min-h-11 w-full rounded-xl bg-teal-500 px-4 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-teal-600"
+                >
                   回到主選單
-              </button>
-          </div>
-      )}
+                </button>
+              </div>
+            </main>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

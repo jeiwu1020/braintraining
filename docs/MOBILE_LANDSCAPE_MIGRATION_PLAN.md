@@ -11,7 +11,7 @@
 
 ### Acceptance 路徑政策
 
-本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前正式完成的標準化進度為 53/59；11 款 `FACILITATOR`（含 Roulette）已由 reviewer 實機接受。IMMERSIVE 現在進入六款 audit 與 reference batch：Breathing reference 已完成實作，等待 reviewer 實機驗收，尚未計入 IMMERSIVE 完成。
+本計畫的完成條件是每款遊戲通過手機橫向標準，不是最大化共用元件使用率。依實機證據，遊戲可採 `KEEP`、`LIGHT` 或 `FULL`：現有結構已符合標準則 KEEP；核心結構正確但需小幅 responsive／accessibility／共用控制修正則 LIGHT；只有主要互動在 640×360 無法合理共存時才採 FULL。目前正式完成的標準化進度為 54/59；11 款 `FACILITATOR`（含 Roulette）與 Breathing 已由 reviewer 實機接受。Affirmation 與 Muscle Relaxation 已完成 LIGHT implementation，等待 reviewer 實機驗收，尚未計入 IMMERSIVE 完成。
 
 平台備註：使用者回報的 iOS Home Screen Web App standalone 啟動頂部整條空白區域，已在重新安裝後由 REAL-DEVICE PASS 確認解決；edge-to-edge 後發現的 Dynamic Island／safe-area overlap 也已由 reviewer 實機接受，safe-area integration 與 MainMenu／Price ownership 為 REAL-DEVICE PASS。
 
@@ -90,7 +90,7 @@
 | 口徑 | 已完成 | 總數 | 完成率 | 說明 |
 | --- | ---: | ---: | ---: | --- |
 | 目前完成的前兩波 | 30 | 30 | 100% | `SPLIT_CHOICE` 與 `GRID_FOCUS` |
-| 全部遊戲標準化 | 53 | 59 | 89.8% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet／Checkers／Blackjack、11 款 FACILITATOR；IMMERSIVE 尚未完成 reviewer gate |
+| 全部遊戲標準化 | 54 | 59 | 91.5% | 包含四子棋 reference、五子棋與後續棋盤、迷宮／暗棋／播棋／圍棋／Gobblet／Checkers／Blackjack、11 款 FACILITATOR 與 Breathing reference；Affirmation／Muscle Relaxation 等待 reviewer gate |
 | `GRID_FOCUS` 當前批次 | 19 | 19 | 100% | 完成 |
 
 ### 4.2 各版型進度
@@ -102,8 +102,8 @@
 | `BOARD_SIDEBAR` | 11 | 11 | 四子棋 reference 已通過 gate；五子棋、黑白棋、數獨與點格棋完成遷移；迷宮、暗棋、播棋、圍棋、Gobblet 與 Checkers 以 LIGHT 路徑完成標準化 |
 | `BOARD_TABLE` | 1 | 1 | Blackjack LIGHT complete，reviewer real-device accepted |
 | `FACILITATOR` | 11 | 11 | Conditional Snap、ZoomGame、Verbal Memory、Story Cards、Price Estimation、Word Chain、Guess Who、Treasure、Higher/Lower、Positive Reappraisal 與 Roulette 均完成並通過 reviewer 實機驗收 |
-| `IMMERSIVE` | 0 | 6 | 六款已完成靜態 audit；Breathing reference implementation complete，等待 reviewer 實機驗收，其餘五款未修改 |
-| 合計 | 53 | 59 | 進行中 |
+| `IMMERSIVE` | 1 | 6 | Breathing 已通過 reviewer 實機驗收；Affirmation 與 Muscle Relaxation LIGHT implementation complete，等待 reviewer，其餘三款未修改 |
+| 合計 | 54 | 59 | 進行中 |
 
 「0」表示尚未依本次固定規格完成系統性遷移與驗收，不代表該遊戲目前完全沒有手機橫向樣式。
 
@@ -217,7 +217,7 @@
 
 這一階段的核心不是單純左右切版，而是將「參與者看到的內容」與「帶領者控制」分離，避免誤觸、答案提前曝光或操作資訊佔滿畫面。
 
-FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。11 款均已完成對應 migration 並通過 reviewer 實機驗收，目前為 `FACILITATOR 11/11`、整體 `53/59`，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Roulette 的前次 FULL 失敗與 THREE-COLUMN V2 修正均保留在歷史記錄中；目前正式狀態為 REAL-DEVICE ACCEPTED。
+FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT.md`。11 款均已完成對應 migration 並通過 reviewer 實機驗收，目前為 `FACILITATOR 11/11`、整體 `54/59`，建議 `KEEP 0`、`LIGHT 10`、`FULL 1`。Roulette 的前次 FULL 失敗與 THREE-COLUMN V2 修正均保留在歷史記錄中；目前正式狀態為 REAL-DEVICE ACCEPTED。
 
 ### 6.4 第四優先：沉浸式 6 款
 
@@ -228,9 +228,9 @@ FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT
 - 指尖星空
 - 漸進式放鬆
 
-沉浸式活動可不使用完整標準頁首，但必須保留至少 44 × 44 px 的返回控制、安全區、音量／暫停狀態，以及 reduced motion 檢查。六款完整稽核見 `docs/IMMERSIVE_MIGRATION_AUDIT.md`；本批正式選定呼吸律動作 reference，建立 minimal chrome、`.app-safe-screen`、100dvh、短高度橫向 primary-stimulus 與資源清理契約。Breathing 為 `REFERENCE IMPLEMENTATION COMPLETE`、等待 reviewer 實機驗收，故 `IMMERSIVE` 仍為 `0/6`。
+沉浸式活動可不使用完整標準頁首，但必須保留至少 44 × 44 px 的返回控制、安全區、音量／暫停狀態，以及 reduced motion 檢查。六款完整稽核見 `docs/IMMERSIVE_MIGRATION_AUDIT.md`；呼吸律動已建立並通過 reference reviewer gate。Affirmation 與 Muscle Relaxation 本批沿用 safe-stage、minimal chrome、短高度橫向與 completion contracts，但保留各自卡片翻牌、肌肉步驟、timer 與音訊 fallback 語意；兩款均為 `LIGHT IMPLEMENTATION COMPLETE`、等待 reviewer，故 `IMMERSIVE` 為 `1/6`。
 
-呼吸律動 reference 的 implementation 僅修改 `components/BreathingExercise.tsx` 與 scoped `index.css`，並新增 `tests/breathingImmersiveAcceptance.test.tsx`；AmbientSound、Mandala、Affirmation、StarryRipple、MuscleRelaxation 僅完成 source audit，未進入 production migration。
+呼吸律動 reference 的 implementation 僅修改 `components/BreathingExercise.tsx` 與 scoped `index.css`，並新增 `tests/breathingImmersiveAcceptance.test.tsx`。本批修改 `AffirmationCardGame.tsx`、`MuscleRelaxationGame.tsx` 與相同 scoped stylesheet，新增兩份 acceptance tests；AmbientSound、Mandala、StarryRipple 僅完成 source audit，未進入 production migration。兩款本批遊戲 reviewer 都通過後預期為 `56/59`、`IMMERSIVE 3/6`；若只通過一款則為 `55/59`、`IMMERSIVE 2/6`。
 
 ### 6.5 最終整合工作
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Heart, Sparkles, RefreshCw } from 'lucide-react';
 
 interface Props {
@@ -47,99 +47,122 @@ const AffirmationCardGame: React.FC<Props> = ({ onBack }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const nextTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (nextTimeoutRef.current) {
+        clearTimeout(nextTimeoutRef.current);
+        nextTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleNext = () => {
     if (isAnimating) return;
     setIsAnimating(true);
     setIsFlipped(false); // Flip back immediately
-    
+
     // Wait for the flip animation to finish (around 400ms-700ms) before changing the text
-    setTimeout(() => {
-        setCurrentIndex((prev) => {
-          let next;
-          do {
-            next = Math.floor(Math.random() * affirmations.length);
-          } while (next === prev && affirmations.length > 1);
-          return next;
-        });
-        setIsAnimating(false);
+    nextTimeoutRef.current = setTimeout(() => {
+      setCurrentIndex((prev) => {
+        let next;
+        do {
+          next = Math.floor(Math.random() * affirmations.length);
+        } while (next === prev && affirmations.length > 1);
+        return next;
+      });
+      setIsAnimating(false);
+      nextTimeoutRef.current = null;
     }, 400); // Wait for the backface to be hidden during the flip
   };
 
   const flipCard = () => {
-      setIsFlipped(true);
+    if (!isFlipped && !isAnimating) setIsFlipped(true);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-pink-50 p-4 sm:p-8">
-      <button 
-        onClick={onBack}
-        className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-md text-pink-600 hover:bg-pink-100 z-50 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
+    <div
+      data-affirmation-root
+      className="affirmation-root h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-pink-50"
+    >
+      <div data-affirmation-safe-stage className="app-safe-screen h-full w-full">
+        <div
+          data-affirmation-layout
+          className="affirmation-layout relative flex h-full min-h-0 w-full flex-col overflow-hidden"
+        >
+          <button
+            data-affirmation-back
+            type="button"
+            onClick={onBack}
+            aria-label="返回遊戲選單"
+            className="affirmation-back absolute z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-pink-600 shadow-md transition-colors hover:bg-pink-100"
+          >
+            <ArrowLeft size={24} />
+          </button>
 
-      <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col landscape:flex-row items-center justify-center gap-8 landscape:gap-12 mt-12 landscape:mt-0">
-          <div className="text-center landscape:text-left flex flex-col items-center landscape:items-start animate-fade-in z-10 landscape:flex-1">
-            <h2 className="text-3xl font-bold text-pink-900 mb-2 flex items-center justify-center landscape:justify-start gap-2">
-                <Heart className="text-pink-500 fill-pink-500" /> 正向肯定小卡 <Sparkles className="text-pink-400" />
-            </h2>
-            <p className="text-pink-700 mb-6">翻開一張卡片，給自己一句溫暖的話語。</p>
-            
-            <div className={`transition-opacity duration-300 hidden landscape:block ${isFlipped && !isAnimating ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              <button 
-                  onClick={handleNext}
-                  disabled={isAnimating || !isFlipped}
-                  className="flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-full font-bold shadow-lg hover:bg-pink-600 hover:scale-105 transition-all"
+          <main className="affirmation-main flex min-h-0 flex-1 w-full items-center justify-center">
+            <div data-affirmation-copy className="affirmation-copy z-10 text-center animate-fade-in">
+              <h2 className="affirmation-title flex items-center justify-center gap-2 font-bold text-pink-900">
+                <Heart className="text-pink-500 fill-pink-500" />
+                <span>正向肯定小卡</span>
+                <Sparkles className="text-pink-400" />
+              </h2>
+              <p className="affirmation-helper text-pink-700">翻開一張卡片，給自己一句溫暖的話語。</p>
+            </div>
+
+            <button
+              data-affirmation-card
+              type="button"
+              onClick={flipCard}
+              aria-label="翻開肯定小卡"
+              aria-pressed={isFlipped}
+              disabled={isFlipped || isAnimating}
+              className="affirmation-card aspect-[3/4] relative flex-shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0 text-left disabled:cursor-default"
+            >
+              <div className={`affirmation-card-inner h-full w-full transition-transform duration-700 ${isFlipped ? 'rotate-y-180' : ''}`}>
+                {/* Front of card (Hidden when flipped) */}
+                <div className="affirmation-card-face affirmation-card-front absolute inset-0 flex flex-col items-center justify-center rounded-3xl border-2 border-pink-100 bg-gradient-to-br from-white to-pink-50 p-8 shadow-xl backface-hidden">
+                  <Heart className="mb-4 h-16 w-16 animate-pulse text-pink-300" />
+                  <p className="font-bold tracking-widest text-pink-400">點擊翻開</p>
+                </div>
+
+                {/* Back of card (Visible when flipped) */}
+                <div className="affirmation-card-face affirmation-card-back absolute inset-0 flex items-center justify-center rounded-3xl border-2 border-pink-200 bg-white p-6 text-center shadow-xl backface-hidden rotate-y-180 sm:p-8">
+                  <div className="absolute left-4 top-4 text-pink-200">
+                    <Sparkles size={24} />
+                  </div>
+                  <div className="absolute bottom-4 right-4 text-pink-200">
+                    <Sparkles size={24} />
+                  </div>
+                  <p className="affirmation-card-back-content text-xl font-medium leading-relaxed text-slate-800 sm:text-2xl">
+                    "{affirmations[currentIndex]}"
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <div data-affirmation-next className={`affirmation-next transition-opacity duration-300 ${isFlipped && !isAnimating ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={isAnimating || !isFlipped}
+                className="min-h-11 inline-flex items-center gap-2 rounded-full bg-pink-500 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-pink-600 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                  <RefreshCw size={20} /> 再抽一張
+                <RefreshCw size={20} /> 再抽一張
               </button>
             </div>
-          </div>
+          </main>
 
-          <div className="relative w-full max-w-[280px] sm:max-w-sm landscape:max-w-xs landscape:max-h-[70vh] aspect-[3/4] perspective-1000 cursor-pointer flex-shrink-0" onClick={!isFlipped ? flipCard : undefined}>
-              <div className={`w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-                  
-                  {/* Front of card (Hidden when flipped) */}
-                  <div className="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-xl border-2 border-pink-100 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-white to-pink-50">
-                      <Heart className="w-16 h-16 text-pink-300 animate-pulse mb-4" />
-                      <p className="text-pink-400 font-bold tracking-widest">點擊翻開</p>
-                  </div>
-
-                  {/* Back of card (Visible when flipped) */}
-                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl shadow-xl border-2 border-pink-200 flex flex-col items-center justify-center p-6 sm:p-8 text-center">
-                      <div className="absolute top-4 left-4 text-pink-200">
-                          <Sparkles size={24} />
-                      </div>
-                      <div className="absolute bottom-4 right-4 text-pink-200">
-                          <Sparkles size={24} />
-                      </div>
-                      <p className="text-xl sm:text-2xl text-slate-800 leading-relaxed font-medium">
-                          "{affirmations[currentIndex]}"
-                      </p>
-                  </div>
-
-              </div>
-          </div>
-
-          <div className={`transition-opacity duration-300 landscape:hidden ${isFlipped && !isAnimating ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              <button 
-                  onClick={handleNext}
-                  disabled={isAnimating || !isFlipped}
-                  className="flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-full font-bold shadow-lg hover:bg-pink-600 hover:scale-105 transition-all"
-              >
-                  <RefreshCw size={20} /> 再抽一張
-              </button>
-          </div>
+          {/* Perspective CSS for the 3D flip effect */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            .affirmation-card { perspective: 1000px; }
+            .affirmation-card-inner { transform-style: preserve-3d; }
+            .affirmation-card-face { backface-visibility: hidden; }
+            .rotate-y-180 { transform: rotateY(180deg); }
+          ` }} />
+        </div>
       </div>
-
-      {/* Perspective CSS for 3D flip effect */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-      `}} />
     </div>
   );
 };
