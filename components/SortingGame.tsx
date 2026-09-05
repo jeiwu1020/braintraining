@@ -23,7 +23,7 @@ interface RoundHistory {
 
 const TOTAL_ROUNDS = 10;
 
-const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const SortingGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<SortingLevel | null>(null);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);

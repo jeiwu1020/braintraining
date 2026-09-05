@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const SoundGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const SoundGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<SoundLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);

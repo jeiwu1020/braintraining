@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const DotGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<DotLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [gameState, setGameState] = useState<'memorize' | 'recall' | 'result'>('memorize');

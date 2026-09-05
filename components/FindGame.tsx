@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const FindGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<FindLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [showResult, setShowResult] = useState(false);

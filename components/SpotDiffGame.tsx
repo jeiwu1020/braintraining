@@ -16,7 +16,7 @@ interface Props {
 const EMOJIS = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🍑', '🍍', '🥝', '🍅'];
 const ADVANCED_EMOJIS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵'];
 
-const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const SpotDiffGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const isAdvanced = difficulty === 'ADVANCED';
   const gridSize = isAdvanced ? 4 : 3; // 4x4 or 3x3
   const numDifferences = isAdvanced ? 3 : 1;

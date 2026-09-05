@@ -180,7 +180,7 @@ export const StepsRoundView = ({
   </GameShell>
 );
 
-const StepsGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const StepsGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<StepsLevel | null>(null);
   const [availableSteps, setAvailableSteps] = useState<StepItem[]>([]);
   const [userOrder, setUserOrder] = useState<StepItem[]>([]);

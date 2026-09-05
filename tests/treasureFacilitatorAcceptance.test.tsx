@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import TreasureGame, {
   applyCellScore,
   buildTreasureCells,
+  type CellData,
   calculateTimeBonus,
   countAdjacentTreasures,
   hasFoundAllTreasures,
@@ -44,7 +45,7 @@ describe('Treasure facilitator LIGHT acceptance', () => {
     expect(hasFoundAllTreasures(4, 5)).toBe(false);
     expect(hasFoundAllTreasures(5, 5)).toBe(true);
 
-    const cells = buildTreasureCells(4, 0, 0, () => 0.5).map(cell => ({ ...cell, type: 'EMPTY' as const }));
+    const cells = buildTreasureCells(4, 0, 0, () => 0.5).map((cell): CellData => ({ ...cell, type: 'EMPTY' }));
     cells[1].type = 'TREASURE';
     cells[10].type = 'TREASURE';
     cells[15].type = 'BOMB';

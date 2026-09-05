@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const ShadowGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<ShadowLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);

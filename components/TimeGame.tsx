@@ -119,7 +119,7 @@ export const TimeRoundView = ({
   </GameShell>
 );
 
-const TimeGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const TimeGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<TimeLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);

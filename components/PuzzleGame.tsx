@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const PuzzleGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<PuzzleLevel | null>(null);
   const [currentGrid, setCurrentGrid] = useState<{id: number, content: string}[]>([]);
   const [loading, setLoading] = useState(true);

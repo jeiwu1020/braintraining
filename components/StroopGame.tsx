@@ -14,7 +14,7 @@ interface Props {
 
 const TOTAL_ROUNDS = 10;
 
-const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const StroopGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<StroopLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [round, setRound] = useState(1);

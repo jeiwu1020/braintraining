@@ -16,7 +16,7 @@ const COLORS = [
   { id: 3, color: 'bg-green-500', active: 'bg-green-300', name: '綠色' },
 ];
 
-const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const SimonSaysGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const isAdvanced = difficulty === 'ADVANCED';
   
   const [sequence, setSequence] = useState<number[]>([]);

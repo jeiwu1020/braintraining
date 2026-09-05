@@ -173,7 +173,7 @@
 - Checkers completed mobile standardization through LIGHT acceptance while retaining its dedicated 8×8 board, move-history and review architecture. Reviewer accepted the responsive controls and last-move cue on a real device; no gameplay semantics changed。
 - Blackjack completed mobile standardization through LIGHT acceptance while retaining its dedicated `BOARD_TABLE` setup／round／two-hand／game-over architecture. Reviewer real-device accepted the final full-height correction; gameplay and DEALER/PVP semantics were unchanged。
 - 五子棋已以 `BoardSidebarLayout` 完成 10 × 10 正方形棋盤遷移：640 × 360、844 × 390、932 × 430 與 390 × 844 均完成代表狀態檢查，座標、逐格操作、PVE／PVP、AI 延遲、悔棋與五連線勝利均保留。
-- 完整 `tsc --noEmit` 已能通過 `fixMissingData.ts` 的 parser；目前仍報告 17 個與本 maintenance script 無關的既有型別錯誤（14 個 components、3 個 Treasure acceptance test），未在本低風險任務中處理。
+- 完整 `tsc --noEmit` 已能通過 `fixMissingData.ts` parser 與全專案型別檢查，目前為 `0 errors`；本低風險 maintenance task 未改變遊戲語意或版面。
 
 ## 6. 歷史遷移工作與結案
 
@@ -246,7 +246,7 @@ FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT
 
 本 mobile-landscape standardization phase 已 CLOSED。59 款目錄遊戲均完成其對應的 migration／acceptance path，並由 reviewer 取得 REAL-DEVICE ACCEPTED；所有六種 preset 均完成：`SPLIT_CHOICE 11/11`、`GRID_FOCUS 19/19`、`BOARD_SIDEBAR 11/11`、`BOARD_TABLE 1/1`、`FACILITATOR 11/11`、`IMMERSIVE 6/6`。不同遊戲仍可保留專用架構，完成標準是語意、響應式可用性、安全區 ownership 與實機驗收，而非所有遊戲共用同一元件。
 
-不屬於本階段的項目維持 deferred：iOS Home Screen Web App intermittent cold-start bottom blank strip、其餘 17 個既有 TypeScript 型別錯誤、既有 >500 kB bundle warning，以及若仍存在的 Tailwind CDN production warning；`fixMissingData.ts` 的 TS1127／TS1160 parser debt 已於獨立 maintenance commit 修正。
+不屬於本階段的項目維持 deferred：iOS Home Screen Web App intermittent cold-start bottom blank strip、既有 >500 kB bundle warning，以及若仍存在的 Tailwind CDN production warning；`fixMissingData.ts` 的 TS1127／TS1160 parser debt 與其餘本次揭露的型別錯誤均已修正。
 
 ## 7. 建議執行節奏
 
@@ -288,7 +288,7 @@ FACILITATOR 11 款的 audit 已完成，詳見 `docs/FACILITATOR_MIGRATION_AUDIT
 | --- | --- | --- |
 | 工作區累積多批尚未提交的修改 | 高 | 完整驗證後建立可回復的版本控制檢查點；提交前由使用者決定 |
 | `BOARD_TABLE` contract | 已完成 | 已正式加入第六個 preset、規格文件與 catalog contract tests；公開 21 點已完成 LIGHT acceptance 並通過 reviewer 實機驗收 |
-| `tsc --noEmit` 在修正 `fixMissingData.ts` parser 後仍有 17 個既有、與本腳本無關的型別錯誤 | 高 | 另開技術債批次逐項處理；本任務不修改 unrelated components 或 tests |
+| `tsc --noEmit` 型別檢查 | 已完成 | `fixMissingData.ts` parser 與本次揭露的 component/test 型別錯誤均已修正，目前為 0 errors |
 | 後續棋盤遊戲可能同時牽涉規則與版面 | 高 | 嚴格分離規則測試與 UI 遷移，複雜判定使用 Sol 複核 |
 | 主 bundle 超過 500 kB | 中 | 不阻擋版面遷移，另開效能批次做動態載入與分包 |
 | 現有瀏覽器 QA 多為代表尺寸、尚非全矩陣 | 中 | 每階段補齊 640、844、932 與最低直向檢查 |

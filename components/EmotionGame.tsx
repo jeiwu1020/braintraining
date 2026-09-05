@@ -101,7 +101,7 @@ export const EmotionRoundView = ({
   </GameShell>
 );
 
-const EmotionGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+const EmotionGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Props) => {
   const [level, setLevel] = useState<EmotionLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
