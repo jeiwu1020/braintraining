@@ -2,11 +2,14 @@
 
 Audit date: 2026-09-05  
 Baseline: `2ef90d80326706a7b4309429e044d9d5259abba3`  
-Scope: analysis and documentation only. No Tailwind production migration was implemented.
+Scope: historical audit baseline plus the controlled local production
+migration. Implementation is complete and pending reviewer real-device
+acceptance.
 
 ## 1. Executive finding
 
-The repository currently uses Tailwind's browser CDN as the utility-style
+Historical audit finding before implementation: the repository used
+Tailwind's browser CDN as the utility-style
 generator. Vite emits `index.css`, but it does not process the Tailwind
 directives because the project has no direct Tailwind/PostCSS integration.
 The emitted CSS therefore still contains the literal `@tailwind` directives
@@ -17,12 +20,13 @@ This is why the application is styled in a connected browser, while a
 production build still carries a runtime CDN dependency. The CDN warning is a
 browser console warning, not a Vite build warning.
 
-The safest future migration is Tailwind 3.4.x with the existing PostCSS
-directive model, using a local content scan. Tailwind 4's Vite integration is
-not recommended as the first migration because it would change the directive
-and configuration model at the same time as removing the CDN.
+The audit recommended Tailwind 3.4.x with the existing PostCSS directive
+model and a local content scan. The controlled implementation below adopts
+that recommendation; Tailwind 4's Vite integration was not used because it
+would change the directive and configuration model at the same time as
+removing the CDN.
 
-## 2. Current architecture
+## 2. Historical CDN architecture (before implementation)
 
 `index.html` contains:
 
@@ -72,7 +76,7 @@ slow, or unavailable, the custom CSS still loads but most Tailwind utility
 layout, color, spacing, responsive, and state rules do not. This is a
 production reliability and offline/PWA risk.
 
-## 3. Warning evidence
+## 3. Historical warning evidence
 
 `npm run build` completed successfully with Vite 6.4.2 and did not emit a
 Tailwind warning. It only reports bundle information; Vite does not inspect
@@ -96,7 +100,7 @@ the v3 PostCSS guide documents the existing `@tailwind` directive flow:
 [Play CDN](https://tailwindcss.com/docs/installation/play-cdn) and
 [Tailwind v3 PostCSS installation](https://v3.tailwindcss.com/docs/installation/using-postcss).
 
-## 4. Current CSS output
+## 4. Audit baseline CSS output
 
 The current production command was:
 
@@ -187,21 +191,20 @@ scoped CSS as:
 @media (orientation: landscape) and (max-height: 480px) { ... }
 ```
 
-This is not a width-only contract. The future local Tailwind configuration
-must preserve the existing `sm`, `md`, `lg`, `portrait`, `landscape`, and
-arbitrary `max-*`/`min-*` variants. Tailwind 3.4.x supports this existing
-utility syntax with the least semantic change.
+This is not a width-only contract. The implemented local Tailwind
+configuration preserves the existing `sm`, `md`, `lg`, `portrait`,
+`landscape`, and arbitrary `max-*`/`min-*` variants. Tailwind 3.4.x supports
+this existing utility syntax with the least semantic change.
 
 The target review set remains 640×360, 844×390, 932×430, and portrait
 390×844. The migration must validate those targets rather than assuming that
 `sm` width implies adequate phone-landscape height.
 
-## 8. Version and integration recommendation
+## 8. Version and integration decision
 
 ### Recommended version
 
-Use **Tailwind `~3.4.17`** for the first local migration (the `3.4.x` line,
-with a patch-level upper bound before 3.5). This best matches the existing
+Use **Tailwind `3.4.17`** for the local build. This best matches the existing
 `@tailwind base/components/utilities` directives, JIT content scanning,
 arbitrary values, variants, and current CDN-era syntax.
 
@@ -215,8 +218,8 @@ but it is not the smallest semantic migration for this repository:
 
 ### Recommended integration
 
-Use **Tailwind 3 + PostCSS**, not `manualChunks`-style build customization and
-not the Tailwind 4 Vite plugin for this first batch. The expected future files
+The implementation uses **Tailwind 3 + PostCSS**, not `manualChunks`-style
+build customization and not the Tailwind 4 Vite plugin. The implemented files
 are:
 
 ```text
@@ -228,7 +231,7 @@ index.css             keep directives and existing scoped CSS
 index.html            remove only the Tailwind CDN script
 ```
 
-Expected package additions are `tailwindcss@~3.4.17`, `postcss`, and
+The package additions are `tailwindcss@3.4.17`, `postcss`, and
 `autoprefixer` as dev dependencies. `vite.config.ts` should not need a change
 because Vite discovers `postcss.config.cjs` automatically. No PWA file,
 viewport metadata, import map, or Google Fonts markup needs to change.
@@ -236,14 +239,15 @@ viewport metadata, import map, or Google Fonts markup needs to change.
 ## 9. CSS order and Preflight
 
 `index.html` links `index.css` before `responsive-polish.css`. That order must
-remain unchanged. A local PostCSS build should emit Tailwind base/components/
-utilities into `index.css`; the project-specific rules remain in that file,
+remain unchanged. The local PostCSS build emits Tailwind
+base/components/utilities into `index.css`; the project-specific rules remain
+in that file,
 and `responsive-polish.css` remains last so the reviewer-driven Breathing,
 MainMenu, Starry, and Ambient refinements retain their winning source order.
 
-The current CDN runtime supplies the effective Tailwind utility layer and is
-also expected to supply Tailwind-like Preflight. The local build would make
-Preflight explicit. This can affect:
+The historical CDN runtime supplied the effective Tailwind utility layer and
+Tailwind-like Preflight. The local build now makes Preflight explicit. This
+can affect:
 
 - `html` and `body` default margins and text rendering;
 - `button` and form-control font/inheritance/reset behavior;
@@ -251,15 +255,15 @@ Preflight explicit. This can affect:
 - `input[type=range]` appearance and sizing;
 - default borders, background, and focus behavior.
 
-Preflight should not be disabled automatically. The future migration should
-preserve it, compare representative screenshots, and add only narrowly scoped
-compatibility rules if a real regression is found. The main risk is not the
+Preflight remains enabled. The implementation preserves it; representative
+visual validation and narrowly scoped compatibility rules remain the path if
+a real regression is found. The main risk is not the
 Tailwind utility syntax; it is a CDN-vs-local reset/cascade difference across
 59 already accepted games.
 
 ## 10. Risk assessment
 
-Overall first-migration risk: **MEDIUM-HIGH**. The code syntax is largely
+Overall pre-implementation risk assessment: **MEDIUM-HIGH**. The code syntax is largely
 compatible, but the current runtime generator is external and the accepted
 visual surface is broad.
 
@@ -272,7 +276,7 @@ visual surface is broad.
 | Runtime CDN dependency disappears | Offline/blocked CDN currently leaves most utility styling missing; this should improve after migration but exposes any unscanned class. | Treat offline/PWA smoke as a required acceptance case. |
 | CSS payload interpretation | A smaller local CSS file could be mistaken for a complete optimization while missing classes. | Validate visual behavior, not only raw/gzip size. |
 
-The future technical options have these risk levels:
+The considered technical options had these risk levels:
 
 | Option | Risk | Assessment |
 | --- | --- | --- |
@@ -281,16 +285,14 @@ The future technical options have these risk levels:
 | Keep CDN and add a local partial stylesheet | HIGH | Two competing generators can create precedence and drift problems. |
 | Manual safelist for all utilities | MEDIUM-HIGH | Brittle and unnecessary while current classes are source-visible literals. |
 
-## 11. Temporary experiment
+## 11. Historical temporary experiment
 
 No temporary dependency/config experiment was performed. It would require
-installing and then removing build dependencies and config files, while the
-current source/CSS evidence already establishes the architecture and the
-user explicitly requested no production changes. A future implementation
-batch should perform the local build on a dedicated branch or disposable
-worktree before committing.
+installing and then removing build dependencies and config files. The
+controlled implementation subsequently installed the dependencies in the
+working tree and validated the local build before committing.
 
-## 12. One future implementation batch
+## 12. Completed implementation batch
 
 1. Add pinned Tailwind 3.4.x, PostCSS, and Autoprefixer dev dependencies.
 2. Add `tailwind.config.cjs` with content globs for `App.tsx`,
@@ -315,7 +317,7 @@ stylesheet path and investigate the specific missing utility, Preflight, or
 cascade difference before retrying. Do not change the PWA cold-start issue as
 part of this batch.
 
-## 13. Acceptance criteria for implementation
+## 13. Acceptance criteria for the implementation gate
 
 1. No Tailwind CDN script remains in production HTML.
 2. The exact CDN runtime warning is absent from the browser console.
@@ -333,15 +335,67 @@ part of this batch.
 9. No PWA viewport or standalone metadata changes are made.
 10. Offline/reload smoke confirms styles do not depend on an external CDN.
 
-## 14. Current validation for this audit
+## 14. Audit baseline
 
-- Catalog and mobile-landscape status: unchanged, `59/59 COMPLETE`.
-- TypeScript: `0 errors` before and after the audit; no source change was made.
-- Production build: PASS; current emitted CSS is 60.99 kB raw / 8.63 kB gzip.
-- Tailwind warning: expected runtime CDN warning; no Vite build-time warning.
-- Production code changes: NONE.
-- Temporary experiment: not performed.
+The audit baseline was the CDN-backed build: CSS 60.99 kB raw / 8.63 kB gzip,
+with the runtime CDN warning and unresolved `@tailwind`/`@apply` directives in
+the emitted stylesheet. The audit itself made no production changes. The
+controlled implementation below records the subsequently approved local
+Tailwind migration.
+
+## 15. Local Tailwind 3.4.17 implementation results
+
+The migration is implemented and is pending reviewer real-device acceptance.
+
+| Item | Result |
+| --- | --- |
+| Local Tailwind | `tailwindcss@3.4.17` exact version |
+| Build integration | PostCSS with `tailwindcss` and `autoprefixer` |
+| CDN script | Removed from `index.html`; no production runtime reference remains |
+| Content scan | `index.html`, `index.tsx`, `App.tsx`, and production `components`, `data`, `services`, `utils` trees |
+| Preflight | Enabled by default, matching the prior CDN normalization contract |
+| CSS before | 60.99 kB raw / 8.63 kB gzip |
+| CSS after | 184.86 kB raw / 27.51 kB gzip |
+| JS entry after | 244.75 kB raw / 76.83 kB gzip |
+| CDN warning | Resolved: the script that emitted it is absent |
+| `>500 kB` warning | Remains resolved |
+| Lazy loading | 59 dynamic game imports preserved; App has no static game implementation imports |
+
+The larger generated CSS is expected: the local build now emits the utility
+and Preflight rules that were previously generated at runtime. This is a
+correctness and CDN-independence migration, not a CSS-minification pass.
+
+### Built CSS verification
+
+The production stylesheet is `dist/assets/index-DFsiemiF.css` for the
+verification build. It contains compiled representatives for `.flex`,
+`.grid`, `.bg-emerald-500`, arbitrary `100dvh` utilities, landscape variants,
+and height/orientation media rules. Raw `@tailwind base`, `@tailwind
+components`, `@tailwind utilities`, and `@apply` directives are absent from
+the emitted CSS.
+
+The HTML link order remains `index.css` followed by
+`responsive-polish.css`, so reviewer-specific polish continues to win in the
+cascade. `viewport-fit=cover`, the manifest link, Apple metadata, Google
+Fonts, and the import map were not changed.
+
+### Dynamic utility audit
+
+The post-migration source audit found zero true dynamically generated Tailwind
+utility names. Existing conditional class expressions contain complete static
+class literals, so no safelist was added. No game component or accepted layout
+was changed.
+
+### Validation and evidence
+
+- Focused Tailwind acceptance: 1 file / 3 tests passed.
+- Production build after the migration: PASS; no `>500 kB` chunk warning.
+- TypeScript remains `0 errors`.
+- Browser QA could not be completed in the in-app browser because the local
+  Vite server is not reachable from that isolated browser surface; no runtime
+  visual result is claimed here. Real-device QA remains pending.
+- The npm install audit reported 2 existing dependency advisories (1 low, 1
+  high); dependency remediation is outside this migration.
 
 The iOS Home Screen Web App cold-start bottom blank strip remains deferred.
-This audit does not change that issue, PWA infrastructure, or viewport
-strategy.
+This migration does not change PWA infrastructure or viewport strategy.
