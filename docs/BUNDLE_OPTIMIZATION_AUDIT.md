@@ -211,3 +211,12 @@ Runtime smoke evidence in the local browser confirmed MainMenu load, the visible
 ## 11. Decision and deferred work
 
 Batch 1 is complete. The next approved optimization should be measured data-boundary work only where selected-game profiling proves it necessary, starting with the broad `staticData.ts`/`geminiService.ts` relationship. Manual chunks, dependency cleanup, and PWA cold-start work remain separate; no Batch 2 work was implemented here.
+
+## 12. Final reviewer closeout
+
+Bundle optimization Batch 1 subsequently passed real-device review and is
+`REAL-DEVICE ACCEPTED`. The 59 game modules remain lazy-loaded, the initial
+entry reduction and resolved `>500 kB` warning remain accepted, and no game
+behavior or layout regression is known. Batch 2 data-boundary optimization is
+deferred and is not currently required; reopen it only when measured profiling
+shows a concrete need.

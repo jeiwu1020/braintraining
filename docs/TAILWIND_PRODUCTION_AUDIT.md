@@ -345,7 +345,8 @@ Tailwind migration.
 
 ## 15. Local Tailwind 3.4.17 implementation results
 
-The migration is implemented and is pending reviewer real-device acceptance.
+At the implementation checkpoint, the migration was pending reviewer
+real-device acceptance; the final status is recorded below.
 
 | Item | Result |
 | --- | --- |
@@ -399,3 +400,13 @@ was changed.
 
 The iOS Home Screen Web App cold-start bottom blank strip remains deferred.
 This migration does not change PWA infrastructure or viewport strategy.
+
+## Final reviewer closeout
+
+The local Tailwind migration subsequently passed representative iPhone
+real-device review and is `REAL-DEVICE ACCEPTED`. Gomoku was the only observed
+visual regression: the first clipping correction flattened its square board
+and was rejected; the second safe-area-aware, width-driven square correction
+was accepted. No remaining Tailwind visual regression is known. The CDN
+production warning remains resolved, and the existing PWA cold-start viewport
+work is documented separately from this Tailwind migration.
