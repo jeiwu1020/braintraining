@@ -46,6 +46,16 @@ describe('GomokuGame board-sidebar migration', () => {
     expect(markup).toContain('data-star-point="G7"');
   });
 
+  it('constrains the square board to the actual board-region height', () => {
+    const markup = renderToStaticMarkup(
+      <GomokuGame difficulty="NORMAL" initialBoard={emptyBoard()} onBack={() => undefined} />,
+    );
+
+    expect(markup).toContain('data-gomoku-board-frame');
+    expect(markup).toMatch(/data-gomoku-board-frame[^>]*class="[^"]*max-h-full/);
+    expect(markup).not.toContain('calc(100dvh - 6rem)');
+  });
+
   it('preserves horizontal, vertical, and both diagonal five-in-a-row rules', () => {
     const horizontal = emptyBoard();
     horizontal[5].splice(1, 5, 1, 1, 1, 1, 1);
