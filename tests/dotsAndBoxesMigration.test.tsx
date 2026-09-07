@@ -38,6 +38,22 @@ describe('DotsAndBoxesGame board-sidebar migration', () => {
     expect(markup).not.toContain('切換遊戲模式');
   });
 
+  it('keeps the board frame neutral and unclaimed edges light', () => {
+    const markup = renderToStaticMarkup(
+      <DotsAndBoxesGame
+        initialHLines={emptyH()}
+        initialVLines={emptyV()}
+        initialSquares={emptySquares()}
+        onBack={() => undefined}
+      />,
+    );
+
+    expect(markup).not.toContain('border-rose-900');
+    expect(markup).not.toContain('bg-slate-400');
+    expect(markup).toContain('border-slate-200');
+    expect(markup).toContain('bg-slate-200');
+  });
+
   it('preserves single and double box completion semantics', () => {
     const h = emptyH();
     const v = emptyV();
