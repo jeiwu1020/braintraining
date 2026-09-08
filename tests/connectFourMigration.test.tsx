@@ -54,6 +54,15 @@ describe('ConnectFourGame board-sidebar migration', () => {
     expect(markup).toContain('min-h-11');
   });
 
+  it('gives the mobile confirmation controls a wider landscape sidebar', () => {
+    const markup = renderToStaticMarkup(
+      <ConnectFourGame difficulty="NORMAL" initialBoard={emptyBoard()} onBack={() => undefined} />,
+    );
+
+    expect(markup).toContain('connect-four-layout');
+    expect(markup).toContain('min-h-12');
+  });
+
   it('preserves gravity placement semantics', () => {
     const board = emptyBoard();
     expect(getConnectFourValidRow(board, 2)).toBe(5);

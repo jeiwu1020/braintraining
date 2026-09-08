@@ -339,7 +339,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                 aria-pressed={pendingColumn === c}
                 disabled={!isColumnPlayable}
                 onClick={() => setPendingColumn(c)}
-                className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-2 py-1 text-base font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-40 ${pendingColumn === c ? 'border-yellow-500 bg-yellow-100 text-yellow-900 shadow-inner' : 'border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'}`}
+                className={`flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-2 py-1 text-lg font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-40 ${pendingColumn === c ? 'border-yellow-500 bg-yellow-100 text-yellow-900 shadow-inner' : 'border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'}`}
               >
                 {label}
               </button>
@@ -354,7 +354,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
             type="button"
             data-connect-four-confirm="true"
             onClick={handleConfirmMove}
-            className="mt-1 flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-extrabold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+            className="mt-1 flex min-h-12 w-full items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-extrabold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
           >
             確認落子 {COL_LABELS[pendingColumn]} 欄
           </button>
@@ -418,6 +418,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
         <BoardSidebarLayout
           board={boardView}
           sidebar={sidebarView}
+          className="connect-four-layout"
           boardLabel="四子棋棋盤"
           sidebarLabel="四子棋狀態與操作"
           boardClassName="flex min-h-0 items-center justify-center"

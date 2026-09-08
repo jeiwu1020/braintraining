@@ -109,6 +109,12 @@
   }
 }
 
+@media (orientation: landscape) and (max-height: 600px) {
+  .connect-four-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.38fr);
+  }
+}
+
 @media (orientation: landscape) and (min-width: 768px) {
   [data-main-menu-sidebar='true'] {
     width: 26%;
