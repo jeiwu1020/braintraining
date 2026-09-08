@@ -189,6 +189,119 @@
   }
 }
 
+/* Games are designed for phone landscape. Keep the orientation prompt out of
+ * the document flow so portrait guidance cannot resize or shift any game
+ * layout, especially the landscape reference screens. */
+.mobile-landscape-gate {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
+  .mobile-landscape-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: calc(1.25rem + env(safe-area-inset-top, 0px))
+      calc(1.25rem + env(safe-area-inset-right, 0px))
+      calc(1.25rem + env(safe-area-inset-bottom, 0px))
+      calc(1.25rem + env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.96);
+    color: #f8fafc;
+  }
+
+  .mobile-landscape-gate__card {
+    display: flex;
+    width: min(100%, 25rem);
+    flex-direction: column;
+    align-items: center;
+    gap: 0.875rem;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: 1.5rem;
+    background: rgba(30, 41, 59, 0.96);
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 1.5rem 4rem rgba(2, 6, 23, 0.45);
+  }
+
+  .mobile-landscape-gate__icon {
+    position: relative;
+    display: flex;
+    height: 4.75rem;
+    width: 4.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.25rem;
+    background: rgba(14, 165, 233, 0.16);
+    color: #bae6fd;
+  }
+
+  .mobile-landscape-gate__phone {
+    height: 3rem;
+    width: 3rem;
+    transform: rotate(90deg);
+  }
+
+  .mobile-landscape-gate__rotate {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    height: 1.5rem;
+    width: 1.5rem;
+    color: #fbbf24;
+  }
+
+  .mobile-landscape-gate h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 800;
+  }
+
+  .mobile-landscape-gate__message,
+  .mobile-landscape-gate__note,
+  .mobile-landscape-gate__install p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .mobile-landscape-gate__message {
+    color: #e2e8f0;
+    font-size: 1rem;
+  }
+
+  .mobile-landscape-gate__install {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 0.625rem;
+    box-sizing: border-box;
+    border-radius: 1rem;
+    background: rgba(14, 165, 233, 0.12);
+    padding: 0.875rem;
+    color: #e0f2fe;
+    text-align: left;
+  }
+
+  .mobile-landscape-gate__install svg {
+    flex: 0 0 auto;
+    margin-top: 0.125rem;
+  }
+
+  .mobile-landscape-gate__install p {
+    font-size: 0.875rem;
+  }
+
+  .mobile-landscape-gate__note {
+    color: #cbd5e1;
+    font-size: 0.75rem;
+  }
+}
+
 /* Blackjack is a full-screen table. App only provides min-height, so h-full on
  * the game root does not establish a definite viewport height. Pin these
  * screens to the dynamic viewport so the table/player regions consume all

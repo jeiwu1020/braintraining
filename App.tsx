@@ -8,6 +8,7 @@ import {
   parseGameCategoryId,
 } from './data/gameCatalog';
 import type { GameCategoryId, GameDefinition } from './data/gameCatalog';
+const MobileLandscapeGate = React.lazy(() => import('./components/game-ui/MobileLandscapeGate'));
 const SortingGame = React.lazy(() => import('./components/SortingGame'));
 const MemoryGame = React.lazy(() => import('./components/MemoryGame'));
 const BreathingExercise = React.lazy(() => import('./components/BreathingExercise'));
@@ -232,6 +233,7 @@ const App: React.FC = () => {
     <div className={`min-h-[100dvh] ${bgClass} transition-colors duration-500`}>
        <React.Suspense fallback={<LazyGameFallback bgClass={bgClass} />}>
          {renderContent()}
+         {gameState !== GameState.MENU && <MobileLandscapeGate />}
        </React.Suspense>
     </div>
   );
