@@ -298,7 +298,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                   aria-describedby="connect-four-turn"
                   disabled={!isColumnPlayable}
                   onClick={() => isMobileConfirmMode ? setPendingColumn(c) : handleColumnClick(c)}
-                  className={`group relative grid min-h-0 min-w-0 flex-1 touch-auto grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80 ${pendingColumn === c ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-blue-700' : ''}`}
+                  className={`group relative grid min-h-0 min-w-0 flex-1 touch-manipulation grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80 ${pendingColumn === c ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-blue-700' : ''}`}
                 >
                   {Array.from({ length: ROWS }, (_, r) => {
                     const cell = board[r]?.[c] ?? EMPTY;
