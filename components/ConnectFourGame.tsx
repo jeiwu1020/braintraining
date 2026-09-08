@@ -294,11 +294,11 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                   type="button"
                   data-column={label}
                   data-connect-four-board-column-action="true"
-                  data-connect-four-preview-on-pointerdown="true"
+                  data-connect-four-preview-on-pointerup="true"
                   aria-label={isMobileConfirmMode ? `預覽在 ${label} 欄落子` : `在 ${label} 欄落子`}
                   aria-describedby="connect-four-turn"
                   disabled={!isColumnPlayable}
-                  onPointerDown={() => {
+                  onPointerUp={() => {
                     if (isMobileConfirmMode) setPendingColumn(c);
                   }}
                   onClick={() => isMobileConfirmMode ? setPendingColumn(c) : handleColumnClick(c)}
