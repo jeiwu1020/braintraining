@@ -43,6 +43,17 @@ describe('ConnectFourGame board-sidebar migration', () => {
     expect(markup).toContain('aspect-square');
   });
 
+  it('provides larger mobile column selectors with a preview-before-confirm flow', () => {
+    const markup = renderToStaticMarkup(
+      <ConnectFourGame difficulty="NORMAL" initialBoard={emptyBoard()} onBack={() => undefined} />,
+    );
+
+    expect(markup).toContain('data-connect-four-mobile-picker="true"');
+    expect((markup.match(/data-column-picker="[A-G]"/g) ?? [])).toHaveLength(7);
+    expect(markup).toContain('先選欄位，再確認落子');
+    expect(markup).toContain('min-h-11');
+  });
+
   it('preserves gravity placement semantics', () => {
     const board = emptyBoard();
     expect(getConnectFourValidRow(board, 2)).toBe(5);

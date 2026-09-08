@@ -92,6 +92,21 @@
   .board-sidebar-layout:has(.board-sidebar-layout__feedback) {
     grid-template-rows: minmax(0, 1fr) auto;
   }
+
+  .connect-four-mobile-column-picker {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 767px), (pointer: coarse) and (max-height: 600px) {
+  .connect-four-mobile-column-picker {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .connect-four-mobile-column-picker button {
+    touch-action: manipulation;
+  }
 }
 
 @media (orientation: landscape) and (min-width: 768px) {

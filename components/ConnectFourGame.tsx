@@ -20,6 +20,7 @@ const PLAYER = 1; // Red
 const AI = 2;     // Yellow
 
 const COL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const MOBILE_CONFIRM_QUERY = '(pointer: coarse) and (max-width: 767px), (pointer: coarse) and (max-height: 600px)';
 
 const createEmptyBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
 
@@ -73,6 +74,20 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
   const [history, setHistory] = useState<number[][][]>([]);
   const [turnHistory, setTurnHistory] = useState<boolean[]>([]);
   const [showRules, setShowRules] = useState(false);
+  const [pendingColumn, setPendingColumn] = useState<number | null>(null);
+  const [isMobileConfirmMode, setIsMobileConfirmMode] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_CONFIRM_QUERY);
+    const updateConfirmMode = () => setIsMobileConfirmMode(mediaQuery.matches);
+    updateConfirmMode();
+    mediaQuery.addEventListener('change', updateConfirmMode);
+    return () => mediaQuery.removeEventListener('change', updateConfirmMode);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileConfirmMode) setPendingColumn(null);
+  }, [isMobileConfirmMode]);
 
   useEffect(() => {
     resetGame();
@@ -90,15 +105,19 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
     setWinningCells([]);
     setHistory([]);
     setTurnHistory([]);
+    setPendingColumn(null);
   };
 
+  const isColumnPlayable = (col: number) => (
+    !winner && (gameMode === 'PVP' || isPlayerTurn) && board[0]?.[col] === EMPTY
+  );
+
   const handleColumnClick = (col: number) => {
-    if (winner) return;
-    if (gameMode === 'PVE' && !isPlayerTurn) return;
+    if (!isColumnPlayable(col)) return false;
 
     const currentPlayer = isPlayerTurn ? PLAYER : AI;
     const r = getConnectFourValidRow(board, col);
-    if (r === -1) return;
+    if (r === -1) return false;
 
     setHistory([...history, board.map(row => [...row])]);
     setTurnHistory([...turnHistory, isPlayerTurn]);
@@ -116,6 +135,12 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
     } else {
       setIsPlayerTurn(!isPlayerTurn);
     }
+    return true;
+  };
+
+  const handleConfirmMove = () => {
+    if (pendingColumn === null) return;
+    if (handleColumnClick(pendingColumn)) setPendingColumn(null);
   };
 
   const handleUndo = () => {
@@ -141,6 +166,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
     setTurnHistory(newTurnHistory);
     setWinner(null);
     setWinningCells([]);
+    setPendingColumn(null);
   };
 
   // Improved AI
@@ -263,15 +289,16 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                   key={label}
                   type="button"
                   data-column={label}
-                  aria-label={`在 ${label} 欄落子`}
+                  aria-label={isMobileConfirmMode ? `請使用欄位選擇器預覽 ${label} 欄` : `在 ${label} 欄落子`}
                   aria-describedby="connect-four-turn"
-                  disabled={!isColumnPlayable}
+                  disabled={!isColumnPlayable || isMobileConfirmMode}
                   onClick={() => handleColumnClick(c)}
-                  className="group relative grid min-h-0 min-w-0 flex-1 grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80"
+                  className={`group relative grid min-h-0 min-w-0 flex-1 grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80 ${pendingColumn === c ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-blue-700' : ''}`}
                 >
                   {Array.from({ length: ROWS }, (_, r) => {
                     const cell = board[r]?.[c] ?? EMPTY;
                     const isWin = winningCells.some(w => w.r === r && w.c === c);
+                    const isPreview = pendingColumn === c && r === getConnectFourValidRow(board, c);
 
                     return (
                       <span
@@ -280,7 +307,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                         data-connect-four-hole="true"
                         className={`aspect-square w-full min-h-0 min-w-0 self-center rounded-full border border-black/10 shadow-inner transition-colors duration-300 ${
                           cell === EMPTY ? 'bg-blue-900/30' : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'
-                        } ${isWin ? 'ring-4 ring-white ring-offset-1 ring-offset-blue-700 animate-pulse' : ''}`}
+                        } ${isWin ? 'ring-4 ring-white ring-offset-1 ring-offset-blue-700 animate-pulse' : ''} ${isPreview ? 'ring-4 ring-white/90 ring-offset-1 ring-offset-yellow-300' : ''}`}
                       />
                     );
                   })}
@@ -298,6 +325,42 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
 
   const sidebarView = (
     <div className="flex h-full min-h-0 flex-col gap-2 rounded-xl border border-blue-100 bg-white/90 p-2 text-blue-900 shadow-sm sm:gap-3 sm:p-3">
+      <div className="connect-four-mobile-column-picker" data-connect-four-mobile-picker="true" aria-label="手機欄位選擇">
+        <div className="mb-1 text-center text-xs font-bold text-blue-800">手機請先選欄位</div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {COL_LABELS.map((label, c) => {
+            const isColumnPlayable = !winner && (gameMode === 'PVP' || isPlayerTurn) && board[0]?.[c] === EMPTY;
+            return (
+              <button
+                key={label}
+                type="button"
+                data-column-picker={label}
+                aria-label={`預覽在 ${label} 欄落子`}
+                aria-pressed={pendingColumn === c}
+                disabled={!isColumnPlayable}
+                onClick={() => setPendingColumn(c)}
+                className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-2 py-1 text-base font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-40 ${pendingColumn === c ? 'border-yellow-500 bg-yellow-100 text-yellow-900 shadow-inner' : 'border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'}`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <div aria-live="polite" className="mt-1 rounded-lg bg-blue-50 px-2 py-1 text-center text-xs font-semibold text-blue-800">
+          {pendingColumn === null ? '先選欄位，再確認落子' : `已選 ${COL_LABELS[pendingColumn]} 欄，請確認落子`}
+        </div>
+        {pendingColumn !== null && (
+          <button
+            type="button"
+            data-connect-four-confirm="true"
+            onClick={handleConfirmMove}
+            className="mt-1 flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-extrabold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+          >
+            確認落子 {COL_LABELS[pendingColumn]} 欄
+          </button>
+        )}
+      </div>
+
       <div id="connect-four-turn" className="rounded-lg bg-blue-50 p-2 text-center">
         <div className="flex items-center justify-center gap-2 text-xs font-semibold text-blue-700">
           <Trophy aria-hidden="true" className="h-4 w-4" /> 目前狀態
