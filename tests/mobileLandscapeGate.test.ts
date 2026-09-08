@@ -5,9 +5,10 @@ const appSource = readFileSync('App.tsx', 'utf8');
 const stylesheet = readFileSync('index.css', 'utf8');
 
 describe('mobile landscape gate', () => {
-  it('mounts a non-layout-shifting gate for active games only', () => {
+  it('mounts a non-layout-shifting gate at the app level', () => {
     expect(appSource).toContain('MobileLandscapeGate');
-    expect(appSource).toContain("gameState !== GameState.MENU");
+    expect(appSource).toContain('<MobileLandscapeGate />');
+    expect(appSource).not.toContain('{gameState !== GameState.MENU && <MobileLandscapeGate />}');
   });
 
   it('provides an accessible rotation message and PWA guidance', () => {

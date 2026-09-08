@@ -233,7 +233,7 @@ const App: React.FC = () => {
     <div className={`min-h-[100dvh] ${bgClass} transition-colors duration-500`}>
        <React.Suspense fallback={<LazyGameFallback bgClass={bgClass} />}>
          {renderContent()}
-         {gameState !== GameState.MENU && <MobileLandscapeGate />}
+         <MobileLandscapeGate />
        </React.Suspense>
     </div>
   );
