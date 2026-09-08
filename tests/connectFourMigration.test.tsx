@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import ConnectFourGame, {
   findConnectFourWinningCells,
+  getConnectFourPreviewColor,
   getConnectFourValidRow,
 } from '../components/ConnectFourGame';
 import BoardSidebarLayout from '../components/game-ui/BoardSidebarLayout';
@@ -39,6 +40,7 @@ describe('ConnectFourGame board-sidebar migration', () => {
     expect(markup).toContain('F');
     expect(markup).toContain('G');
     expect(markup.match(/data-column="[A-G]"/g)).toHaveLength(7);
+    expect(markup.match(/data-connect-four-board-column-action="true"/g)).toHaveLength(7);
     expect(markup.match(/data-connect-four-hole="true"/g)).toHaveLength(42);
     expect(markup).toContain('aspect-square');
   });
@@ -61,6 +63,11 @@ describe('ConnectFourGame board-sidebar migration', () => {
 
     expect(markup).toContain('connect-four-layout');
     expect(markup).toContain('min-h-12');
+  });
+
+  it('uses the active player color for a board-column preview', () => {
+    expect(getConnectFourPreviewColor(true)).toBe('bg-red-500');
+    expect(getConnectFourPreviewColor(false)).toBe('bg-yellow-400');
   });
 
   it('preserves gravity placement semantics', () => {

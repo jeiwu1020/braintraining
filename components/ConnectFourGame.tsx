@@ -24,6 +24,10 @@ const MOBILE_CONFIRM_QUERY = '(pointer: coarse) and (max-width: 767px), (pointer
 
 const createEmptyBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
 
+export const getConnectFourPreviewColor = (isPlayerTurn: boolean) => (
+  isPlayerTurn ? 'bg-red-500' : 'bg-yellow-400'
+);
+
 export const getConnectFourValidRow = (b: number[][], col: number) => {
   for (let r = ROWS - 1; r >= 0; r -= 1) {
     if (b[r]?.[col] === EMPTY) return r;
@@ -289,10 +293,11 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                   key={label}
                   type="button"
                   data-column={label}
-                  aria-label={isMobileConfirmMode ? `請使用欄位選擇器預覽 ${label} 欄` : `在 ${label} 欄落子`}
+                  data-connect-four-board-column-action="true"
+                  aria-label={isMobileConfirmMode ? `預覽在 ${label} 欄落子` : `在 ${label} 欄落子`}
                   aria-describedby="connect-four-turn"
-                  disabled={!isColumnPlayable || isMobileConfirmMode}
-                  onClick={() => handleColumnClick(c)}
+                  disabled={!isColumnPlayable}
+                  onClick={() => isMobileConfirmMode ? setPendingColumn(c) : handleColumnClick(c)}
                   className={`group relative grid min-h-0 min-w-0 flex-1 grid-rows-6 gap-1 rounded-md p-0 transition-colors after:absolute after:-inset-x-2 after:inset-y-0 after:content-[''] hover:bg-blue-800/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-80 ${pendingColumn === c ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-blue-700' : ''}`}
                 >
                   {Array.from({ length: ROWS }, (_, r) => {
@@ -306,7 +311,7 @@ const ConnectFourGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initi
                         aria-hidden="true"
                         data-connect-four-hole="true"
                         className={`aspect-square w-full min-h-0 min-w-0 self-center rounded-full border border-black/10 shadow-inner transition-colors duration-300 ${
-                          cell === EMPTY ? 'bg-blue-900/30' : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'
+                          cell === EMPTY ? (isPreview ? getConnectFourPreviewColor(isPlayerTurn) : 'bg-blue-900/30') : cell === PLAYER ? 'bg-red-500' : 'bg-yellow-400'
                         } ${isWin ? 'ring-4 ring-white ring-offset-1 ring-offset-blue-700 animate-pulse' : ''} ${isPreview ? 'ring-4 ring-white/90 ring-offset-1 ring-offset-yellow-300' : ''}`}
                       />
                     );
