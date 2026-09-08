@@ -41,7 +41,8 @@ describe('ConnectFourGame board-sidebar migration', () => {
     expect(markup).toContain('G');
     expect(markup.match(/data-column="[A-G]"/g)).toHaveLength(7);
     expect(markup.match(/data-connect-four-board-column-action="true"/g)).toHaveLength(7);
-    expect(markup.match(/touch-manipulation/g)).toHaveLength(7);
+    expect(markup.match(/touch-auto/g)).toHaveLength(7);
+    expect(markup.match(/data-connect-four-preview-on-pointerdown="true"/g)).toHaveLength(7);
     expect(markup.match(/data-connect-four-hole="true"/g)).toHaveLength(42);
     expect(markup).toContain('aspect-square');
   });
