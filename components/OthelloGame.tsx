@@ -33,6 +33,37 @@ const createInitialBoard = () => {
 
 const cloneBoard = (board: number[][]) => board.map(row => [...row]);
 
+export interface OthelloMoveRecord {
+  board: number[][];
+  player: number;
+  r: number;
+  c: number;
+}
+
+export interface OthelloLastMove {
+  player: number;
+  r: number;
+  c: number;
+}
+
+export const buildOthelloReplayFrames = (openingBoard: number[][], moves: OthelloMoveRecord[]) => [
+  { board: cloneBoard(openingBoard), lastMove: null as OthelloLastMove | null },
+  ...moves.map(({ board, player, r, c }) => ({
+    board: cloneBoard(board),
+    lastMove: { player, r, c },
+  })),
+];
+
+const countOthelloPieces = (board: number[][]) => {
+  let black = 0;
+  let white = 0;
+  board.forEach(row => row.forEach(cell => {
+    if (cell === BLACK) black += 1;
+    else if (cell === WHITE) white += 1;
+  }));
+  return { black, white };
+};
+
 export const isOthelloValidMove = (board: number[][], r: number, c: number, player: number) => {
   if (board[r]?.[c] !== EMPTY) return false;
   const opponent = player === BLACK ? WHITE : BLACK;
@@ -99,6 +130,148 @@ const POSITION_WEIGHTS = [
     [100, -20, 10, 5, 5, 10, -20, 100]
 ];
 
+interface OthelloBoardViewProps {
+  board: number[][];
+  validMoves: { r: number; c: number }[];
+  turn: number;
+  gameMode: 'PVE' | 'PVP';
+  interactionLocked: boolean;
+  lastMove: OthelloLastMove | null;
+  onMove: (r: number, c: number) => void;
+}
+
+export const OthelloBoardView: React.FC<OthelloBoardViewProps> = ({
+  board,
+  validMoves,
+  turn,
+  gameMode,
+  interactionLocked,
+  lastMove,
+  onMove,
+}) => {
+  const turnLabel = turn === BLACK ? '黑棋' : '白棋';
+
+  return (
+    <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
+      <div
+        className="grid aspect-square h-auto max-w-full gap-0.5"
+        style={{
+          width: 'min(100%, calc(100dvh - 6rem))',
+          gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+          gridTemplateRows: '1.25rem minmax(0, 1fr)',
+        }}
+      >
+        <span aria-hidden="true" />
+        <div className="grid grid-cols-8 items-center text-center text-[10px] font-bold text-emerald-800 sm:text-xs">
+          {COLS.map(label => <span key={label}>{label}</span>)}
+        </div>
+        <div className="grid grid-rows-8 items-center text-center text-[10px] font-bold text-emerald-800 sm:text-xs">
+          {ROWS.map(label => <span key={label}>{label}</span>)}
+        </div>
+        <div
+          data-board-coordinate-model="cell"
+          className="grid grid-cols-8 grid-rows-8 gap-0.5 rounded-lg border-4 border-emerald-800 bg-emerald-800 p-1 shadow-xl sm:gap-1 sm:p-2"
+        >
+          {board.map((row, r) => row.map((cell, c) => {
+            const coordinate = `${COLS[c]}${ROWS[r]}`;
+            const isValid = validMoves.some(move => move.r === r && move.c === c);
+            const showHint = !interactionLocked && isValid && (gameMode === 'PVP' || turn === BLACK);
+            const isOccupied = cell !== EMPTY;
+            const isLastMove = Boolean(lastMove && lastMove.r === r && lastMove.c === c);
+            const isDisabled = interactionLocked || isOccupied || !showHint;
+            const cellLabel = cell === BLACK ? '黑棋' : cell === WHITE ? '白棋' : showHint ? `可落${turnLabel}` : '空格，無法落子';
+            const accessibleLabel = `${coordinate}，${cellLabel}${isLastMove ? '，上一手落子' : ''}`;
+            return (
+              <button
+                key={coordinate}
+                type="button"
+                data-othello-cell={coordinate}
+                data-last-move={isLastMove ? 'true' : undefined}
+                aria-label={accessibleLabel}
+                disabled={isDisabled}
+                onClick={() => onMove(r, c)}
+                className={`relative flex min-h-0 min-w-0 items-center justify-center bg-emerald-600 p-0 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${showHint ? 'cursor-pointer hover:bg-emerald-500' : 'cursor-default'} ${isLastMove ? 'z-10 ring-4 ring-inset ring-amber-300' : ''}`}
+              >
+                {cell === BLACK && <span aria-hidden="true" className="h-[82%] w-[82%] rounded-full bg-black shadow-lg" />}
+                {cell === WHITE && <span aria-hidden="true" className="h-[82%] w-[82%] rounded-full border border-gray-300 bg-white shadow-lg" />}
+                {showHint && <span aria-hidden="true" className="absolute h-[22%] w-[22%] rounded-full border-2 border-amber-200 bg-emerald-900/60" />}
+                {isLastMove && (
+                  <span
+                    aria-hidden="true"
+                    data-last-move-marker="true"
+                    className="pointer-events-none absolute inset-[5%] rounded-full border-[3px] border-amber-300 shadow-[0_0_0_2px_rgba(6,78,59,0.75)]"
+                  />
+                )}
+              </button>
+            );
+          }))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface OthelloReviewControlsProps {
+  winner: number;
+  blackCount: number;
+  whiteCount: number;
+  moveCount: number;
+  reviewStep: number | null;
+  onStartReview: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onShowFinal: () => void;
+  onRestart: () => void;
+}
+
+export const OthelloReviewControls: React.FC<OthelloReviewControlsProps> = ({
+  winner,
+  blackCount,
+  whiteCount,
+  moveCount,
+  reviewStep,
+  onStartReview,
+  onPrevious,
+  onNext,
+  onShowFinal,
+  onRestart,
+}) => (
+  <section aria-label="對局結果與復盤" className="rounded-xl border-2 border-amber-300 bg-amber-50 p-2 text-center shadow-sm sm:p-3">
+    <div className="flex items-center justify-center gap-2 font-bold text-emerald-950">
+      <Trophy aria-hidden="true" className="h-5 w-5 text-amber-500" />
+      {winner === BLACK ? '黑方獲勝！' : winner === WHITE ? '白方獲勝！' : '平手'}
+    </div>
+    <p className="mt-1 text-xs text-stone-600">
+      {reviewStep === null ? '終局盤面會保留，可直接開始復盤。' : `第 ${reviewStep} / ${moveCount} 手`}
+    </p>
+    {reviewStep === null ? (
+      <div className="mt-2 grid grid-cols-1 gap-1">
+        <button type="button" onClick={onStartReview} disabled={moveCount === 0} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-white px-1 py-1 text-xs font-bold text-emerald-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-50">
+          開始復盤
+        </button>
+        <button type="button" onClick={onRestart} className="min-h-11 whitespace-nowrap rounded-lg bg-emerald-600 px-1 py-1 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+          再來一局
+        </button>
+      </div>
+    ) : (
+      <>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button type="button" aria-label="上一手" onClick={onPrevious} disabled={reviewStep === 0} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-white px-1 py-1 text-xs font-bold text-emerald-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-50">
+            上一手
+          </button>
+          <button type="button" aria-label="下一手" onClick={onNext} disabled={reviewStep === moveCount} className="min-h-11 whitespace-nowrap rounded-lg border border-emerald-300 bg-white px-1 py-1 text-xs font-bold text-emerald-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-50">
+            下一手
+          </button>
+        </div>
+        <button type="button" onClick={onShowFinal} className="mt-2 min-h-11 w-full rounded-lg bg-emerald-600 px-2 py-1 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">
+          回到終局
+        </button>
+      </>
+    )}
+    <p className="mt-2 text-xs font-semibold text-stone-600">目前盤面　黑 {blackCount}：白 {whiteCount}</p>
+  </section>
+);
+
 const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBoard, initialTurn = BLACK }) => {
   const [board, setBoard] = useState<number[][]>(() => initialBoard ? cloneBoard(initialBoard) : createInitialBoard());
   const [turn, setTurn] = useState(initialTurn);
@@ -110,6 +283,8 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
   
   const [history, setHistory] = useState<number[][][]>([]);
   const [turnHistory, setTurnHistory] = useState<number[]>([]);
+  const [moveHistory, setMoveHistory] = useState<OthelloMoveRecord[]>([]);
+  const [reviewStep, setReviewStep] = useState<number | null>(null);
   const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
@@ -129,6 +304,8 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
     setValidMoves(getOthelloValidMoves(b, initialTurn));
     setHistory([]);
     setTurnHistory([]);
+    setMoveHistory([]);
+    setReviewStep(null);
   };
 
   const updateCounts = (b: number[][]) => {
@@ -152,6 +329,7 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
     const currentPlayer = turn;
     const nextPlayer = currentPlayer === BLACK ? WHITE : BLACK;
     const nextBoard = applyOthelloMove(board, r, c, currentPlayer);
+    setMoveHistory(prev => [...prev, { board: cloneBoard(nextBoard), player: currentPlayer, r, c }]);
     setBoard(nextBoard);
     updateCounts(nextBoard);
     soundService.playGameSound('BOUNCE');
@@ -174,6 +352,7 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
   const endGame = (b: number[][]) => {
       const result = getOthelloWinner(b);
       setWinner(result);
+      setValidMoves([]);
       if (result !== 3) soundService.playWin();
   };
 
@@ -198,6 +377,8 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
     setTurn(prevTurn);
     setHistory(newHistory);
     setTurnHistory(newTurnHistory);
+    setMoveHistory(prev => prev.slice(0, Math.max(0, prev.length - stepsToUndo)));
+    setReviewStep(null);
     setWinner(null);
     updateCounts(prevBoard);
     setValidMoves(getOthelloValidMoves(prevBoard, prevTurn));
@@ -238,6 +419,7 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
             setTurnHistory(prev => [...prev, WHITE]);
 
             const nextBoard = applyOthelloMove(board, bestMove.r, bestMove.c, WHITE);
+            setMoveHistory(prev => [...prev, { board: cloneBoard(nextBoard), player: WHITE, r: bestMove.r, c: bestMove.c }]);
             setBoard(nextBoard);
             updateCounts(nextBoard);
             soundService.playGameSound('LOW');
@@ -254,84 +436,80 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
   }, [turn, board, winner, gameMode]);
 
   const difficultyLabel = difficulty === 'ADVANCED' ? '進階' : '一般';
-  const statusText = winner === 1
+  const openingBoard = initialBoard ? cloneBoard(initialBoard) : createInitialBoard();
+  const replayFrames = buildOthelloReplayFrames(openingBoard, moveHistory);
+  const reviewFrame = reviewStep === null ? null : replayFrames[reviewStep];
+  const displayedBoard = reviewFrame?.board ?? board;
+  const displayedLastMove = reviewFrame
+    ? reviewFrame.lastMove
+    : moveHistory.length > 0
+      ? { player: moveHistory[moveHistory.length - 1].player, r: moveHistory[moveHistory.length - 1].r, c: moveHistory[moveHistory.length - 1].c }
+      : null;
+  const displayedCounts = reviewStep === null
+    ? { black: blackCount, white: whiteCount }
+    : countOthelloPieces(displayedBoard);
+  const statusText = reviewStep !== null
+    ? `復盤：第 ${reviewStep} / ${moveHistory.length} 手`
+    : winner === 1
     ? '黑方獲勝！'
     : winner === 2
       ? '白方獲勝！'
       : winner === 3
         ? '平手'
         : (turn === BLACK ? '黑方回合' : '白方回合');
-  const turnLabel = turn === BLACK ? '黑棋' : '白棋';
-
   const boardView = (
-    <div className="flex h-full min-h-0 w-full items-center justify-center p-1 sm:p-2">
-      <div
-        className="grid aspect-square h-auto max-w-full gap-0.5"
-        style={{
-          width: 'min(100%, calc(100dvh - 6rem))',
-          gridTemplateColumns: '1.25rem minmax(0, 1fr)',
-          gridTemplateRows: '1.25rem minmax(0, 1fr)',
-        }}
-      >
-        <span aria-hidden="true" />
-        <div className="grid grid-cols-8 items-center text-center text-[10px] font-bold text-emerald-800 sm:text-xs">
-          {COLS.map(label => <span key={label}>{label}</span>)}
-        </div>
-        <div className="grid grid-rows-8 items-center text-center text-[10px] font-bold text-emerald-800 sm:text-xs">
-          {ROWS.map(label => <span key={label}>{label}</span>)}
-        </div>
-        <div
-          data-board-coordinate-model="cell"
-          className="grid grid-cols-8 grid-rows-8 gap-0.5 rounded-lg border-4 border-emerald-800 bg-emerald-800 p-1 shadow-xl sm:gap-1 sm:p-2"
-        >
-          {board.map((row, r) => row.map((cell, c) => {
-            const coordinate = `${COLS[c]}${ROWS[r]}`;
-            const isValid = validMoves.some(m => m.r === r && m.c === c);
-            const showHint = isValid && (gameMode === 'PVP' || turn === BLACK);
-            const isOccupied = cell !== EMPTY;
-            const isDisabled = Boolean(winner) || isOccupied || !showHint;
-            const cellLabel = cell === BLACK ? '黑棋' : cell === WHITE ? '白棋' : showHint ? `可落${turnLabel}` : '空格，無法落子';
-            return (
-              <button
-                key={coordinate}
-                type="button"
-                data-othello-cell={coordinate}
-                aria-label={isOccupied ? `${coordinate}，${cellLabel}` : `${coordinate}，${cellLabel}`}
-                disabled={isDisabled}
-                onClick={() => handleMove(r, c)}
-                className={`relative flex min-h-0 min-w-0 items-center justify-center bg-emerald-600 p-0 focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${showHint ? 'cursor-pointer hover:bg-emerald-500' : 'cursor-default'}`}
-              >
-                {cell === BLACK && <span aria-hidden="true" className="h-[82%] w-[82%] rounded-full bg-black shadow-lg" />}
-                {cell === WHITE && <span aria-hidden="true" className="h-[82%] w-[82%] rounded-full border border-gray-300 bg-white shadow-lg" />}
-                {showHint && <span aria-hidden="true" className="absolute h-[22%] w-[22%] rounded-full border-2 border-amber-200 bg-emerald-900/60" />}
-              </button>
-            );
-          }))}
-        </div>
-      </div>
-    </div>
+    <OthelloBoardView
+      board={displayedBoard}
+      validMoves={reviewStep === null ? validMoves : []}
+      turn={turn}
+      gameMode={gameMode}
+      interactionLocked={Boolean(winner) || reviewStep !== null}
+      lastMove={displayedLastMove}
+      onMove={handleMove}
+    />
   );
 
   const sidebarView = (
     <div className="flex h-full min-h-0 flex-col gap-2 rounded-xl border border-emerald-200 bg-white/90 p-2 text-emerald-950 shadow-sm sm:gap-3 sm:p-3">
-      <div className="grid grid-cols-2 gap-2 rounded-lg bg-emerald-100 p-2 text-center">
-        <div><span className="block text-xs font-semibold text-emerald-800">黑棋</span><strong className="text-lg">{blackCount}</strong></div>
-        <div><span className="block text-xs font-semibold text-emerald-800">白棋</span><strong className="text-lg">{whiteCount}</strong></div>
-      </div>
-      <div className="rounded-lg bg-stone-100 p-2 text-center">
-        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-800"><Trophy aria-hidden="true" className="h-4 w-4" /> 目前狀態</div>
-        <strong className="mt-1 block text-base">{statusText}</strong>
-      </div>
-      <GameModeSelector value={gameMode} onChange={setGameMode} />
-      <button
-        type="button"
-        onClick={handleUndo}
-        disabled={history.length === 0}
-        aria-label="悔棋"
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-sm font-bold text-emerald-950 transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Undo2 aria-hidden="true" className="h-5 w-5" /> 悔棋
-      </button>
+      {!winner && (
+        <>
+          <div className="grid grid-cols-2 gap-2 rounded-lg bg-emerald-100 p-2 text-center">
+            <div><span className="block text-xs font-semibold text-emerald-800">黑棋</span><strong className="text-lg">{displayedCounts.black}</strong></div>
+            <div><span className="block text-xs font-semibold text-emerald-800">白棋</span><strong className="text-lg">{displayedCounts.white}</strong></div>
+          </div>
+          <div className="rounded-lg bg-stone-100 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-800"><Trophy aria-hidden="true" className="h-4 w-4" /> 目前狀態</div>
+            <strong className="mt-1 block text-base">{statusText}</strong>
+          </div>
+        </>
+      )}
+      {winner ? (
+        <OthelloReviewControls
+          winner={winner}
+          blackCount={displayedCounts.black}
+          whiteCount={displayedCounts.white}
+          moveCount={moveHistory.length}
+          reviewStep={reviewStep}
+          onStartReview={() => setReviewStep(0)}
+          onPrevious={() => setReviewStep(step => Math.max(0, (step ?? 0) - 1))}
+          onNext={() => setReviewStep(step => Math.min(moveHistory.length, (step ?? 0) + 1))}
+          onShowFinal={() => setReviewStep(null)}
+          onRestart={resetGame}
+        />
+      ) : (
+        <>
+          <GameModeSelector value={gameMode} onChange={setGameMode} />
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={history.length === 0}
+            aria-label="悔棋"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-sm font-bold text-emerald-950 transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Undo2 aria-hidden="true" className="h-5 w-5" /> 悔棋
+          </button>
+        </>
+      )}
       <p className="mt-auto rounded-lg bg-emerald-50 p-2 text-xs leading-relaxed text-emerald-800 sm:text-sm">
         黑棋先手；落子需夾住對手棋子才能翻轉。沒有合法位置時會跳過回合。
       </p>
@@ -399,16 +577,6 @@ const OthelloGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL', initialBo
           </div>
         )}
 
-        {winner && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 p-3">
-            <div role="dialog" aria-modal="true" aria-labelledby="othello-result-title" className="max-h-full max-w-sm overflow-y-auto rounded-2xl border-4 border-emerald-200 bg-white p-5 text-center shadow-2xl sm:p-6">
-              <Trophy aria-hidden="true" className="mx-auto mb-2 h-14 w-14 text-yellow-500" />
-              <h2 id="othello-result-title" className="mb-2 text-xl font-bold">{winner === 1 ? '黑方獲勝！' : winner === 2 ? '白方獲勝！' : '平手'}</h2>
-              <p className="mb-4 text-sm text-gray-500">黑 {blackCount} : 白 {whiteCount}</p>
-              <button type="button" onClick={resetGame} className="min-h-11 rounded-lg bg-emerald-600 px-6 py-2 font-bold text-white shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300">再來一局</button>
-            </div>
-          </div>
-        )}
       </div>
     </GameShell>
   );

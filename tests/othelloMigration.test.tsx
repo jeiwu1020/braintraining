@@ -2,10 +2,13 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import OthelloGame, {
+  buildOthelloReplayFrames,
   applyOthelloMove,
   getOthelloValidMoves,
   getOthelloWinner,
   isOthelloValidMove,
+  OthelloBoardView,
+  OthelloReviewControls,
 } from '../components/OthelloGame';
 
 const emptyBoard = () => Array.from({ length: 8 }, () => Array(8).fill(0));
@@ -73,5 +76,80 @@ describe('OthelloGame board-sidebar migration', () => {
 
     board[0][3] = 2;
     expect(getOthelloWinner(board)).toBe(3);
+  });
+
+  it('builds review frames from the opening through every recorded move', () => {
+    const opening = initialBoard();
+    const afterBlack = applyOthelloMove(opening, 2, 3, 1);
+    const afterWhite = applyOthelloMove(afterBlack, 2, 2, 2);
+
+    const frames = buildOthelloReplayFrames(opening, [
+      { board: afterBlack, player: 1, r: 2, c: 3 },
+      { board: afterWhite, player: 2, r: 2, c: 2 },
+    ]);
+
+    expect(frames).toHaveLength(3);
+    expect(frames[0]).toEqual({ board: opening, lastMove: null });
+    expect(frames[1]).toEqual({ board: afterBlack, lastMove: { player: 1, r: 2, c: 3 } });
+    expect(frames[2]).toEqual({ board: afterWhite, lastMove: { player: 2, r: 2, c: 2 } });
+  });
+
+  it('marks exactly one occupied cell as the previous move for visual and spoken reference', () => {
+    const board = applyOthelloMove(initialBoard(), 2, 3, 1);
+    const markup = renderToStaticMarkup(
+      <OthelloBoardView
+        board={board}
+        validMoves={[]}
+        turn={2}
+        gameMode="PVP"
+        interactionLocked
+        lastMove={{ player: 1, r: 2, c: 3 }}
+        onMove={() => undefined}
+      />,
+    );
+
+    expect((markup.match(/data-last-move="true"/g) ?? [])).toHaveLength(1);
+    expect(markup).toMatch(/data-othello-cell="D3"[^>]*aria-label="D3，黑棋，上一手落子"/);
+    expect(markup).toContain('data-last-move-marker="true"');
+  });
+
+  it('keeps the result beside the board and exposes step-by-step review controls', () => {
+    const finishedMarkup = renderToStaticMarkup(
+      <OthelloReviewControls
+        winner={1}
+        blackCount={36}
+        whiteCount={28}
+        moveCount={60}
+        reviewStep={null}
+        onStartReview={() => undefined}
+        onPrevious={() => undefined}
+        onNext={() => undefined}
+        onShowFinal={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+    expect(finishedMarkup).toContain('終局盤面會保留');
+    expect(finishedMarkup).toContain('開始復盤');
+    expect(finishedMarkup).toContain('再來一局');
+    expect(finishedMarkup).not.toContain('aria-modal="true"');
+
+    const reviewMarkup = renderToStaticMarkup(
+      <OthelloReviewControls
+        winner={1}
+        blackCount={2}
+        whiteCount={2}
+        moveCount={60}
+        reviewStep={0}
+        onStartReview={() => undefined}
+        onPrevious={() => undefined}
+        onNext={() => undefined}
+        onShowFinal={() => undefined}
+        onRestart={() => undefined}
+      />,
+    );
+    expect(reviewMarkup).toContain('第 0 / 60 手');
+    expect(reviewMarkup).toMatch(/aria-label="上一手"[^>]*disabled=""/);
+    expect(reviewMarkup).toMatch(/aria-label="下一手"/);
+    expect(reviewMarkup).toContain('回到終局');
   });
 });
