@@ -61,7 +61,15 @@ export enum GameState {
   RUMMIKUB = 'RUMMIKUB',
   QWIRKLE = 'QWIRKLE',
   SEVENS = 'SEVENS',
-  CHINESE_TEN = 'CHINESE_TEN'
+  CHINESE_TEN = 'CHINESE_TEN',
+  TRAFFIC_JAM = 'TRAFFIC_JAM',
+  MINESWEEPER = 'MINESWEEPER',
+  NONOGRAM = 'NONOGRAM',
+  HANOI = 'HANOI',
+  LOGIC_DETECTIVE = 'LOGIC_DETECTIVE',
+  MATCHSTICK = 'MATCHSTICK',
+  WORD_PATH = 'WORD_PATH',
+  NIM = 'NIM',
 }
 
 export type Difficulty = 'NORMAL' | 'ADVANCED';
@@ -224,4 +232,3 @@ export interface Scenario {
   description: string;
   options: ScenarioOption[];
 }
-

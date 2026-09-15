@@ -63,10 +63,18 @@ const expectedMappings: Array<[string, string]> = [
   ['QWIRKLE', 'QwirkleGame'],
   ['SEVENS', 'SevensGame'],
   ['CHINESE_TEN', 'ChineseTenGame'],
+  ['TRAFFIC_JAM', 'TrafficJamGame'],
+  ['MINESWEEPER', 'MinesweeperGame'],
+  ['NONOGRAM', 'NonogramGame'],
+  ['HANOI', 'HanoiGame'],
+  ['LOGIC_DETECTIVE', 'LogicDetectiveGame'],
+  ['MATCHSTICK', 'MatchstickGame'],
+  ['WORD_PATH', 'WordPathGame'],
+  ['NIM', 'NimGame'],
 ];
 
 describe('App game-level lazy loading acceptance', () => {
-  it('removes eager game imports and preserves all 59 GameState mappings', () => {
+  it('removes eager game imports and preserves all GameState mappings', () => {
     const source = appSource();
     const staticGameImports = source.match(/^import .* from ['"]\.\/components\/.*['"];$/gm) ?? [];
     const lazyDeclarations = [...source.matchAll(

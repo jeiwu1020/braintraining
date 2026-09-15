@@ -68,6 +68,14 @@ const RummikubGame = React.lazy(() => import('./components/RummikubGame'));
 const QwirkleGame = React.lazy(() => import('./components/QwirkleGame'));
 const SevensGame = React.lazy(() => import('./components/SevensGame'));
 const ChineseTenGame = React.lazy(() => import('./components/ChineseTenGame'));
+const TrafficJamGame = React.lazy(() => import('./components/TrafficJamGame'));
+const MinesweeperGame = React.lazy(() => import('./components/MinesweeperGame'));
+const NonogramGame = React.lazy(() => import('./components/NonogramGame'));
+const HanoiGame = React.lazy(() => import('./components/HanoiGame'));
+const LogicDetectiveGame = React.lazy(() => import('./components/LogicDetectiveGame'));
+const MatchstickGame = React.lazy(() => import('./components/MatchstickGame'));
+const WordPathGame = React.lazy(() => import('./components/WordPathGame'));
+const NimGame = React.lazy(() => import('./components/NimGame'));
 
 
 import {
@@ -222,6 +230,22 @@ const App: React.FC = () => {
         return <SevensGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
       case GameState.CHINESE_TEN:
         return <ChineseTenGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} isAdvanced={difficulty === "ADVANCED"} />;
+      case GameState.TRAFFIC_JAM:
+        return <TrafficJamGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.MINESWEEPER:
+        return <MinesweeperGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.NONOGRAM:
+        return <NonogramGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.HANOI:
+        return <HanoiGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.LOGIC_DETECTIVE:
+        return <LogicDetectiveGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.MATCHSTICK:
+        return <MatchstickGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.WORD_PATH:
+        return <WordPathGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
+      case GameState.NIM:
+        return <NimGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       default:
         return <MainMenu onSelectGame={setGameState} difficulty={difficulty} setDifficulty={setDifficulty} />;
     }

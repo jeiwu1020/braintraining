@@ -15,8 +15,10 @@ export const RulesModal: React.FC<Props> = ({ isOpen, onClose, title = "遊戲�
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md max-h-[90dvh] overflow-y-auto relative animate-fade-in-up">
         <button 
+          type="button"
+          aria-label="關閉遊戲說明"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
+          className="absolute top-4 right-4 min-h-11 min-w-11 flex items-center justify-center p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
         >
           <X size={20} />
         </button>
@@ -30,6 +32,7 @@ export const RulesModal: React.FC<Props> = ({ isOpen, onClose, title = "遊戲�
           ))}
         </ul>
         <button 
+          type="button"
           onClick={onClose}
           className="mt-6 w-full py-3 bg-indigo-500 text-white rounded-xl font-bold text-lg hover:bg-indigo-600 active:scale-95 transition-all shadow-md"
         >
