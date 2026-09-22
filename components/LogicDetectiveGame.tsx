@@ -1,29 +1,66 @@
 import React, { useState } from 'react';
 import type { Difficulty } from '../types';
-import { advanceTeam, awardTeam, coordinateLabel, isLogicGridSolved } from '../utils/facilitatedPuzzleRules';
+import { advanceTeam, applyLogicMark, awardTeam, coordinateLabel, isLogicGridSolved, type LogicConstraint, type LogicMark } from '../utils/facilitatedPuzzleRules';
 import CoordinateGrid from './game-ui/CoordinateGrid';
 import FacilitatedGameFrame, { type FacilitatedMode } from './game-ui/FacilitatedGameFrame';
 
 interface Props { onBack: () => void; difficulty?: Difficulty }
-type LogicMark = 'UNKNOWN' | 'NO' | 'YES';
+interface LogicPuzzle { title: string; people: readonly string[]; choices: readonly string[]; solution: readonly number[]; clues: readonly string[]; constraints: readonly LogicConstraint[] }
 
-const PUZZLES = {
-  NORMAL: {
-    people: ['小安', '小美', '阿康'],
-    choices: ['茶', '牛奶', '咖啡'],
-    solution: [0, 1, 2],
-    clues: ['小美選的是白色飲品。', '阿康不喝牛奶。', '喝咖啡的人不是小安。'],
-  },
-  ADVANCED: {
-    people: ['小安', '小美', '阿康', '阿珠'],
-    choices: ['數獨', '圍棋', '象棋', '拼圖'],
-    solution: [2, 0, 3, 1],
-    clues: ['小安選擇有棋子的活動，但不是圍棋。', '小美沒有選棋類活動，也沒有選拼圖。', '阿康選了需要組合圖像的活動。', '阿珠沒有選數獨或象棋。'],
-  },
-} as const;
+const makePuzzle = (title: string, people: string[], choices: string[], solution: number[], advanced = false): LogicPuzzle => {
+  if (!advanced) {
+    return {
+      title, people, choices, solution,
+      clues: [`${people[0]}選的是「${choices[solution[0]]}」。`, `${people[1]}選的是「${choices[solution[1]]}」。`, `剩下的選項屬於${people[2]}。`],
+      constraints: [
+        { person: 0, choice: solution[0], relation: 'IS' },
+        { person: 1, choice: solution[1], relation: 'IS' },
+      ],
+    };
+  }
+  const cluePeople = people.slice(0, people.length - 1);
+  return {
+    title, people, choices, solution,
+    clues: cluePeople.map((person, personIndex) => `${person}不是「${choices.filter((_, choiceIndex) => choiceIndex !== solution[personIndex]).join('」、也不是「')}」。`),
+    constraints: cluePeople.flatMap((_, personIndex) => choices.flatMap((__, choiceIndex) => choiceIndex === solution[personIndex] ? [] : [{ person: personIndex, choice: choiceIndex, relation: 'NOT' as const }])),
+  };
+};
+
+export const LOGIC_DETECTIVE_PUZZLES: Record<Difficulty, readonly LogicPuzzle[]> = {
+  NORMAL: [
+    makePuzzle('飲品時間', ['小安', '小美', '阿康'], ['茶', '牛奶', '咖啡'], [0, 1, 2]),
+    makePuzzle('水果點心', ['阿芳', '小傑', '美玲'], ['蘋果', '香蕉', '葡萄'], [2, 0, 1]),
+    makePuzzle('休閒活動', ['志明', '春嬌', '麗華'], ['散步', '唱歌', '拼圖'], [1, 2, 0]),
+    makePuzzle('早餐選擇', ['阿福', '小玉', '大同'], ['饅頭', '蛋餅', '吐司'], [2, 1, 0]),
+    makePuzzle('交通工具', ['佳佳', '明明', '康康'], ['公車', '捷運', '單車'], [1, 0, 2]),
+    makePuzzle('花園植物', ['阿蘭', '小竹', '美惠'], ['玫瑰', '百合', '蘭花'], [0, 2, 1]),
+    makePuzzle('音樂興趣', ['家豪', '怡君', '佩佩'], ['鋼琴', '吉他', '鼓'], [2, 0, 1]),
+    makePuzzle('寵物朋友', ['阿德', '秀芬', '小凱'], ['貓', '狗', '鳥'], [1, 2, 0]),
+    makePuzzle('午餐主食', ['淑華', '國強', '小玲'], ['飯', '麵', '粥'], [0, 2, 1]),
+    makePuzzle('運動時光', ['文雄', '雅婷', '阿正'], ['游泳', '桌球', '健走'], [2, 1, 0]),
+    makePuzzle('閱讀主題', ['小芬', '阿海', '嘉嘉'], ['旅遊', '歷史', '料理'], [1, 0, 2]),
+    makePuzzle('顏色喜好', ['伯伯', '阿姨', '小敏'], ['紅色', '藍色', '綠色'], [2, 0, 1]),
+  ],
+  ADVANCED: [
+    makePuzzle('益智活動', ['小安', '小美', '阿康', '阿珠'], ['數獨', '圍棋', '象棋', '拼圖'], [2, 0, 3, 1], true),
+    makePuzzle('旅行地點', ['阿芳', '志明', '麗華', '大同'], ['台北', '台中', '台南', '花蓮'], [3, 1, 0, 2], true),
+    makePuzzle('料理分工', ['美惠', '國強', '怡君', '家豪'], ['洗菜', '切菜', '煮湯', '擺盤'], [1, 3, 2, 0], true),
+    makePuzzle('運動項目', ['小玉', '阿德', '佩佩', '文雄'], ['羽球', '慢跑', '游泳', '瑜伽'], [2, 0, 3, 1], true),
+    makePuzzle('音樂樂器', ['秀芬', '阿海', '嘉嘉', '阿正'], ['笛子', '吉他', '鋼琴', '鼓'], [0, 2, 1, 3], true),
+    makePuzzle('市場採買', ['春嬌', '伯伯', '雅婷', '小凱'], ['水果', '蔬菜', '魚', '米'], [3, 1, 0, 2], true),
+    makePuzzle('社區課程', ['淑華', '阿福', '小玲', '佳佳'], ['書法', '舞蹈', '園藝', '攝影'], [1, 3, 0, 2], true),
+    makePuzzle('下午茶點', ['康康', '明明', '小芬', '阿蘭'], ['蛋糕', '餅乾', '布丁', '地瓜'], [2, 0, 3, 1], true),
+    makePuzzle('家事安排', ['麗華', '阿德', '小敏', '志明'], ['掃地', '洗衣', '澆花', '倒垃圾'], [0, 3, 1, 2], true),
+    makePuzzle('節目選擇', ['怡君', '家豪', '美惠', '國強'], ['新聞', '戲劇', '旅遊', '運動'], [3, 1, 2, 0], true),
+    makePuzzle('公園路線', ['阿珠', '小安', '春嬌', '大同'], ['湖邊', '花圃', '涼亭', '步道'], [1, 3, 0, 2], true),
+    makePuzzle('閱讀分享', ['佩佩', '文雄', '小玉', '阿芳'], ['小說', '傳記', '科普', '食譜'], [2, 0, 3, 1], true),
+  ],
+};
 
 const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const puzzle = PUZZLES[difficulty];
+  const puzzleBank = LOGIC_DETECTIVE_PUZZLES[difficulty];
+  const [puzzleIndex, setPuzzleIndex] = useState(0);
+  const puzzle = puzzleBank[puzzleIndex];
   const size = puzzle.people.length;
   const [marks, setMarks] = useState<Record<string, LogicMark>>({});
   const [history, setHistory] = useState<Record<string, LogicMark>[]>([]);
@@ -32,6 +69,7 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
   const [scores, setScores] = useState({ A: 0, B: 0 });
   const [recent, setRecent] = useState('請讀出線索，再說明哪個配對可以確認或排除。');
   const [finished, setFinished] = useState(false);
+  const [autoOrganize, setAutoOrganize] = useState(true);
 
   const reset = (nextMode = mode) => {
     setMarks({});
@@ -47,18 +85,22 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
     reset(nextMode);
   };
 
+  const nextPuzzle = () => {
+    const nextIndex = (puzzleIndex + 1) % puzzleBank.length;
+    setPuzzleIndex(nextIndex);
+    setMarks({});
+    setHistory([]);
+    setTeam('A');
+    setFinished(false);
+    setRecent(`已換到第 ${nextIndex + 1} 題「${puzzleBank[nextIndex].title}」。`);
+  };
+
   const cycle = (row: number, col: number) => {
     if (finished) return;
     const key = `${row},${col}`;
     const current = marks[key] ?? 'UNKNOWN';
     const nextMark: LogicMark = current === 'UNKNOWN' ? 'NO' : current === 'NO' ? 'YES' : 'UNKNOWN';
-    const next = { ...marks, [key]: nextMark };
-    if (nextMark === 'YES') {
-      for (let index = 0; index < size; index += 1) {
-        if (index !== col) next[`${row},${index}`] = 'NO';
-        if (index !== row) next[`${index},${col}`] = 'NO';
-      }
-    }
+    const next = applyLogicMark(marks, row, col, nextMark, size, autoOrganize);
     setHistory(items => [...items, { ...marks }]);
     setMarks(next);
     const action = nextMark === 'YES' ? '確認配對' : nextMark === 'NO' ? '排除' : '清除標記';
@@ -85,13 +127,13 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
 
   const hint = () => {
     const row = puzzle.solution.findIndex((col, index) => marks[`${index},${col}`] !== 'YES');
-    if (row >= 0) setRecent(`提示：重新閱讀與「${puzzle.people[row]}」有關的線索。`);
+    if (row >= 0) setRecent(`提示：先找能直接排除「${puzzle.people[row]}」選項的線索，不會自動替你解讀文字。`);
   };
 
   return (
     <FacilitatedGameFrame
       title="邏輯線索偵探"
-      subtitle={`${size} 人 × ${size} 個選項`}
+      subtitle={`${puzzle.title}｜${size}×${size}｜第 ${puzzleIndex + 1}/${puzzleBank.length} 題`}
       onBack={onBack}
       mode={mode}
       onModeChange={changeMode}
@@ -106,15 +148,22 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
       rules={[
         '目標：整合所有線索，找出每個人物唯一對應的飲品或活動。',
         '每個人物與每個選項只能使用一次；叉號代表排除，圓圈代表確認。',
-        '操作：點一下標記叉號，再點一下確認圓圈；確認時會自動排除同列與同欄。',
+        '操作：點一下標記叉號，再點一下確認圓圈；「自動整理」可由治療者隨時開關。',
+        '自動整理開啟時，確認配對會排除同列同欄；某列或欄只剩一格時會自動確認，但不會代替玩家解讀線索。',
         '口述範例：「根據第 2 條線索，把小美和茶的 A2 格標記叉號。」',
         '一般模式為 3×3 直接線索；進階模式為 4×4，需要結合多條排除線索。',
         '分組玩法：A、B 組輪流提出一個有理由的標記；完成最後配對的組別得 1 分。',
       ]}
       sidebar={(
-        <ol className="mt-auto space-y-1 rounded-xl bg-violet-50 p-2 text-sm font-semibold leading-snug text-violet-950">
-          {puzzle.clues.map((clue, index) => <li key={clue}>{index + 1}. {clue}</li>)}
-        </ol>
+        <div className="mt-auto space-y-2">
+          <ol className="space-y-1 rounded-xl bg-violet-50 p-2 text-sm font-semibold leading-snug text-violet-950">
+            {puzzle.clues.map((clue, index) => <li key={clue}>{index + 1}. {clue}</li>)}
+          </ol>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" aria-pressed={autoOrganize} onClick={() => setAutoOrganize(value => !value)} className={`min-h-11 rounded-xl border px-2 text-sm font-black ${autoOrganize ? 'border-violet-700 bg-violet-700 text-white' : 'border-slate-300 bg-white text-slate-700'}`}>自動整理：{autoOrganize ? '開' : '關'}</button>
+            <button type="button" onClick={nextPuzzle} className="min-h-11 rounded-xl border border-violet-700 bg-white px-2 text-sm font-black text-violet-800">換一題</button>
+          </div>
+        </div>
       )}
     >
       <div className="flex max-h-full w-full max-w-[30rem] flex-col items-center gap-1">

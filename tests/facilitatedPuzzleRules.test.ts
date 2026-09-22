@@ -1,19 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyHanoiMove,
+  applyLogicMark,
   applyNimMove,
   advanceTeam,
   awardTeam,
+  classifyWordSubmission,
   countAdjacentMines,
+  countLogicPuzzleSolutions,
   isLogicGridSolved,
+  isMinesweeperPuzzleNoGuess,
   isNonogramSolved,
   isValidWordPath,
   moveTrafficCar,
+  revealMinesweeperRegion,
   solveMatchstickMove,
   type TrafficCar,
 } from '../utils/facilitatedPuzzleRules';
 import { TRAFFIC_JAM_LEVELS } from '../components/TrafficJamGame';
 import { WORD_PATH_PUZZLES } from '../components/WordPathGame';
+import { MINESWEEPER_PUZZLES } from '../components/MinesweeperGame';
+import { LOGIC_DETECTIVE_PUZZLES } from '../components/LogicDetectiveGame';
 
 describe('facilitated puzzle rules', () => {
   it('moves a traffic car only along its axis without crossing another car', () => {
@@ -103,5 +110,65 @@ describe('facilitated puzzle rules', () => {
     };
 
     expect(puzzle.words.filter(word => !canTrace(word))).toEqual([]);
+  });
+
+  it('opens a zero region without uncovering a flagged cell', () => {
+    const revealed = revealMinesweeperRegion(
+      '0,0',
+      new Set(['2,2']),
+      new Set<string>(),
+      new Set(['0,1']),
+      3,
+      3,
+    );
+
+    expect([...revealed].sort()).toEqual(['0,0', '1,0', '1,1', '2,0', '2,1']);
+  });
+
+  it('ships compact Minesweeper boards that start with a useful safe region and need no guesses', () => {
+    const banks = MINESWEEPER_PUZZLES;
+    expect(banks.NORMAL.length).toBeGreaterThanOrEqual(4);
+    expect(banks.ADVANCED.length).toBeGreaterThanOrEqual(4);
+
+    for (const puzzle of banks.NORMAL) {
+      const opened = revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns);
+      expect(puzzle.mines).toHaveLength(5);
+      expect(opened.size).toBeGreaterThanOrEqual(7);
+      expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
+    }
+    for (const puzzle of banks.ADVANCED) {
+      const opened = revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns);
+      expect(puzzle.mines).toHaveLength(8);
+      expect(opened.size).toBeGreaterThanOrEqual(5);
+      expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
+    }
+  });
+
+  it('auto-organizes a logic grid only when the facilitator enables it', () => {
+    const manual = applyLogicMark({}, 0, 0, 'YES', 3, false);
+    expect(manual).toEqual({ '0,0': 'YES' });
+
+    const organized = applyLogicMark({}, 0, 0, 'YES', 3, true);
+    expect(organized).toMatchObject({ '0,0': 'YES', '0,1': 'NO', '0,2': 'NO', '1,0': 'NO', '2,0': 'NO' });
+
+    const completed = applyLogicMark({ '0,0': 'NO', '0,1': 'NO' }, 1, 2, 'NO', 3, true);
+    expect(completed['0,2']).toBe('YES');
+  });
+
+  it('provides twelve uniquely solvable logic cases for each difficulty', () => {
+    const banks = LOGIC_DETECTIVE_PUZZLES;
+    expect(banks.NORMAL).toHaveLength(12);
+    expect(banks.ADVANCED).toHaveLength(12);
+    for (const puzzle of [...banks.NORMAL, ...banks.ADVANCED]) {
+      expect(countLogicPuzzleSolutions(puzzle.people.length, puzzle.constraints)).toBe(1);
+    }
+  });
+
+  it('routes unknown valid-path words to therapist review while accepting targets and common extensions', () => {
+    expect(classifyWordSubmission('春天', ['春天'], [], [], new Set(['天花']))).toBe('TARGET');
+    expect(classifyWordSubmission('天花', ['春天'], [], [], new Set(['天花']))).toBe('COMMON_EXTENSION');
+    expect(classifyWordSubmission('春花', ['春天'], [], [], new Set(['天花']))).toBe('REVIEW');
+    expect(classifyWordSubmission('春天', ['春天'], ['春天'], [], new Set(['天花']))).toBe('DUPLICATE');
+    expect(classifyWordSubmission('春', ['春天'], [], [], new Set(['天花']))).toBe('TOO_SHORT');
   });
 });
