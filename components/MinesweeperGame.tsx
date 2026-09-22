@@ -32,9 +32,9 @@ interface GameState {
   result: Result;
 }
 
-const SETTINGS: Record<Difficulty, { rows: number; columns: number; mineCount: number }> = {
-  NORMAL: { rows: 5, columns: 7, mineCount: 5 },
-  ADVANCED: { rows: 6, columns: 8, mineCount: 8 },
+const SETTINGS: Record<Difficulty, { rows: number; columns: number; mineCount: number; minInitialReveal: number; maxInitialReveal: number }> = {
+  NORMAL: { rows: 5, columns: 7, mineCount: 6, minInitialReveal: 7, maxInitialReveal: 13 },
+  ADVANCED: { rows: 6, columns: 8, mineCount: 9, minInitialReveal: 8, maxInitialReveal: 15 },
 };
 
 const recentLayouts: Record<Difficulty, string[]> = { NORMAL: [], ADVANCED: [] };
@@ -78,6 +78,45 @@ const surroundingCells = (row: number, col: number, rows: number, columns: numbe
     }
   }
   return cells;
+};
+
+interface MinesweeperStatusCardProps {
+  result: Result;
+  mode: FacilitatedMode;
+  scores: Record<Team, number>;
+  onContinue: () => void;
+  onReset: () => void;
+}
+
+export const MinesweeperStatusCard: React.FC<MinesweeperStatusCardProps> = ({
+  result,
+  mode,
+  scores,
+  onContinue,
+  onReset,
+}) => {
+  if (result === 'MINE') {
+    return (
+      <div className="rounded-xl border border-rose-300 bg-rose-50 p-2 text-center">
+        <div className="text-sm font-black text-rose-800">踩到地雷</div>
+        <div className="mt-1 text-xs font-semibold text-rose-700">只公開這一顆；繼續後會自動插旗。</div>
+        <button type="button" onClick={onContinue} className="mt-2 min-h-11 w-full rounded-lg bg-rose-700 px-3 text-sm font-black text-white">繼續遊戲</button>
+      </div>
+    );
+  }
+
+  if (result === 'WON') {
+    const winner = scores.A === scores.B ? '平手' : `${scores.A > scores.B ? 'A' : 'B'} 組獲勝`;
+    return (
+      <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-2 text-center text-emerald-900">
+        <div className="text-sm font-black">完成！所有安全格都已找出</div>
+        {mode === 'TEAMS' ? <div className="mt-1 text-sm font-bold">{winner}｜A {scores.A}：B {scores.B}</div> : null}
+        <button type="button" onClick={onReset} className="mt-2 min-h-11 w-full rounded-lg bg-emerald-700 px-3 text-sm font-black text-white">再來一局</button>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
@@ -275,20 +314,6 @@ const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
     setRecent(`提示：${coordinateLabel(row, col)} 可以安全翻開。`);
   };
 
-  const winner = game.scores.A === game.scores.B ? '平手' : `${game.scores.A > game.scores.B ? 'A' : 'B'} 組獲勝`;
-  const statusCard = game.result === 'MINE' ? (
-    <div className="rounded-xl border border-rose-300 bg-rose-50 p-2 text-center">
-      <div className="text-sm font-black text-rose-800">踩到地雷</div>
-      <div className="mt-1 text-xs font-semibold text-rose-700">只公開這一顆；繼續後會自動插旗。</div>
-      <button type="button" onClick={continueAfterMine} className="mt-2 min-h-11 w-full rounded-lg bg-rose-700 px-3 text-sm font-black text-white">繼續遊戲</button>
-    </div>
-  ) : game.result === 'WON' ? (
-    <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-2 text-center text-emerald-900">
-      <div className="text-sm font-black">完成！所有安全格都已找出</div>
-      {mode === 'TEAMS' && <div className="mt-1 text-sm font-bold">{winner}｜A {game.scores.A}：B {game.scores.B}</div>}
-    </div>
-  ) : null;
-
   return (
     <FacilitatedGameFrame
       title="合作踩地雷"
@@ -302,6 +327,7 @@ const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
       onUndo={undo}
       undoLabel="誤觸復原"
       onReset={() => reset()}
+      resetLabel="換新盤面"
       onHint={hint}
       canUndo={history.length > 0}
       rules={[
@@ -317,14 +343,19 @@ const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
       ]}
       sidebar={(
         <>
-          {statusCard}
+          <MinesweeperStatusCard
+            result={game.result}
+            mode={mode}
+            scores={game.scores}
+            onContinue={continueAfterMine}
+            onReset={() => reset()}
+          />
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center text-xs font-bold text-slate-700">
             {game.board.initialized ? `已標記 ${game.board.flags.size}/${config.mineCount} 顆地雷` : '尚未配置地雷，請先翻開第一格'}
           </div>
           <div className="mt-auto grid grid-cols-2 gap-2">
             <button type="button" aria-pressed={!flagMode} onClick={() => setFlagMode(false)} className={`min-h-11 rounded-xl border px-2 text-sm font-bold ${!flagMode ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-300 bg-white'}`}>安全翻開</button>
             <button type="button" aria-pressed={flagMode} disabled={!game.board.initialized || game.result !== 'PLAYING'} onClick={() => setFlagMode(true)} className={`min-h-11 rounded-xl border px-2 text-sm font-bold disabled:opacity-40 ${flagMode ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300 bg-white'}`}>🚩 插旗</button>
-            <button type="button" onClick={() => reset()} className="col-span-2 min-h-11 rounded-xl border border-sky-700 bg-white px-2 text-sm font-black text-sky-800">換新盤面</button>
           </div>
         </>
       )}

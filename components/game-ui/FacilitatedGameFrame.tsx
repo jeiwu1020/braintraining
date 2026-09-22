@@ -57,6 +57,7 @@ interface FacilitatedGameFrameProps {
   onHint: () => void;
   canUndo?: boolean;
   undoLabel?: string;
+  resetLabel?: string;
   boardLabel?: string;
   feedback?: ReactNode;
   coopLabel?: string;
@@ -82,6 +83,7 @@ const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
   onHint,
   canUndo = true,
   undoLabel = '復原上一步',
+  resetLabel = '重新開始',
   boardLabel,
   feedback,
   coopLabel,
@@ -102,7 +104,7 @@ const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
           <button type="button" aria-label={undoLabel} title={undoLabel} onClick={onUndo} disabled={!canUndo} className={iconButton}>
             <RotateCcw className="h-5 w-5" aria-hidden="true" />
           </button>
-          <button type="button" aria-label="重新開始" onClick={onReset} className={iconButton}>
+          <button type="button" aria-label={resetLabel} title={resetLabel} onClick={onReset} className={iconButton}>
             <RefreshCw className="h-5 w-5" aria-hidden="true" />
           </button>
           <button type="button" aria-label="取得提示" onClick={onHint} className={iconButton}>

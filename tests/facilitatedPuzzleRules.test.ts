@@ -159,6 +159,31 @@ describe('facilitated puzzle rules', () => {
     expect(isMinesweeperPuzzleNoGuess(second)).toBe(true);
   });
 
+  it('rejects Minesweeper layouts whose first cascade falls outside the configured range', () => {
+    expect(() => generateMinesweeperPuzzle({
+      rows: 5,
+      columns: 7,
+      mineCount: 6,
+      start: '2,3',
+      minInitialReveal: 1,
+      maxInitialReveal: 8,
+      maxAttempts: 20,
+    })).toThrow('Unable to generate a no-guess Minesweeper board.');
+
+    const puzzle = generateMinesweeperPuzzle({
+      rows: 5,
+      columns: 7,
+      mineCount: 6,
+      start: '2,3',
+      minInitialReveal: 9,
+      maxInitialReveal: 13,
+    });
+    const opened = revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns);
+    expect(opened.size).toBeGreaterThanOrEqual(9);
+    expect(opened.size).toBeLessThanOrEqual(13);
+    expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
+  });
+
   it('scores only committed Minesweeper decisions and passes the turn after a mine', () => {
     const safe = resolveMinesweeperTeamTurn({ A: 0, B: 0 }, 'A', 'SAFE');
     expect(safe).toEqual({ scores: { A: 1, B: 0 }, nextTeam: 'B' });

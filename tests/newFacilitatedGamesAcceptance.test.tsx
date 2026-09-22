@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import TrafficJamGame from '../components/TrafficJamGame';
-import MinesweeperGame from '../components/MinesweeperGame';
+import MinesweeperGame, { MinesweeperStatusCard } from '../components/MinesweeperGame';
 import NonogramGame from '../components/NonogramGame';
 import HanoiGame from '../components/HanoiGame';
 import LogicDetectiveGame from '../components/LogicDetectiveGame';
@@ -28,7 +28,7 @@ describe('new facilitated games', () => {
     expect(markup).toContain(`aria-label="${title}遊戲區"`);
     expect(markup).toContain('aria-label="開啟遊戲說明"');
     expect(markup).toMatch(/aria-label="(?:復原上一步|誤觸復原)"/);
-    expect(markup).toContain('aria-label="重新開始"');
+    expect(markup).toMatch(/aria-label="(?:重新開始|換新盤面)"/);
     expect(markup).toContain('aria-label="取得提示"');
     expect(markup).toContain('data-facilitated-mode-selector="true"');
     expect(markup).toContain('最近操作');
@@ -54,7 +54,16 @@ describe('new facilitated games', () => {
     expect(markup.match(/，未翻開/g)).toHaveLength(35);
     expect(markup).toContain('aria-label="誤觸復原"');
     expect(markup).toContain('第一次請直接選擇座標');
-    expect(markup).toContain('換新盤面');
+    expect(markup).toContain('aria-label="換新盤面"');
+    expect(markup).not.toMatch(/>換新盤面<\/button>/);
+  });
+
+  it('offers another round only inside the completed Minesweeper status card', () => {
+    const markup = renderToStaticMarkup(
+      <MinesweeperStatusCard result="WON" mode="TEAMS" scores={{ A: 4, B: 2 }} onContinue={() => undefined} onReset={() => undefined} />,
+    );
+    expect(markup).toContain('A 組獲勝');
+    expect(markup).toContain('>再來一局</button>');
   });
 
   it.each(games)('%s keeps an independently scrollable board region on short landscape screens', (_title, Component) => {

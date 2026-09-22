@@ -86,6 +86,8 @@ export interface GenerateMinesweeperPuzzleOptions {
   columns: number;
   mineCount: number;
   start: string;
+  minInitialReveal?: number;
+  maxInitialReveal?: number;
   random?: () => number;
   excludedLayouts?: readonly string[];
   maxAttempts?: number;
@@ -191,6 +193,8 @@ export const generateMinesweeperPuzzle = ({
   columns,
   mineCount,
   start,
+  minInitialReveal = 1,
+  maxInitialReveal = rows * columns,
   random = Math.random,
   excludedLayouts = [],
   maxAttempts = 4000,
@@ -216,6 +220,15 @@ export const generateMinesweeperPuzzle = ({
     const layout = mines.join('|');
     if (excluded.has(layout)) continue;
     const puzzle = { rows, columns, mines, start };
+    const initialRevealCount = revealMinesweeperRegion(
+      start,
+      new Set(mines),
+      new Set(),
+      new Set(),
+      rows,
+      columns,
+    ).size;
+    if (initialRevealCount < minInitialReveal || initialRevealCount > maxInitialReveal) continue;
     if (isMinesweeperPuzzleNoGuess(puzzle)) return puzzle;
   }
 
