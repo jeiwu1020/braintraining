@@ -27,7 +27,7 @@ describe('new facilitated games', () => {
 
     expect(markup).toContain(`aria-label="${title}遊戲區"`);
     expect(markup).toContain('aria-label="開啟遊戲說明"');
-    expect(markup).toContain('aria-label="復原上一步"');
+    expect(markup).toMatch(/aria-label="(?:復原上一步|誤觸復原)"/);
     expect(markup).toContain('aria-label="重新開始"');
     expect(markup).toContain('aria-label="取得提示"');
     expect(markup).toContain('data-facilitated-mode-selector="true"');
@@ -47,6 +47,14 @@ describe('new facilitated games', () => {
     expect(renderToStaticMarkup(<HanoiGame difficulty="NORMAL" onBack={() => undefined} />)).toContain('aria-label="柱子 A"');
     expect(renderToStaticMarkup(<MatchstickGame difficulty="NORMAL" onBack={() => undefined} />)).toContain('火柴 B2');
     expect(renderToStaticMarkup(<NimGame difficulty="NORMAL" onBack={() => undefined} />)).toContain('aria-label="石堆 A"');
+  });
+
+  it('starts Minesweeper covered and reserves undo for facilitator mis-taps', () => {
+    const markup = renderToStaticMarkup(<MinesweeperGame difficulty="NORMAL" onBack={() => undefined} />);
+    expect(markup.match(/，未翻開/g)).toHaveLength(35);
+    expect(markup).toContain('aria-label="誤觸復原"');
+    expect(markup).toContain('第一次請直接選擇座標');
+    expect(markup).toContain('換新盤面');
   });
 
   it.each(games)('%s keeps an independently scrollable board region on short landscape screens', (_title, Component) => {

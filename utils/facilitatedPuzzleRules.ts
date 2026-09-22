@@ -81,6 +81,16 @@ export interface MinesweeperPuzzleDefinition {
   start: string;
 }
 
+export interface GenerateMinesweeperPuzzleOptions {
+  rows: number;
+  columns: number;
+  mineCount: number;
+  start: string;
+  random?: () => number;
+  excludedLayouts?: readonly string[];
+  maxAttempts?: number;
+}
+
 const neighboringCells = (key: string, rows: number, columns: number): string[] => {
   const [row, col] = key.split(',').map(Number);
   const cells: string[] = [];
@@ -160,9 +170,97 @@ export const isMinesweeperPuzzleNoGuess = (puzzle: MinesweeperPuzzleDefinition):
       }
     }
 
+    const unresolved = allCells.filter(cell => !revealed.has(cell) && !knownMines.has(cell));
+    const minesRemaining = mines.size - knownMines.size;
+    if (minesRemaining === 0) {
+      for (const cell of unresolved) {
+        const next = revealMinesweeperRegion(cell, mines, revealed, knownMines, puzzle.rows, puzzle.columns);
+        if (next.size > revealed.size) { revealed = next; changed = true; }
+      }
+    } else if (minesRemaining === unresolved.length) {
+      for (const cell of unresolved) if (!knownMines.has(cell)) { knownMines.add(cell); changed = true; }
+    }
+
     if (!changed) break;
   }
   return allCells.every(cell => mines.has(cell) || revealed.has(cell));
+};
+
+export const generateMinesweeperPuzzle = ({
+  rows,
+  columns,
+  mineCount,
+  start,
+  random = Math.random,
+  excludedLayouts = [],
+  maxAttempts = 4000,
+}: GenerateMinesweeperPuzzleOptions): MinesweeperPuzzleDefinition => {
+  const [startRow, startColumn] = start.split(',').map(Number);
+  if (!Number.isInteger(startRow) || !Number.isInteger(startColumn) || startRow < 0 || startColumn < 0 || startRow >= rows || startColumn >= columns) {
+    throw new Error('Invalid Minesweeper starting cell.');
+  }
+
+  const protectedCells = new Set([start, ...neighboringCells(start, rows, columns)]);
+  const candidates = Array.from({ length: rows * columns }, (_, index) => `${Math.floor(index / columns)},${index % columns}`)
+    .filter(cell => !protectedCells.has(cell));
+  if (mineCount < 1 || mineCount > candidates.length) throw new Error('Invalid Minesweeper mine count.');
+
+  const excluded = new Set(excludedLayouts);
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const shuffled = [...candidates];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(random() * (index + 1));
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    const mines = shuffled.slice(0, mineCount).sort();
+    const layout = mines.join('|');
+    if (excluded.has(layout)) continue;
+    const puzzle = { rows, columns, mines, start };
+    if (isMinesweeperPuzzleNoGuess(puzzle)) return puzzle;
+  }
+
+  throw new Error('Unable to generate a no-guess Minesweeper board.');
+};
+
+export type MinesweeperTeamAction = 'SAFE' | 'MINE' | 'FLAG_ADDED' | 'FLAG_REMOVED' | 'INVALID';
+
+export const resolveMinesweeperTeamTurn = (
+  scores: Record<'A' | 'B', number>,
+  team: 'A' | 'B',
+  action: MinesweeperTeamAction,
+  completed = false,
+): { scores: Record<'A' | 'B', number>; nextTeam: 'A' | 'B' } => {
+  if (action === 'SAFE') {
+    return {
+      scores: { ...scores, [team]: scores[team] + (completed ? 2 : 1) },
+      nextTeam: completed ? team : (team === 'A' ? 'B' : 'A'),
+    };
+  }
+  if (action === 'MINE') {
+    return { scores: { ...scores, [team]: scores[team] - 1 }, nextTeam: team === 'A' ? 'B' : 'A' };
+  }
+  if (action === 'FLAG_ADDED') return { scores: { ...scores }, nextTeam: team === 'A' ? 'B' : 'A' };
+  return { scores: { ...scores }, nextTeam: team };
+};
+
+export const revealTriggeredMine = (
+  revealed: ReadonlySet<string>,
+  mine: string,
+): Set<string> => new Set([...revealed, mine]);
+
+export const continueAfterMinesweeperHit = (
+  revealed: ReadonlySet<string>,
+  flags: ReadonlySet<string>,
+  neutralFlags: ReadonlySet<string>,
+  mine: string,
+): { revealed: Set<string>; flags: Set<string>; neutralFlags: Set<string> } => {
+  const nextRevealed = new Set(revealed);
+  nextRevealed.delete(mine);
+  return {
+    revealed: nextRevealed,
+    flags: new Set([...flags, mine]),
+    neutralFlags: new Set([...neutralFlags, mine]),
+  };
 };
 
 export type LogicMark = 'UNKNOWN' | 'NO' | 'YES';

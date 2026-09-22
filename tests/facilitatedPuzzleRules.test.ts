@@ -6,20 +6,23 @@ import {
   advanceTeam,
   awardTeam,
   classifyWordSubmission,
+  continueAfterMinesweeperHit,
   countAdjacentMines,
   countLogicPuzzleSolutions,
+  generateMinesweeperPuzzle,
   isLogicGridSolved,
   isMinesweeperPuzzleNoGuess,
   isNonogramSolved,
   isValidWordPath,
   moveTrafficCar,
   revealMinesweeperRegion,
+  revealTriggeredMine,
+  resolveMinesweeperTeamTurn,
   solveMatchstickMove,
   type TrafficCar,
 } from '../utils/facilitatedPuzzleRules';
 import { TRAFFIC_JAM_LEVELS } from '../components/TrafficJamGame';
 import { WORD_PATH_PUZZLES } from '../components/WordPathGame';
-import { MINESWEEPER_PUZZLES } from '../components/MinesweeperGame';
 import { LOGIC_DETECTIVE_PUZZLES } from '../components/LogicDetectiveGame';
 
 describe('facilitated puzzle rules', () => {
@@ -126,23 +129,59 @@ describe('facilitated puzzle rules', () => {
     expect([...revealed].sort()).toEqual(['0,0', '1,0', '1,1', '2,0', '2,1']);
   });
 
-  it('ships compact Minesweeper boards that start with a useful safe region and need no guesses', () => {
-    const banks = MINESWEEPER_PUZZLES;
-    expect(banks.NORMAL.length).toBeGreaterThanOrEqual(4);
-    expect(banks.ADVANCED.length).toBeGreaterThanOrEqual(4);
+  it('generates a no-guess Minesweeper board after the first click and protects its surrounding cells', () => {
+    let seed = 123456789;
+    const random = () => {
+      seed = (1664525 * seed + 1013904223) >>> 0;
+      return seed / 0x100000000;
+    };
+    const puzzle = generateMinesweeperPuzzle({ rows: 6, columns: 8, mineCount: 8, start: '2,3', random });
+    const protectedCells = new Set(['1,2', '1,3', '1,4', '2,2', '2,3', '2,4', '3,2', '3,3', '3,4']);
 
-    for (const puzzle of banks.NORMAL) {
-      const opened = revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns);
-      expect(puzzle.mines).toHaveLength(5);
-      expect(opened.size).toBeGreaterThanOrEqual(7);
-      expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
-    }
-    for (const puzzle of banks.ADVANCED) {
-      const opened = revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns);
-      expect(puzzle.mines).toHaveLength(8);
-      expect(opened.size).toBeGreaterThanOrEqual(5);
-      expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
-    }
+    expect(puzzle.mines).toHaveLength(8);
+    expect(puzzle.mines.filter(cell => protectedCells.has(cell))).toEqual([]);
+    expect(isMinesweeperPuzzleNoGuess(puzzle)).toBe(true);
+    expect(revealMinesweeperRegion(puzzle.start, new Set(puzzle.mines), new Set(), new Set(), puzzle.rows, puzzle.columns).size).toBeGreaterThanOrEqual(9);
+  });
+
+  it('uses fresh randomness to create different Minesweeper layouts', () => {
+    const seeded = (initial: number) => {
+      let seed = initial;
+      return () => {
+        seed = (1664525 * seed + 1013904223) >>> 0;
+        return seed / 0x100000000;
+      };
+    };
+    const first = generateMinesweeperPuzzle({ rows: 5, columns: 7, mineCount: 5, start: '2,3', random: seeded(11) });
+    const second = generateMinesweeperPuzzle({ rows: 5, columns: 7, mineCount: 5, start: '2,3', random: seeded(29), excludedLayouts: [first.mines.join('|')] });
+
+    expect(second.mines).not.toEqual(first.mines);
+    expect(isMinesweeperPuzzleNoGuess(second)).toBe(true);
+  });
+
+  it('scores only committed Minesweeper decisions and passes the turn after a mine', () => {
+    const safe = resolveMinesweeperTeamTurn({ A: 0, B: 0 }, 'A', 'SAFE');
+    expect(safe).toEqual({ scores: { A: 1, B: 0 }, nextTeam: 'B' });
+
+    const completed = resolveMinesweeperTeamTurn({ A: 2, B: 1 }, 'B', 'SAFE', true);
+    expect(completed).toEqual({ scores: { A: 2, B: 3 }, nextTeam: 'B' });
+
+    const mine = resolveMinesweeperTeamTurn({ A: 1, B: 3 }, 'A', 'MINE');
+    expect(mine).toEqual({ scores: { A: 0, B: 3 }, nextTeam: 'B' });
+
+    expect(resolveMinesweeperTeamTurn({ A: 1, B: 1 }, 'A', 'FLAG_ADDED')).toEqual({ scores: { A: 1, B: 1 }, nextTeam: 'B' });
+    expect(resolveMinesweeperTeamTurn({ A: 1, B: 1 }, 'A', 'FLAG_REMOVED')).toEqual({ scores: { A: 1, B: 1 }, nextTeam: 'A' });
+    expect(resolveMinesweeperTeamTurn({ A: 1, B: 1 }, 'A', 'INVALID')).toEqual({ scores: { A: 1, B: 1 }, nextTeam: 'A' });
+  });
+
+  it('reveals only the triggered mine and converts it to a neutral flag when play continues', () => {
+    const revealed = revealTriggeredMine(new Set(['0,0', '0,1']), '2,2');
+    expect([...revealed].sort()).toEqual(['0,0', '0,1', '2,2']);
+
+    const continued = continueAfterMinesweeperHit(revealed, new Set(['1,1']), new Set(), '2,2');
+    expect([...continued.revealed].sort()).toEqual(['0,0', '0,1']);
+    expect([...continued.flags].sort()).toEqual(['1,1', '2,2']);
+    expect([...continued.neutralFlags]).toEqual(['2,2']);
   });
 
   it('auto-organizes a logic grid only when the facilitator enables it', () => {
