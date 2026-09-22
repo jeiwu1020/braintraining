@@ -8,21 +8,28 @@ interface Props { onBack: () => void; difficulty?: Difficulty }
 interface LogicPuzzle { title: string; people: readonly string[]; choices: readonly string[]; solution: readonly number[]; clues: readonly string[]; constraints: readonly LogicConstraint[] }
 
 const makePuzzle = (title: string, people: string[], choices: string[], solution: number[], advanced = false): LogicPuzzle => {
-  if (!advanced) {
-    return {
-      title, people, choices, solution,
-      clues: [`${people[0]}選的是「${choices[solution[0]]}」。`, `${people[1]}選的是「${choices[solution[1]]}」。`, `剩下的選項屬於${people[2]}。`],
-      constraints: [
-        { person: 0, choice: solution[0], relation: 'IS' },
-        { person: 1, choice: solution[1], relation: 'IS' },
-      ],
-    };
-  }
-  const cluePeople = people.slice(0, people.length - 1);
+  const startPerson = [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) % people.length;
+  const deductionOrder = Array.from({ length: people.length }, (_, index) => (startPerson + index) % people.length);
+  const [first, second, third, last] = deductionOrder;
+  const constraints: LogicConstraint[] = advanced
+    ? [
+        ...choices.flatMap((_, choice) => choice === solution[first] ? [] : [{ person: first, choice, relation: 'NOT' as const }]),
+        { person: second, choice: solution[third], relation: 'NOT' },
+        { person: second, choice: solution[last], relation: 'NOT' },
+        { person: third, choice: solution[last], relation: 'NOT' },
+      ]
+    : [
+        ...choices.flatMap((_, choice) => choice === solution[first] ? [] : [{ person: first, choice, relation: 'NOT' as const }]),
+        { person: second, choice: solution[third], relation: 'NOT' },
+      ];
   return {
     title, people, choices, solution,
-    clues: cluePeople.map((person, personIndex) => `${person}不是「${choices.filter((_, choiceIndex) => choiceIndex !== solution[personIndex]).join('」、也不是「')}」。`),
-    constraints: cluePeople.flatMap((_, personIndex) => choices.flatMap((__, choiceIndex) => choiceIndex === solution[personIndex] ? [] : [{ person: personIndex, choice: choiceIndex, relation: 'NOT' as const }])),
+    clues: constraints.map((constraint, index) => index % 3 === 0
+      ? `${people[constraint.person]}沒有選「${choices[constraint.choice]}」。`
+      : index % 3 === 1
+        ? `選「${choices[constraint.choice]}」的人不是${people[constraint.person]}。`
+        : `${people[constraint.person]}與「${choices[constraint.choice]}」不相配。`),
+    constraints,
   };
 };
 
@@ -151,7 +158,7 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
         '操作：點一下標記叉號，再點一下確認圓圈；「自動整理」可由治療者隨時開關。',
         '自動整理開啟時，確認配對會排除同列同欄；某列或欄只剩一格時會自動確認，但不會代替玩家解讀線索。',
         '口述範例：「根據第 2 條線索，把小美和茶的 A2 格標記叉號。」',
-        '一般模式為 3×3 直接線索；進階模式為 4×4，需要結合多條排除線索。',
+        '一般模式為 3×3，需要先完成一輪排除再推得其餘配對；進階模式為 4×4，需要進行至少三階段交叉排除。',
         '分組玩法：A、B 組輪流提出一個有理由的標記；完成最後配對的組別得 1 分。',
       ]}
       sidebar={(

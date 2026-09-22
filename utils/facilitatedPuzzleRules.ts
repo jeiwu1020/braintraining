@@ -284,7 +284,7 @@ export const isValidWordPath = (path: readonly number[], columns: number): boole
     const previous = path[index];
     const rowDistance = Math.abs(Math.floor(cell / columns) - Math.floor(previous / columns));
     const colDistance = Math.abs((cell % columns) - (previous % columns));
-    return rowDistance <= 1 && colDistance <= 1 && rowDistance + colDistance > 0;
+    return rowDistance + colDistance === 1;
   });
 };
 

@@ -69,6 +69,7 @@ describe('facilitated puzzle rules', () => {
 
   it('validates adjacent word paths without reusing a cell', () => {
     expect(isValidWordPath([0, 1, 5, 4], 4)).toBe(true);
+    expect(isValidWordPath([0, 5], 4)).toBe(false);
     expect(isValidWordPath([0, 2], 4)).toBe(false);
     expect(isValidWordPath([0, 1, 0], 4)).toBe(false);
   });
@@ -161,6 +162,48 @@ describe('facilitated puzzle rules', () => {
     expect(banks.ADVANCED).toHaveLength(12);
     for (const puzzle of [...banks.NORMAL, ...banks.ADVANCED]) {
       expect(countLogicPuzzleSolutions(puzzle.people.length, puzzle.constraints)).toBe(1);
+    }
+  });
+
+  it('keeps every logic clue indirect and necessary to the unique solution', () => {
+    for (const puzzle of [...LOGIC_DETECTIVE_PUZZLES.NORMAL, ...LOGIC_DETECTIVE_PUZZLES.ADVANCED]) {
+      expect(puzzle.constraints).toHaveLength(puzzle.clues.length);
+      expect(puzzle.constraints.every(constraint => constraint.relation === 'NOT')).toBe(true);
+      expect(puzzle.clues.some(clue => clue.includes('選的是') || clue.includes('剩下的選項'))).toBe(false);
+      puzzle.constraints.forEach((_, index) => {
+        const withoutClue = puzzle.constraints.filter((__, clueIndex) => clueIndex !== index);
+        expect(countLogicPuzzleSolutions(puzzle.people.length, withoutClue)).toBeGreaterThan(1);
+      });
+    }
+  });
+
+  it('varies which people must be resolved first across the logic puzzle bank', () => {
+    const cluePattern = (puzzle: (typeof LOGIC_DETECTIVE_PUZZLES.NORMAL)[number] | (typeof LOGIC_DETECTIVE_PUZZLES.ADVANCED)[number]) =>
+      puzzle.constraints.map(constraint => constraint.person).join(',');
+    expect(new Set(LOGIC_DETECTIVE_PUZZLES.NORMAL.map(cluePattern)).size).toBeGreaterThanOrEqual(3);
+    expect(new Set(LOGIC_DETECTIVE_PUZZLES.ADVANCED.map(cluePattern)).size).toBeGreaterThanOrEqual(4);
+  });
+
+  it('uses all four straight directions in the normal word board and orthogonal turns in the advanced board', () => {
+    const normal = WORD_PATH_PUZZLES.NORMAL as typeof WORD_PATH_PUZZLES.NORMAL & { paths: readonly (readonly number[])[] };
+    const advanced = WORD_PATH_PUZZLES.ADVANCED as typeof WORD_PATH_PUZZLES.ADVANCED & { paths: readonly (readonly number[])[] };
+    const direction = (from: number, to: number, columns: number) => {
+      const rowDelta = Math.floor(to / columns) - Math.floor(from / columns);
+      const colDelta = (to % columns) - (from % columns);
+      return `${rowDelta},${colDelta}`;
+    };
+
+    expect(normal.paths).toHaveLength(normal.words.length);
+    const normalDirections = new Set(normal.paths.map(path => direction(path[0], path[1], normal.columns)));
+    expect(normalDirections).toEqual(new Set(['0,1', '0,-1', '1,0', '-1,0']));
+
+    expect(advanced.paths).toHaveLength(advanced.words.length);
+    expect(advanced.paths.filter(path => new Set(path.slice(1).map((cell, index) => direction(path[index], cell, advanced.columns))).size > 1).length).toBeGreaterThanOrEqual(4);
+    for (const [difficulty, puzzle] of Object.entries(WORD_PATH_PUZZLES)) {
+      puzzle.paths.forEach((path, index) => {
+        expect(isValidWordPath(path, puzzle.columns), `${difficulty} ${puzzle.words[index]} path`).toBe(true);
+        expect(path.map(cell => puzzle.grid[cell]).join('')).toBe(puzzle.words[index]);
+      });
     }
   });
 
