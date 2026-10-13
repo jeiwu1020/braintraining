@@ -68,7 +68,7 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
   return (
     <div data-logic-detective="true" className="contents">
       <style>{'[data-logic-detective] .text-sm,[data-logic-detective] .text-xs{font-size:1rem;line-height:1.4}[data-logic-detective] [data-facilitated-turn-status]{font-size:1rem;line-height:1.35}'}</style>
-      <FacilitatedGameFrame
+      <FacilitatedGameFrame desktopLayout="detective"
         title="邏輯線索偵探" subtitle={`${LOGIC_TIER_LABELS[tier]} ${puzzleIndex+1}／${bank.length}・${puzzle.title}・${size}×${size}`}
         onBack={onBack} mode={session.mode} onModeChange={restart} currentTeam={session.team} scores={session.scores}
         recentAction={session.recent} onUndo={() => setSession(undoLogicDecision)} onReset={() => restart()}
@@ -96,13 +96,6 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
         )}
         sidebar={(
           <div className="space-y-2 text-base leading-snug">
-            {puzzle.candidates && <div data-logic-candidates="true" className="rounded-xl border border-violet-200 bg-violet-50 p-2">
-              <div className="mb-1 font-bold">比較兩個候選配對</div>
-              <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-center">
-                <span className="font-bold">人物</span><span className="font-bold">甲案</span><span className="font-bold">乙案</span>
-                {puzzle.people.map((person,row) => <React.Fragment key={person}><span>{person}</span>{puzzle.candidates!.map((candidate,index) => <span key={index}>{puzzle.choices[candidate[row]]}</span>)}</React.Fragment>)}
-              </div>
-            </div>}
             <div className="font-bold text-violet-950">{puzzle.candidates ? '選一條有矛盾的線索' : '線索・先讀一句，再說理由'}</div>
             <ol className="space-y-1">
               {puzzle.clues.map((clue,index) => {
@@ -112,24 +105,31 @@ const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) 
             </ol>
             <p className="text-slate-700">提示 {session.hintLevel}／3{assisted && <span className="block font-bold text-amber-900">本題已取得推論協助；重玩仍是練習，不計分。</span>}</p>
             {(session.selection || session.hypothesis.candidate !== null || session.hypothesis.clue !== null) && !session.finished && <button type="button" onClick={() => setSession(clearLogicDraft)} className={`${buttonClass} w-full border-slate-300 bg-white`}>取消選取</button>}
-            {session.derived.length > 0 && <div data-logic-derivations="true" className="rounded-xl border border-amber-200 bg-amber-50 p-2">
-              <div className="font-bold">本次自動整理 {session.derived.length} 格</div>
+            {session.derived.length > 0 && <details data-logic-derivations="true" className="rounded-xl border border-amber-200 bg-amber-50 p-2">
+              <summary className="min-h-11 cursor-pointer font-bold">本次自動整理 {session.derived.length} 格・查看理由</summary>
               <ul className="mt-1 space-y-1">{session.derived.map(step => <li key={`${step.row},${step.col}`}><strong>{logicCoordinate(step.row,step.col)} {markSymbol(step.mark)}</strong>：{step.reason}</li>)}</ul>
               <p className="mt-1">「復原上一步」會連同本次標記整批撤回。</p>
-            </div>}
+            </details>}
           </div>
         )}
         controls={(
           <div className="space-y-1">
-            {puzzle.candidates ? <div className="grid grid-cols-2 gap-1">{[0,1].map(candidate => <button key={candidate} type="button" disabled={session.finished} aria-pressed={session.hypothesis.candidate === candidate} onClick={() => setSession(state => prepareLogicHypothesis(state,puzzle,candidate,state.hypothesis.clue))} className={`${buttonClass} ${session.hypothesis.candidate === candidate ? 'border-violet-700 bg-violet-100' : 'border-slate-300 bg-white'}`}>排除{candidate === 0 ? '甲' : '乙'}案</button>)}</div> : <div className="grid grid-cols-3 gap-1">{tools.map(item => <button key={item.value} type="button" disabled={session.finished} aria-pressed={activeTool === item.value} onClick={() => chooseTool(item.value)} className={`${buttonClass} ${activeTool === item.value ? 'border-violet-700 bg-violet-100 text-violet-950' : 'border-slate-300 bg-white'}`}>{item.label}</button>)}</div>}
-            <div className="grid grid-cols-2 gap-1">
+            {puzzle.candidates ? <div data-logic-tools="true" className="grid grid-cols-2 gap-1">{[0,1].map(candidate => <button key={candidate} type="button" disabled={session.finished} aria-pressed={session.hypothesis.candidate === candidate} onClick={() => setSession(state => prepareLogicHypothesis(state,puzzle,candidate,state.hypothesis.clue))} className={`${buttonClass} ${session.hypothesis.candidate === candidate ? 'border-violet-700 bg-violet-100' : 'border-slate-300 bg-white'}`}>排除{candidate === 0 ? '甲' : '乙'}案</button>)}</div> : <div data-logic-tools="true" className="grid grid-cols-3 gap-1">{tools.map(item => <button key={item.value} type="button" disabled={session.finished} aria-pressed={activeTool === item.value} onClick={() => chooseTool(item.value)} className={`${buttonClass} ${activeTool === item.value ? 'border-violet-700 bg-violet-100 text-violet-950' : 'border-slate-300 bg-white'}`}>{item.label}</button>)}</div>}
+            <div data-logic-submit="true" className="grid grid-cols-2 gap-1">
               <button type="button" disabled={!ready || session.finished} onClick={() => setSession(state => puzzle.candidates ? confirmLogicHypothesis(state,puzzle) : confirmLogicDecision(state,puzzle,autoOrganize))} className={`${buttonClass} border-emerald-700 bg-emerald-700 text-white`}>確認推論</button>
               <button type="button" onClick={nextPuzzle} title="換到下一題，保留分數與提示紀錄" className={`${buttonClass} border-slate-300 bg-white`}>下一題</button>
             </div>
           </div>
         )}
       >
-        <div className="my-auto w-full min-w-[300px] max-w-2xl shrink-0 p-1">
+        <div data-logic-comparison={puzzle.candidates ? (session.finished ? 'complete' : 'active') : undefined} className="detective-presentation my-auto w-full min-w-[300px] max-w-2xl shrink-0 p-1">
+            {puzzle.candidates && <div data-logic-candidates="true" className="rounded-xl border border-violet-200 bg-violet-50 p-2">
+              <div className="mb-1 font-bold">比較兩個候選配對</div>
+              <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-center">
+                <span className="font-bold">人物</span><span className="font-bold">甲案</span><span className="font-bold">乙案</span>
+                {puzzle.people.map((person,row) => <React.Fragment key={person}><span>{person}</span>{puzzle.candidates!.map((candidate,index) => <span key={index}>{puzzle.choices[candidate[row]]}</span>)}</React.Fragment>)}
+              </div>
+            </div>}
           <table data-coordinate-grid="true" role="grid" aria-label="人物與選項配對表" className="w-full table-fixed border-separate border-spacing-0.5 text-base">
             <thead><tr><th className="w-20 px-1 text-left font-bold leading-tight">人物／選項</th>{puzzle.choices.map((choice,col) => <th key={choice} scope="col" className="px-1 pb-1 text-center font-bold leading-tight">{String.fromCharCode(65+col)} {choice}</th>)}</tr></thead>
             <tbody>{puzzle.people.map((person,row) => <tr key={person}>

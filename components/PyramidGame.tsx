@@ -376,15 +376,15 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
         disabled={covered}
         aria-label={`${suitName} ${display}，${stateLabel}`}
         aria-pressed={selected}
-        className={`relative flex h-16 w-11 shrink-0 flex-col items-center justify-center rounded-lg border-2 bg-white shadow-md transition-all sm:h-24 sm:w-16 sm:rounded-xl landscape:h-16 landscape:w-11
+        className={`pyramid-card relative flex h-16 w-11 shrink-0 flex-col items-center justify-center rounded-lg border-2 bg-white shadow-md transition-all sm:h-24 sm:w-16 sm:rounded-xl landscape:h-16 landscape:w-11
           ${selected ? 'z-10 scale-105 border-yellow-400 shadow-lg shadow-yellow-200' : 'border-slate-200'}
           ${covered ? 'cursor-not-allowed border-dashed border-slate-400 bg-slate-200 opacity-75' : 'cursor-pointer hover:-translate-y-1 hover:shadow-lg'}
         `}
       >
-        <span className={`text-base font-bold sm:text-xl landscape:text-base ${getSuitColor(card.suit)}`}>
+        <span className={`pyramid-card-value text-base font-bold sm:text-xl landscape:text-base ${getSuitColor(card.suit)}`}>
           {display}
         </span>
-        <span className={`text-xl sm:text-3xl landscape:text-xl ${getSuitColor(card.suit)}`}>
+        <span className={`pyramid-card-suit text-xl sm:text-3xl landscape:text-xl ${getSuitColor(card.suit)}`}>
           {getSuitSymbol(card.suit)}
         </span>
         {covered && (
@@ -514,13 +514,13 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
       playfieldClassName="overflow-hidden"
       supportClassName="overflow-hidden"
       playfield={(
-        <div className="flex h-full min-h-0 min-w-0 flex-row gap-1 rounded-2xl bg-emerald-700/80 p-0 text-white shadow-inner lg:gap-3 lg:p-3">
+        <div className="pyramid-table flex h-full min-h-0 min-w-0 flex-row gap-1 rounded-2xl bg-emerald-700/80 p-0 text-white shadow-inner lg:gap-3 lg:p-3">
           <div className="min-h-0 min-w-0 flex-1 overflow-auto rounded-xl bg-emerald-800/40 p-0" aria-label="金字塔牌面">
             <div className="mx-auto flex min-h-full w-max min-w-full flex-col items-center justify-center py-0.5">
               {pyramid.map((rowCards, rowIndex) => (
                 <div
                   key={`row-${rowIndex}`}
-                  className={`flex justify-center gap-1 ${rowIndex > 0 ? '-mt-[38px]' : ''}`}
+                  className={`pyramid-row flex justify-center gap-1 ${rowIndex > 0 ? '-mt-[38px]' : ''}`}
                   style={{ zIndex: rowIndex }}
                   aria-label={`金字塔第 ${rowIndex + 1} 層`}
                 >
@@ -530,7 +530,7 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
                         <div
                           key={`empty-${rowIndex}-${colIndex}`}
                           aria-hidden="true"
-                          className="h-16 w-11 shrink-0 sm:h-24 sm:w-16 landscape:h-16 landscape:w-11"
+                          className="pyramid-empty h-16 w-11 shrink-0 sm:h-24 sm:w-16 landscape:h-16 landscape:w-11"
                         />
                       );
                     }
@@ -538,7 +538,7 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
                     return (
                       <div
                         key={card.id}
-                        className="relative shrink-0"
+                        className="pyramid-card-slot relative shrink-0"
                         style={{ marginRight: colIndex < rowCards.length - 1 ? '-1rem' : '0' }}
                       >
                         <CardComponent
@@ -555,14 +555,14 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
             </div>
           </div>
 
-          <div className="flex w-16 shrink-0 flex-col items-center justify-center gap-1 sm:w-20 sm:gap-2" aria-label="牌堆與廢牌區">
+          <div className="pyramid-stock-rail flex w-16 shrink-0 flex-col items-center justify-center gap-1 sm:w-20 sm:gap-2" aria-label="牌堆與廢牌區">
             <span className="text-center text-xs font-bold text-emerald-50">牌堆</span>
             <button
               type="button"
               onClick={drawCard}
               aria-label={stock.length > 0 ? `翻下一張牌，牌堆剩餘 ${stock.length} 張` : waste.length > 0 ? `重新循環廢牌，廢牌 ${waste.length} 張` : '牌堆與廢牌皆空'}
               title={stock.length > 0 ? '翻下一張牌' : '重新循環廢牌'}
-              className="relative flex h-16 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/10 transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 disabled:opacity-50 sm:h-24 sm:w-16 sm:rounded-xl landscape:h-16 landscape:w-11"
+              className="pyramid-stock relative flex h-16 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/10 transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 disabled:opacity-50 sm:h-24 sm:w-16 sm:rounded-xl landscape:h-16 landscape:w-11"
               disabled={gameState !== 'PLAYING'}
             >
               {stock.length > 0 ? (
@@ -576,7 +576,7 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
             <span className="text-center text-xs text-emerald-50">{stock.length}</span>
 
             <span className="mt-1 text-center text-xs font-bold text-emerald-50">廢牌</span>
-            <div className="relative h-16 w-11 shrink-0 sm:h-24 sm:w-16 landscape:h-16 landscape:w-11" aria-label="廢牌區">
+            <div className="pyramid-waste relative h-16 w-11 shrink-0 sm:h-24 sm:w-16 landscape:h-16 landscape:w-11" aria-label="廢牌區">
               {waste.length > 0 ? (
                 <CardComponent
                   card={waste[waste.length - 1]}
@@ -665,7 +665,7 @@ const PyramidGame: React.FC<PyramidGameProps> = ({ onBack, difficulty, initialSe
       subtitle="合計 13，移除金字塔中的所有牌"
       onBack={onBack}
       backLabel="返回遊戲目錄"
-      className="bg-emerald-900"
+      className="desktop-game desktop-game--pyramid bg-emerald-900"
       status={status}
       actions={actions}
     >

@@ -20,7 +20,7 @@ const CoordinateGrid: React.FC<CoordinateGridProps> = ({
     data-coordinate-grid="true"
     role="grid"
     className={`grid max-h-full max-w-full gap-0.5 ${className}`}
-    style={{ gridTemplateColumns: `1.75rem repeat(${columns}, minmax(2.75rem, 1fr))` }}
+    style={{ '--coordinate-columns': columns, gridTemplateColumns: `1.75rem repeat(${columns}, minmax(2.75rem, 1fr))` } as React.CSSProperties}
   >
     <span aria-hidden="true" />
     {Array.from({ length: columns }, (_, col) => (

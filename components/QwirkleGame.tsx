@@ -77,7 +77,7 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
   };
   return (
     <div data-qwirkle-game="true">
-      <FacilitatedGameFrame title="繽紛形色棋" subtitle={`${tierInfo.label} ${index + 1}／${puzzles.length}・${puzzle.title}`} onBack={onBack}
+      <FacilitatedGameFrame desktopLayout="qwirkle" title="繽紛形色棋" subtitle={`${tierInfo.label} ${index + 1}／${puzzles.length}・${puzzle.title}`} onBack={onBack}
         mode={session.mode} onModeChange={mode => setSession(state => resetQwirkleRound(state, puzzle, mode))}
         currentTeam={session.team} scores={session.scores} recentAction={session.recent}
         onUndo={() => setSession(state => undoQwirkleDecision(state))} canUndo={session.history.length > 0} hasProgress={hasProgress}
@@ -95,8 +95,8 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
         ]}
         settings={<div><label className="block text-sm font-bold" htmlFor="qwirkle-tier">推理階段</label><select id="qwirkle-tier" aria-label="形色棋推理階段" value={tier} onChange={event => changeTier(event.target.value as QwirkleTier)} className="mt-1 min-h-11 w-full rounded-xl border-2 border-slate-300 bg-white px-2 text-sm font-bold">{tiers.map(item => <option key={item.id} value={item.id}>{item.label}・{item.detail}</option>)}</select><p className="mt-1 text-sm text-slate-600">每階3題，依序不重複；繞回已玩題保留紀錄。</p></div>}
         sidebar={<div className="space-y-2 text-sm">
-          <div className="rounded-xl bg-slate-100 p-2"><div className="font-bold">{tierInfo.detail}</div><div>{session.mode === 'COOP' ? `共同活動分 ${session.scores.A + session.scores.B}` : '各組活動分顯示在固定操作區'}・本題棋分 {chessScore}</div><div>提示 {session.hintLevel}／3{session.revealed.includes(puzzle.id) ? '・已揭示，本題只練習' : ''}</div></div>
           <p className="leading-snug text-slate-700">{puzzle.prompt}</p>
+          <div className="rounded-xl bg-slate-100 p-2"><div className="font-bold">{tierInfo.detail}</div><div>{session.mode === 'COOP' ? `共同活動分 ${session.scores.A + session.scores.B}` : '各組活動分顯示在固定操作區'}・本題棋分 {chessScore}</div><div>提示 {session.hintLevel}／3{session.revealed.includes(puzzle.id) ? '・已揭示，本題只練習' : ''}</div></div>
           {session.finished && <div data-qwirkle-outcome={session.outcome} className={`rounded-xl border p-2 font-bold ${session.outcome === 'SUCCESS' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-amber-300 bg-amber-50 text-amber-900'}`}>{session.outcome === 'SUCCESS' ? '完成本題！' : session.outcome === 'DEAD_END' ? '第一步合法，但下一顆無處可放。' : '兩步都合法，還有更高棋分方案。'}<p className="mt-1 font-normal">可復原比較，或進入下一題。</p></div>}
           {session.moves.length > 0 && <ol className="space-y-1">{session.moves.map((move, i) => <li key={i} className="rounded-lg bg-sky-50 p-2">第{i + 1}步：{qwirkleTileName(move.tile)} → {move.target.id}，{move.score}棋分</li>)}</ol>}
         </div>}
@@ -106,12 +106,12 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
           <button type="button" onClick={nextPuzzle} className={`${actionClass} w-full border-indigo-200 bg-indigo-50 text-indigo-900`}>下一題</button>
         </div>}
       >
-        <div className="flex h-full min-h-0 w-full flex-col gap-1 p-0.5">
+        <div className="qwirkle-presentation flex h-full min-h-0 w-full flex-col gap-1 p-0.5">
           <div className="shrink-0 text-center text-sm font-bold leading-tight text-slate-800">{puzzle.tier === 'BEGINNER' ? '同色不同形，或同形不同色；不能重複' : puzzle.tier === 'STANDARD' ? '目標：一顆棋同時形成橫線＋直線' : '目標：走完兩步，再比較總棋分'}
             {puzzle.nextTile && <div data-qwirkle-next="true" className="mt-1 flex items-center justify-center gap-1 rounded-lg bg-violet-50 px-1 py-0.5 text-violet-950"><span>{session.moves.length ? '現在放' : '第2步公開棋'}：</span><QwirkleShapeSVG color={puzzle.nextTile.color} shape={puzzle.nextTile.shape} sizeClass="h-5 w-5" /><span>{qwirkleTileName(puzzle.nextTile)}</span></div>}
           </div>
-          <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto" aria-label="棋盤：棋子用數字，落點用字母">
-            <div data-qwirkle-board="true" className="grid w-full shrink-0 gap-2" style={{ gridTemplateColumns: `repeat(${columns}, minmax(44px, 1fr))`, maxWidth: columns * 58 }}>
+          <div className="qwirkle-board-slot flex min-h-0 flex-1 items-center justify-center overflow-auto" aria-label="棋盤：棋子用數字，落點用字母">
+            <div data-qwirkle-board="true" className="grid w-full shrink-0 gap-2" style={{ '--qwirkle-columns': columns, '--qwirkle-rows': maxY - minY + 1, gridTemplateColumns: `repeat(${columns}, minmax(44px, 1fr))`, maxWidth: columns * 58 } as React.CSSProperties}>
               {Array.from({ length: (maxY - minY + 1) * columns }, (_, i) => {
                 const x = minX + i % columns; const y = minY + Math.floor(i / columns);
                 const placed = session.board.find(item => item.x === x && item.y === y);
@@ -124,7 +124,7 @@ const QwirkleGame: React.FC<QwirkleGameProps> = ({ onBack, difficulty = 'NORMAL'
             </div>
           </div>
           <div className="shrink-0"><div className="mb-0.5 text-center text-xs font-bold text-slate-600">{session.finished ? '本題手牌（可復原再討論）' : session.moves.length ? '公開下一顆已選取，請選落點' : '公開手牌・先說編號和名稱'}</div>
-            <div className={`grid gap-2 ${hand.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>{hand.map(tile => <QwirkleTile key={tile.id} tile={tile} selected={session.selection.tileId === tile.id || (session.finished && session.moves[0]?.tile.id === tile.id)} disabled={session.finished} onClick={() => setSession(state => selectQwirkleTile(state, puzzle, tile.id))} />)}</div>
+            <div className={`qwirkle-hand grid gap-2 ${hand.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>{hand.map(tile => <QwirkleTile key={tile.id} tile={tile} selected={session.selection.tileId === tile.id || (session.finished && session.moves[0]?.tile.id === tile.id)} disabled={session.finished} onClick={() => setSession(state => selectQwirkleTile(state, puzzle, tile.id))} />)}</div>
           </div>
         </div>
       </FacilitatedGameFrame>

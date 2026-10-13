@@ -235,7 +235,7 @@ const TrafficJamGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }: Prop
 
   return (
     <>
-      <FacilitatedGameFrame
+      <FacilitatedGameFrame desktopLayout="traffic"
         title="塞車解謎"
         subtitle={`6×6 · ${TRAFFIC_TIER_LABELS[level.tier]} ${levelIndex + 1}/${tierLevels.length} · ${level.title}`}
         onBack={() => { cancelDrag(); onBack(); }}

@@ -221,7 +221,7 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
             title="邏輯猜牌"
             subtitle="用發問與排除法找出目標卡牌"
             onBack={onBack}
-            className="bg-blue-50"
+            className="desktop-game desktop-game--guess-card bg-blue-50"
             status={(
                 <div className="flex items-center gap-1.5 text-xs font-bold sm:gap-2 sm:text-sm">
                     <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-800">{difficulty === 'ADVANCED' ? '進階' : '一般'}</span>
@@ -269,8 +269,8 @@ const GuessCardGame: React.FC<GuessCardGameProps> = ({
                                             className={`relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-md border bg-white shadow-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-300 ${card.isEliminated ? 'border-slate-400 bg-slate-200 opacity-70 grayscale' : isTarget ? 'border-emerald-500 bg-emerald-100 shadow-lg' : 'border-slate-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md active:scale-95'}`}
                                         >
                                             <span className={`flex items-center justify-center gap-0.5 font-black leading-none ${card.color === 'RED' ? 'text-red-600' : 'text-slate-900'}`}>
-                                                <span className="text-xs sm:text-sm">{card.value}</span>
-                                                <span className="text-sm sm:text-base">{card.suit}</span>
+                                                <span className="guess-card-value text-xs sm:text-sm">{card.value}</span>
+                                                <span className="guess-card-suit text-sm sm:text-base">{card.suit}</span>
                                             </span>
                                             {card.isEliminated && <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center text-2xl font-black text-red-600/85">×</span>}
                                             {isTarget && <span aria-hidden="true" className="absolute inset-0 rounded-md border-2 border-emerald-500" />}

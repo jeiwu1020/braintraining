@@ -66,7 +66,7 @@ const WordPathGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   return (
     <>
-      <FacilitatedGameFrame
+      <FacilitatedGameFrame desktopLayout="word-path"
         title="字詞路徑"
         subtitle={`${TIERS.find(item => item.value === tier)!.label}｜${puzzleIndex + 1}/${puzzles.length} 題`}
         onBack={onBack}
@@ -106,11 +106,13 @@ const WordPathGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
                 })}
               </ol>
             </div>
+            <details data-word-path-history="true" className="rounded-xl border border-slate-200 p-2"><summary className="min-h-11 cursor-pointer font-bold">已找到與延伸詞紀錄</summary>
             {session.found.length > 0 && <div data-word-path-found="true" className="rounded-xl bg-indigo-50 p-2 text-indigo-950">
               <p className="font-black">已找到的路徑</p>
               {session.found.map(answer => <p key={answer.key} className="mt-1 text-sm"><strong>{answer.word}{answer.assisted ? '・提示練習' : ''}</strong><br />{wordPathCoordinates(answer.path, puzzle)}</p>)}
             </div>}
             <div className="rounded-xl bg-sky-50 p-2 text-sm text-sky-950"><strong>延伸詞，不計入目標：</strong>{session.extensions.length ? session.extensions.map(answer => `${answer.word}${answer.assisted ? '（提示練習）' : ''}`).join('、') : '尚無'}<p className="mt-1">接受的延伸詞可得活動分，須由治療者確認詞義。</p></div>
+            </details>
             {knowledge && <p className="rounded-xl bg-amber-50 p-2 text-sm text-amber-950">{knowledge.text}</p>}
             <p className="text-sm text-slate-700">已結算 {session.turns} 回合{session.mode === 'COOP' ? `・合作累積 ${session.scores.A + session.scores.B} 分` : ''}</p>
           </div>

@@ -131,14 +131,14 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
     >
       {/* Coordinates Top: A, B, C, D, E, F, G, H, J... */}
       <div
-        className={`w-full flex shrink-0 items-center ${
+        className={`weiqi-coordinate-row w-full flex shrink-0 items-center ${
           isLandscapeCompact ? 'h-3 pl-2.5 pr-2.5' : 'h-3.5 sm:h-4 pl-3 sm:pl-4 pr-3 sm:pr-4'
         }`}
       >
         {Array.from({ length: boardSize }).map((_, c) => (
           <div
             key={c}
-            className={`flex-1 text-center font-black text-amber-300/90 leading-none ${
+            className={`weiqi-coordinate-label flex-1 text-center font-black text-amber-300/90 leading-none ${
               isLandscapeCompact ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-[11px]'
             }`}
           >
@@ -151,14 +151,14 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
       <div className="w-full flex-1 flex items-stretch min-h-0 min-w-0">
         {/* Left Coordinates: boardSize..1 */}
         <div
-          className={`flex flex-col justify-between shrink-0 ${
+          className={`weiqi-coordinate-column flex flex-col justify-between shrink-0 ${
             isLandscapeCompact ? 'w-2.5 sm:w-3 py-0.5' : 'w-3 sm:w-4 py-1'
           }`}
         >
           {Array.from({ length: boardSize }).map((_, r) => (
             <div
               key={r}
-              className={`flex-1 flex items-center justify-center font-black text-amber-300/90 leading-none ${
+              className={`weiqi-coordinate-label flex-1 flex items-center justify-center font-black text-amber-300/90 leading-none ${
                 isLandscapeCompact ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-[11px]'
               }`}
             >
@@ -366,14 +366,14 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
 
         {/* Right Coordinates: boardSize..1 */}
         <div
-          className={`flex flex-col justify-between shrink-0 ${
+          className={`weiqi-coordinate-column flex flex-col justify-between shrink-0 ${
             isLandscapeCompact ? 'w-2.5 sm:w-3 py-0.5' : 'w-3 sm:w-4 py-1'
           }`}
         >
           {Array.from({ length: boardSize }).map((_, r) => (
             <div
               key={r}
-              className={`flex-1 flex items-center justify-center font-black text-amber-300/70 leading-none ${
+              className={`weiqi-coordinate-label flex-1 flex items-center justify-center font-black text-amber-300/70 leading-none ${
                 isLandscapeCompact ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-[11px]'
               }`}
             >
@@ -385,14 +385,14 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
 
       {/* Coordinates Bottom: A, B, C, D, E, F, G, H, J... */}
       <div
-        className={`w-full flex shrink-0 items-center mt-0.5 ${
+        className={`weiqi-coordinate-row w-full flex shrink-0 items-center mt-0.5 ${
           isLandscapeCompact ? 'h-3 pl-2.5 pr-2.5' : 'h-3.5 sm:h-4 pl-3 sm:pl-4 pr-3 sm:pr-4'
         }`}
       >
         {Array.from({ length: boardSize }).map((_, c) => (
           <div
             key={c}
-            className={`flex-1 text-center font-black text-amber-300/90 leading-none ${
+            className={`weiqi-coordinate-label flex-1 text-center font-black text-amber-300/90 leading-none ${
               isLandscapeCompact ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-[11px]'
             }`}
           >

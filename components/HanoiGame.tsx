@@ -85,7 +85,7 @@ const HanoiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <FacilitatedGameFrame
+    <FacilitatedGameFrame desktopLayout="hanoi"
       title="河內塔"
       subtitle={`${diskCount} 片圓盤｜最少 ${2 ** diskCount - 1} 步`}
       onBack={onBack}
@@ -109,7 +109,7 @@ const HanoiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         '分組玩法：A、B 組輪流提出一個合法移動，完成最後一步的組別得 1 分；亦可全體合作。',
       ]}
     >
-      <div className="flex h-full w-full max-w-3xl items-end justify-around gap-2 pb-2">
+      <div className="hanoi-presentation flex h-full w-full max-w-3xl items-end justify-around gap-2 pb-2">
         {rods.map((rod, rodIndex) => {
           const rodLabel = String.fromCharCode(65 + rodIndex);
           return (
@@ -119,15 +119,15 @@ const HanoiGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               aria-label={`柱子 ${rodLabel}`}
               aria-pressed={selectedRod === rodIndex}
               onClick={() => selectRod(rodIndex)}
-              className={`relative flex h-[85%] min-h-44 min-w-28 flex-1 flex-col-reverse items-center rounded-2xl border-2 bg-amber-50 px-2 pb-8 pt-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 ${selectedRod === rodIndex ? 'border-indigo-600 ring-4 ring-indigo-200' : 'border-amber-300'}`}
+              className={`hanoi-rod relative flex h-[85%] min-h-44 min-w-28 flex-1 flex-col-reverse items-center rounded-2xl border-2 bg-amber-50 px-2 pb-8 pt-3 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 ${selectedRod === rodIndex ? 'border-indigo-600 ring-4 ring-indigo-200' : 'border-amber-300'}`}
             >
-              <span className="absolute bottom-0 left-0 right-0 flex h-8 items-center justify-center bg-amber-800 text-base font-black text-white">{rodLabel}</span>
+              <span className="hanoi-label absolute bottom-0 left-0 right-0 flex h-8 items-center justify-center bg-amber-800 text-base font-black text-white">{rodLabel}</span>
               <span className="absolute bottom-8 top-5 w-2 rounded-full bg-amber-700" aria-hidden="true" />
               {rod.map(disk => (
                 <span
                   key={disk}
                   aria-label={`${disk} 號圓盤`}
-                  className="z-10 flex h-9 shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-500 text-sm font-black text-white shadow"
+                  className="hanoi-disk z-10 flex h-9 shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-500 text-sm font-black text-white shadow"
                   style={{ width: `${42 + disk * 12}%` }}
                 >
                   {disk}

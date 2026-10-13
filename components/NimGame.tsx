@@ -112,7 +112,7 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   return (
-    <FacilitatedGameFrame
+    <FacilitatedGameFrame desktopLayout="nim"
       title="取石子策略"
       subtitle={misere ? '進階：拿到最後一顆者輸' : '一般：拿到最後一顆者勝'}
       onBack={onBack}
@@ -138,26 +138,24 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
         '分組玩法：A、B 組直接輪流對戰；合作教學則全體共同商量，對抗策略提示對手。',
       ]}
       sidebar={(
-        <div className="mt-auto space-y-2">
-          {assisted && <p className="text-sm font-bold text-amber-800">提示練習：本盤已看策略答案，不計組分。</p>}
-          {mode === 'COOP' && opponentPending ? (
-            <button type="button" onClick={playOpponent} className="min-h-11 w-full rounded-xl bg-violet-600 px-2 font-black text-white">執行教學對手</button>
-          ) : (
-            <>
-              {selectedPile !== null && (
-                <div className="grid grid-cols-4 gap-1">
-                  {Array.from({ length: piles[selectedPile] }, (_, index) => index + 1).map(value => (
-                    <button key={value} type="button" aria-pressed={amount === value} onClick={() => setAmount(value)} className={`min-h-11 rounded-lg border text-sm font-bold ${amount === value ? 'border-indigo-700 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>{value}</button>
-                  ))}
-                </div>
-              )}
-              <button type="button" onClick={take} disabled={selectedPile === null || Boolean(result)} className="min-h-11 w-full rounded-xl bg-indigo-600 px-2 font-black text-white disabled:opacity-40">確認拿取 {amount} 顆</button>
-            </>
+        <div className="space-y-2">
+          {selectedPile !== null && !(mode === 'COOP' && opponentPending) && (
+            <div className="grid grid-cols-4 gap-1" aria-label="選擇拿取數量">
+              {Array.from({ length: piles[selectedPile] }, (_, index) => index + 1).map(value => (
+                <button key={value} type="button" aria-pressed={amount === value} onClick={() => setAmount(value)} className={`min-h-11 rounded-lg border text-sm font-bold ${amount === value ? 'border-indigo-700 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>{value}</button>
+              ))}
+            </div>
           )}
+          {assisted && <p className="text-sm font-bold text-amber-800">提示練習：本盤已看策略答案，不計組分。</p>}
         </div>
       )}
+      controls={mode === 'COOP' && opponentPending ? (
+        <button type="button" onClick={playOpponent} className="min-h-11 w-full rounded-xl bg-violet-600 px-2 font-black text-white">執行教學對手</button>
+      ) : (
+        <button type="button" onClick={take} disabled={selectedPile === null || Boolean(result)} className="min-h-11 w-full rounded-xl bg-indigo-600 px-2 font-black text-white disabled:opacity-40">確認拿取 {amount} 顆</button>
+      )}
     >
-      <div className="flex h-full w-full max-w-3xl items-end justify-around gap-2 px-2 pb-2">
+      <div className="nim-presentation flex h-full w-full max-w-3xl items-end justify-around gap-2 px-2 pb-2">
         {piles.map((count, pileIndex) => {
           const label = String.fromCharCode(65 + pileIndex);
           return (
@@ -168,12 +166,12 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
               aria-pressed={selectedPile === pileIndex}
               disabled={count === 0 || opponentPending || Boolean(result)}
               onClick={() => { setSelectedPile(pileIndex); setAmount(1); setRecent(`已選取 ${label} 堆，共 ${count} 顆。`); }}
-              className={`flex min-h-44 min-w-24 flex-1 flex-col items-center justify-end rounded-2xl border-2 p-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-50 ${selectedPile === pileIndex ? 'border-indigo-700 bg-indigo-100 ring-4 ring-indigo-200' : 'border-amber-400 bg-amber-50'}`}
+              className={`nim-pile flex min-h-44 min-w-24 flex-1 flex-col items-center justify-end rounded-2xl border-2 p-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-50 ${selectedPile === pileIndex ? 'border-indigo-700 bg-indigo-100 ring-4 ring-indigo-200' : 'border-amber-400 bg-amber-50'}`}
             >
-              <span className="mb-1 flex max-w-28 flex-wrap-reverse justify-center gap-1" aria-hidden="true">
-                {Array.from({ length: count }, (_, stone) => <span key={stone} className="h-7 w-9 rounded-full border-2 border-amber-800 bg-amber-500 shadow-sm" />)}
+              <span className="nim-stones mb-1 flex max-w-28 flex-wrap-reverse justify-center gap-1" aria-hidden="true">
+                {Array.from({ length: count }, (_, stone) => <span key={stone} className="nim-stone h-7 w-9 rounded-full border-2 border-amber-800 bg-amber-500 shadow-sm" />)}
               </span>
-              <span className="text-base font-black text-slate-900">{label} 堆：{count} 顆</span>
+              <span className="nim-count text-base font-black text-slate-900">{label} 堆：{count} 顆</span>
             </button>
           );
         })}

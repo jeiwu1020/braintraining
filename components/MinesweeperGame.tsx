@@ -70,7 +70,7 @@ const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => 
   const highlighted = new Set([...(game.hintStep?.clues ?? []), ...(game.hintStep?.related ?? [])]);
 
   return <>
-    <FacilitatedGameFrame title="合作踩地雷" subtitle={`6×6｜${mineTotal} 顆地雷｜${currentTier.label}：${currentTier.skill}`} onBack={onBack}
+    <FacilitatedGameFrame desktopLayout="mines" title="合作踩地雷" subtitle={`6×6｜${mineTotal} 顆地雷｜${currentTier.label}：${currentTier.skill}`} onBack={onBack}
       mode={game.mode} onModeChange={mode => reset(mode)} currentTeam={game.team} scores={game.scores} recentAction={game.recent}
       onUndo={() => replace(undoMineRound(game))} undoLabel="誤觸復原" canUndo={game.history.length > 0} hasProgress={hasProgress}
       onReset={() => reset()} resetLabel="換新盤面" onHint={() => replace(requestMineHint(game))}

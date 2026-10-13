@@ -42,6 +42,8 @@ export const FacilitatedModeSelector: React.FC<FacilitatedModeSelectorProps> = (
 );
 
 interface FacilitatedGameFrameProps {
+  /** Opt-in to desktop-only sizing. The existing phone layout stays the default. */
+  desktopLayout?: string;
   title: string;
   subtitle: string;
   onBack: () => void;
@@ -76,6 +78,7 @@ const iconButton = 'flex min-h-11 min-w-11 items-center justify-center rounded-x
 const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
   title,
   subtitle,
+  desktopLayout,
   onBack,
   mode,
   onModeChange,
@@ -108,6 +111,7 @@ const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
 
   return (
     <GameShell
+      className={desktopLayout ? `desktop-game desktop-game--${desktopLayout}` : undefined}
       title={title}
       subtitle={subtitle}
       onBack={() => requestAction(onBack, '返回遊戲目錄將離開目前進度。是否繼續？', '確認離開')}
@@ -136,16 +140,18 @@ const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
         boardClassName="!overflow-auto flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-1 sm:p-2"
         sidebarClassName={`rounded-2xl border border-slate-200 bg-white p-2 sm:p-3 ${controls ? '!overflow-hidden' : ''}`}
         sidebar={(
-          <div className={`flex flex-col gap-2 ${controls ? 'h-full min-h-0' : 'min-h-full'}`}>
+          <div data-facilitated-sidebar-stack="true" className={`flex flex-col gap-2 ${controls ? 'h-full min-h-0' : 'min-h-full'}`}>
             <div data-facilitated-details="true" className={controls ? 'min-h-0 flex-1 overflow-y-auto' : ''}>
-            <div className="flex flex-col gap-2">
+            <div data-facilitated-information="true" className="flex flex-col gap-2">
             {controls && feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-sm font-bold text-emerald-900">{feedback}</div>}
+            <div data-facilitated-mode-options="true">
             <FacilitatedModeSelector
               value={mode}
               onChange={changeMode}
               coopLabel={coopLabel}
               teamsLabel={teamsLabel}
             />
+            </div>
 
             {!controls && mode === 'TEAMS' && (
               <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-2 text-center">
@@ -162,7 +168,7 @@ const FacilitatedGameFrame: React.FC<FacilitatedGameFrameProps> = ({
               <div className="mt-0.5 text-sm font-semibold leading-snug text-slate-800">{recentAction}</div>
             </div>}
 
-            {sidebar}
+            {sidebar && <div data-facilitated-primary="true" className="space-y-2">{sidebar}</div>}
             {settings && (
               <details data-facilitated-settings="true" className="rounded-xl border border-slate-200 bg-slate-50">
                 <summary className="flex min-h-11 cursor-pointer items-center px-2 text-sm font-bold text-slate-800">活動設定</summary>

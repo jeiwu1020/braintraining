@@ -1,0 +1,218 @@
+/* Desktop readability is opt-in per game and per available viewport/input.
+ * Keep every rule inside this gate: short landscape phones, touch tablets,
+ * portrait windows and zoom-reduced viewports retain the accepted base layout.
+ * These are real layout dimensions, never transform/zoom scaling.
+ */
+@media (min-width: 1024px) and (min-height: 650px) and (orientation: landscape) and (hover: hover) and (pointer: fine) {
+  .desktop-game .game-shell__header {
+    min-height: 4.5rem;
+    padding: 0.5rem 1rem;
+  }
+  .desktop-game .game-shell__header h1 { font-size: 1.5rem; line-height: 1.25; }
+  .desktop-game .game-shell__header p { font-size: 1rem; line-height: 1.4; }
+  .desktop-game .game-shell__header button { min-width: 3rem; min-height: 3rem; }
+  .desktop-game .board-sidebar-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(20rem, 24vw, 24rem);
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .desktop-game [data-layout-region='board'] { padding: 0.75rem; container-type: size; }
+  .desktop-game [data-layout-region='sidebar'] { padding: 1rem; }
+  .desktop-game [data-layout-region='sidebar'] :is(.text-xs, .text-sm, .text-base) {
+    font-size: 1.125rem;
+    line-height: 1.45;
+  }
+  .desktop-game [data-layout-region='sidebar'] :is(button, select, summary) {
+    min-height: 3rem;
+    font-size: 1.125rem;
+    line-height: 1.3;
+  }
+  .desktop-game [data-facilitated-mode-selector] button { white-space: nowrap; }
+  .desktop-game [data-facilitated-controls] { padding-top: 0.75rem; }
+  .desktop-game [data-facilitated-turn-status] { max-height: 6rem; padding: 0.5rem; }
+  .desktop-game [data-facilitated-details] { scrollbar-gutter: stable; }
+  .desktop-game [data-layout-region='feedback'] { font-size: 1.125rem; }
+
+  /* Square grid games: enlarge both axes, including coordinate rails. */
+  .desktop-game--word-path [data-word-path-puzzle] {
+    --desktop-cell: min(8rem, calc((100cqh - 10rem) / 4), calc((100cqw - 4rem) / 4));
+    width: max-content;
+    max-width: 100%;
+    align-self: safe center;
+    margin-top: auto; margin-bottom: auto;
+    gap: 0.75rem;
+  }
+  .desktop-game--word-path [data-word-path-puzzle] > div:first-child { font-size: 1.125rem; line-height: 1.4; }
+  .desktop-game--word-path [data-coordinate-grid],
+  .desktop-game--mines [data-coordinate-grid] {
+    grid-template-columns: 2.5rem repeat(var(--coordinate-columns), var(--desktop-cell)) !important;
+    width: max-content;
+    max-width: 100%;
+    gap: 0.375rem;
+  }
+  .desktop-game--mines [data-coordinate-grid] {
+    --desktop-cell: min(6rem, calc((100cqh - 4.5rem) / 6), calc((100cqw - 4.75rem) / 6));
+  }
+  .desktop-game--word-path [data-coordinate-grid] > div:not([role='gridcell']),
+  .desktop-game--mines [data-coordinate-grid] > div:not([role='gridcell']) {
+    height: auto;
+    min-height: 2rem;
+    font-size: 1.25rem;
+  }
+  .desktop-game--word-path [role='gridcell'],
+  .desktop-game--mines [role='gridcell'] {
+    width: var(--desktop-cell);
+    height: var(--desktop-cell);
+    aspect-ratio: 1 / 1;
+  }
+  .desktop-game--word-path [data-word-path-cell] { font-size: 2.25rem; }
+  .desktop-game--word-path [data-word-path-cell] > span { width: 1.75rem; height: 1.75rem; font-size: 1rem; }
+  .desktop-game--mines [role='gridcell'] > button { font-size: 2rem; }
+
+  .desktop-game--nonogram [data-coordinate-grid] {
+    --desktop-cell: min(6rem, calc((100cqh - 6rem) / var(--nonogram-size)), calc((100cqw - 5rem) / var(--nonogram-size) - 0.375rem));
+    grid-template-columns: 5rem repeat(var(--nonogram-size), var(--desktop-cell)) !important;
+    grid-template-rows: 3.5rem repeat(var(--nonogram-size), var(--desktop-cell));
+    grid-auto-rows: var(--desktop-cell) !important;
+    width: max-content;
+    max-width: 100%;
+    align-self: center;
+    gap: 0.375rem;
+  }
+  .desktop-game--nonogram [data-coordinate-grid] > :is(div, [role='columnheader'], [role='rowheader']) { font-size: 1.25rem; }
+  .desktop-game--nonogram [data-nonogram-cell] { font-size: 2rem; aspect-ratio: 1 / 1; }
+
+  /* Equations and comparison tables need taller content, not stretched glyphs. */
+  .desktop-game--matchsticks .matchstick-presentation { max-width: 56rem; gap: 0.75rem; }
+  .desktop-game--matchsticks .matchstick-presentation :is(.text-sm, .text-xs) { font-size: 1.125rem; line-height: 1.4; }
+  .desktop-game--matchsticks [data-matchstick-equation] { gap: 0.75rem; }
+  .desktop-game--matchsticks [data-matchstick-equation] svg { height: 12rem; }
+  .desktop-game--matchsticks .matchstick-presentation button { min-height: 3.25rem; }
+  .desktop-game--detective .detective-presentation { max-width: 58rem; }
+  .desktop-game--detective table { font-size: 1.25rem; border-spacing: 0.5rem; }
+  .desktop-game--detective table th { line-height: 1.4; }
+  .desktop-game--detective table thead th:first-child { width: 7.5rem; }
+  .desktop-game--detective [role='gridcell'] button { min-height: 5rem; font-size: 2.25rem; }
+  .desktop-game--detective .detective-presentation > div { margin-top: 1rem; font-size: 1.125rem; }
+
+  /* Piles and disks keep their original interaction and value ordering. */
+  .desktop-game--nim .nim-presentation { max-width: 66rem; align-items: center; gap: 1rem; padding: 1rem; }
+  .desktop-game--nim .nim-pile { min-height: 20rem; gap: 1rem; padding: 1rem; }
+  .desktop-game--nim .nim-stones { max-width: 14rem; gap: 0.5rem; }
+  .desktop-game--nim .nim-stone { width: 4rem; height: 3rem; }
+  .desktop-game--nim .nim-count { font-size: 1.5rem; line-height: 1.4; }
+  .desktop-game--hanoi .hanoi-presentation { max-width: 66rem; align-items: center; gap: 1rem; }
+  .desktop-game--hanoi .hanoi-rod { height: min(82%, 30rem); padding-bottom: 3rem; }
+  .desktop-game--hanoi .hanoi-disk { height: 3.5rem; font-size: 1.5rem; }
+  .desktop-game--hanoi .hanoi-label { height: 3rem; font-size: 1.5rem; }
+
+  /* Traffic already fits well; keep geometry and drag hit targets unchanged. */
+  .desktop-game--traffic [data-traffic-board] { width: min(100%, calc(100cqh * 1.12)) !important; }
+  .desktop-game--traffic [data-traffic-label] { font-size: 1.5rem; }
+  .desktop-game--traffic [data-traffic-target] { font-size: 1rem; }
+  .desktop-game--traffic [data-traffic-board] > span { font-size: 1.125rem; }
+
+  /* Qwirkle: board tiles and public hand have coherent visual weight. */
+  .desktop-game--qwirkle .qwirkle-presentation { max-width: 60rem; margin: auto; gap: 0.75rem; }
+  .desktop-game--qwirkle .qwirkle-presentation > div:first-child { font-size: 1.125rem; line-height: 1.4; }
+  .desktop-game--qwirkle .qwirkle-board-slot { container-type: size; align-items: safe center; justify-content: safe center; }
+  .desktop-game--qwirkle [data-qwirkle-board] {
+    --qwirkle-cell: min(6.5rem, calc((100cqh + 0.75rem) / var(--qwirkle-rows) - 0.75rem), calc((100cqw + 0.75rem) / var(--qwirkle-columns) - 0.75rem));
+    width: max-content;
+    max-width: 100% !important;
+    grid-template-columns: repeat(var(--qwirkle-columns), var(--qwirkle-cell)) !important;
+    grid-auto-rows: var(--qwirkle-cell);
+    gap: 0.75rem;
+  }
+  .desktop-game--qwirkle [data-qwirkle-board] > * { height: var(--qwirkle-cell); aspect-ratio: 1 / 1; }
+  .desktop-game--qwirkle [data-qwirkle-board] svg { width: 3.25rem; height: 3.25rem; }
+  .desktop-game--qwirkle [data-qwirkle-board] span { font-size: 1rem; line-height: 1.25; }
+  .desktop-game--qwirkle [data-qwirkle-target] { font-size: 1.75rem; }
+  .desktop-game--qwirkle .qwirkle-hand { max-width: 46rem; margin-inline: auto; gap: 0.75rem; }
+  .desktop-game--qwirkle [data-qwirkle-option] { min-height: 7rem; padding: 0.75rem; gap: 0.375rem; }
+  .desktop-game--qwirkle [data-qwirkle-option] svg { width: 3rem; height: 3rem; }
+  .desktop-game--qwirkle [data-qwirkle-option] span { font-size: 1.125rem; line-height: 1.35; }
+  .desktop-game--qwirkle .qwirkle-hand + div,
+  .desktop-game--qwirkle .qwirkle-presentation > div:last-child > div:first-child { font-size: 1rem; }
+  .desktop-game--qwirkle [data-qwirkle-next] svg { width: 1.75rem; height: 1.75rem; }
+
+  /* Card and tile dimensions are independent from the surrounding table width. */
+  .desktop-game .tabletop-presentation { max-width: 56rem; align-self: safe center; margin-top: auto; margin-bottom: auto; }
+  .desktop-game .tabletop-presentation h2 { font-size: 1.25rem; line-height: 1.4; margin-bottom: 0.75rem; }
+  .desktop-game .tabletop-presentation section + section { margin-top: 1.5rem; }
+  .desktop-game .tabletop-presentation :is(.text-xs, .text-sm) { font-size: 1rem; line-height: 1.35; }
+  .desktop-game .tabletop-presentation .text-base { font-size: 1.125rem; line-height: 1.4; }
+  .desktop-game--rummikub .rummi-tile { min-width: 4.5rem; min-height: 6rem; gap: 0.25rem; padding: 0.5rem; }
+  .desktop-game--rummikub .rummi-value { font-size: 2.25rem; line-height: 1; }
+  .desktop-game--rummikub [data-rummi-table] > div { padding: 0.5rem; }
+  .desktop-game--rummikub .tabletop-presentation > div { margin-block: 0.75rem; }
+  .desktop-game--rummikub .tabletop-presentation button:not(.rummi-tile) { min-height: 3rem; font-size: 1.125rem; }
+  .desktop-game--mahjong .mahjong-tile { min-width: 5.5rem; width: 5.5rem; min-height: 7.5rem; gap: 0.375rem; }
+  .desktop-game--mahjong .mahjong-value { font-size: 2.5rem; line-height: 1.2; }
+  .desktop-game--mahjong .mahjong-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+  .desktop-game--mahjong [aria-label='麻將局部手牌'] > div { gap: 0.75rem; }
+  .desktop-game .playing-card { min-width: 5.5rem; min-height: 7.5rem; gap: 0.25rem; padding: 0.5rem; }
+  .desktop-game .card-value { font-size: 2.5rem; line-height: 1.2; }
+  .desktop-game--sevens .sevens-range { padding: 1rem; }
+  .desktop-game--sevens .sevens-range .text-2xl { font-size: 2.25rem; }
+  .desktop-game--redpoints [data-ten-points-badge] { font-size: 1.125rem; }
+
+  /* Guess Card has 24/52 candidates: enlarge the marks inside their existing
+   * fixed grid rather than scaling the whole interface. */
+  .desktop-game--guess-card [data-candidate-grid] { gap: 0.5rem; }
+  .desktop-game--guess-card [data-candidate-grid] > button > span:first-child {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .desktop-game--guess-card .guess-card-value { font-size: 2rem; line-height: 1; }
+  .desktop-game--guess-card .guess-card-suit { font-size: 2.5rem; line-height: 1; }
+  .desktop-game--guess-card [data-support-layout] section { gap: 0.5rem; padding: 0.5rem; }
+  .desktop-game--guess-card [data-support-layout] :is(button, select) { font-size: 1rem; min-height: 3rem; }
+  .desktop-game--guess-card [data-layout-region='feedback'] { font-size: 1.125rem; }
+
+  /* Seven pyramid rows use a half-card pitch: total height is four card
+   * heights. Both the stock rail and the empty slots share the same size. */
+  .desktop-game--pyramid [data-layout-region='playfield'] { container-type: size; }
+  .desktop-game--pyramid .pyramid-table {
+    --pyramid-card-width: min(7.5rem, calc((100cqw - 13rem) / 7), calc((100cqh - 1.5rem) / 5.6));
+    --pyramid-card-height: calc(var(--pyramid-card-width) * 1.4);
+    gap: 0.75rem;
+    padding: 0.5rem;
+  }
+  .desktop-game--pyramid :is(.pyramid-card, .pyramid-empty, .pyramid-stock, .pyramid-waste) {
+    width: var(--pyramid-card-width);
+    height: var(--pyramid-card-height);
+  }
+  .desktop-game--pyramid .pyramid-row { gap: 0.5rem; }
+  .desktop-game--pyramid .pyramid-row + .pyramid-row { margin-top: calc(var(--pyramid-card-height) * -0.5); }
+  .desktop-game--pyramid .pyramid-card-slot { margin-right: 0 !important; }
+  .desktop-game--pyramid .pyramid-stock-rail { width: 8rem; gap: 0.5rem; }
+  .desktop-game--pyramid .pyramid-stock-rail > span { font-size: 1rem; }
+  .desktop-game--pyramid .pyramid-card {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding-top: 0.5rem;
+  }
+  .desktop-game--pyramid .pyramid-card-value { font-size: 2rem; line-height: 1; }
+  .desktop-game--pyramid .pyramid-card-suit { font-size: 2rem; line-height: 1; }
+  .desktop-game--pyramid [data-layout-region='support'] { font-size: 1.125rem; }
+
+  /* Standard Go only: retain ResizeObserver fit and the compact phone branch. */
+  [data-weiqi-layout='standard'] .weiqi-coordinate-row { height: 1.5rem; padding-inline: 1.5rem; }
+  [data-weiqi-layout='standard'] .weiqi-coordinate-column { width: 1.5rem; }
+  [data-weiqi-layout='standard'] .weiqi-coordinate-label { font-size: 1rem; }
+  [data-weiqi-layout='standard'] :is(header, main) > :is(button, select) { font-size: 1rem; }
+  [data-weiqi-layout='standard'] :is([data-weiqi-mode], [data-weiqi-action], #puzzle-selector-dropdown) { font-size: 1rem; }
+}
+
+@media (min-width: 1440px) and (min-height: 900px) and (orientation: landscape) and (hover: hover) and (pointer: fine) {
+  .desktop-game .board-sidebar-layout { gap: 1.25rem; padding: 1.25rem; }
+  .desktop-game--word-path [data-word-path-puzzle] { --desktop-cell: min(9rem, calc((100cqh - 10rem) / 4), calc((100cqw - 4rem) / 4)); }
+  .desktop-game--word-path [data-word-path-cell] { font-size: 2.75rem; }
+  .desktop-game--matchsticks [data-matchstick-equation] svg { height: 15rem; }
+  .desktop-game--detective [role='gridcell'] button { min-height: 6rem; }
+  .desktop-game--nim .nim-pile { min-height: 24rem; }
+  .desktop-game--hanoi .hanoi-rod { height: min(80%, 36rem); }
+  .desktop-game--hanoi .hanoi-disk { height: 4rem; }
+}

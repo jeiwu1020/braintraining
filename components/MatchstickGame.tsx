@@ -117,7 +117,7 @@ const MatchstickGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   return (
     <>
-      <FacilitatedGameFrame
+      <FacilitatedGameFrame desktopLayout="matchsticks"
         title="移動火柴棒" subtitle={`${tierInfo.label} ${puzzleIndex + 1}／${puzzles.length}・${puzzle.title}`}
         onBack={onBack} mode={session.mode} onModeChange={restart} currentTeam={session.team} scores={session.scores}
         recentAction={session.recent} onUndo={undo} onReset={() => restart()} onHint={hint}
@@ -160,7 +160,7 @@ const MatchstickGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
           </div>
         )}
       >
-        <div className="flex w-full min-w-[320px] max-w-xl flex-col gap-1 p-1">
+        <div className="matchstick-presentation flex w-full min-w-[320px] max-w-xl flex-col gap-1 p-1">
           <div className="text-center text-sm font-bold text-slate-700">{session.finished ? '完成圖・紅虛線拿走，綠色補入' : `${preview ? '移動預覽・' : ''}${phase === 'source' ? '選來源火柴' : '選目的空段'}：先點符號，再點下方棒段`}</div>
           <MatchstickEquation board={preview ?? board} originalBoard={board} selection={selection} activeSlot={activeSlot} onSelectSlot={setActiveSlot} hintSource={session.hintSource} disabled={session.finished} />
           <div className="flex min-h-12 flex-wrap items-center justify-center gap-1" aria-label={phase === 'source' ? '可移動火柴' : '火柴目的位置'}>
