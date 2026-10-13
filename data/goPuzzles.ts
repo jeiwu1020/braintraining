@@ -1,7 +1,17 @@
+import { validatePuzzleTraining } from '../utils/goPuzzleTraining';
 import { Point, GoBoard, createEmptyBoard, playGoMove } from '../services/goEngine';
 
 export type PuzzleCategory = 'LIFE_DEATH' | 'CAPTURE' | 'TACTICS';
 export type PuzzleDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+export interface GoPuzzleTraining {
+  /** These are inspected variations, not an exhaustive Go solver. */
+  lines: { id: string; moves: Point[] }[];
+  goal:
+    | { kind: 'TWO_EYES'; anchor: Point; eyes: [Point, Point] }
+    | { kind: 'CAPTURE'; stones: Point[] };
+  scope: string;
+}
 
 export interface GoPuzzle {
   id: string;
@@ -21,9 +31,10 @@ export interface GoPuzzle {
   solutionMoves: {
     playerMove: Point;
   }[];
-  // All acceptable winning first moves (e.g. for symmetrical puzzles or multi-solution shapes like Square Four)
+  // Listed legal first moves. Only training adds checked continuations and terminal goals.
   acceptedMoves?: Point[];
   successMessage: string;
+  training?: GoPuzzleTraining;
   verification: {
     method: 'RULE_ENGINE' | 'SOURCE_SGF';
     checkedAt: string;
@@ -74,8 +85,9 @@ export function validatePuzzleDefinitions(puzzles: GoPuzzle[]): string[] {
     }
 
     const board = parsePuzzleBoard(puzzle.initialBoard);
+    issues.push(...validatePuzzleTraining(puzzle, board));
     for (const move of answers) {
-      if (!playGoMove(board, move.r, move.c, puzzle.playerColor).isLegal) {
+      if (!Number.isInteger(move.r) || !Number.isInteger(move.c) || !playGoMove(board, move.r, move.c, puzzle.playerColor).isLegal) {
         issues.push(`${puzzle.id}: 正解 ${move.r},${move.c} 為非法著`);
       }
     }
@@ -88,7 +100,7 @@ export function validatePuzzleDefinitions(puzzles: GoPuzzle[]): string[] {
 export function isLegalPuzzleSolutionMove(puzzle: GoPuzzle, move: Point): boolean {
   const answers = puzzle.acceptedMoves?.length ? puzzle.acceptedMoves : puzzle.solutionMoves.map(item => item.playerMove);
   const isListedAnswer = answers.some(answer => answer.r === move.r && answer.c === move.c);
-  return isListedAnswer && playGoMove(parsePuzzleBoard(puzzle.initialBoard), move.r, move.c, puzzle.playerColor).isLegal;
+  return isListedAnswer && Number.isInteger(move.r) && Number.isInteger(move.c) && playGoMove(parsePuzzleBoard(puzzle.initialBoard), move.r, move.c, puzzle.playerColor).isLegal;
 }
 
 export const GO_PUZZLES: GoPuzzle[] = [
@@ -464,8 +476,68 @@ export const GOGAMEGURU_PUZZLES: GoPuzzle[] = SOURCE_PUZZLE_SETUPS.map(([number,
   source: { ...GOGAMEGURU_SOURCE, originalId: `ggg-easy-${number}` }
 }));
 
-/** Only verified material is available to players. Deprecated entries remain for audit history. */
-export const PUBLISHED_GO_PUZZLES = [
+/** Evidence upgrades retain the original catalogue IDs, setup stones and board sizes. */
+const originalTraining: Record<string, GoPuzzleTraining> = {
+  'two-eyes-1': {
+    lines: [{ id: 'separate-eyes', moves: [{ r: 1, c: 1 }] }],
+    goal: { kind: 'TWO_EYES', anchor: { r: 0, c: 0 }, eyes: [{ r: 1, c: 0 }, { r: 1, c: 2 }] },
+    scope: '終局檢查：兩個空點各自完全由同一黑棋連通塊包圍，白棋無法合法下入。'
+  },
+  'bent-three-live': {
+    lines: [{ id: 'separate-corner-eyes', moves: [{ r: 0, c: 0 }] }],
+    goal: { kind: 'TWO_EYES', anchor: { r: 0, c: 2 }, eyes: [{ r: 0, c: 1 }, { r: 1, c: 0 }] },
+    scope: '終局檢查：角部兩個空點全由黑棋包圍；每個圍眼黑塊均保有這兩口眼氣，白棋無法合法下入。'
+  },
+  'straight-three-kill': {
+    lines: [
+      { id: 'white-left', moves: [{ r: 1, c: 1 }, { r: 1, c: 0 }, { r: 1, c: 2 }] },
+      { id: 'white-right', moves: [{ r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 0 }] }
+    ],
+    goal: { kind: 'CAPTURE', stones: [
+      { r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 },
+      { r: 1, c: 3 }, { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }
+    ] },
+    scope: '已驗證白 A8、C8 兩條局部應手與最後提子；未涵蓋脫先或所有全盤合法變化。'
+  },
+  'bent-three-kill': {
+    lines: [
+      { id: 'white-top', moves: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 1, c: 0 }] },
+      { id: 'white-side', moves: [{ r: 0, c: 0 }, { r: 1, c: 0 }, { r: 0, c: 1 }] }
+    ],
+    goal: { kind: 'CAPTURE', stones: [
+      { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 3 },
+      { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }
+    ] },
+    scope: '已驗證白 B9、A8 兩條局部應手與最後提子；未涵蓋脫先或所有全盤合法變化。'
+  }
+};
+
+const referenceExplanations: Record<string, string> = {
+  'square-four-kill': '方四是常見的大眼死形。本題保留原先 B8、C8、B7、C7 四個首手作比較；此版本尚未驗證各手之後的完整攻防，不能只憑首手命中判定提子完成。',
+  'double-atari': '黑 C8 會同時緊住左右白子的氣，可比較白棋救左或救右的選擇。本題僅核對原先的首手，尚未驗證所有後續救援與提子變化。',
+  'first-line-descent': '黑 C7 先封住白棋向外延伸的氣，與先下 A9 的方向不同。本題僅保留這個收氣順序的首手參考；尚未完整驗證後續攻防。',
+  'san-san-invasion': '黑 C7 是面對星位時常見的三三侵入點。掛角等其他選擇也可能合理；本題僅練習辨認三三，不判定唯一最佳著或角部已活。'
+};
+
+/** Published does not mean all continuations have been proved. */
+export const PUBLISHED_GO_PUZZLES: GoPuzzle[] = [
   ...GO_PUZZLES.filter(puzzle => puzzle.status === 'VERIFIED'),
   ...GOGAMEGURU_PUZZLES,
-];
+].map(puzzle => {
+  const training = originalTraining[puzzle.id];
+  if (training) return {
+    ...puzzle, training,
+    explanation: training.goal.kind === 'CAPTURE'
+      ? `${puzzle.id === 'straight-three-kill' ? '黑 B8 點入後，白 A8 則黑 C8 提子；白 C8 則黑 A8 提子。' : '黑 A9 點入後，白 B9 則黑 A8 提子；白 A8 則黑 B9 提子。'}每一手均由規則引擎重播，最後核對原白棋目標全數被提除。${training.scope}`
+      : puzzle.explanation,
+    successMessage: training.goal.kind === 'CAPTURE' ? '已完成驗證變化，原目標白棋已全數提除。' : '已完成驗證變化，確認形成兩隻獨立真眼。',
+    verification: { method: 'RULE_ENGINE' as const, checkedAt: '2026-10-13', note: training.scope }
+  };
+  return {
+    ...puzzle,
+    prompt: `${puzzle.prompt}（首手參考；未完整驗證後續，不計分。）`,
+    explanation: referenceExplanations[puzzle.id] ?? `${puzzle.explanation}未完整驗證後續死活或所有可行著；命中首手不代表完成整題死活。`,
+    successMessage: '符合參考首手；未完整驗證後續死活，不計分。',
+    verification: { ...puzzle.verification, note: `${puzzle.verification.note}未完整驗證後續變化；僅供首手參考。` }
+  };
+});

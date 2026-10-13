@@ -427,6 +427,13 @@ export const getNimTeachingMove = (piles: readonly number[], misere: boolean): {
     const pileIndex = piles.findIndex(pile => pile > 0);
     return { pileIndex, amount: 1 };
   }
+  if (misere && piles.filter(pile => pile > 1).length === 1) {
+    const pileIndex = piles.findIndex(pile => pile > 1);
+    const singletons = piles.filter(pile => pile === 1).length;
+    // Leave an odd number of singleton piles for the opponent.
+    const target = singletons % 2 === 0 ? 1 : 0;
+    return { pileIndex, amount: piles[pileIndex] - target };
+  }
   const xor = piles.reduce((value, pile) => value ^ pile, 0);
   if (xor !== 0) {
     for (let pileIndex = 0; pileIndex < piles.length; pileIndex += 1) {

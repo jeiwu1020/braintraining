@@ -1,0 +1,13 @@
+// @vitest-environment jsdom
+import React,{act}from'react';import{createRoot,type Root}from'react-dom/client';import{beforeEach,afterEach,expect,it}from'vitest';import RummikubGame from'../components/RummikubGame';
+let root:Root,host:HTMLDivElement;const button=(name:string)=>[...host.querySelectorAll('button')].find(b=>b.textContent===name||b.getAttribute('aria-label')===name)!;const click=(name:string)=>{expect(button(name)).toBeTruthy();act(()=>button(name).click());};
+const tier=(value:string)=>{const el=host.querySelector('[aria-label="拉密推理階段"]') as HTMLSelectElement;expect(el).toBeTruthy();act(()=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));});};
+beforeEach(()=>{sessionStorage.clear();(globalThis as{IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;host=document.createElement('div');document.body.appendChild(host);root=createRoot(host);act(()=>root.render(<RummikubGame onBack={()=>undefined}/>));});afterEach(()=>{act(()=>root.unmount());host.remove();});
+it('previews a full table and commits once with full undo',()=>{click('A／B 分組');click('手牌 2 紅7');expect(host.textContent).toContain('A 組 0 分');expect(host.querySelector('[data-rummi-table="preview"]')).toBeTruthy();click('確認整桌');expect(host.textContent).toContain('A 組 1 分');click('復原上一步');expect(host.textContent).toContain('A 組 0 分');expect(button('手牌 2 紅7').getAttribute('aria-pressed')).toBe('true');});
+it('checks the residual groups rather than just the new group',()=>{tier('STANDARD');click('選擇方案 2');click('確認整桌');expect(host.textContent).toContain('第 1 組不合法');click('選擇方案 1');click('確認整桌');expect(host.textContent).toContain('本題完成');});
+it('requires named hand choices and accepts a second equally good complete plan',()=>{tier('CHALLENGE');click('A／B 分組');click('手牌 3 藍6');click('手牌 4 黑6');click('選擇方案 2');click('確認整桌');expect(host.textContent).toContain('A 組 1 分');expect(host.textContent).toContain('放出 2 張');});
+it('guards drafts and retains exact solution knowledge after remount',()=>{click('手牌 2 紅7');click('返回遊戲目錄');expect(button('確認離開')).toBeTruthy();click('繼續活動');for(let n=0;n<3;n++)click('取得提示');act(()=>root.unmount());root=createRoot(host);act(()=>root.render(<RummikubGame onBack={()=>undefined}/>));click('A／B 分組');click('手牌 2 紅7');click('確認整桌');expect(host.textContent).toContain('提示練習');expect(host.textContent).toContain('A 組 0 分');});
+it('places a left-end card in the visible run order in preview and after submission',()=>{
+ click('手牌 1 紅3');const order=()=>[...host.querySelectorAll('[data-rummi-table="preview"] [aria-label]')].map(el=>el.getAttribute('aria-label'));
+ expect(order()).toEqual(['新手牌 紅3','原桌牌 紅4','原桌牌 紅5','原桌牌 紅6']);click('確認整桌');expect(order()).toEqual(['新手牌 紅3','原桌牌 紅4','原桌牌 紅5','原桌牌 紅6']);
+});

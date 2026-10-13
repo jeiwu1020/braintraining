@@ -67,7 +67,7 @@ describe('MahjongMeldsGame grid-focus migration', () => {
     expect(calculateTimeScore(12.1).score).toBe(40);
   });
 
-  it('wires MahjongMeldsGame through the grid-focus layout contract', () => {
+  it('wires the active Mahjong game through fixed facilitator controls', () => {
     const markup = renderToStaticMarkup(
       <MahjongMeldsGame
         difficulty="NORMAL"
@@ -77,10 +77,10 @@ describe('MahjongMeldsGame grid-focus migration', () => {
     );
 
     expect(markup).toContain('data-layout="mobile-landscape-game"');
-    expect(markup).toContain('data-layout-preset="grid-focus"');
-    expect(markup).toContain('data-layout-region="playfield"');
-    expect(markup).toContain('data-layout-region="support"');
-    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).toContain('data-layout-preset="board-sidebar"');
+    expect(markup).toContain('data-layout-region="board"');
+    expect(markup).toContain('data-layout-region="sidebar"');
+    expect(markup).toContain('data-facilitated-controls="true"');
     expect(markup).toContain('找出能完成順子的牌');
   });
 
@@ -96,4 +96,7 @@ describe('MahjongMeldsGame grid-focus migration', () => {
       earnedScore: 0,
     });
   });
+});
+it('uses the verified default bank when a legacy caller passes an empty question list',()=>{
+ expect(()=>renderToStaticMarkup(<MahjongMeldsGame initialQuestions={[]} onBack={()=>undefined}/>)).not.toThrow();
 });

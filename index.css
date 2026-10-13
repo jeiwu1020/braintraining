@@ -62,6 +62,27 @@
     min-height: 3.5rem;
   }
 
+  .facilitator-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+    background: rgb(15 23 42 / 0.65);
+  }
+
+  .facilitator-confirm-dialog {
+    width: min(100%, 30rem);
+    max-height: 100%;
+    overflow-y: auto;
+    border-radius: 1rem;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.25);
+  }
+
   .split-choice-layout {
     grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
     grid-template-rows: minmax(0, 1fr);
@@ -126,6 +147,20 @@
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
+  .facilitated-layout--fixed-controls {
+    gap: 0.5rem;
+    padding: 0.375rem;
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.38fr);
+  }
+
+  .facilitated-layout--fixed-controls [data-layout-region='board'] {
+    padding: 0.25rem;
+  }
+
+  .facilitated-layout--fixed-controls [data-layout-region='sidebar'] {
+    padding: 0.375rem;
+  }
+
   [data-main-menu-cards='true'] > .app-safe-screen > .grid {
     gap: 0.5rem;
     padding-bottom: 0.5rem;

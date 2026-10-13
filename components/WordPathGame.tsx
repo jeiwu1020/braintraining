@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import type { WordPathSession } from '../utils/wordPathSession';
+import { readFacilitatorKnowledge, saveFacilitatorKnowledge } from '../utils/facilitatorKnowledge';
+import React, { useEffect, useState } from 'react';
 import type { Difficulty } from '../types';
-import { advanceTeam, awardTeam, classifyWordSubmission, coordinateLabel, isValidWordPath } from '../utils/facilitatedPuzzleRules';
+import { WORD_PATH_BANK, type WordPathTier } from '../data/wordPathPuzzles';
+import { wordPathCoordinates, wordPathText } from '../utils/wordPathRules';
+import { clearWordPath, createWordPathSession, hintWordPath, resetWordPathPuzzle, reviewWordPath, selectWordPathCell, startWordPathPuzzle, submitWordPath, undoWordPath } from '../utils/wordPathSession';
 import CoordinateGrid from './game-ui/CoordinateGrid';
-import FacilitatedGameFrame, { type FacilitatedMode } from './game-ui/FacilitatedGameFrame';
+import FacilitatedGameFrame from './game-ui/FacilitatedGameFrame';
+import { useConfirmAction } from './game-ui/useConfirmAction';
 
-interface Props { onBack: () => void; difficulty?: Difficulty }
-interface Snapshot { path: number[]; found: string[]; extensions: string[]; pendingWord: string | null; scores: { A: number; B: number }; team: 'A' | 'B' }
-
+export { WORD_PATH_BANK } from '../data/wordPathPuzzles';
 export const COMMON_WORDS = new Set([
   '春天', '春暖', '天花', '花開', '開學', '快樂', '樂天', '樂學', '學習', '學生',
   '健康', '康健', '康樂', '安康', '生活', '平安', '朋友', '開心', '心情', '專心',
   '好學', '互相', '相助', '幫助', '助學', '暖心', '愛心', '安心', '用心', '熱心',
 ]);
-
+// Compatibility fixture for callers of the original two difficulty exports.
 export const WORD_PATH_PUZZLES = {
   NORMAL: {
     columns: 4,
@@ -28,184 +31,138 @@ export const WORD_PATH_PUZZLES = {
   },
 } as const;
 
+const TIERS: Array<{ value: WordPathTier; label: string }> = [
+  { value: 'BEGINNER', label: '入門・看詞找路' }, { value: 'STANDARD', label: '標準・語意找詞' }, { value: 'CHALLENGE', label: '挑戰・同詞兩路' },
+];
+const buttonClass = 'min-h-11 min-w-11 rounded-xl border-2 px-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400 disabled:opacity-40';
+interface Props { onBack: () => void; difficulty?: Difficulty }
+
 const WordPathGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const puzzle = WORD_PATH_PUZZLES[difficulty];
-  const rows = puzzle.grid.length / puzzle.columns;
-  const [path, setPath] = useState<number[]>([]);
-  const [found, setFound] = useState<string[]>([]);
-  const [extensions, setExtensions] = useState<string[]>([]);
-  const [pendingWord, setPendingWord] = useState<string | null>(null);
-  const [history, setHistory] = useState<Snapshot[]>([]);
-  const [mode, setMode] = useState<FacilitatedMode>('COOP');
-  const [team, setTeam] = useState<'A' | 'B'>('A');
-  const [scores, setScores] = useState({ A: 0, B: 0 });
-  const [recent, setRecent] = useState('請說出一個詞，以及每個字依序經過的座標。');
-  const [finished, setFinished] = useState(false);
-
-  const snapshot = (): Snapshot => ({ path: [...path], found: [...found], extensions: [...extensions], pendingWord, scores: { ...scores }, team });
-
-  const reset = (nextMode = mode) => {
-    setPath([]);
-    setFound([]);
-    setExtensions([]);
-    setPendingWord(null);
-    setHistory([]);
-    setScores({ A: 0, B: 0 });
-    setTeam('A');
-    setFinished(false);
-    setRecent(nextMode === 'TEAMS' ? 'A 組先找一個詞。' : '請找出第一個詞。');
+  const [tier, setTier] = useState<WordPathTier>(difficulty === 'NORMAL' ? 'BEGINNER' : 'STANDARD');
+  const [puzzleIndex, setPuzzleIndex] = useState(0);
+  const puzzles = WORD_PATH_BANK.filter(item => item.tier === tier);
+  const puzzle = puzzles[puzzleIndex % puzzles.length];
+  const [session, setSession] = useState<WordPathSession>(() => ({ ...createWordPathSession(puzzle), knowledge: Object.fromEntries(readFacilitatorKnowledge('word-path-v1').map(id => [id, { level: 3, revealed: true, text: '本題先前已揭示答案，仍只作提示練習，不加分。' }])) }));
+  useEffect(() => saveFacilitatorKnowledge('word-path-v1', Object.keys(session.knowledge).filter(id => session.knowledge[id].revealed)), [session.knowledge]);
+  const knowledge = session.knowledge[puzzle.id];
+  const hasProgress = Boolean(session.path.length || session.pending || session.history.length || session.turns || knowledge || session.scores.A || session.scores.B);
+  const { requestAction, confirmationDialog } = useConfirmAction(hasProgress);
+  const blocked = session.finished || Boolean(session.pending);
+  const goal = puzzle.goal === 'TWO_PATHS' ? `「${puzzle.targets[0].word}」：找出兩條不同路徑。`
+    : tier === 'BEGINNER' ? `找齊 ${puzzle.required} 個目標詞，完成本題。` : `依語意找齊 ${puzzle.required} 個四字詞，完成本題。`;
+  const nextPuzzle = () => {
+    const next = (puzzleIndex + 1) % puzzles.length;
+    const apply = () => { setPuzzleIndex(next); setSession(state => startWordPathPuzzle(state, puzzles[next])); };
+    if (session.finished) apply();
+    else requestAction(apply, '換題會清除目前路徑、待審詞與本題進度；累積分數與已看過的提示保留。要換題嗎？');
   };
-
-  const changeMode = (nextMode: FacilitatedMode) => {
-    setMode(nextMode);
-    reset(nextMode);
-  };
-
-  const selectCell = (index: number) => {
-    if (finished || pendingWord) return;
-    if (path.includes(index)) {
-      if (path[path.length - 1] === index) {
-        setHistory(items => [...items, snapshot()]);
-        setPath(items => items.slice(0, -1));
-        setRecent('已移除路徑最後一格。');
-      } else setRecent('同一個字格不能在一個詞中重複使用。');
-      return;
-    }
-    const next = [...path, index];
-    if (!isValidWordPath(next, puzzle.columns)) {
-      setRecent(`${coordinateLabel(Math.floor(index / puzzle.columns), index % puzzle.columns)} 不與上一格相鄰。`);
-      return;
-    }
-    setHistory(items => [...items, snapshot()]);
-    setPath(next);
-    const word = next.map(cell => puzzle.grid[cell]).join('');
-    setRecent(`目前路徑：${word}。`);
-  };
-
-  const submit = () => {
-    if (path.length === 0) return;
-    const word = path.map(index => puzzle.grid[index]).join('');
-    setHistory(items => [...items, snapshot()]);
-    const kind = classifyWordSubmission(word, puzzle.words, found, extensions, COMMON_WORDS);
-    if (kind === 'TARGET') {
-      const nextFound = [...found, word];
-      setFound(nextFound);
-      setRecent(`${mode === 'TEAMS' ? `${team} 組：` : ''}找到「${word}」！`);
-      if (mode === 'TEAMS') setScores(value => awardTeam(value, team));
-      if (nextFound.length === puzzle.words.length) setFinished(true);
-      setPath([]);
-      if (mode === 'TEAMS') setTeam(advanceTeam);
-    } else if (kind === 'COMMON_EXTENSION') {
-      setExtensions(items => [...items, word]);
-      setRecent(`${mode === 'TEAMS' ? `${team} 組：` : ''}找到延伸詞「${word}」！`);
-      if (mode === 'TEAMS') setScores(value => awardTeam(value, team));
-      setPath([]);
-      if (mode === 'TEAMS') setTeam(advanceTeam);
-    } else if (kind === 'REVIEW') {
-      setPendingWord(word);
-      setPath([]);
-      setRecent(`「${word}」不在常用詞庫，請治療者確認是否為通順詞語。`);
-    } else {
-      setRecent(kind === 'DUPLICATE' ? `「${word}」已經找過了。` : '詞語至少需要兩個字。');
-      setPath([]);
-      if (mode === 'TEAMS') setTeam(advanceTeam);
-    }
-  };
-
-  const reviewWord = (accepted: boolean) => {
-    if (!pendingWord) return;
-    if (accepted) {
-      setExtensions(items => [...items, pendingWord]);
-      setRecent(`${mode === 'TEAMS' ? `${team} 組：` : ''}治療者接受延伸詞「${pendingWord}」。`);
-      if (mode === 'TEAMS') setScores(value => awardTeam(value, team));
-    } else setRecent(`治療者判定「${pendingWord}」本題不採計。`);
-    setPendingWord(null);
-    if (mode === 'TEAMS') setTeam(advanceTeam);
-  };
-
-  const undo = () => {
-    const previous = history[history.length - 1];
-    if (!previous) return;
-    setPath([...previous.path]);
-    setFound([...previous.found]);
-    setExtensions([...previous.extensions]);
-    setPendingWord(previous.pendingWord);
-    setScores({ ...previous.scores });
-    setTeam(previous.team);
-    setHistory(items => items.slice(0, -1));
-    setFinished(false);
-    setRecent('已復原上一個選字或提交。');
-  };
-
-  const hint = () => {
-    const word = puzzle.words.find(candidate => !found.includes(candidate));
-    if (word) setRecent(`提示：盤面中還能找到「${word}」。`);
+  const changeTier = (nextTier: WordPathTier) => {
+    if (nextTier === tier) return;
+    requestAction(() => {
+      const next = WORD_PATH_BANK.find(item => item.tier === nextTier)!;
+      setTier(nextTier); setPuzzleIndex(0); setSession(state => startWordPathPuzzle(state, next));
+    }, '切換階段會清除目前路徑、待審詞與本題進度；累積分數與已看過的提示保留。要切換嗎？');
   };
 
   return (
-    <FacilitatedGameFrame
-      title="字詞路徑"
-      subtitle={`${puzzle.columns}×${rows}｜已找到 ${found.length}/${puzzle.words.length}`}
-      onBack={onBack}
-      mode={mode}
-      onModeChange={changeMode}
-      currentTeam={team}
-      scores={scores}
-      recentAction={recent}
-      onUndo={undo}
-      onReset={() => reset()}
-      onHint={hint}
-      canUndo={history.length > 0}
-      feedback={finished ? '完成！本題所有目標詞都已找到。' : undefined}
-      rules={[
-        '目標：從相鄰字格依序連出目標詞；找完所有目標詞即可完成本題。',
-        '下一個字必須位於前一字的上、下、左、右相鄰格，不使用斜向；同一格不可在同一詞中重複。',
-        '操作：依序點選字格形成路徑，再按「提交詞語」；點路徑最後一格可取消。詞語至少兩個字。',
-        '常用詞庫會直接收為延伸詞；未收錄的通順詞會交給治療者按「接受」或「不採計」。',
-        '延伸詞可得分且不重複採計，但不影響本題完成進度，也不由線上 AI 自動判定。',
-        '口述範例：「春天，路徑 A1 到 B1。」治療者依序點選座標。',
-        '一般模式包含左到右、右到左、上到下、下到上；進階模式加入由上下左右組成的轉彎路徑。',
-        '分組玩法：A、B 組輪流找詞，每個新目標詞或接受的延伸詞得 1 分；全體合作則共同找完目標詞。',
-      ]}
-      sidebar={(
-        <div className="mt-auto space-y-2">
-          <div className="rounded-xl bg-emerald-50 p-2 text-sm font-semibold text-emerald-900">目標詞：{found.length ? found.join('、') : '尚未找到'}</div>
-          <div className="rounded-xl bg-sky-50 p-2 text-sm font-semibold text-sky-900">延伸詞：{extensions.length ? extensions.join('、') : '尚無'}</div>
-          {pendingWord ? (
-            <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-2">
-              <p className="mb-2 text-center text-sm font-black text-amber-950">「{pendingWord}」是否為通順詞語？</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => reviewWord(true)} className="min-h-11 rounded-lg bg-emerald-600 px-2 text-sm font-black text-white">接受延伸詞</button>
-                <button type="button" onClick={() => reviewWord(false)} className="min-h-11 rounded-lg bg-slate-600 px-2 text-sm font-black text-white">不採計</button>
-              </div>
+    <>
+      <FacilitatedGameFrame
+        title="字詞路徑"
+        subtitle={`${TIERS.find(item => item.value === tier)!.label}｜${puzzleIndex + 1}/${puzzles.length} 題`}
+        onBack={onBack}
+        mode={session.mode}
+        onModeChange={mode => setSession(state => resetWordPathPuzzle(state, puzzle, mode))}
+        currentTeam={session.team}
+        scores={session.scores}
+        recentAction={session.recent}
+        onUndo={() => setSession(undoWordPath)}
+        onReset={() => setSession(state => resetWordPathPuzzle(state, puzzle))}
+        onHint={() => setSession(state => hintWordPath(state, puzzle))}
+        canUndo={session.history.length > 0}
+        hasProgress={hasProgress}
+        feedback={session.finished ? `完成！${puzzle.goal === 'TWO_PATHS' ? '已找到同一詞的兩條不同路徑。' : '所有目標詞都已找到。'}${knowledge?.revealed ? '本題含提示練習。' : ''}` : undefined}
+        rules={[
+          '先說完整詞與每個字的座標，治療者依序選字，再按「提交詞語」。選字、取消末格、清除路徑都不換組。',
+          '只能走上、下、左、右的相鄰格，不走斜線；同一詞不可重用同一格。點最後一格可取消該格。',
+          '入門找齊明列的雙字詞；標準從語意線索想出四字詞；挑戰要為同一詞找到兩條座標順序不同的合法路徑。不同路徑可共用部分字格。',
+          '每次完整詞提交結算一回合。非目標詞須由治療者接受或不採計，決定後才換組，提交和審核合計只算一回合。',
+          '新目標或治療者接受的延伸詞得 1 活動分。延伸詞不增加目標進度，沒有由程式自動判斷詞義；重複詞不重複得分，挑戰的目標則以不同路徑計算。',
+          '第一級提示只給找路方法；第二級揭示詞與起點，第三級顯示完整座標。本題一旦揭示答案，後續提交只作練習，不加分；復原、重開、換題再回來也保留紀錄。',
+          '復原會一起恢復路徑、待審詞、進度、組別及分數。換題保留累積分數且同一答案不重複計分；重開只取消本題分數，切換合作／分組則清除所有活動分。',
+          '口述範例：「春天，A1 到 B1。」另一人先核對字順和相鄰位置，再提交。',
+        ]}
+        sidebar={(
+          <div className="space-y-2 text-base leading-snug">
+            <div data-word-path-targets="true" className="rounded-xl bg-emerald-50 p-2 text-emerald-950">
+              <p className="mb-1 font-black">{tier === 'STANDARD' ? '語意線索・每詞四字' : '本題目標'}</p>
+              <ol className="space-y-2">
+                {puzzle.targets.map((target, index) => {
+                  const found = session.found.filter(answer => answer.word === target.word);
+                  return <li key={target.word}>
+                    <span className="font-bold">{index + 1}. {tier === 'STANDARD' && !found.length ? target.clue : target.word}</span>
+                    {found.length > 0 && <span className="ml-1 text-sm">{puzzle.goal === 'TWO_PATHS' ? `已找到 ${found.length}/2 路` : '已找到'}</span>}
+                    {tier === 'STANDARD' && found.length > 0 && <p className="mt-1 text-sm">{target.rationale}</p>}
+                  </li>;
+                })}
+              </ol>
             </div>
-          ) : <button type="button" onClick={submit} disabled={path.length === 0 || finished} className="min-h-11 w-full rounded-xl bg-emerald-600 px-3 text-base font-black text-white disabled:opacity-40">提交詞語</button>}
+            {session.found.length > 0 && <div data-word-path-found="true" className="rounded-xl bg-indigo-50 p-2 text-indigo-950">
+              <p className="font-black">已找到的路徑</p>
+              {session.found.map(answer => <p key={answer.key} className="mt-1 text-sm"><strong>{answer.word}{answer.assisted ? '・提示練習' : ''}</strong><br />{wordPathCoordinates(answer.path, puzzle)}</p>)}
+            </div>}
+            <div className="rounded-xl bg-sky-50 p-2 text-sm text-sky-950"><strong>延伸詞，不計入目標：</strong>{session.extensions.length ? session.extensions.map(answer => `${answer.word}${answer.assisted ? '（提示練習）' : ''}`).join('、') : '尚無'}<p className="mt-1">接受的延伸詞可得活動分，須由治療者確認詞義。</p></div>
+            {knowledge && <p className="rounded-xl bg-amber-50 p-2 text-sm text-amber-950">{knowledge.text}</p>}
+            <p className="text-sm text-slate-700">已結算 {session.turns} 回合{session.mode === 'COOP' ? `・合作累積 ${session.scores.A + session.scores.B} 分` : ''}</p>
+          </div>
+        )}
+        settings={(
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-slate-800">選擇階段
+              <select aria-label="字詞路徑階段" value={tier} onChange={event => changeTier(event.target.value as WordPathTier)} className="mt-1 min-h-11 w-full rounded-lg border-2 border-slate-300 bg-white px-2 text-base">
+                {TIERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+            </label>
+            <button type="button" onClick={nextPuzzle} className={`${buttonClass} w-full border-slate-300 bg-white text-slate-800`}>下一題</button>
+            <p className="text-sm text-slate-600">每階 3 題循環。換題保留累積分；同一答案不重複加分。重開取消本題分數；切換活動模式清除全部分數。</p>
+          </div>
+        )}
+        controls={(
+          <div className="space-y-1">
+            <div data-word-path-draft="true" className="max-h-16 overflow-y-auto rounded-lg bg-indigo-50 px-2 py-1 text-sm font-bold text-indigo-950">
+              {session.path.length ? <><span className="text-base">{wordPathText(session.path, puzzle)}</span><span className="ml-2">{wordPathCoordinates(session.path, puzzle)}</span></> : '請依序選字，先說完整詞再提交'}
+            </div>
+            {session.pending ? <>
+              <p className="text-sm font-bold text-amber-950">「{session.pending.word}」詞義通順嗎？屬延伸詞。</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setSession(state => reviewWordPath(state, puzzle, true))} className={`${buttonClass} border-emerald-700 bg-emerald-700 text-white`}>接受延伸詞</button>
+                <button type="button" onClick={() => setSession(state => reviewWordPath(state, puzzle, false))} className={`${buttonClass} border-slate-500 bg-white text-slate-800`}>不採計</button>
+              </div>
+            </> : <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setSession(state => submitWordPath(state, puzzle))} disabled={session.path.length < 2 || blocked} className={`${buttonClass} border-emerald-700 bg-emerald-700 text-white`}>提交詞語</button>
+              <button type="button" onClick={() => setSession(clearWordPath)} disabled={!session.path.length || blocked} className={`${buttonClass} border-slate-300 bg-white text-slate-800`}>清除路徑</button>
+            </div>}
+            {session.finished && <button type="button" onClick={nextPuzzle} className={`${buttonClass} w-full border-indigo-700 bg-indigo-700 text-white`}>完成，換下一題</button>}
+          </div>
+        )}
+      >
+        <div data-word-path-puzzle={puzzle.id} className="flex w-full max-w-[30rem] flex-col gap-1 self-start">
+          <div className="rounded-lg bg-slate-50 px-2 py-1 text-center text-sm text-slate-800">
+            <p data-word-path-goal="true" className="font-bold">{goal}</p>
+            <p data-word-path-progress="true" className="font-black">{puzzle.title}・目標 {session.found.length}/{puzzle.required}{puzzle.goal === 'TWO_PATHS' ? ' 路' : ' 詞'}</p>
+            {knowledge?.revealed && <p data-word-path-assistance="true" className="font-bold text-amber-900">答案已揭示・後續只作練習，不加分</p>}
+          </div>
+          <CoordinateGrid rows={4} columns={puzzle.columns} className="w-full" renderCell={(row, col, coordinate) => {
+            const index = row * puzzle.columns + col; const order = session.path.indexOf(index);
+            return <button type="button" data-word-path-cell={index} aria-label={`${coordinate}，${puzzle.grid[index]}${order >= 0 ? `，路徑第 ${order + 1} 格` : ''}`} aria-pressed={order >= 0} disabled={blocked}
+              onClick={() => setSession(state => selectWordPathCell(state, puzzle, index))}
+              className={`relative min-h-11 min-w-11 h-full w-full rounded-lg border-2 text-2xl font-black shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 ${order >= 0 ? 'border-indigo-800 bg-indigo-600 text-white' : 'border-emerald-300 bg-emerald-50 text-emerald-950'}`}>
+              {puzzle.grid[index]}{order >= 0 && <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-amber-300 text-xs text-slate-900">{order + 1}</span>}
+            </button>;
+          }} />
         </div>
-      )}
-    >
-      <CoordinateGrid
-        rows={rows}
-        columns={puzzle.columns}
-        className="w-full max-w-[30rem]"
-        renderCell={(row, col, coordinate) => {
-          const index = row * puzzle.columns + col;
-          const order = path.indexOf(index);
-          return (
-            <button
-              type="button"
-              aria-label={`${coordinate}，${puzzle.grid[index]}${order >= 0 ? `，路徑第 ${order + 1} 格` : ''}`}
-              aria-pressed={order >= 0}
-              onClick={() => selectCell(index)}
-              className={`relative h-full w-full rounded-lg border-2 text-xl font-black shadow-sm ${order >= 0 ? 'border-indigo-800 bg-indigo-600 text-white' : 'border-emerald-300 bg-emerald-50 text-emerald-950'}`}
-            >
-              {puzzle.grid[index]}
-              {order >= 0 && <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-amber-300 text-[10px] text-slate-900">{order + 1}</span>}
-            </button>
-          );
-        }}
-      />
-    </FacilitatedGameFrame>
+      </FacilitatedGameFrame>
+      {confirmationDialog}
+    </>
   );
 };
-
 export default WordPathGame;

@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local dependency cache
+.npm-cache/
+
+# Private preview hosting is managed separately
+.openai/

@@ -1,390 +1,117 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { readFacilitatorKnowledge, saveFacilitatorKnowledge } from '../utils/facilitatorKnowledge';
 import type { Difficulty } from '../types';
-import {
-  coordinateLabel,
-  continueAfterMinesweeperHit,
-  countAdjacentMines,
-  generateMinesweeperPuzzle,
-  revealMinesweeperRegion,
-  revealTriggeredMine,
-  resolveMinesweeperTeamTurn,
-} from '../utils/facilitatedPuzzleRules';
+import { countAdjacentMines } from '../utils/facilitatedPuzzleRules';
+import { generateGradedMinesweeper, MINESWEEPER_MINE_COUNTS, type GradedMinesweeperPuzzle } from '../data/minesweeperPuzzles';
+import { mineCoordinate, mineNeighbors, type MinesweeperTier } from '../utils/minesweeperInference';
+import { confirmMineRound, continueMineSession, createMineSession, requestMineHint, resetMineSession, selectMineCell, undoMineRound, type MineResult, type MineSession, type MineTool } from '../utils/minesweeperSession';
 import CoordinateGrid from './game-ui/CoordinateGrid';
 import FacilitatedGameFrame, { type FacilitatedMode } from './game-ui/FacilitatedGameFrame';
+import { useConfirmAction } from './game-ui/useConfirmAction';
 
 interface Props { onBack: () => void; difficulty?: Difficulty }
-type Team = 'A' | 'B';
-type Result = 'PLAYING' | 'MINE' | 'WON';
+const TIERS: Array<{ id: MinesweeperTier; label: string; skill: string }> = [
+  { id: 'BEGINNER', label: '入門', skill: '只用一個數字逐步推理' },
+  { id: 'STANDARD', label: '標準', skill: '至少一次比較兩圈未知格' },
+  { id: 'CHALLENGE', label: '挑戰', skill: '結合局部線索與全盤剩雷' },
+];
+const tools: Array<[MineTool, string]> = [['REVEAL', '揭開'], ['FLAG', '標雷／撤旗'], ['CHORD', '連開']];
+const readKnowledge = () => readFacilitatorKnowledge('minesweeper-v1');
+const saveKnowledge = (ids: string[]) => saveFacilitatorKnowledge('minesweeper-v1', ids);
 
-interface BoardState {
-  revealed: Set<string>;
-  flags: Set<string>;
-  neutralFlags: Set<string>;
-  mines: Set<string>;
-  initialized: boolean;
-  explodedMine: string | null;
-}
-
-interface GameState {
-  board: BoardState;
-  team: Team;
-  scores: Record<Team, number>;
-  result: Result;
-}
-
-const SETTINGS: Record<Difficulty, { rows: number; columns: number; mineCount: number; minInitialReveal: number; maxInitialReveal: number }> = {
-  NORMAL: { rows: 5, columns: 7, mineCount: 6, minInitialReveal: 7, maxInitialReveal: 13 },
-  ADVANCED: { rows: 6, columns: 8, mineCount: 9, minInitialReveal: 8, maxInitialReveal: 15 },
-};
-
-const recentLayouts: Record<Difficulty, string[]> = { NORMAL: [], ADVANCED: [] };
-
-const emptyGame = (): GameState => ({
-  board: {
-    revealed: new Set(),
-    flags: new Set(),
-    neutralFlags: new Set(),
-    mines: new Set(),
-    initialized: false,
-    explodedMine: null,
-  },
-  team: 'A',
-  scores: { A: 0, B: 0 },
-  result: 'PLAYING',
-});
-
-const cloneGame = (game: GameState): GameState => ({
-  board: {
-    revealed: new Set(game.board.revealed),
-    flags: new Set(game.board.flags),
-    neutralFlags: new Set(game.board.neutralFlags),
-    mines: new Set(game.board.mines),
-    initialized: game.board.initialized,
-    explodedMine: game.board.explodedMine,
-  },
-  team: game.team,
-  scores: { ...game.scores },
-  result: game.result,
-});
-
-const surroundingCells = (row: number, col: number, rows: number, columns: number): string[] => {
-  const cells: string[] = [];
-  for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
-    for (let colOffset = -1; colOffset <= 1; colOffset += 1) {
-      if (rowOffset === 0 && colOffset === 0) continue;
-      const nextRow = row + rowOffset;
-      const nextCol = col + colOffset;
-      if (nextRow >= 0 && nextCol >= 0 && nextRow < rows && nextCol < columns) cells.push(`${nextRow},${nextCol}`);
-    }
-  }
-  return cells;
-};
-
-interface MinesweeperStatusCardProps {
-  result: Result;
-  mode: FacilitatedMode;
-  scores: Record<Team, number>;
-  onContinue: () => void;
-  onReset: () => void;
-}
-
-export const MinesweeperStatusCard: React.FC<MinesweeperStatusCardProps> = ({
-  result,
-  mode,
-  scores,
-  onContinue,
-  onReset,
-}) => {
-  if (result === 'MINE') {
-    return (
-      <div className="rounded-xl border border-rose-300 bg-rose-50 p-2 text-center">
-        <div className="text-sm font-black text-rose-800">踩到地雷</div>
-        <div className="mt-1 text-xs font-semibold text-rose-700">只公開這一顆；繼續後會自動插旗。</div>
-        <button type="button" onClick={onContinue} className="mt-2 min-h-11 w-full rounded-lg bg-rose-700 px-3 text-sm font-black text-white">繼續遊戲</button>
-      </div>
-    );
-  }
-
-  if (result === 'WON') {
-    const winner = scores.A === scores.B ? '平手' : `${scores.A > scores.B ? 'A' : 'B'} 組獲勝`;
-    return (
-      <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-2 text-center text-emerald-900">
-        <div className="text-sm font-black">完成！所有安全格都已找出</div>
-        {mode === 'TEAMS' ? <div className="mt-1 text-sm font-bold">{winner}｜A {scores.A}：B {scores.B}</div> : null}
-        <button type="button" onClick={onReset} className="mt-2 min-h-11 w-full rounded-lg bg-emerald-700 px-3 text-sm font-black text-white">再來一局</button>
-      </div>
-    );
-  }
-
+export const MinesweeperStatusCard: React.FC<{ result: MineResult; mode: FacilitatedMode; scores: Record<'A' | 'B', number>; onContinue: () => void; onReset: () => void }> = ({ result, mode, scores, onContinue, onReset }) => {
+  if (result === 'MINE') return <div role="status" className="rounded-xl border border-rose-300 bg-rose-50 p-2 text-base text-rose-900">
+    <div className="font-black">踩到地雷</div><div>只公開這一顆；繼續後自動插旗。</div>
+    <button type="button" onClick={onContinue} className="mt-2 min-h-11 w-full rounded-lg bg-rose-700 px-3 font-bold text-white">繼續遊戲</button>
+  </div>;
+  if (result === 'WON') return <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-2 text-base text-emerald-900">
+    <div className="font-black">完成！所有安全格都已找出</div>
+    {mode === 'TEAMS' && <div>{scores.A === scores.B ? '平手' : `${scores.A > scores.B ? 'A' : 'B'} 組獲勝`}｜參與分 A {scores.A}：B {scores.B}</div>}
+    <button type="button" onClick={onReset} className="mt-2 min-h-11 w-full rounded-lg bg-emerald-700 px-3 font-bold text-white">再來一局</button>
+  </div>;
   return null;
 };
 
 const MinesweeperGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const config = SETTINGS[difficulty];
-  const [game, setGame] = useState<GameState>(emptyGame);
-  const [history, setHistory] = useState<GameState[]>([]);
-  const [flagMode, setFlagMode] = useState(false);
-  const [mode, setMode] = useState<FacilitatedMode>('COOP');
-  const [recent, setRecent] = useState('第一次請直接選擇座標；第一格及周圍八格都不會有地雷。');
-
-  const reset = (nextMode = mode) => {
-    setGame(emptyGame());
-    setHistory([]);
-    setFlagMode(false);
-    setRecent(nextMode === 'TEAMS'
-      ? '新盤面尚未配置地雷，A 組請選擇第一個座標。'
-      : '第一次請直接選擇座標；第一格及周圍八格都不會有地雷。');
+  const [tier, setTier] = useState<MinesweeperTier>(difficulty === 'ADVANCED' ? 'CHALLENGE' : 'BEGINNER');
+  const [game, setGame] = useState<MineSession>(() => createMineSession('COOP', readKnowledge()));
+  const seen = useRef<string[]>([]);
+  const opening = useRef<GradedMinesweeperPuzzle | null>(null);
+  const hasProgress = Boolean(game.puzzle || game.selection.length || game.hintLevel);
+  const { requestAction, confirmationDialog } = useConfirmAction(hasProgress);
+  const currentTier = TIERS.find(item => item.id === tier)!;
+  const mineTotal = game.puzzle?.mines.length ?? MINESWEEPER_MINE_COUNTS[tier];
+  const mines = new Set<string>(game.puzzle?.mines ?? []);
+  const exposed = Boolean(game.puzzle && game.exposedPuzzleIds.includes(game.puzzle.id));
+  const replace = (next: MineSession) => { saveKnowledge(next.exposedPuzzleIds); setGame(next); };
+  const reset = (mode = game.mode) => { opening.current = null; replace(resetMineSession(game, mode)); };
+  const changeTier = (nextTier: MinesweeperTier) => {
+    if (nextTier === tier) return;
+    requestAction(() => { setTier(nextTier); reset(); }, '切換推理層級會換新盤面並重新計分。是否繼續？');
   };
-
-  const changeMode = (nextMode: FacilitatedMode) => {
-    setMode(nextMode);
-    reset(nextMode);
-  };
-
-  const commitTeamAction = (
-    state: GameState,
-    action: Parameters<typeof resolveMinesweeperTeamTurn>[2],
-    completed = false,
-  ): Pick<GameState, 'scores' | 'team'> => {
-    if (mode !== 'TEAMS') return { scores: state.scores, team: state.team };
-    const outcome = resolveMinesweeperTeamTurn(state.scores, state.team, action, completed);
-    return { scores: outcome.scores, team: outcome.nextTeam };
-  };
-
-  const rememberHistory = () => setHistory(items => [...items, cloneGame(game)]);
-
-  const finishSafeAction = (board: BoardState, coordinate: string) => {
-    const completed = board.revealed.size === config.rows * config.columns - board.mines.size;
-    const turn = commitTeamAction(game, 'SAFE', completed);
-    setGame({ board, scores: turn.scores, team: turn.team, result: completed ? 'WON' : 'PLAYING' });
-    setRecent(completed
-      ? `${mode === 'TEAMS' ? `${game.team} 組：` : ''}安全翻開 ${coordinate}，並完成整個盤面！`
-      : `${mode === 'TEAMS' ? `${game.team} 組：` : ''}安全翻開 ${coordinate}。`);
-  };
-
-  const hitMine = (key: string, coordinate: string) => {
-    rememberHistory();
-    const turn = commitTeamAction(game, 'MINE');
-    setGame({
-      board: {
-        ...game.board,
-        revealed: revealTriggeredMine(game.board.revealed, key),
-        explodedMine: key,
-      },
-      scores: turn.scores,
-      team: turn.team,
-      result: 'MINE',
-    });
-    setRecent(`${mode === 'TEAMS' ? `${game.team} 組：` : ''}${coordinate} 是地雷${mode === 'TEAMS' ? '，扣 1 分並換隊' : ''}。`);
-  };
-
-  const initializeBoard = (key: string, coordinate: string) => {
-    rememberHistory();
-    let puzzle;
-    try {
-      puzzle = generateMinesweeperPuzzle({
-        ...config,
-        start: key,
-        excludedLayouts: recentLayouts[difficulty],
-      });
-    } catch {
-      puzzle = generateMinesweeperPuzzle({ ...config, start: key });
+  const confirm = () => {
+    let puzzle = game.puzzle;
+    if (!puzzle && game.selection.length) {
+      puzzle = opening.current?.tier === tier && opening.current.start === game.selection[0] ? opening.current : generateGradedMinesweeper(tier, game.selection[0], seen.current);
+      opening.current = puzzle;
+      if (!seen.current.includes(puzzle.id)) seen.current.push(puzzle.id);
     }
-    const layout = puzzle.mines.join('|');
-    recentLayouts[difficulty] = [...recentLayouts[difficulty].filter(item => item !== layout), layout].slice(-12);
-    const mines = new Set<string>(puzzle.mines);
-    const revealed = revealMinesweeperRegion(key, mines, new Set<string>(), new Set<string>(), config.rows, config.columns);
-    finishSafeAction({
-      revealed,
-      flags: new Set<string>(),
-      neutralFlags: new Set<string>(),
-      mines,
-      initialized: true,
-      explodedMine: null,
-    }, coordinate);
+    replace(confirmMineRound(game, puzzle ?? undefined));
   };
-
-  const act = (row: number, col: number) => {
-    if (game.result !== 'PLAYING') return;
-    const key = `${row},${col}`;
-    const coordinate = coordinateLabel(row, col);
-
-    if (!game.board.initialized) {
-      if (flagMode) {
-        setRecent('第一步必須先安全翻開一格，之後才能插旗。');
-        return;
-      }
-      initializeBoard(key, coordinate);
-      return;
-    }
-
-    if (game.board.neutralFlags.has(key)) {
-      setRecent(`${coordinate} 是先前踩到並由系統標記的地雷，不能移除。`);
-      return;
-    }
-
-    if (flagMode && !game.board.revealed.has(key)) {
-      rememberHistory();
-      const flags = new Set(game.board.flags);
-      const removing = flags.has(key);
-      if (removing) flags.delete(key);
-      else flags.add(key);
-      const turn = commitTeamAction(game, removing ? 'FLAG_REMOVED' : 'FLAG_ADDED');
-      setGame({ ...game, board: { ...game.board, flags }, scores: turn.scores, team: turn.team });
-      setRecent(`${mode === 'TEAMS' ? `${game.team} 組：` : ''}${coordinate} ${removing ? '移除旗幟，隊伍不變' : '插上旗幟'}。`);
-      return;
-    }
-
-    if (game.board.flags.has(key)) {
-      setRecent(`${coordinate} 已插旗，請先切換到插旗模式移除。`);
-      return;
-    }
-
-    if (game.board.revealed.has(key)) {
-      const adjacent = countAdjacentMines(row, col, game.board.mines, config.rows, config.columns);
-      if (adjacent === 0) return;
-      const neighbors = surroundingCells(row, col, config.rows, config.columns);
-      if (neighbors.filter(neighbor => game.board.flags.has(neighbor)).length !== adjacent) {
-        setRecent(`${coordinate} 周圍旗幟數量還不等於 ${adjacent}。`);
-        return;
-      }
-      const missedMine = neighbors.find(neighbor => game.board.mines.has(neighbor) && !game.board.flags.has(neighbor));
-      if (missedMine) {
-        const [mineRow, mineCol] = missedMine.split(',').map(Number);
-        hitMine(missedMine, coordinateLabel(mineRow, mineCol));
-        return;
-      }
-      rememberHistory();
-      let revealed = new Set<string>(game.board.revealed);
-      for (const neighbor of neighbors) {
-        revealed = revealMinesweeperRegion(neighbor, game.board.mines, revealed, game.board.flags, config.rows, config.columns);
-      }
-      finishSafeAction({ ...game.board, revealed }, `${coordinate} 周圍`);
-      return;
-    }
-
-    if (game.board.mines.has(key)) {
-      hitMine(key, coordinate);
-      return;
-    }
-
-    rememberHistory();
-    const revealed = revealMinesweeperRegion(key, game.board.mines, game.board.revealed, game.board.flags, config.rows, config.columns);
-    finishSafeAction({ ...game.board, revealed }, coordinate);
+  const chooseTool = (tool: MineTool) => {
+    if (game.result !== 'PLAYING' || game.tool === tool || (!game.puzzle && tool !== 'REVEAL')) return;
+    replace({ ...game, tool, selection: [], recent: `已選${tools.find(item => item[0] === tool)![1]}。請口述座標與理由，再確認。` });
   };
+  const selectedLabel = game.selection.map(mineCoordinate).join('、');
+  const chordNeighbors = game.tool === 'CHORD' && game.selection[0] ? mineNeighbors(game.selection[0], 6, 6).filter(key => !game.revealed.includes(key) && !game.flags.includes(key)) : [];
+  const preview = !game.selection.length ? '請先選工具，再點座標預覽。'
+    : game.tool === 'FLAG' ? game.selection.map(key => `${game.flags.includes(key) ? '撤旗' : '標雷'} ${mineCoordinate(key)}`).join('、')
+    : game.tool === 'CHORD' ? `連開 ${selectedLabel} 周圍：${chordNeighbors.map(mineCoordinate).join('、') || '沒有未開格'}` : `揭開 ${selectedLabel}`;
+  const highlighted = new Set([...(game.hintStep?.clues ?? []), ...(game.hintStep?.related ?? [])]);
 
-  const continueAfterMine = () => {
-    const mine = game.board.explodedMine;
-    if (!mine) return;
-    const continued = continueAfterMinesweeperHit(
-      game.board.revealed,
-      game.board.flags,
-      game.board.neutralFlags,
-      mine,
-    );
-    setGame({
-      ...game,
-      board: {
-        ...game.board,
-        ...continued,
-        explodedMine: null,
-      },
-      result: 'PLAYING',
-    });
-    setRecent(`地雷已由系統插旗，${mode === 'TEAMS' ? `輪到 ${game.team} 組。` : '請根據新線索繼續。'}`);
-  };
-
-  const undo = () => {
-    const previous = history[history.length - 1];
-    if (!previous) return;
-    setGame(cloneGame(previous));
-    setHistory(items => items.slice(0, -1));
-    setRecent(`已復原治療者的誤觸，${mode === 'TEAMS' ? `仍由 ${previous.team} 組進行。` : '請繼續討論。'}`);
-  };
-
-  const hint = () => {
-    if (!game.board.initialized) {
-      setRecent('提示：第一格及周圍八格保證安全，可以任選一個座標開始。');
-      return;
-    }
-    const safe = Array.from({ length: config.rows * config.columns }, (_, index) => `${Math.floor(index / config.columns)},${index % config.columns}`)
-      .find(key => !game.board.mines.has(key) && !game.board.revealed.has(key) && !game.board.flags.has(key));
-    if (!safe) return;
-    const [row, col] = safe.split(',').map(Number);
-    setRecent(`提示：${coordinateLabel(row, col)} 可以安全翻開。`);
-  };
-
-  return (
-    <FacilitatedGameFrame
-      title="合作踩地雷"
-      subtitle={`${config.columns}×${config.rows}｜${config.mineCount} 顆地雷｜每局隨機且不需猜測`}
-      onBack={onBack}
-      mode={mode}
-      onModeChange={changeMode}
-      currentTeam={game.team}
-      scores={game.scores}
-      recentAction={recent}
-      onUndo={undo}
-      undoLabel="誤觸復原"
-      onReset={() => reset()}
-      resetLabel="換新盤面"
-      onHint={hint}
-      canUndo={history.length > 0}
+  return <>
+    <FacilitatedGameFrame title="合作踩地雷" subtitle={`6×6｜${mineTotal} 顆地雷｜${currentTier.label}：${currentTier.skill}`} onBack={onBack}
+      mode={game.mode} onModeChange={mode => reset(mode)} currentTeam={game.team} scores={game.scores} recentAction={game.recent}
+      onUndo={() => replace(undoMineRound(game))} undoLabel="誤觸復原" canUndo={game.history.length > 0} hasProgress={hasProgress}
+      onReset={() => reset()} resetLabel="換新盤面" onHint={() => replace(requestMineHint(game))}
+      settings={<div className="space-y-2">
+        <div className="text-base font-bold">推理層級</div><div className="grid grid-cols-3 gap-1">{TIERS.map(item => <button key={item.id} type="button" aria-pressed={tier === item.id} onClick={() => changeTier(item.id)} className={`min-h-11 rounded-lg border px-1 text-base font-bold focus-visible:ring-4 focus-visible:ring-sky-300 ${tier === item.id ? 'bg-indigo-700 text-white' : 'bg-white text-slate-800'}`}>{item.label}</button>)}</div>
+        <p className="text-base text-slate-700">每階 18 個經推理驗證的原盤，再旋轉／鏡像配合首格；變式不是新策略。題庫有限，用完會重複。</p>
+      </div>}
+      sidebar={<>
+        <div className="rounded-xl bg-slate-50 p-2 text-base text-slate-800"><strong>{currentTier.label}・{currentTier.skill}</strong><div>{game.puzzle ? `已標記 ${game.flags.length}／${mineTotal} 顆；${game.flags.length > mineTotal ? '旗幟超過總雷數，請先核對' : `旗數推估剩 ${mineTotal - game.flags.length} 顆`}` : '任選首格，確認後才配置盤面。'}</div><p className="mt-1">請先說明「哪個數字、哪些未知格、為何安全或是雷」。不計時。</p></div>
+        {game.puzzle?.repeated && <p role="status" className="rounded-lg bg-amber-50 p-2 text-base">這個首格的同級盤已輪過，現在是重複練習。</p>}
+        {exposed && <p className="rounded-lg bg-amber-50 p-2 text-base font-bold">本盤已揭示：提示練習，不再加分。復原或重訪仍保留此記錄。</p>}
+        <MinesweeperStatusCard result={game.result} mode={game.mode} scores={game.scores} onContinue={() => replace(continueMineSession(game))} onReset={() => requestAction(() => reset(), '換新盤面並重新計分。是否繼續？')} />
+      </>}
+      controls={<div className="space-y-1">
+        <div className="grid grid-cols-3 gap-1">{tools.map(([tool, label]) => <button key={tool} type="button" aria-pressed={game.tool === tool} disabled={game.result !== 'PLAYING' || (!game.puzzle && tool !== 'REVEAL')} onClick={() => chooseTool(tool)} className={`min-h-11 rounded-lg border px-1 text-base font-bold focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-40 ${game.tool === tool ? 'border-sky-700 bg-sky-700 text-white' : 'border-slate-300 bg-white text-slate-800'}`}>{label}</button>)}</div>
+        <div role="status" tabIndex={0} aria-label="本次座標預覽" className="max-h-16 overflow-y-auto rounded-lg bg-sky-50 px-2 py-1 text-base font-semibold text-sky-950">{preview}</div>
+        <div className="grid grid-cols-2 gap-1"><button type="button" disabled={!game.selection.length || game.result !== 'PLAYING'} onClick={() => replace({ ...game, selection: [], recent: '已清除預覽，尚未換組。' })} className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-base font-bold disabled:opacity-40">清除選取</button>
+          <button type="button" disabled={!game.selection.length || game.result !== 'PLAYING'} onClick={confirm} className="min-h-11 rounded-lg bg-indigo-700 px-1 text-base font-bold text-white focus-visible:ring-4 focus-visible:ring-sky-300 disabled:opacity-40">確認整批</button></div>
+      </div>}
       rules={[
-        '目標：根據數字線索翻開所有安全格。盤面會隨機產生，並經過驗證，過程不需要猜測。',
-        '第一步由玩家自行選擇座標；第一格及周圍八格保證沒有地雷，零區域會自動展開。',
-        '數字代表相鄰八格共有幾顆地雷；旗幟用來標記推測的地雷位置。',
-        '若已翻開數字周圍的旗幟數量相符，再點該數字可一次展開其餘相鄰格。',
-        '踩雷時只公開該地雷。分組模式下踩雷扣 1 分並換隊，繼續後系統會替該格插上不能移除的中立旗。',
-        '分組計分：安全翻開一次得 1 分，連鎖展開仍算一次；完成最後安全區域再加 1 分。',
-        '分組換隊：安全翻開或新增旗幟後換隊；移除旗幟、提示及無效操作不換隊。',
-        '「誤觸復原」只供治療者修正操作錯誤，會完整恢復先前盤面、分數與隊伍。',
-        '口述範例：「C3 周圍已有兩面旗，所以翻開 D4。」欄為英文字母、列為數字。',
+        '根據數字找出所有安全格。入門只需單數字；標準至少要比較未知格的包含關係；挑戰還需要結合全盤剩雷。三階均為 6×6；入門 6 雷、標準 7 雷、挑戰 8 雷。盤型另限制大面積空白展開，保留多次推理。',
+        '先選任意首格，再確認；第一格及周圍八格保證安全。經驗證有限題庫會隨機選盤和旋轉／鏡像，不需猜測，但錯誤旗幟會影響推理。',
+        '先選揭開、標雷／撤旗或連開工具，再點一個或多個座標。預覽只選取，不改盤面；口述一段理由後，確認整批才算一次回合。',
+        '標雷模式選未插旗的格會插旗，選已插旗的格會撤旗。連開須選已開數字，周圍旗數相符才揭開其餘鄰格；旗幟如果猜錯仍可能踩雷。',
+        '分組採參與分：一次新增揭開或首次提出旗幟整批得 1 分並換組；旗幟分不表示判斷正確。撤旗、再次提出同一面旗、無新增進展、提示都不加分、不換組。沒有最後一格額外加分，也不計時。',
+        '踩雷只公開一顆，分組扣 1 分並換組。繼續後系統把該雷插上不能移除的旗；本盤轉成提示練習。',
+        '提示依序提供思考方向、相關區域、具體推理與座標。精確揭示後本盤不再加分；復原、換模式、換題後重訪都不能清除已知答案。此記錄保留在本瀏覽分頁。',
+        '誤觸復原會恢復整個確認前的盤面、座標預覽、工具、隊伍、分數、提示階段與完成狀態；已經知道的答案不會被遺忘。',
+        '口述：「C2 的未知格都在 D2 那圈內，多出來的 E1 只可能是雷。」黃色框是提示相關區域，深藍框是待確認座標；欄用英文字母，列用數字。',
       ]}
-      sidebar={(
-        <>
-          <MinesweeperStatusCard
-            result={game.result}
-            mode={mode}
-            scores={game.scores}
-            onContinue={continueAfterMine}
-            onReset={() => reset()}
-          />
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center text-xs font-bold text-slate-700">
-            {game.board.initialized ? `已標記 ${game.board.flags.size}/${config.mineCount} 顆地雷` : '尚未配置地雷，請先翻開第一格'}
-          </div>
-          <div className="mt-auto grid grid-cols-2 gap-2">
-            <button type="button" aria-pressed={!flagMode} onClick={() => setFlagMode(false)} className={`min-h-11 rounded-xl border px-2 text-sm font-bold ${!flagMode ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-300 bg-white'}`}>安全翻開</button>
-            <button type="button" aria-pressed={flagMode} disabled={!game.board.initialized || game.result !== 'PLAYING'} onClick={() => setFlagMode(true)} className={`min-h-11 rounded-xl border px-2 text-sm font-bold disabled:opacity-40 ${flagMode ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300 bg-white'}`}>🚩 插旗</button>
-          </div>
-        </>
-      )}
     >
-      <CoordinateGrid
-        rows={config.rows}
-        columns={config.columns}
-        className="w-full max-w-[32rem]"
-        renderCell={(row, col, coordinate) => {
-          const key = `${row},${col}`;
-          const revealed = game.board.revealed.has(key);
-          const mine = game.board.mines.has(key);
-          const flagged = game.board.flags.has(key);
-          const neutral = game.board.neutralFlags.has(key);
-          const adjacent = countAdjacentMines(row, col, game.board.mines, config.rows, config.columns);
-          return (
-            <button
-              type="button"
-              aria-label={`${coordinate}${flagged ? (neutral ? '，系統標記地雷' : '，已插旗') : revealed ? (mine ? '，踩到地雷' : `，數字 ${adjacent}`) : '，未翻開'}`}
-              onClick={() => act(row, col)}
-              className={`h-full w-full rounded-md border-2 text-base font-black shadow-sm ${revealed ? (mine ? 'border-rose-700 bg-rose-200 text-rose-900 ring-4 ring-rose-300' : 'border-slate-300 bg-white text-indigo-800') : neutral ? 'border-slate-500 bg-slate-200 text-slate-800' : 'border-sky-700 bg-sky-500 text-white'}`}
-            >
-              {flagged && !revealed ? (neutral ? '⚑' : '🚩') : revealed ? (mine ? '✹' : adjacent || '') : '·'}
-            </button>
-          );
-        }}
-      />
+      <CoordinateGrid rows={6} columns={6} className="w-full max-w-[30rem]" renderCell={(row, col, coordinate) => {
+        const key = `${row},${col}`; const revealed = game.revealed.includes(key); const mine = mines.has(key); const flagged = game.flags.includes(key); const neutral = game.neutralFlags.includes(key); const selected = game.selection.includes(key);
+        const adjacent = countAdjacentMines(row, col, mines, 6, 6);
+        return <button type="button" disabled={game.result !== 'PLAYING'} aria-pressed={selected} aria-label={`${coordinate}${flagged ? neutral ? '，系統標記地雷' : '，已插旗' : revealed ? mine ? '，踩到地雷' : `，數字 ${adjacent}` : '，未翻開'}`} onClick={() => replace(selectMineCell(game, key))}
+          className={`min-h-11 min-w-11 h-full w-full rounded-md border-2 text-xl font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500 ${selected ? '!border-indigo-900 ring-2 ring-indigo-700' : highlighted.has(key) ? '!border-amber-600 ring-2 ring-amber-500' : ''} ${revealed ? mine ? 'border-rose-700 bg-rose-200 text-rose-900' : 'border-slate-300 bg-white text-indigo-800' : neutral ? 'border-slate-500 bg-slate-200 text-slate-800' : 'border-sky-700 bg-sky-500 text-white'}`}>
+          {flagged && !revealed ? neutral ? '⚑' : '🚩' : revealed ? mine ? '✹' : adjacent || '·' : '·'}
+        </button>;
+      }} />
     </FacilitatedGameFrame>
-  );
+    {confirmationDialog}
+  </>;
 };
-
 export default MinesweeperGame;

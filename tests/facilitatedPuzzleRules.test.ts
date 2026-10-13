@@ -22,8 +22,11 @@ import {
   type TrafficCar,
 } from '../utils/facilitatedPuzzleRules';
 import { TRAFFIC_JAM_LEVELS } from '../components/TrafficJamGame';
+import { solveTrafficJam } from '../utils/trafficJamModel';
 import { WORD_PATH_PUZZLES } from '../components/WordPathGame';
 import { LOGIC_DETECTIVE_PUZZLES } from '../components/LogicDetectiveGame';
+import { LOGIC_PUZZLES } from '../data/logicDetectivePuzzles';
+import { solveLogicPuzzle, satisfiesLogicClue } from '../utils/logicDetectiveRules';
 
 describe('facilitated puzzle rules', () => {
   it('moves a traffic car only along its axis without crossing another car', () => {
@@ -92,9 +95,9 @@ describe('facilitated puzzle rules', () => {
 
   it('ships a solvable advanced traffic-jam layout', () => {
     let cars = TRAFFIC_JAM_LEVELS.ADVANCED;
-    cars = moveTrafficCar(cars, 'D', 1, 6);
-    cars = moveTrafficCar(cars, 'B', 3, 6);
-    cars = moveTrafficCar(cars, 'X', 4, 6);
+    const solved = solveTrafficJam(cars);
+    expect(solved.status).toBe('SOLVED');
+    for (const move of solved.moves) cars = moveTrafficCar(cars, move.carId, move.distance, 6);
     expect(cars.find(car => car.id === 'X')?.col).toBe(4);
   });
 
@@ -220,32 +223,31 @@ describe('facilitated puzzle rules', () => {
     expect(completed['0,2']).toBe('YES');
   });
 
-  it('provides twelve uniquely solvable logic cases for each difficulty', () => {
-    const banks = LOGIC_DETECTIVE_PUZZLES;
-    expect(banks.NORMAL).toHaveLength(12);
-    expect(banks.ADVANCED).toHaveLength(12);
-    for (const puzzle of [...banks.NORMAL, ...banks.ADVANCED]) {
-      expect(countLogicPuzzleSolutions(puzzle.people.length, puzzle.constraints)).toBe(1);
+  it('provides three uniquely solvable cases in each reasoning tier', () => {
+    expect(LOGIC_PUZZLES).toHaveLength(9);
+    for (const tier of ['BEGINNER', 'STANDARD', 'CHALLENGE']) expect(LOGIC_PUZZLES.filter(puzzle => puzzle.tier === tier)).toHaveLength(3);
+    expect(LOGIC_DETECTIVE_PUZZLES.NORMAL).toEqual(LOGIC_PUZZLES.filter(puzzle => puzzle.tier === 'BEGINNER'));
+    expect(LOGIC_DETECTIVE_PUZZLES.ADVANCED).toEqual(LOGIC_PUZZLES.filter(puzzle => puzzle.tier === 'STANDARD'));
+    for (const puzzle of LOGIC_PUZZLES) expect(solveLogicPuzzle(puzzle)).toEqual([puzzle.solution]);
+  });
+
+  it('keeps structured clues consistent with the authored unique solution', () => {
+    for (const puzzle of LOGIC_PUZZLES) {
+      expect(puzzle.clues.every(clue => satisfiesLogicClue(puzzle.solution, clue))).toBe(true);
+      expect(puzzle.people.length).toBe(puzzle.choices.length);
+      expect(new Set(puzzle.solution).size).toBe(puzzle.people.length);
     }
   });
 
-  it('keeps every logic clue indirect and necessary to the unique solution', () => {
-    for (const puzzle of [...LOGIC_DETECTIVE_PUZZLES.NORMAL, ...LOGIC_DETECTIVE_PUZZLES.ADVANCED]) {
-      expect(puzzle.constraints).toHaveLength(puzzle.clues.length);
-      expect(puzzle.constraints.every(constraint => constraint.relation === 'NOT')).toBe(true);
-      expect(puzzle.clues.some(clue => clue.includes('選的是') || clue.includes('剩下的選項'))).toBe(false);
-      puzzle.constraints.forEach((_, index) => {
-        const withoutClue = puzzle.constraints.filter((__, clueIndex) => clueIndex !== index);
-        expect(countLogicPuzzleSolutions(puzzle.people.length, withoutClue)).toBeGreaterThan(1);
-      });
+  it('varies inference structures instead of repeating only negative matches', () => {
+    for (const tier of ['STANDARD', 'CHALLENGE']) {
+      const bank = LOGIC_PUZZLES.filter(puzzle => puzzle.tier === tier);
+      expect(new Set(bank.map(puzzle => puzzle.strategy)).size).toBe(3);
+      const kinds = new Set(bank.flatMap(puzzle => puzzle.clues.map(clue => clue.kind)));
+      expect(kinds.has('OPTIONS')).toBe(true);
+      expect(kinds.has('ORDER')).toBe(true);
+      expect(kinds.has('EXACTLY_ONE')).toBe(true);
     }
-  });
-
-  it('varies which people must be resolved first across the logic puzzle bank', () => {
-    const cluePattern = (puzzle: (typeof LOGIC_DETECTIVE_PUZZLES.NORMAL)[number] | (typeof LOGIC_DETECTIVE_PUZZLES.ADVANCED)[number]) =>
-      puzzle.constraints.map(constraint => constraint.person).join(',');
-    expect(new Set(LOGIC_DETECTIVE_PUZZLES.NORMAL.map(cluePattern)).size).toBeGreaterThanOrEqual(3);
-    expect(new Set(LOGIC_DETECTIVE_PUZZLES.ADVANCED.map(cluePattern)).size).toBeGreaterThanOrEqual(4);
   });
 
   it('uses all four straight directions in the normal word board and orthogonal turns in the advanced board', () => {

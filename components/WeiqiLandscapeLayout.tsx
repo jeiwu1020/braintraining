@@ -27,6 +27,8 @@ import { GoPuzzle, PuzzleCategory } from '../data/goPuzzles';
 import { WeiqiBoard } from './WeiqiBoard';
 
 interface WeiqiLandscapeLayoutProps {
+  puzzleControls?: React.ReactNode;
+  puzzleTurn?: 'BLACK' | 'WHITE';
   onBack: () => void;
   gameMode: 'AI' | 'PVP' | 'PUZZLE';
   setGameMode: (mode: 'AI' | 'PVP' | 'PUZZLE') => void;
@@ -84,6 +86,8 @@ interface WeiqiLandscapeLayoutProps {
 }
 
 export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
+  puzzleControls,
+  puzzleTurn = 'BLACK',
   onBack,
   gameMode,
   setGameMode,
@@ -152,7 +156,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
         <WeiqiBoard
           board={gameMode === 'PUZZLE' ? puzzleBoard : board}
           boardSize={gameMode === 'PUZZLE' ? currentPuzzle.boardSize : boardSize}
-          currentTurn={gameMode === 'PUZZLE' ? currentPuzzle.playerColor : currentTurn}
+          currentTurn={gameMode === 'PUZZLE' ? puzzleTurn : currentTurn}
           lastMove={gameMode === 'PUZZLE' ? puzzleLastMove : lastMove}
           koPoint={gameMode === 'PUZZLE' ? null : koPoint}
           blackAtariGroups={gameMode === 'PUZZLE' ? [] : blackAtariGroups}
@@ -276,7 +280,6 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                     key={sz}
                     onClick={() => {
                       setBoardSize(sz);
-                      resetMatch(sz, handicap);
                     }}
                     data-weiqi-board-size={sz}
                     aria-label={`${sz}路棋盤`}
@@ -327,11 +330,10 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                     onChange={e => {
                       const val = Number(e.target.value);
                       setHandicap(val);
-                      resetMatch(boardSize, val);
                     }}
                     className="min-h-8 bg-stone-800 border border-amber-700/60 text-amber-200 text-xs font-bold rounded px-1.5 py-1"
                   >
-                    {[0, 2, 3, 4, 5, 6, 7, 8, 9].map(h => (
+                    {[0, 2, 3, 4].map(h => (
                       <option key={h} value={h}>
                         {h === 0 ? '分先 (無讓子)' : `讓 ${h} 子`}
                       </option>
@@ -554,6 +556,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
               </p>
             </div>
 
+            {puzzleControls}
             {/* Interactive Feedback & Action Buttons */}
             <div className="space-y-1">
               {puzzleStatus === 'UNSOLVED' && (
@@ -585,7 +588,7 @@ export const WeiqiLandscapeLayout: React.FC<WeiqiLandscapeLayoutProps> = ({
                 >
                   <div className="flex items-center gap-1 text-emerald-300 font-black text-xs">
                     <CheckCircle2 size={13} className="text-emerald-400" />
-                    <span>🎉 答對了！</span>
+                    <span>{currentPuzzle.training ? '已完成驗證變化' : '符合參考首手'}</span>
                   </div>
                   <p className="text-xs text-emerald-100/90">{currentPuzzle.successMessage}</p>
                   <button

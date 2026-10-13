@@ -1,0 +1,5 @@
+import{expect,it}from'vitest';import{TEN_PUZZLES}from'../data/chineseTenPuzzles';import{canCaptureTen,tenPoints,solveTenCaptures}from'../utils/chineseTenRules';
+it('offers twelve solvable public tasks with four genuine two-step greedy traps',()=>{
+ expect(TEN_PUZZLES).toHaveLength(12);for(const tier of ['BEGINNER','STANDARD','CHALLENGE'])expect(TEN_PUZZLES.filter(p=>p.tier===tier)).toHaveLength(4);
+ for(const p of TEN_PUZZLES){const cards=[...p.hand,...p.table,...(p.incoming?[p.incoming]:[])];expect(new Set(cards.map(c=>c.id)).size).toBe(cards.length);expect(new Set(cards.map(c=>`${c.suit}-${c.rank}`)).size).toBe(cards.length);const result=solveTenCaptures(p);expect(result.plans.length,p.id).toBeGreaterThan(0);if(p.tier==='CHALLENGE'){const greedy=Math.max(...p.hand.flatMap(h=>p.table.filter(t=>canCaptureTen(h,t)).map(t=>tenPoints(h)+tenPoints(t))));for(const path of result.plans){const h=p.hand.find(c=>c.id===path[0].handId)!,t=p.table.find(c=>c.id===path[0].tableId)!;expect(tenPoints(h)+tenPoints(t),p.id).toBeLessThan(greedy);}}}
+});

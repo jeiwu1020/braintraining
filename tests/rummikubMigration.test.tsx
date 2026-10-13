@@ -28,8 +28,8 @@ const deterministicQuestion = {
   badge: '同色順組',
 };
 
-describe('RummikubGame grid-focus migration', () => {
-  it('wires RummikubGame through the grid-focus layout contract', () => {
+describe('RummikubGame facilitated migration', () => {
+  it('wires RummikubGame through the board-sidebar layout contract', () => {
     const markup = renderToStaticMarkup(
       <RummikubGame
         difficulty="NORMAL"
@@ -39,13 +39,13 @@ describe('RummikubGame grid-focus migration', () => {
     );
 
     expect(markup).toContain('data-layout="mobile-landscape-game"');
-    expect(markup).toContain('data-layout-preset="grid-focus"');
-    expect(markup).toContain('data-layout-region="playfield"');
-    expect(markup).toContain('data-layout-region="support"');
-    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).toContain('data-layout-preset="board-sidebar"');
+    expect(markup).toContain('data-layout-region="board"');
+    expect(markup).toContain('data-layout-region="sidebar"');
+    expect(markup).toContain('data-facilitated-controls="true"');
     expect(markup).toContain('選出可以接在紅4-紅5-紅6後面的牌');
-    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇紅色7"'));
-    expect(markup.indexOf('aria-label="選擇紅色7"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
+    expect(markup.indexOf('data-layout-region="board"')).toBeLessThan(markup.indexOf('aria-label="手牌 1 紅7"'));
+    expect(markup.indexOf('aria-label="手牌 1 紅7"')).toBeLessThan(markup.indexOf('data-layout-region="sidebar"'));
   });
 
   it('keeps Rummikub answer tiles accessible and protects the answer result', () => {

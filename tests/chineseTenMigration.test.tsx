@@ -15,17 +15,17 @@ const deterministicQuestion = {
   badge: '湊十配對',
 };
 
-describe('ChineseTenGame grid-focus migration', () => {
-  it('wires ChineseTenGame through the grid-focus layout contract', () => {
+describe('ChineseTenGame facilitated migration', () => {
+  it('wires ChineseTenGame through the board-sidebar layout contract', () => {
     const markup = renderToStaticMarkup(<ChineseTenGame difficulty="NORMAL" initialQuestions={[deterministicQuestion]} onBack={() => undefined} />);
     expect(markup).toContain('data-layout="mobile-landscape-game"');
-    expect(markup).toContain('data-layout-preset="grid-focus"');
-    expect(markup).toContain('data-layout-region="playfield"');
-    expect(markup).toContain('data-layout-region="support"');
-    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).toContain('data-layout-preset="board-sidebar"');
+    expect(markup).toContain('data-layout-region="board"');
+    expect(markup).toContain('data-layout-region="sidebar"');
+    expect(markup).toContain('data-facilitated-controls="true"');
     expect(markup).toContain('桌面有方塊7，手牌哪一張能湊十？');
-    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇紅心3"'));
-    expect(markup.indexOf('aria-label="選擇紅心3"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
+    expect(markup.indexOf('data-layout-region="board"')).toBeLessThan(markup.indexOf('aria-label="手牌 紅心3"'));
+    expect(markup.indexOf('aria-label="手牌 紅心3"')).toBeLessThan(markup.indexOf('data-layout-region="sidebar"'));
   });
 
   it('keeps answer cards accessible and protects the production answer resolver', () => {

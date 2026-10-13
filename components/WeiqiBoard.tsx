@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { GoBoard, Point, TerritoryScore } from '../services/goEngine';
 import { GO_COLUMN_LABELS } from './WeiqiGame';
@@ -74,9 +74,41 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
   isLandscapeCompact = false,
 }) => {
   const starPoints = getStarPoints(boardSize);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [fittedSide, setFittedSide] = useState(0);
+
+  useLayoutEffect(() => {
+    // Standard-layout controls have variable height (especially puzzle replies).
+    // Fit the complete board + coordinates to its real slot, not a viewport guess.
+    // Keep the existing short-landscape layout unchanged.
+    if (isLandscapeCompact) return;
+    const slot = boardRef.current?.parentElement;
+    if (!slot) return;
+    const fit = (width: number, height: number) => {
+      setFittedSide(Math.max(0, Math.floor(Math.min(width, height, 580))));
+    };
+    const measure = () => {
+      const bounds = slot.getBoundingClientRect();
+      const style = getComputedStyle(slot);
+      const px = (value: string) => parseFloat(value) || 0;
+      fit(
+        bounds.width - px(style.paddingLeft) - px(style.paddingRight) - px(style.borderLeftWidth) - px(style.borderRightWidth),
+        bounds.height - px(style.paddingTop) - px(style.paddingBottom) - px(style.borderTopWidth) - px(style.borderBottomWidth),
+      );
+    };
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(entries => {
+      const entry = entries.find(item => item.target === slot);
+      if (entry) fit(entry.contentRect.width, entry.contentRect.height);
+    });
+    observer?.observe(slot);
+    window.addEventListener('resize', measure);
+    return () => { observer?.disconnect(); window.removeEventListener('resize', measure); };
+  }, [isLandscapeCompact]);
 
   return (
     <div
+      ref={boardRef}
       className="relative flex flex-col items-center justify-center select-none"
       style={
         isLandscapeCompact
@@ -88,9 +120,11 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
               aspectRatio: '1 / 1',
             }
           : {
-              maxWidth: 'min(92vw, min(calc(100dvh - 240px), 580px))',
-              maxHeight: 'min(92vw, min(calc(100dvh - 240px), 580px))',
-              width: '100%',
+              width: fittedSide,
+              height: fittedSide,
+              maxWidth: '100%',
+              maxHeight: '100%',
+              flexShrink: 0,
               aspectRatio: '1 / 1',
             }
       }
@@ -250,7 +284,7 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
                   >
                     {/* Stone Render */}
                     {cell === 'BLACK' && (
-                      <motion.div
+                      <motion.div data-go-stone="BLACK"
                         initial={{ scale: 0.6, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-stone-700 via-stone-900 to-black shadow-md border border-stone-800 flex items-center justify-center relative"
@@ -271,7 +305,7 @@ export const WeiqiBoard: React.FC<WeiqiBoardProps> = ({
                     )}
 
                     {cell === 'WHITE' && (
-                      <motion.div
+                      <motion.div data-go-stone="WHITE"
                         initial={{ scale: 0.6, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         className="w-[88%] h-[88%] rounded-full bg-gradient-to-br from-white via-amber-50 to-stone-300 shadow-md border border-stone-300 flex items-center justify-center relative"

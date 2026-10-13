@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { readFacilitatorKnowledge, saveFacilitatorKnowledge } from '../utils/facilitatorKnowledge';
 import type { Difficulty } from '../types';
 import { advanceTeam, applyNimMove, awardTeam, getNimTeachingMove } from '../utils/facilitatedPuzzleRules';
 import FacilitatedGameFrame, { type FacilitatedMode } from './game-ui/FacilitatedGameFrame';
@@ -7,7 +8,11 @@ interface Props { onBack: () => void; difficulty?: Difficulty }
 interface Snapshot { piles: number[]; team: 'A' | 'B'; scores: { A: number; B: number }; opponentPending: boolean; result: string | null }
 
 const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
+  const committed = useRef(false);
+  useLayoutEffect(() => { committed.current = false; });
   const misere = difficulty === 'ADVANCED';
+  const knowledgeId = misere ? 'classic-misere-1357' : 'classic-normal-345';
+  const [assisted, setAssisted] = useState(() => readFacilitatorKnowledge('nim-classic-v1').includes(knowledgeId));
   const initialPiles = (): number[] => misere ? [1, 3, 5, 7] : [3, 4, 5];
   const [piles, setPiles] = useState<number[]>(initialPiles);
   const [selectedPile, setSelectedPile] = useState<number | null>(null);
@@ -43,12 +48,13 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
     moverWon ? `${mover}獲勝！` : `${mover}拿到最後一顆，因此${other}獲勝！`;
 
   const take = () => {
-    if (selectedPile === null || opponentPending || result) return;
+    if (selectedPile === null || opponentPending || result || committed.current) return;
     const outcome = applyNimMove(piles, selectedPile, amount, misere);
     if (!outcome) {
       setRecent('拿取數量超過該石堆，請重新選擇。');
       return;
     }
+    committed.current = true;
     setHistory(items => [...items, snapshot()]);
     setPiles(outcome.piles);
     const pileLabel = String.fromCharCode(65 + selectedPile);
@@ -59,7 +65,7 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       if (mode === 'TEAMS') {
         const other = team === 'A' ? 'B' : 'A';
         const winner = outcome.moverWon ? team : other;
-        setScores(value => awardTeam(value, winner));
+        if (!assisted) setScores(value => awardTeam(value, winner));
         setResult(finishMessage(`${team} 組`, outcome.moverWon, `${other} 組`));
       } else setResult(outcome.moverWon ? '合作組獲勝！' : '教學對手獲勝。');
     } else if (mode === 'TEAMS') setTeam(advanceTeam);
@@ -67,10 +73,11 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const playOpponent = () => {
-    if (!opponentPending || result) return;
+    if (!opponentPending || result || committed.current) return;
     const move = getNimTeachingMove(piles, misere);
     if (!move) return;
     const outcome = applyNimMove(piles, move.pileIndex, move.amount, misere)!;
+    committed.current = true;
     setHistory(items => [...items, snapshot()]);
     setPiles(outcome.piles);
     const pileLabel = String.fromCharCode(65 + move.pileIndex);
@@ -80,8 +87,10 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
   };
 
   const undo = () => {
+    if (committed.current) return;
     const previous = history[history.length - 1];
     if (!previous) return;
+    committed.current = true;
     setPiles([...previous.piles]);
     setTeam(previous.team);
     setScores({ ...previous.scores });
@@ -95,7 +104,11 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
 
   const hint = () => {
     const move = getNimTeachingMove(piles, misere);
-    if (move) setRecent(`策略提示：考慮從 ${String.fromCharCode(65 + move.pileIndex)} 堆拿走 ${move.amount} 顆。`);
+    if (move) {
+      setAssisted(true);
+      saveFacilitatorKnowledge('nim-classic-v1', [...new Set([...readFacilitatorKnowledge('nim-classic-v1'), knowledgeId])]);
+      setRecent(`策略提示：考慮從 ${String.fromCharCode(65 + move.pileIndex)} 堆拿走 ${move.amount} 顆。本盤為提示練習，不計組分。`);
+    }
   };
 
   return (
@@ -114,7 +127,8 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       onReset={() => reset()}
       onHint={hint}
       canUndo={history.length > 0}
-      feedback={result ?? undefined}
+      hasProgress={history.length > 0 || selectedPile !== null || assisted || scores.A + scores.B > 0}
+      feedback={result ? `${result}${assisted ? ' 提示練習，不計組分。' : ''}` : undefined}
       rules={[
         '目標：每回合從一個石堆拿走石子，運用剩餘數量迫使對手進入不利局面。',
         `每回合只能選一堆，至少拿 1 顆，可拿到該堆全部；${misere ? '本模式拿到最後一顆者輸。' : '本模式拿到最後一顆者勝。'}`,
@@ -125,6 +139,7 @@ const NimGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
       ]}
       sidebar={(
         <div className="mt-auto space-y-2">
+          {assisted && <p className="text-sm font-bold text-amber-800">提示練習：本盤已看策略答案，不計組分。</p>}
           {mode === 'COOP' && opponentPending ? (
             <button type="button" onClick={playOpponent} className="min-h-11 w-full rounded-xl bg-violet-600 px-2 font-black text-white">執行教學對手</button>
           ) : (

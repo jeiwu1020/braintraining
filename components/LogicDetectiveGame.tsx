@@ -1,208 +1,156 @@
-import React, { useState } from 'react';
+import { readFacilitatorKnowledge, saveFacilitatorKnowledge } from '../utils/facilitatorKnowledge';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { Difficulty } from '../types';
-import { advanceTeam, applyLogicMark, awardTeam, coordinateLabel, isLogicGridSolved, type LogicConstraint, type LogicMark } from '../utils/facilitatedPuzzleRules';
-import CoordinateGrid from './game-ui/CoordinateGrid';
+import { LOGIC_PUZZLES, LOGIC_TIER_LABELS, type LogicTier } from '../data/logicDetectivePuzzles';
+import { describeLogicClue, logicCoordinate, type LogicMark } from '../utils/logicDetectiveRules';
+import { clearLogicDraft, confirmLogicDecision, confirmLogicHypothesis, createLogicSession, prepareLogicDecision, prepareLogicHypothesis, requestLogicHint, undoLogicDecision } from '../utils/logicDetectiveSession';
 import FacilitatedGameFrame, { type FacilitatedMode } from './game-ui/FacilitatedGameFrame';
+import { useConfirmAction } from './game-ui/useConfirmAction';
 
 interface Props { onBack: () => void; difficulty?: Difficulty }
-interface LogicPuzzle { title: string; people: readonly string[]; choices: readonly string[]; solution: readonly number[]; clues: readonly string[]; constraints: readonly LogicConstraint[] }
-
-const makePuzzle = (title: string, people: string[], choices: string[], solution: number[], advanced = false): LogicPuzzle => {
-  const startPerson = [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) % people.length;
-  const deductionOrder = Array.from({ length: people.length }, (_, index) => (startPerson + index) % people.length);
-  const [first, second, third, last] = deductionOrder;
-  const constraints: LogicConstraint[] = advanced
-    ? [
-        ...choices.flatMap((_, choice) => choice === solution[first] ? [] : [{ person: first, choice, relation: 'NOT' as const }]),
-        { person: second, choice: solution[third], relation: 'NOT' },
-        { person: second, choice: solution[last], relation: 'NOT' },
-        { person: third, choice: solution[last], relation: 'NOT' },
-      ]
-    : [
-        ...choices.flatMap((_, choice) => choice === solution[first] ? [] : [{ person: first, choice, relation: 'NOT' as const }]),
-        { person: second, choice: solution[third], relation: 'NOT' },
-      ];
-  return {
-    title, people, choices, solution,
-    clues: constraints.map((constraint, index) => index % 3 === 0
-      ? `${people[constraint.person]}沒有選「${choices[constraint.choice]}」。`
-      : index % 3 === 1
-        ? `選「${choices[constraint.choice]}」的人不是${people[constraint.person]}。`
-        : `${people[constraint.person]}與「${choices[constraint.choice]}」不相配。`),
-    constraints,
-  };
+/** Compatibility entry points; the local three-tier bank is the canonical source. */
+export const LOGIC_DETECTIVE_PUZZLES = {
+  NORMAL: LOGIC_PUZZLES.filter(puzzle => puzzle.tier === 'BEGINNER'),
+  ADVANCED: LOGIC_PUZZLES.filter(puzzle => puzzle.tier === 'STANDARD'),
 };
-
-export const LOGIC_DETECTIVE_PUZZLES: Record<Difficulty, readonly LogicPuzzle[]> = {
-  NORMAL: [
-    makePuzzle('飲品時間', ['小安', '小美', '阿康'], ['茶', '牛奶', '咖啡'], [0, 1, 2]),
-    makePuzzle('水果點心', ['阿芳', '小傑', '美玲'], ['蘋果', '香蕉', '葡萄'], [2, 0, 1]),
-    makePuzzle('休閒活動', ['志明', '春嬌', '麗華'], ['散步', '唱歌', '拼圖'], [1, 2, 0]),
-    makePuzzle('早餐選擇', ['阿福', '小玉', '大同'], ['饅頭', '蛋餅', '吐司'], [2, 1, 0]),
-    makePuzzle('交通工具', ['佳佳', '明明', '康康'], ['公車', '捷運', '單車'], [1, 0, 2]),
-    makePuzzle('花園植物', ['阿蘭', '小竹', '美惠'], ['玫瑰', '百合', '蘭花'], [0, 2, 1]),
-    makePuzzle('音樂興趣', ['家豪', '怡君', '佩佩'], ['鋼琴', '吉他', '鼓'], [2, 0, 1]),
-    makePuzzle('寵物朋友', ['阿德', '秀芬', '小凱'], ['貓', '狗', '鳥'], [1, 2, 0]),
-    makePuzzle('午餐主食', ['淑華', '國強', '小玲'], ['飯', '麵', '粥'], [0, 2, 1]),
-    makePuzzle('運動時光', ['文雄', '雅婷', '阿正'], ['游泳', '桌球', '健走'], [2, 1, 0]),
-    makePuzzle('閱讀主題', ['小芬', '阿海', '嘉嘉'], ['旅遊', '歷史', '料理'], [1, 0, 2]),
-    makePuzzle('顏色喜好', ['伯伯', '阿姨', '小敏'], ['紅色', '藍色', '綠色'], [2, 0, 1]),
-  ],
-  ADVANCED: [
-    makePuzzle('益智活動', ['小安', '小美', '阿康', '阿珠'], ['數獨', '圍棋', '象棋', '拼圖'], [2, 0, 3, 1], true),
-    makePuzzle('旅行地點', ['阿芳', '志明', '麗華', '大同'], ['台北', '台中', '台南', '花蓮'], [3, 1, 0, 2], true),
-    makePuzzle('料理分工', ['美惠', '國強', '怡君', '家豪'], ['洗菜', '切菜', '煮湯', '擺盤'], [1, 3, 2, 0], true),
-    makePuzzle('運動項目', ['小玉', '阿德', '佩佩', '文雄'], ['羽球', '慢跑', '游泳', '瑜伽'], [2, 0, 3, 1], true),
-    makePuzzle('音樂樂器', ['秀芬', '阿海', '嘉嘉', '阿正'], ['笛子', '吉他', '鋼琴', '鼓'], [0, 2, 1, 3], true),
-    makePuzzle('市場採買', ['春嬌', '伯伯', '雅婷', '小凱'], ['水果', '蔬菜', '魚', '米'], [3, 1, 0, 2], true),
-    makePuzzle('社區課程', ['淑華', '阿福', '小玲', '佳佳'], ['書法', '舞蹈', '園藝', '攝影'], [1, 3, 0, 2], true),
-    makePuzzle('下午茶點', ['康康', '明明', '小芬', '阿蘭'], ['蛋糕', '餅乾', '布丁', '地瓜'], [2, 0, 3, 1], true),
-    makePuzzle('家事安排', ['麗華', '阿德', '小敏', '志明'], ['掃地', '洗衣', '澆花', '倒垃圾'], [0, 3, 1, 2], true),
-    makePuzzle('節目選擇', ['怡君', '家豪', '美惠', '國強'], ['新聞', '戲劇', '旅遊', '運動'], [3, 1, 2, 0], true),
-    makePuzzle('公園路線', ['阿珠', '小安', '春嬌', '大同'], ['湖邊', '花圃', '涼亭', '步道'], [1, 3, 0, 2], true),
-    makePuzzle('閱讀分享', ['佩佩', '文雄', '小玉', '阿芳'], ['小說', '傳記', '科普', '食譜'], [2, 0, 3, 1], true),
-  ],
-};
+const buttonClass = 'min-h-11 min-w-11 rounded-xl border-2 px-2 text-base font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400 disabled:opacity-40';
+const tiers: LogicTier[] = ['BEGINNER','STANDARD','CHALLENGE'];
+const tools: { value: LogicMark; label: string }[] = [
+  { value: 'YES', label: '確認 ○' }, { value: 'NO', label: '排除 ×' }, { value: 'UNKNOWN', label: '清除' },
+];
+const markName = (mark: LogicMark) => mark === 'YES' ? '已確認' : mark === 'NO' ? '已排除' : '未判定';
+const markSymbol = (mark: LogicMark) => mark === 'YES' ? '○' : mark === 'NO' ? '×' : '·';
 
 const LogicDetectiveGame: React.FC<Props> = ({ onBack, difficulty = 'NORMAL' }) => {
-  const puzzleBank = LOGIC_DETECTIVE_PUZZLES[difficulty];
-  const [puzzleIndex, setPuzzleIndex] = useState(0);
-  const puzzle = puzzleBank[puzzleIndex];
-  const size = puzzle.people.length;
-  const [marks, setMarks] = useState<Record<string, LogicMark>>({});
-  const [history, setHistory] = useState<Record<string, LogicMark>[]>([]);
-  const [mode, setMode] = useState<FacilitatedMode>('COOP');
-  const [team, setTeam] = useState<'A' | 'B'>('A');
-  const [scores, setScores] = useState({ A: 0, B: 0 });
-  const [recent, setRecent] = useState('請讀出線索，再說明哪個配對可以確認或排除。');
-  const [finished, setFinished] = useState(false);
-  const [autoOrganize, setAutoOrganize] = useState(true);
-
-  const reset = (nextMode = mode) => {
-    setMarks({});
-    setHistory([]);
-    setTeam('A');
-    setFinished(false);
-    setRecent(nextMode === 'TEAMS' ? 'A 組先選擇一條線索。' : '請選擇一條線索開始推理。');
+  const [tier,setTier] = useState<LogicTier>(difficulty === 'NORMAL' ? 'BEGINNER' : 'STANDARD');
+  const [puzzleIndex,setPuzzleIndex] = useState(0);
+  const bank = useMemo(() => LOGIC_PUZZLES.filter(puzzle => puzzle.tier === tier),[tier]);
+  const puzzle = bank[puzzleIndex]; const size = puzzle.people.length;
+  const [session,setSession] = useState(() => ({ ...createLogicSession(puzzle), revealed: readFacilitatorKnowledge('logic-v1') }));
+  useEffect(() => saveFacilitatorKnowledge('logic-v1', session.revealed), [session.revealed]);
+  const [tool,setTool] = useState<LogicMark>('YES');
+  const [autoOrganize,setAutoOrganize] = useState(true);
+  const [focusedClue,setFocusedClue] = useState<number | null>(null);
+  const assisted = session.revealed.includes(puzzle.id);
+  const hasProgress = Boolean(session.history.length || session.selection || session.hypothesis.candidate !== null || session.hypothesis.clue !== null || session.hintLevel || assisted || session.scores.A || session.scores.B);
+  const { requestAction,confirmationDialog } = useConfirmAction(hasProgress);
+  const activeTool = session.selection?.mark ?? tool;
+  const restart = (mode: FacilitatedMode = session.mode) => {
+    setSession(state => createLogicSession(puzzle,mode,state)); setFocusedClue(null); setTool('YES');
   };
-
-  const changeMode = (nextMode: FacilitatedMode) => {
-    setMode(nextMode);
-    setScores({ A: 0, B: 0 });
-    reset(nextMode);
+  const changeTier = (next: LogicTier) => {
+    if (next === tier) return;
+    requestAction(() => {
+      const nextPuzzle = LOGIC_PUZZLES.find(item => item.tier === next)!;
+      setTier(next); setPuzzleIndex(0); setFocusedClue(null); setTool('YES');
+      setSession(state => createLogicSession(nextPuzzle,state.mode,state));
+    },'切換階段會清除目前配對與待確認推論；保留分數和已看過的提示紀錄。是否繼續？');
   };
-
   const nextPuzzle = () => {
-    const nextIndex = (puzzleIndex + 1) % puzzleBank.length;
-    setPuzzleIndex(nextIndex);
-    setMarks({});
-    setHistory([]);
-    setTeam('A');
-    setFinished(false);
-    setRecent(`已換到第 ${nextIndex + 1} 題「${puzzleBank[nextIndex].title}」。`);
+    const apply = () => {
+      const next = (puzzleIndex + 1) % bank.length;
+      setPuzzleIndex(next); setFocusedClue(null); setTool('YES');
+      setSession(state => createLogicSession(bank[next],state.mode,state));
+    };
+    if (session.finished) apply();
+    else requestAction(apply,'換題會清除目前配對與待確認推論；保留分數和已看過的提示紀錄。是否繼續？');
   };
-
-  const cycle = (row: number, col: number) => {
-    if (finished) return;
-    const key = `${row},${col}`;
-    const current = marks[key] ?? 'UNKNOWN';
-    const nextMark: LogicMark = current === 'UNKNOWN' ? 'NO' : current === 'NO' ? 'YES' : 'UNKNOWN';
-    const next = applyLogicMark(marks, row, col, nextMark, size, autoOrganize);
-    setHistory(items => [...items, { ...marks }]);
-    setMarks(next);
-    const action = nextMark === 'YES' ? '確認配對' : nextMark === 'NO' ? '排除' : '清除標記';
-    setRecent(`${mode === 'TEAMS' ? `${team} 組：` : ''}${coordinateLabel(row, col)} ${puzzle.people[row]}與${puzzle.choices[col]}，${action}。`);
-    const selections = puzzle.people.map((_, personIndex) => {
-      const selected = puzzle.choices.findIndex((__, choiceIndex) => next[`${personIndex},${choiceIndex}`] === 'YES');
-      return selected >= 0 ? selected : null;
-    });
-    if (isLogicGridSolved(selections, puzzle.solution)) {
-      setFinished(true);
-      if (mode === 'TEAMS') setScores(value => awardTeam(value, team));
-    } else if (mode === 'TEAMS') setTeam(advanceTeam);
+  const chooseTool = (mark: LogicMark) => {
+    setTool(mark);
+    if (session.selection) setSession(state => prepareLogicDecision(state,puzzle,{ ...state.selection!,mark }));
   };
-
-  const undo = () => {
-    const previous = history[history.length - 1];
-    if (!previous) return;
-    setMarks({ ...previous });
-    setHistory(items => items.slice(0, -1));
-    setFinished(false);
-    if (mode === 'TEAMS') setTeam(advanceTeam);
-    setRecent('已復原上一個推理標記。');
+  const selectClue = (index: number) => {
+    setFocusedClue(index);
+    if (puzzle.candidates) setSession(state => prepareLogicHypothesis(state,puzzle,state.hypothesis.candidate,index));
   };
-
-  const hint = () => {
-    const row = puzzle.solution.findIndex((col, index) => marks[`${index},${col}`] !== 'YES');
-    if (row >= 0) setRecent(`提示：先找能直接排除「${puzzle.people[row]}」選項的線索，不會自動替你解讀文字。`);
-  };
+  const ready = puzzle.candidates ? session.hypothesis.candidate !== null && session.hypothesis.clue !== null : Boolean(session.selection);
 
   return (
-    <FacilitatedGameFrame
-      title="邏輯線索偵探"
-      subtitle={`${puzzle.title}｜${size}×${size}｜第 ${puzzleIndex + 1}/${puzzleBank.length} 題`}
-      onBack={onBack}
-      mode={mode}
-      onModeChange={changeMode}
-      currentTeam={team}
-      scores={scores}
-      recentAction={recent}
-      onUndo={undo}
-      onReset={() => reset()}
-      onHint={hint}
-      canUndo={history.length > 0}
-      feedback={finished ? '破案成功！所有人物與選項都已正確配對。' : undefined}
-      rules={[
-        '目標：整合所有線索，找出每個人物唯一對應的飲品或活動。',
-        '每個人物與每個選項只能使用一次；叉號代表排除，圓圈代表確認。',
-        '操作：點一下標記叉號，再點一下確認圓圈；「自動整理」可由治療者隨時開關。',
-        '自動整理開啟時，確認配對會排除同列同欄；某列或欄只剩一格時會自動確認，但不會代替玩家解讀線索。',
-        '口述範例：「根據第 2 條線索，把小美和茶的 A2 格標記叉號。」',
-        '一般模式為 3×3，需要先完成一輪排除再推得其餘配對；進階模式為 4×4，需要進行至少三階段交叉排除。',
-        '分組玩法：A、B 組輪流提出一個有理由的標記；完成最後配對的組別得 1 分。',
-      ]}
-      sidebar={(
-        <div className="mt-auto space-y-2">
-          <ol className="space-y-1 rounded-xl bg-violet-50 p-2 text-sm font-semibold leading-snug text-violet-950">
-            {puzzle.clues.map((clue, index) => <li key={clue}>{index + 1}. {clue}</li>)}
-          </ol>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" aria-pressed={autoOrganize} onClick={() => setAutoOrganize(value => !value)} className={`min-h-11 rounded-xl border px-2 text-sm font-black ${autoOrganize ? 'border-violet-700 bg-violet-700 text-white' : 'border-slate-300 bg-white text-slate-700'}`}>自動整理：{autoOrganize ? '開' : '關'}</button>
-            <button type="button" onClick={nextPuzzle} className="min-h-11 rounded-xl border border-violet-700 bg-white px-2 text-sm font-black text-violet-800">換一題</button>
+    <div data-logic-detective="true" className="contents">
+      <style>{'[data-logic-detective] .text-sm,[data-logic-detective] .text-xs{font-size:1rem;line-height:1.4}[data-logic-detective] [data-facilitated-turn-status]{font-size:1rem;line-height:1.35}'}</style>
+      <FacilitatedGameFrame
+        title="邏輯線索偵探" subtitle={`${LOGIC_TIER_LABELS[tier]} ${puzzleIndex+1}／${bank.length}・${puzzle.title}・${size}×${size}`}
+        onBack={onBack} mode={session.mode} onModeChange={restart} currentTeam={session.team} scores={session.scores}
+        recentAction={session.recent} onUndo={() => setSession(undoLogicDecision)} onReset={() => restart()}
+        onHint={() => setSession(state => requestLogicHint(state,puzzle))} canUndo={session.history.length > 0} hasProgress={hasProgress}
+        feedback={session.finished ? `全部配對完成！${assisted ? '本題為提示練習。' : '可一起回顧每一步的理由。'}` : undefined}
+        rules={[
+          '每個人物只選一項，每個選項只給一人。配對表的 ○ 是確認、× 是排除，點格子只準備，不會立刻落筆。',
+          '入門：讀短線索，分清肯定與否定。標準：結合兩條以上線索和一對一限制。挑戰：比較甲、乙兩案，找出可推翻其中一案的線索。',
+          '先選「確認 ○、排除 ×、清除」，再點配對格；說出座標和理由後按「確認推論」。例如：「第 1 條說小安選牛奶，所以 B1 確認。」',
+          '自動整理只在確認一個新標記之後進行：同列同欄排除，以及只剩一格時確認。它不會自行閱讀題目線索；每個自動變化都附理由，並可整批復原。',
+          '分組每次確認一個新的正確推論，換組一次、得 1 分；自動衍生幾格都不多計分。重複標記、清除修正與重新填回已處理的格不加分、不換組。',
+          '挑戰先選要排除的甲案或乙案，再選一條確實矛盾的線索；說明矛盾後確認，正確推論得 1 分。',
+          '提示依序為觀察、具體推論、示範。第 2 級起已取得推論協助，本題往後只作練習、不加分；復原、重玩、切模式或回到本題，都保留協助紀錄。',
+          '復原一次會還原整個推論的標記、自動整理、組別、分數、待確認選取、完成狀態及提示階段。已知道的提示不能復原。',
+          '重玩、換題、切階段保留累積分數及已計分的推論，避免重複得分；切換合作／分組才重新計分。所有紀錄只保留在這次活動中，沒有倒數時間。',
+        ]}
+        settings={(
+          <div className="space-y-2 text-base">
+            <div className="font-bold">推理階段</div>
+            <div className="grid grid-cols-3 gap-1">{tiers.map(item => <button key={item} type="button" aria-pressed={tier === item} onClick={() => changeTier(item)} className={`${buttonClass} ${tier === item ? 'border-violet-700 bg-violet-100' : 'border-slate-300 bg-white'}`}>{LOGIC_TIER_LABELS[item]}</button>)}</div>
+            <p className="text-slate-700">{puzzle.strategy}。每階段 3 題，最多 4 位人物。</p>
+            {!puzzle.candidates && <button type="button" aria-pressed={autoOrganize} onClick={() => setAutoOrganize(value => !value)} className={`${buttonClass} w-full border-violet-300 bg-white`}>自動整理：{autoOrganize ? '開' : '關'}</button>}
+            <p className="text-slate-700">切換自動整理不會改盤面；下一次確認才套用。</p>
           </div>
-        </div>
-      )}
-    >
-      <div className="flex max-h-full w-full max-w-[30rem] flex-col items-center gap-1">
-        <div className="ml-16 grid w-[calc(100%-4rem)] gap-0.5 pl-7 text-center text-xs font-bold text-slate-700" style={{ gridTemplateColumns: `repeat(${size}, minmax(2.75rem, 1fr))` }}>
-          {puzzle.choices.map(choice => <div key={choice} className="truncate px-0.5">{choice}</div>)}
-        </div>
-        <div className="flex w-full items-center gap-1">
-          <div className="flex w-16 shrink-0 flex-col gap-0.5 pt-6">
-            {puzzle.people.map(person => <div key={person} className="flex min-h-11 items-center justify-end pr-1 text-sm font-bold text-slate-700">{person}</div>)}
+        )}
+        sidebar={(
+          <div className="space-y-2 text-base leading-snug">
+            {puzzle.candidates && <div data-logic-candidates="true" className="rounded-xl border border-violet-200 bg-violet-50 p-2">
+              <div className="mb-1 font-bold">比較兩個候選配對</div>
+              <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-center">
+                <span className="font-bold">人物</span><span className="font-bold">甲案</span><span className="font-bold">乙案</span>
+                {puzzle.people.map((person,row) => <React.Fragment key={person}><span>{person}</span>{puzzle.candidates!.map((candidate,index) => <span key={index}>{puzzle.choices[candidate[row]]}</span>)}</React.Fragment>)}
+              </div>
+            </div>}
+            <div className="font-bold text-violet-950">{puzzle.candidates ? '選一條有矛盾的線索' : '線索・先讀一句，再說理由'}</div>
+            <ol className="space-y-1">
+              {puzzle.clues.map((clue,index) => {
+                const chosen = puzzle.candidates ? session.hypothesis.clue === index : focusedClue === index;
+                return <li key={index}><button type="button" disabled={session.finished} aria-label={`線索 ${index+1}：${describeLogicClue(puzzle,clue)}`} aria-pressed={chosen} onClick={() => selectClue(index)} className={`${buttonClass} w-full text-left leading-snug ${chosen ? 'border-violet-700 bg-violet-100 text-violet-950' : 'border-violet-100 bg-violet-50 text-violet-950'}`}>{index+1}. {describeLogicClue(puzzle,clue)}</button></li>;
+              })}
+            </ol>
+            <p className="text-slate-700">提示 {session.hintLevel}／3{assisted && <span className="block font-bold text-amber-900">本題已取得推論協助；重玩仍是練習，不計分。</span>}</p>
+            {(session.selection || session.hypothesis.candidate !== null || session.hypothesis.clue !== null) && !session.finished && <button type="button" onClick={() => setSession(clearLogicDraft)} className={`${buttonClass} w-full border-slate-300 bg-white`}>取消選取</button>}
+            {session.derived.length > 0 && <div data-logic-derivations="true" className="rounded-xl border border-amber-200 bg-amber-50 p-2">
+              <div className="font-bold">本次自動整理 {session.derived.length} 格</div>
+              <ul className="mt-1 space-y-1">{session.derived.map(step => <li key={`${step.row},${step.col}`}><strong>{logicCoordinate(step.row,step.col)} {markSymbol(step.mark)}</strong>：{step.reason}</li>)}</ul>
+              <p className="mt-1">「復原上一步」會連同本次標記整批撤回。</p>
+            </div>}
           </div>
-          <CoordinateGrid
-            rows={size}
-            columns={size}
-            className="min-w-0 flex-1"
-            renderCell={(row, col, coordinate) => {
-              const mark = marks[`${row},${col}`] ?? 'UNKNOWN';
-              return (
-                <button
-                  type="button"
-                  aria-label={`${coordinate}，${puzzle.people[row]}與${puzzle.choices[col]}，${mark === 'YES' ? '已確認' : mark === 'NO' ? '已排除' : '未判定'}`}
-                  onClick={() => cycle(row, col)}
-                  className={`h-full w-full rounded-md border-2 text-xl font-black ${mark === 'YES' ? 'border-emerald-700 bg-emerald-100 text-emerald-800' : mark === 'NO' ? 'border-rose-400 bg-rose-50 text-rose-700' : 'border-slate-300 bg-white text-slate-300'}`}
-                >
-                  {mark === 'YES' ? '○' : mark === 'NO' ? '×' : '·'}
-                </button>
-              );
-            }}
-          />
+        )}
+        controls={(
+          <div className="space-y-1">
+            {puzzle.candidates ? <div className="grid grid-cols-2 gap-1">{[0,1].map(candidate => <button key={candidate} type="button" disabled={session.finished} aria-pressed={session.hypothesis.candidate === candidate} onClick={() => setSession(state => prepareLogicHypothesis(state,puzzle,candidate,state.hypothesis.clue))} className={`${buttonClass} ${session.hypothesis.candidate === candidate ? 'border-violet-700 bg-violet-100' : 'border-slate-300 bg-white'}`}>排除{candidate === 0 ? '甲' : '乙'}案</button>)}</div> : <div className="grid grid-cols-3 gap-1">{tools.map(item => <button key={item.value} type="button" disabled={session.finished} aria-pressed={activeTool === item.value} onClick={() => chooseTool(item.value)} className={`${buttonClass} ${activeTool === item.value ? 'border-violet-700 bg-violet-100 text-violet-950' : 'border-slate-300 bg-white'}`}>{item.label}</button>)}</div>}
+            <div className="grid grid-cols-2 gap-1">
+              <button type="button" disabled={!ready || session.finished} onClick={() => setSession(state => puzzle.candidates ? confirmLogicHypothesis(state,puzzle) : confirmLogicDecision(state,puzzle,autoOrganize))} className={`${buttonClass} border-emerald-700 bg-emerald-700 text-white`}>確認推論</button>
+              <button type="button" onClick={nextPuzzle} title="換到下一題，保留分數與提示紀錄" className={`${buttonClass} border-slate-300 bg-white`}>下一題</button>
+            </div>
+          </div>
+        )}
+      >
+        <div className="my-auto w-full min-w-[300px] max-w-2xl shrink-0 p-1">
+          <table data-coordinate-grid="true" role="grid" aria-label="人物與選項配對表" className="w-full table-fixed border-separate border-spacing-0.5 text-base">
+            <thead><tr><th className="w-20 px-1 text-left font-bold leading-tight">人物／選項</th>{puzzle.choices.map((choice,col) => <th key={choice} scope="col" className="px-1 pb-1 text-center font-bold leading-tight">{String.fromCharCode(65+col)} {choice}</th>)}</tr></thead>
+            <tbody>{puzzle.people.map((person,row) => <tr key={person}>
+              <th scope="row" className="px-1 text-left font-bold">{row+1} {person}</th>
+              {puzzle.choices.map((choice,col) => {
+                const mark = session.marks[`${row},${col}`] ?? 'UNKNOWN';
+                const selected = session.selection?.row === row && session.selection?.col === col;
+                const derived = session.derived.find(step => step.row === row && step.col === col);
+                return <td key={choice} role="gridcell" aria-label={logicCoordinate(row,col)} className="p-0">
+                  <button type="button" disabled={session.finished || Boolean(puzzle.candidates)} aria-label={`${logicCoordinate(row,col)}，${person}與${choice}，${markName(mark)}${selected ? '，待確認' : ''}`} aria-pressed={selected} title={derived ? `自動整理：${derived.reason}` : undefined}
+                    onClick={() => setSession(state => prepareLogicDecision(state,puzzle,{ row,col,mark:activeTool }))}
+                    className={`min-h-11 min-w-11 w-full rounded-lg border-2 text-2xl font-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400 ${selected ? 'ring-4 ring-inset ring-violet-500' : ''} ${mark === 'YES' ? 'border-emerald-700 bg-emerald-100 text-emerald-900' : mark === 'NO' ? 'border-rose-400 bg-rose-50 text-rose-800' : 'border-slate-300 bg-white text-slate-500'} ${derived ? 'border-dashed' : ''}`}>{markSymbol(mark)}</button>
+                </td>;
+              })}
+            </tr>)}</tbody>
+          </table>
+          <div className="mt-1 text-center text-base text-slate-700">{puzzle.ordered ? '由左到右：早 → 晚。' : '每人一項，每項一人。'} ○ 確認 · × 排除{!puzzle.candidates && ' · 紫框待確認'}</div>
         </div>
-      </div>
-    </FacilitatedGameFrame>
+      </FacilitatedGameFrame>
+      {confirmationDialog}
+    </div>
   );
 };
-
 export default LogicDetectiveGame;

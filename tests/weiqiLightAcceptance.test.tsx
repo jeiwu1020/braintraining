@@ -17,10 +17,12 @@ afterEach(() => {
 });
 
 describe('Weiqi LIGHT acceptance', () => {
-  it('keeps the specialized compact landscape layout and three-mode control model', () => {
+  it('opens the original AI mode and full-size board controls', () => {
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: {
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
         innerWidth: 640,
         innerHeight: 360,
         matchMedia: () => ({ matches: true }),
@@ -32,7 +34,7 @@ describe('Weiqi LIGHT acceptance', () => {
     );
 
     expect(markup).toContain('data-weiqi-layout="landscape"');
-    expect(markup).not.toContain('data-game-mode-selector');
+    expect(markup).not.toContain('短題合作');
 
     expect(markup).toContain('data-weiqi-mode="AI"');
     expect(markup).toContain('data-weiqi-mode="PVP"');
@@ -43,13 +45,10 @@ describe('Weiqi LIGHT acceptance', () => {
     expect(markup).toContain('aria-label="死活題模式"');
 
     expect(markup).toContain('aria-label="返回"');
-    expect(markup).toContain('aria-label="遊戲規則"');
-    expect(markup).toContain('aria-label="重新開始"');
-    expect(markup).toContain('aria-label="悔棋"');
-    expect(markup).toContain('aria-label="虛手"');
-    expect(markup).toContain('aria-label="形勢估算"');
-    expect(markup).toContain('aria-label="認輸"');
-    expect(markup).toContain('data-weiqi-board-size="9"');
-    expect(markup).toContain('data-weiqi-difficulty="NORMAL"');
+    expect(markup).toContain('aria-label="9路棋盤"');
+    expect(markup).toContain('aria-label="13路棋盤"');
+    expect(markup).toContain('aria-label="19路棋盤"');
+    expect(markup).not.toContain('確認落子');
+
   });
 });

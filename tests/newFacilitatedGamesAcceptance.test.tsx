@@ -51,7 +51,7 @@ describe('new facilitated games', () => {
 
   it('starts Minesweeper covered and reserves undo for facilitator mis-taps', () => {
     const markup = renderToStaticMarkup(<MinesweeperGame difficulty="NORMAL" onBack={() => undefined} />);
-    expect(markup.match(/，未翻開/g)).toHaveLength(35);
+    expect(markup.match(/，未翻開/g)).toHaveLength(36);
     expect(markup).toContain('aria-label="誤觸復原"');
     expect(markup).toContain('第一次請直接選擇座標');
     expect(markup).toContain('aria-label="換新盤面"');

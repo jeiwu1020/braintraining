@@ -96,3 +96,10 @@ describe('game catalogue', () => {
     }
   });
 });
+
+it('describes the facilitated Qwirkle piece-and-position planning activity', () => {
+  const game = GAME_CATALOG.find(item => item.id === GameState.QWIRKLE);
+  expect(game?.layoutPreset).toBe('BOARD_SIDEBAR');
+  expect(game?.normalDescription).toContain('落點');
+  expect(game?.advancedDescription).toContain('下一步');
+});

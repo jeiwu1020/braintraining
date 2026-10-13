@@ -20,17 +20,17 @@ const deterministicQuestion = {
   badge: '向上接牌',
 };
 
-describe('SevensGame grid-focus migration', () => {
-  it('wires SevensGame through the grid-focus layout contract', () => {
+describe('SevensGame facilitated migration', () => {
+  it('wires SevensGame through the board-sidebar layout contract', () => {
     const markup = renderToStaticMarkup(<SevensGame difficulty="NORMAL" initialQuestions={[deterministicQuestion]} onBack={() => undefined} />);
     expect(markup).toContain('data-layout="mobile-landscape-game"');
-    expect(markup).toContain('data-layout-preset="grid-focus"');
-    expect(markup).toContain('data-layout-region="playfield"');
-    expect(markup).toContain('data-layout-region="support"');
-    expect(markup).toContain('data-layout-region="feedback"');
+    expect(markup).toContain('data-layout-preset="board-sidebar"');
+    expect(markup).toContain('data-layout-region="board"');
+    expect(markup).toContain('data-layout-region="sidebar"');
+    expect(markup).toContain('data-facilitated-controls="true"');
     expect(markup).toContain('黑桃7後面可以接哪一張？');
-    expect(markup.indexOf('data-layout-region="playfield"')).toBeLessThan(markup.indexOf('aria-label="選擇黑桃8"'));
-    expect(markup.indexOf('aria-label="選擇黑桃8"')).toBeLessThan(markup.indexOf('data-layout-region="support"'));
+    expect(markup.indexOf('data-layout-region="board"')).toBeLessThan(markup.indexOf('aria-label="手牌 黑桃8"'));
+    expect(markup.indexOf('aria-label="手牌 黑桃8"')).toBeLessThan(markup.indexOf('data-layout-region="sidebar"'));
   });
 
   it('keeps cards accessible and protects the playable-card answer result', () => {
