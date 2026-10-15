@@ -8,6 +8,7 @@ import {
   parseGameCategoryId,
 } from './data/gameCatalog';
 import type { GameCategoryId, GameDefinition } from './data/gameCatalog';
+const Playground = React.lazy(() => import('./components/playground/Playground'));
 const MobileLandscapeGate = React.lazy(() => import('./components/game-ui/MobileLandscapeGate'));
 const SortingGame = React.lazy(() => import('./components/SortingGame'));
 const MemoryGame = React.lazy(() => import('./components/MemoryGame'));
@@ -104,10 +105,13 @@ const LazyGameFallback: React.FC<{ bgClass: string }> = ({ bgClass }) => (
 );
 
 const App: React.FC = () => {
+  const [playgroundOpen, setPlaygroundOpen] = useState(false);
+  const [menuAtRoot, setMenuAtRoot] = useState(false);
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
   const [difficulty, setDifficulty] = useState<Difficulty>('NORMAL');
 
   const renderContent = () => {
+    if (playgroundOpen) return <Playground onBack={() => { setPlaygroundOpen(false); setMenuAtRoot(true); }} />;
     switch (gameState) {
       case GameState.SORTING:
         return <SortingGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
@@ -247,7 +251,7 @@ const App: React.FC = () => {
       case GameState.NIM:
         return <NimGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       default:
-        return <MainMenu onSelectGame={setGameState} difficulty={difficulty} setDifficulty={setDifficulty} />;
+        return <MainMenu onSelectGame={(game) => { setMenuAtRoot(false); setGameState(game); }} difficulty={difficulty} setDifficulty={setDifficulty} onOpenPlayground={() => setPlaygroundOpen(true)} startAtRoot={menuAtRoot} />;
     }
   };
 
@@ -321,17 +325,20 @@ const getGameIcon = (game: GameDefinition): React.ReactNode => {
 };
 
 interface MenuProps {
+  onOpenPlayground: () => void;
+  startAtRoot?: boolean;
   onSelectGame: (game: GameState) => void;
   difficulty: Difficulty;
   setDifficulty: (difficulty: Difficulty) => void;
 }
 
-const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty }) => {
+const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty, onOpenPlayground, startAtRoot = false }) => {
   const isAdvanced = difficulty === 'ADVANCED';
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
 
   useEffect(() => {
+    if (startAtRoot) return;
     const savedCategory = sessionStorage.getItem('menuSelectedCategory');
     const restoredCategory = parseGameCategoryId(savedCategory);
     if (restoredCategory) {
@@ -458,6 +465,14 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                         </div>
                     </button>
                 ))}
+                <button
+                    onClick={onOpenPlayground}
+                    className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex flex-row items-center gap-3 sm:gap-4 group h-full w-full md:col-span-2"
+                >
+                    <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm shrink-0"><Layers className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-700" /></div>
+                    <div className="text-left min-w-0 flex-1"><h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">桌遊新樂園</h3><p className="text-gray-600 text-xs sm:text-base leading-snug">兩款新桌遊，一起選牌、築牆對決</p></div>
+                    <ChevronRight className="w-6 h-6 text-emerald-700 shrink-0" />
+                </button>
             </div>
         ) : (
             // GAMES WITHIN SELECTED CATEGORY
