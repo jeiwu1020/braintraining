@@ -1454,3 +1454,26 @@
   font-size: 13px;
   flex-shrink: 0;
 }
+
+/* Keep actionable order goals in view. Compact screens trade names for conditions,
+   not card space; the base-score ribbon and both teams' live status remain. */
+.pg-orders .pg-order-condition {
+  font-weight: 700;
+  line-height: 1.3;
+}
+.pg-order-compact-points {
+  display: none;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .pg-orders .pg-order-title {
+    display: none;
+  }
+  .pg-orders .pg-order-condition {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .pg-orders .pg-order-compact-points {
+    display: inline;
+    margin-left: 4px;
+  }
+}

@@ -4,6 +4,11 @@ import { createRoot, Root } from "react-dom/client";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import NightMarket from "../components/playground/NightMarket";
 import WallRace from "../components/playground/WallRace";
+import {
+  createNight,
+  ORDERS,
+  ORDER_IDS,
+} from "../games/playground/night-market/rules";
 import { PREFIX } from "../games/playground/session";
 let root: Root, host: HTMLDivElement;
 class FakeWorker {
@@ -191,3 +196,37 @@ it("keeps a computer-only opening while undoing later human decisions", () => {
   expect(saved().actions).toHaveLength(1);
   expect(button("撤回").disabled).toBe(true);
 });
+
+it.each(ORDER_IDS)(
+  "keeps the %s order condition visible beside its live progress",
+  (order) => {
+    const seed = Array.from({ length: 100 }, (_, i) => i).find((seed) =>
+      createNight(seed, "advanced", "A").orders.includes(order),
+    )!;
+    sessionStorage.setItem(
+      `${PREFIX}.night-market`,
+      JSON.stringify({
+        version: 1,
+        game: "night-market",
+        id: `order-${order}`,
+        settings: { mode: "teams", level: "advanced" },
+        seed,
+        aiSeed: 2,
+        starter: "A",
+        actions: [],
+      }),
+    );
+    mount("night");
+    const goals = host.querySelector('[aria-label="本輪公開訂單"]')!;
+    expect(goals.textContent).toContain(ORDERS[order].condition);
+    expect(goals.querySelectorAll(".pg-order-condition")).toHaveLength(2);
+    expect(goals.textContent).toContain("A ○未符合");
+    firstCard();
+    expect(goals.textContent).toContain(ORDERS[order].condition);
+    click("確認拿取");
+    expect(
+      host.querySelector('[aria-label="本輪公開訂單"]')!.textContent,
+    ).toContain(ORDERS[order].condition);
+    expect(host.querySelectorAll("[data-market-slot]")).toHaveLength(4);
+  },
+);

@@ -227,10 +227,20 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
           {s.orders.length > 0 && (
             <div className="pg-orders" aria-label="本輪公開訂單">
               {s.orders.map((o) => (
-                <div key={o}>
-                  <b>
+                <div
+                  key={o}
+                  role="group"
+                  aria-label={`${ORDERS[o].name}：${ORDERS[o].condition}，加 ${ORDERS[o].points} 分`}
+                >
+                  <b className="pg-order-title">
                     {ORDERS[o].name}＋{ORDERS[o].points}
                   </b>
+                  <span className="pg-order-condition">
+                    {ORDERS[o].condition}
+                    <b className="pg-order-compact-points">
+                      ＋{ORDERS[o].points}
+                    </b>
+                  </span>
                   <span>
                     {TEAMS.map(
                       (t) =>
