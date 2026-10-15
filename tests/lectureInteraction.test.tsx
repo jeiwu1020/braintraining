@@ -22,19 +22,17 @@ it('traverses every page without automatic reveal or accidental navigation',()=>
  }
  click('完成課程');expect(button('續課 · 第 24 頁')).toBeTruthy();
 });
-it('separates selection from answers, preserves reveal on back and resume',()=>{
- mount();click('開始上課');click('下一頁');act(()=>host.querySelectorAll<HTMLButtonElement>('.ll-choices button')[1].click());expect(host.querySelector('.ll-reveal')).toBeNull();
- click('揭示提示與理由');expect(page()).toBe(2);expect(host.querySelector('.ll-reveal')?.textContent).toContain('「今晚前」');click('繼續看理由');expect(page()).toBe(2);expect(host.textContent).toContain('B 是較安全的起點');
- click('下一頁');click('上一頁');expect(host.textContent).toContain('B 是較安全的起點');
- click('返回職能講座首頁');click('續課 · 第 2 頁');expect(host.textContent).toContain('B 是較安全的起點');
- act(()=>root.unmount());root=createRoot(host);mount();expect(page()).toBe(2);expect(host.textContent).toContain('B 是較安全的起點');
- click('收起提示，重新討論');expect(host.querySelector('.ll-reveal')).toBeNull();expect(host.querySelectorAll('.ll-choices button')[1].getAttribute('aria-pressed')).toBe('true');
+it('keeps explicit reasons on the current page and resumes the same reason',()=>{
+ mount();click('開始上課');click('下一頁');click('比較下一步');act(()=>host.querySelectorAll<HTMLButtonElement>('.ll-decision-choices button')[1].click());expect(host.querySelector('.ll-choice-feedback')).toBeTruthy();
+ click('看完整理由');expect(page()).toBe(2);expect(host.querySelector('.ll-reveal')?.textContent).toContain('「今晚前」');click('繼續看理由');expect(page()).toBe(2);expect(host.textContent).toContain('先找到原訂單');
+ click('下一頁');click('上一頁');expect(host.textContent).toContain('先找到原訂單');click('返回職能講座首頁');click('續課 · 第 2 頁');expect(host.textContent).toContain('先找到原訂單');
+ act(()=>root.unmount());root=createRoot(host);mount();expect(page()).toBe(2);expect(host.textContent).toContain('先找到原訂單');click('回到討論選項');expect(host.querySelector('.ll-reveal')).toBeNull();expect(host.querySelectorAll('.ll-decision-choices button')[1].getAttribute('aria-pressed')).toBe('true');
 });
 it('chapter jump, pause and keyboard escape preserve the current page',()=>{
  mount();click('開始上課');click('章節');expect(host.querySelector('[role=dialog]')).toBeTruthy();
- act(()=>host.querySelectorAll<HTMLButtonElement>('.ll-chapter-list button')[2].click());expect(page()).toBe(7);expect(host.querySelector('[role=dialog]')).toBeNull();
+ act(()=>host.querySelectorAll<HTMLButtonElement>('.ll-chapter-list button')[1].click());expect(page()).toBe(7);expect(host.querySelector('[role=dialog]')).toBeNull();
  click('暫停');expect(host.textContent).toContain('進度保留在第 7 頁');act(()=>host.querySelector('[role=dialog]')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})));expect(host.querySelector('[role=dialog]')).toBeNull();expect(page()).toBe(7);
- click('下一頁');click('示範下一步');click('示範下一步');expect(page()).toBe(8);expect(host.textContent).toContain('原本的購物 App');click('示範下一步');expect(host.querySelector('.ll-ring')).toBeTruthy();expect(button('已揭示完畢').disabled).toBe(true);
+ click('下一頁');click('示範下一步');click('示範下一步');expect(page()).toBe(8);expect(host.textContent).toContain('原本的購物 App');click('示範下一步');expect(host.textContent).toContain('此處沒有顯示追加費用');expect(host.querySelector('.ll-ring')).toBeNull();click('示範下一步');expect(host.querySelector('.ll-ring')).toBeTruthy();for(let i=4;i<SCENES[7].reveal.length;i++)click('示範下一步');expect(button('已揭示完畢').disabled).toBe(true);
 });
 it('restart requires explicit confirmation; cancel keeps progress',()=>{
  mount();click('開始上課');click('下一頁');click('返回職能講座首頁');click('從頭開始');click('保留進度');expect(button('續課 · 第 2 頁')).toBeTruthy();click('從頭開始');click('重新開始');expect(page()).toBe(1);expect(JSON.parse(sessionStorage.getItem(LESSON_SESSION_KEY)!).revealed).toEqual({});

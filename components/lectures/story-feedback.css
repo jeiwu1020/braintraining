@@ -1,0 +1,57 @@
+/* Story decisions replace the main stage; feedback never hides below the artwork. */
+.ll-stage-decision { display: block; }
+.ll-stage-decision .ll-reveal p { white-space: pre-line; }
+.ll-decision-panel { min-width: 0; max-width: 1080px; margin: 0 auto; padding: 18px 18px 28px; }
+.ll-decision-panel > h2 { font-size: 28px; margin-bottom: 16px; }
+.ll-decision-panel > h2:focus { outline: none; }
+.ll-context-facts { display: grid; gap: 9px; margin: 12px 0 18px; }
+.ll-context-facts p { font-size: 24px; line-height: 1.5; padding-left: 14px; border-left: 3px solid #d2a06c; }
+.ll-decision-choices { display: grid; gap: 12px; }
+.ll-class .ll-decision-choices button { justify-content: flex-start; text-align: left; padding: 16px; font-size: 26px; line-height: 1.5; }
+.ll-decision-choices button > span { display: grid; place-items: center; border-radius: 50%; width: 36px; height: 36px; background: #e7eee4; flex-shrink: 0; font-size: 19px; }
+.ll-decision-choices button[aria-pressed=true] { border: 2px solid #244b43; }
+.ll-decision-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.ll-class .ll-decision-actions button, .ll-class .ll-challenge-back { font-size: 17px; min-height: 44px; }
+.ll-feedback-heading { display: grid; gap: 6px; margin-bottom: 18px; }
+.ll-feedback-heading > b { font-size: 24px; color: #9b502f; }
+.ll-feedback-heading > span { font-size: 17px; color: #60766e; }
+.ll-feedback-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.ll-feedback-fields > div { border: 1px solid #d5decf; background: #edf0e7; border-radius: 14px; padding: 18px; }
+.ll-feedback-fields small { display: block; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.ll-feedback-fields p { font-size: 26px; line-height: 1.55; }
+.ll-feedback-next { background: #f4e7d4!important; }
+.ll-class .ll-confirmed-switch { display: none; }
+.ll-decision-hint { margin-top: 16px!important; padding: 16px; border-left: 4px solid #b9643e; background: #fff8eb; font-size: 24px; }
+.ll-challenge-back { margin-top: 16px; }
+.ll-challenge-start { margin-top: 10px; }
+.ll-chapter-list button { align-items: flex-start; text-align: left; }
+.ll-chapter-list small { white-space: normal; }
+@media (max-width: 1100px) and (max-height: 600px), (orientation: portrait) and (max-width: 700px) {
+ .ll-decision-panel { padding: 4px 2px 14px; }
+ .ll-decision-panel > h2 { font-size: 24px; line-height: 1.4; margin-bottom: 8px; }
+ .ll-context-facts p { font-size: 24px; }
+ .ll-decision-choices { gap: 8px; }
+ .ll-class .ll-decision-choices button { font-size: 24px; padding: 8px 12px; min-height: 52px; }
+ .ll-feedback-heading { margin-bottom: 8px; gap: 3px; }
+ .ll-feedback-heading > b { font-size: 18px; }
+ .ll-feedback-heading > span { display: none; }
+ .ll-feedback-fields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+ .ll-feedback-fields > div { padding: 9px 12px; border-radius: 9px; }
+ .ll-feedback-fields small { font-size: 14px; margin-bottom: 3px; }
+ .ll-feedback-fields p { font-size: 24px; line-height: 1.4; }
+ .ll-feedback-fields .ll-feedback-confirmed { display: none; }
+ .ll-feedback-fields.show-confirmed { grid-template-columns: 1fr; }
+ .ll-feedback-fields.show-confirmed .ll-feedback-confirmed { display: block; }
+ .ll-feedback-fields.show-confirmed .ll-feedback-missing, .ll-feedback-fields.show-confirmed .ll-feedback-next { display: none; }
+ .ll-class .ll-confirmed-switch { display: inline-flex; }
+ .ll-decision-actions { gap: 6px; margin-top: 8px; }
+ .ll-class .ll-decision-actions button { font-size: 15px; padding: 8px 12px; }
+ .ll-class-top .ll-phase { max-width: 48%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+ .ll-stage-decision .ll-reveal p { font-size: 24px; }
+ .ll-challenge-back { margin-top: 8px; }
+}
+@media (max-width: 480px) {
+ .ll-feedback-fields { grid-template-columns: 1fr; }
+ .ll-class .ll-decision-actions button { flex: 1 1 42%; }
+ .ll-class-top .ll-phase { max-width: 42%; }
+}

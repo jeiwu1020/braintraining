@@ -3,16 +3,19 @@ import { PLAYGROUND_CATALOG, PlaygroundId } from "../../data/playgroundCatalog";
 import { clearSaved, readSaved } from "../../games/playground/session";
 import { ConfirmDialog } from "./Common";
 import "./playground.css";
+import "./mobile-viewport.css";
+import { useExperienceViewport } from "../experience-ui/useExperienceViewport";
 const NightMarket = React.lazy(() => import("./NightMarket"));
 const WallRace = React.lazy(() => import("./WallRace"));
 const SCREENS = { "night-market": NightMarket, "wall-race": WallRace };
 export default function Playground({ onBack }: { onBack: () => void }) {
+  const viewportStyle = useExperienceViewport();
   const [game, setGame] = useState<PlaygroundId | null>(null),
     [reset, setReset] = useState<PlaygroundId | null>(null);
   const Screen = game ? SCREENS[game] : null;
   if (Screen)
     return (
-      <React.Suspense
+      <div className="pg-viewport" style={viewportStyle}><React.Suspense
         fallback={
           <div className="pg-loading" role="status">
             正在擺好桌遊…
@@ -20,10 +23,10 @@ export default function Playground({ onBack }: { onBack: () => void }) {
         }
       >
         <Screen onBack={() => setGame(null)} />
-      </React.Suspense>
+      </React.Suspense></div>
     );
   return (
-    <div className="pg-gallery app-safe-screen">
+    <div className="pg-gallery app-safe-screen" style={viewportStyle}>
       <aside className="pg-gallery-intro pg-paper">
         <button onClick={onBack}>← 首頁</button>
         <div>
@@ -36,11 +39,12 @@ export default function Playground({ onBack }: { onBack: () => void }) {
           <p>口述決策，輪流出招</p>
           <p className="pg-intro-small">先選遊戲，再選模式</p>
         </div>
+        <p className="pg-scroll-hint">卡片可上下滑動</p>
         <div className="pg-decoration" aria-hidden="true">
           ● ▰ ▲
         </div>
       </aside>
-      <main className="pg-collection" aria-label="桌遊新樂園遊戲目錄">
+      <main className="pg-collection" aria-label="桌遊新樂園遊戲目錄，可上下捲動" tabIndex={0}>
         {PLAYGROUND_CATALOG.map((c) => (
           <article className="pg-game-box" key={c.id} data-game-card={c.id}>
             <div className={`pg-box-art pg-art-${c.id}`} aria-hidden="true">
