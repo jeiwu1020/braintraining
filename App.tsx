@@ -8,6 +8,7 @@ import {
   parseGameCategoryId,
 } from './data/gameCatalog';
 import type { GameCategoryId, GameDefinition } from './data/gameCatalog';
+const Lectures = React.lazy(() => import('./components/lectures/Lectures'));
 const Playground = React.lazy(() => import('./components/playground/Playground'));
 const MobileLandscapeGate = React.lazy(() => import('./components/game-ui/MobileLandscapeGate'));
 const SortingGame = React.lazy(() => import('./components/SortingGame'));
@@ -81,6 +82,7 @@ const NimGame = React.lazy(() => import('./components/NimGame'));
 
 import {
   Brain,
+  BookOpen,
   ChevronRight,
   Clock,
   Grid3x3,
@@ -105,12 +107,19 @@ const LazyGameFallback: React.FC<{ bgClass: string }> = ({ bgClass }) => (
 );
 
 const App: React.FC = () => {
+  const [lecturesOpen, setLecturesOpen] = useState(() => window.location.hash.startsWith('#lectures'));
+  useEffect(() => {
+    const sync = () => setLecturesOpen(window.location.hash.startsWith('#lectures'));
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
   const [playgroundOpen, setPlaygroundOpen] = useState(false);
   const [menuAtRoot, setMenuAtRoot] = useState(false);
   const [gameState, setGameState] = useState<GameState>(GameState.MENU);
   const [difficulty, setDifficulty] = useState<Difficulty>('NORMAL');
 
   const renderContent = () => {
+    if (lecturesOpen) return <Lectures onBack={() => { window.location.hash = ''; setLecturesOpen(false); setMenuAtRoot(true); }} />;
     if (playgroundOpen) return <Playground onBack={() => { setPlaygroundOpen(false); setMenuAtRoot(true); }} />;
     switch (gameState) {
       case GameState.SORTING:
@@ -251,7 +260,7 @@ const App: React.FC = () => {
       case GameState.NIM:
         return <NimGame onBack={() => setGameState(GameState.MENU)} difficulty={difficulty} />;
       default:
-        return <MainMenu onSelectGame={(game) => { setMenuAtRoot(false); setGameState(game); }} difficulty={difficulty} setDifficulty={setDifficulty} onOpenPlayground={() => setPlaygroundOpen(true)} startAtRoot={menuAtRoot} />;
+        return <MainMenu onSelectGame={(game) => { setMenuAtRoot(false); setGameState(game); }} difficulty={difficulty} setDifficulty={setDifficulty} onOpenPlayground={() => setPlaygroundOpen(true)} onOpenLectures={() => { window.location.hash = 'lectures'; setLecturesOpen(true); }} startAtRoot={menuAtRoot} />;
     }
   };
 
@@ -326,13 +335,14 @@ const getGameIcon = (game: GameDefinition): React.ReactNode => {
 
 interface MenuProps {
   onOpenPlayground: () => void;
+  onOpenLectures: () => void;
   startAtRoot?: boolean;
   onSelectGame: (game: GameState) => void;
   difficulty: Difficulty;
   setDifficulty: (difficulty: Difficulty) => void;
 }
 
-const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty, onOpenPlayground, startAtRoot = false }) => {
+const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty, onOpenPlayground, onOpenLectures, startAtRoot = false }) => {
   const isAdvanced = difficulty === 'ADVANCED';
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
@@ -472,6 +482,14 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                     <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm shrink-0"><Layers className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-700" /></div>
                     <div className="text-left min-w-0 flex-1"><h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">桌遊新樂園</h3><p className="text-gray-600 text-xs sm:text-base leading-snug">兩款新桌遊，一起選牌、築牆對決</p></div>
                     <ChevronRight className="w-6 h-6 text-emerald-700 shrink-0" />
+                </button>
+                <button
+                    onClick={onOpenLectures}
+                    className="bg-orange-50 border-2 border-orange-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex flex-row items-center gap-3 sm:gap-4 group h-full w-full md:col-span-2"
+                >
+                    <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm shrink-0"><BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-orange-700" /></div>
+                    <div className="text-left min-w-0 flex-1"><h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">職能講座</h3><p className="text-gray-600 text-xs sm:text-base leading-snug">從生活故事出發，一起練習與討論</p></div>
+                    <ChevronRight className="w-6 h-6 text-orange-700 shrink-0" />
                 </button>
             </div>
         ) : (
