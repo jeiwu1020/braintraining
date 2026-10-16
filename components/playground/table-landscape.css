@@ -1,0 +1,240 @@
+/* The five new table games only. A fixed play surface, with optional detail dialogs. */
+.pg-viewport .tg-shell.tg-live > main { overflow: hidden; }
+.tg-shell.tg-live { font-size: 18px; line-height: 1.35; }
+.tg-shell.tg-live .game-shell__header { min-height: 56px; padding: 3px 8px; }
+.tg-shell.tg-live .game-shell__header h1 { font-size: 21px; overflow: visible; white-space: normal; text-overflow: clip; }
+.tg-shell.tg-live .game-shell__header p { font-size: 16px; max-width: none; overflow: visible; white-space: normal; text-overflow: clip; }
+.tg-shell.tg-live .game-shell__header button { padding: 5px 9px; }
+.tg-shell.tg-live .tg-session { padding: 8px; gap: 0; position: relative; }
+.tg-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); padding: 0; border: 0; }
+.tg-shell.tg-live .tg-desk-note { margin: 0; font-size: 16px; line-height: 1.25; color: #f8ead2; align-self: center; }
+.tg-shell.tg-live button { font-size: 18px; }
+.tg-voyage-desk { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr); grid-template-rows: 36px minmax(0,1fr) auto; gap: 6px 10px; min-height: 0; height: 100%; }
+.tg-voyage-weather { grid-column: 1/-1; display: flex; gap: 18px; justify-content: space-between; align-items: center; background: #e9d7b1; color: #193c47; padding: 4px 12px; border: 1px solid #b89958; border-radius: 6px; }
+.tg-voyage-desk > .tg-desk-note { grid-column: 1/-1; }
+.tg-shell.tg-lighthouse.tg-live { background: repeating-linear-gradient(3deg,#142d40 0,#234b5a 2px,#183846 5px,#183846 18px) !important; }
+.tg-navigation-chart { position: relative; min-height: 0; height: 100%; border: 2px solid #b39859; border-radius: 12px; background: radial-gradient(ellipse at 50% 50%, #2b6476, #123247 80%); box-shadow: inset 0 0 35px #071a3080,0 3px 5px #081c2c; }
+.tg-route-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tg-compass { position: absolute; left: 18%; top: 8%; color: #d9bf7a80; font-size: clamp(30px,5vw,70px); line-height: .8; text-align: center; }
+.tg-compass small { display: block; font: 16px serif; }
+.tg-shell button.tg-port, .tg-real-lesson button.tg-port { position: absolute; transform: translate(-50%,-50%); width: clamp(92px,14vw,172px); min-height: 0; min-width: 0; height: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 3px; border: 1px solid #ddbd74; border-radius: 10px; background: linear-gradient(120deg,#f7edd1,#dfc99c); box-shadow: 0 4px 0 #0b243b80; color: #193c47; opacity: 1; }
+.tg-port strong { font-family: serif; font-size: 24px; letter-spacing: .12em; }
+.tg-port span { font-size: 18px; white-space: nowrap; }
+.tg-port small { font-size: 16px; line-height: 1.2; }
+.tg-shell button.tg-port:disabled { opacity: 1; background: linear-gradient(120deg,#cdd9ce,#b5c8bf); }
+.tg-shell button.tg-port-current, .tg-real-lesson button.tg-port-current { outline: 3px solid #f0cd6d; outline-offset: 3px; background: linear-gradient(120deg,#fff1c2,#eed18a); }
+.tg-shell button.tg-port:not(:disabled):hover { background: #fff7d7; outline: 3px solid #e6cf8c; }
+.tg-voyage-tools { display: flex; flex-direction: column; justify-content: center; min-height: 0; padding: 12px; gap: 12px; }
+.tg-cargo { display: grid; grid-template-columns: 1fr auto; gap: 4px; font-size: 19px; border-bottom: 1px solid #b9a47f; padding-bottom: 8px; }
+.tg-cargo strong { font-size: 23px; }.tg-cargo b { grid-column: 1/-1; font-size: 20px; }
+.tg-port-work { display: grid; gap: 8px; }.tg-port-work > p { margin: 0; }
+.tg-load-line { display: flex; gap: 8px; }.tg-load-line label { display: flex; align-items: center; justify-content: space-between; flex: 1; gap: 4px; }
+.tg-load-line select { min-width: 48px; width: 48px; }
+.tg-secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tg-turn-complete { text-align: center; }.tg-turn-complete button { width: 100%; }
+.tg-shell.tg-garden.tg-live { background: repeating-linear-gradient(3deg,#506447 0,#657a52 3px,#576b49 7px,#576b49 18px) !important; }
+.tg-garden-desk { display: grid; grid-template-columns: minmax(0,1fr) minmax(280px,.9fr) minmax(0,1fr); grid-template-rows: minmax(0,1fr) auto; gap: 8px 14px; height: 100%; min-height: 0; }
+.tg-garden-desk .tg-garden-block { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 10px; border: 2px solid #b4a474; border-radius: 12px; color: #244e3d; background: radial-gradient(ellipse at 15% 5%,#fff9dc,#dbdeba 90%); box-shadow: inset 0 0 0 4px #f1e6c7a0,0 3px 6px #233b3240; }
+.tg-garden-caption { display: flex; justify-content: space-between; gap: 4px; align-items: center; }
+.tg-garden-caption h2 { font-family: serif; font-size: 25px; margin: 0; }
+.tg-garden-caption > span { font-size: 16px; }.tg-garden-caption strong { color: #7e3b49; }
+.tg-garden-desk .tg-garden-tally { font-size: 17px; margin: 4px 0; }
+.tg-garden-desk .tg-grid-wrap { flex: 1; display: grid; place-items: center; min-height: 0; overflow: visible; container-type: size; padding: 0; }
+.tg-garden-desk .tg-coordinate-board, .tg-compare-gardens .tg-coordinate-board { --garden-cell: min(calc((100cqw - 24px - 3px * var(--garden-size)) / var(--garden-size)),calc((100cqh - 22px - 3px * var(--garden-size)) / var(--garden-size))); display: grid; grid-template-columns: 20px repeat(var(--garden-size),var(--garden-cell)); grid-template-rows: 18px repeat(var(--garden-size),var(--garden-cell)); gap: 3px; width: max-content; }
+.tg-garden-desk .tg-coordinate-board > b { font-size: 17px; line-height: 1; }
+.tg-garden-desk .tg-garden-cell, .tg-compare-gardens .tg-garden-cell { width: var(--garden-cell); height: var(--garden-cell); min-width: 0; min-height: 0; padding: 0; border-radius: 4px; background: linear-gradient(135deg,#f8f2dc,#dce1bc); box-shadow: inset 0 0 6px #717f5140; }
+.tg-garden-desk .tg-garden-cell svg, .tg-compare-gardens .tg-garden-cell svg { width: 94%; height: 94%; }
+.tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"] { border-bottom: 2px solid #648662; }
+.tg-garden-desk button.tg-garden-cell.tg-ghost { background: #b8ddab; outline: 3px dashed #185e47; outline-offset: -3px; }
+.tg-garden-desk button.tg-garden-cell.tg-invalid-ghost { background: #ebc7b9; outline-color: #ae473b; }
+.tg-entry { font-size: 14px; font-weight: bold; }
+.tg-garden-tools { display: flex; flex-direction: column; gap: 10px; justify-content: center; padding: 12px; min-height: 0; }
+.tg-market-title, .tg-rotation-line, .tg-garden-comparison { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.tg-market-title { font-size: 19px; }.tg-market-title > span { font-size: 17px; }
+.tg-garden-tools .tg-tile-market { margin: 0; gap: 8px; }
+.tg-garden-tools .tg-tile-market button { padding: 5px 3px; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; }
+.tg-garden-tools .tg-tile-market button > b { font-size: 17px; line-height: 1; }
+.tg-garden-tools .tg-tile-market button > small { position: absolute; bottom: 0; background: #fff2d2; font-size: 14px; }
+.tg-garden-tools .tg-mini-tile { --tile-cell: clamp(15px,2vw,28px); height: calc(var(--tile-cell)*3 + 4px); min-height: 0; margin: 3px auto 0; align-content: center; }
+.tg-mini-tile > div { width: var(--tile-cell,28px); height: var(--tile-cell,28px); }.tg-mini-tile svg { width: 100%; height: 100%; }
+.tg-coordinate-input { display: grid; grid-template-columns: 1fr 1fr 1.7fr; gap: 5px; align-items: center; }
+.tg-coordinate-input label { display: flex; align-items: center; gap: 3px; }.tg-coordinate-input select { width: 100%; min-width: 46px; padding: 3px; }
+.tg-coordinate-input button { padding: 7px 5px; }
+.tg-garden-tools .tg-placement-status { margin: 0; min-height: 23px; font-size: 17px; font-weight: bold; color: #285b43; }
+.tg-garden-tools .tg-placement-error { color: #9c3c32; }
+.tg-garden-comparison { font-size: 17px; border-top: 1px solid #c3ad80; padding-top: 7px; }.tg-garden-comparison button { font-size: 16px; }
+.tg-opponent-desktop { display: flex; min-height: 0; }.tg-opponent-desktop > section { width: 100%; }
+.tg-garden-desk > .tg-desk-note { grid-column: 1/-1; }
+.tg-compare-gardens { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }.tg-compare-gardens .tg-grid-wrap { height: min(55dvh,340px); container-type: size; overflow: visible; display: grid; place-items: center; }
+.tg-compare-gardens .tg-garden-block + section { margin: 0; padding: 0; border: 0; }
+.tg-real-lesson .tg-navigation-chart { height: 280px; margin: 8px 0; }.tg-real-lesson .tg-port { pointer-events: none; }
+.tg-lesson-garden { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
+.tg-lesson-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; max-width: 280px; }.tg-lesson-grid > div { aspect-ratio: 1; border: 1px solid #81946b; background: #e6e7c7; }.tg-lesson-grid svg { width: 100%; height: 100%; }.tg-lesson-grid .tg-lesson-ghost { outline: 2px dashed #316f47; outline-offset:-2px; background: #c6dcad; }
+.tg-lesson-garden button { margin: 3px; }
+@media (max-width:1100px) {
+  .tg-garden-desk { grid-template-columns: minmax(0,1fr) minmax(280px,1.15fr); }.tg-opponent-desktop { display: none; }
+}
+@media (orientation:landscape) and (max-height:600px) {
+  .tg-shell.tg-live .game-shell__header { min-height: 50px; padding: 1px 5px; }
+  .tg-shell.tg-live .game-shell__header h1 { font-size: 18px; line-height: 1.1; }
+  .tg-shell.tg-live .game-shell__header p { font-size: 15px; line-height: 1.15; }
+  .tg-shell.tg-live .game-shell__header button { font-size: 16px; padding: 4px 6px; }
+  .tg-shell.tg-live .tg-session { padding: 5px; }
+  .tg-shell.tg-live button { font-size: 16px; }
+  .tg-voyage-desk { grid-template-columns: minmax(0,1.7fr) minmax(198px,1fr); grid-template-rows: 28px minmax(0,1fr) auto; gap: 5px 8px; }
+  .tg-voyage-weather { font-size: 16px; padding: 2px 7px; gap: 8px; }
+  .tg-shell button.tg-port, .tg-real-lesson button.tg-port { width: clamp(82px,13.4vw,124px); padding: 4px 1px; gap: 1px; border-radius: 6px; }
+  .tg-port strong { font-size: 19px; }.tg-port span { font-size: 16px; }.tg-port small { font-size: 14px; }
+  .tg-voyage-tools { padding: 7px; gap: 6px; }.tg-cargo { font-size: 16px; gap: 0; padding-bottom: 3px; }.tg-cargo strong { font-size: 18px; }.tg-cargo b { font-size: 17px; }
+  .tg-load-line { gap: 5px; font-size: 16px; }.tg-load-line select { min-width: 44px; width: 44px; font-size: 18px; }
+  .tg-port-work { gap: 5px; }.tg-secondary-actions { gap: 5px; }.tg-port-work > p { font-size: 17px; }
+  .tg-shell.tg-live .tg-desk-note { font-size: 15px; }
+  .tg-garden-desk { grid-template-columns: minmax(0,.85fr) minmax(290px,1.15fr); gap: 5px 8px; }
+  .tg-garden-desk .tg-garden-block { padding: 6px; border-radius: 8px; }
+  .tg-garden-caption h2 { font-size: 20px; }.tg-garden-caption > span { font-size: 15px; }
+  .tg-garden-desk .tg-garden-tally { font-size: 15px; margin: 1px 0 3px; }
+  .tg-garden-tools { padding: 7px; gap: 5px; }
+  .tg-market-title { font-size: 17px; }.tg-market-title > span { font-size: 15px; }
+  .tg-garden-tools .tg-tile-market { gap: 6px; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell: 17px; height: 55px; margin: 2px auto 0; }
+  .tg-garden-tools .tg-tile-market button { padding: 3px 2px; }
+  .tg-garden-tools .tg-tile-market button > b { font-size: 15px; }
+  .tg-rotation-line { font-size: 16px; }.tg-rotation-line button { padding: 4px 9px; }
+  .tg-coordinate-input label { font-size: 15px; }.tg-coordinate-input select { font-size: 18px; }
+  .tg-garden-tools .tg-placement-status { font-size: 15px; min-height: 18px; }
+  .tg-garden-comparison { font-size: 16px; padding-top: 0; border-top: 0; }.tg-garden-comparison button { min-height: 30px; padding: 3px 6px; font-size: 15px; }
+  .tg-opponent-desktop { display: none; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+  .tg-shell.tg-live .game-shell__header { min-height: 48px; }
+  .tg-voyage-desk { grid-template-rows: 26px minmax(0,1fr) 30px; gap: 4px 8px; }
+  .tg-garden-desk { grid-template-rows: minmax(0,1fr) 30px; }
+  .tg-voyage-tools { gap: 4px; padding: 5px; }.tg-cargo { padding: 0; }
+  .tg-garden-tools { gap: 3px; padding: 5px; }
+  .tg-garden-tools .tg-market-title { display: none; }
+  .tg-cargo { line-height: 1.1; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell: 14px; height: 44px; }
+  .tg-garden-caption > span { display: none; }
+  .tg-garden-desk .tg-garden-tally { font-size: 14px; }
+  .tg-garden-comparison button { min-height: 26px; }
+}
+@media (orientation:portrait) {
+  .pg-viewport .tg-shell.tg-live > main { overflow-y:auto; }
+  .tg-shell.tg-live .tg-session { min-height: 720px; height: auto; }
+  .tg-voyage-desk { grid-template-columns: 1fr; grid-template-rows: auto 280px auto auto; }.tg-voyage-weather { flex-wrap: wrap; }
+  .tg-garden-desk { grid-template-columns: 1fr; grid-template-rows: 360px auto auto; }.tg-garden-desk > .tg-desk-note { grid-column: 1; }
+  .tg-garden-desk .tg-grid-wrap { min-height: 260px; }.tg-opponent-desktop { display:none; }
+  .tg-shell.tg-live .game-shell__header p { font-size: 13px; }.tg-shell.tg-live .game-shell__header button { font-size: 14px; padding: 4px; }
+}
+/* Lantern: choices live directly in the comparison table. */
+.tg-shell.tg-lantern.tg-live { background: radial-gradient(ellipse at 50% 0,#8d5c3b,#352d36 80%) !important; }
+.tg-lantern-desk { height:100%; min-height:0; display:grid; grid-template-columns:minmax(0,1.7fr) minmax(230px,1fr); grid-template-rows:minmax(0,1fr) auto; gap:8px 12px; }
+.tg-lantern-map { border:2px solid #ba8c55; background:linear-gradient(110deg,#644637,#352a2d); border-radius:12px; padding:12px; min-height:0; color:#ffefd0; display:flex; flex-direction:column; justify-content:center; }
+.tg-lantern-totals { display:flex; justify-content:space-around; font-size:24px; padding:7px 0; border-bottom:1px solid #c89b64; }
+.tg-lantern-table { border-collapse:separate; border-spacing:4px; text-align:center; width:100%; font-size:23px; }
+.tg-lantern-table thead { font-size:18px; }.tg-lantern-table th,.tg-lantern-table td { padding:3px; }.tg-lantern-table tbody td { border-bottom:1px solid #b28753; }
+.tg-lantern-table button { width:100%; min-width:0; }.tg-lantern-table button:disabled { opacity:.65; }.tg-lantern-table .tg-evaluation-now { background:#ffe0a2; color:#633f2c; border-radius:5px; }.tg-lantern-lead { color:#ffe0a0; font-weight:bold; background:#80583b; }
+.tg-lantern-map .tg-lantern-forecast { margin:3px 0; font-size:18px; text-align:center; }
+.tg-lantern-tools { padding:16px; display:flex; flex-direction:column; justify-content:center; gap:12px; min-height:0; }
+.tg-lantern-reserve { display:flex; flex-direction:column; gap:5px; font-size:21px; }.tg-lantern-reserve span { font-size:18px; }
+.tg-lantern-quantity,.tg-lantern-from { display:flex; justify-content:space-between; align-items:center; gap:6px; }.tg-lantern-from select { flex:1; width:0; }
+.tg-lantern-tools p { margin:0; }.tg-lantern-instruction { min-height:44px; display:flex; align-items:center; }
+.tg-lantern-desk > .tg-desk-note { grid-column:1/-1; }
+/* Workshop: persistent stock ledger beside all five shared stations. */
+.tg-workshop-desk { display:grid; grid-template-columns:minmax(190px,.65fr) minmax(0,2fr); grid-template-rows:minmax(0,1fr) auto auto; gap:8px 12px; height:100%; min-height:0; }
+.tg-workshop-ledger { grid-column:1; grid-row:1; padding:8px; display:flex; align-items:center; min-height:0; }
+.tg-workshop-ledger table { width:100%; border-collapse:collapse; text-align:center; font-size:23px; }.tg-workshop-ledger th,.tg-workshop-ledger td { border-bottom:1px solid #c4af8a; padding:8px 3px; }.tg-workshop-ledger .tg-ledger-active { background:#e0dfb8; color:#184b3c; font-weight:bold; }
+.tg-workshop-options { grid-column:1; grid-row:2; color:#fff3d8; display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; font-size:18px; }.tg-workshop-options label { display:flex; align-items:center; gap:6px; }.tg-workshop-options select { color:#23483b; }
+.tg-station-table { grid-column:2; grid-row:1/3; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr)); gap:10px; min-height:0; }
+.tg-workstation { border:2px solid #b89764; border-radius:10px; background:repeating-linear-gradient(2deg,#b18b60 0,#b18b60 15px,#a78259 17px,#b18b60 19px); padding:10px; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:8px; color:#2c3227; box-shadow:inset 0 0 0 3px #ffffff20,0 3px 5px #422b1b80; }
+.tg-station-sign { display:flex; flex-wrap:wrap; align-items:center; gap:5px; }.tg-station-sign > span { color:#29473f; font-size:25px; }.tg-station-sign b { font-family:serif; font-size:24px; }.tg-station-sign small { margin-left:auto; font-size:15px; }
+.tg-workstation p { font-size:18px; margin:0; min-height:49px; }.tg-workstation button { width:100%; margin-top:auto; }.tg-workstation-used { background:repeating-linear-gradient(2deg,#99876b 0,#a6967a 15px,#99876b 18px); }.tg-rest-station { background:#ded3b5; }
+.tg-workshop-desk > .tg-desk-note { grid-column:1/-1; grid-row:3; }
+/* Auction: every upcoming item and both collections remain on the table. */
+.tg-shell.tg-auction.tg-live { background:repeating-linear-gradient(3deg,#61483e 0,#79584a 3px,#624a3e 8px,#624a3e 20px) !important; }
+.tg-auction-desk { display:grid; grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr) auto auto; gap:10px; height:100%; min-height:0; }
+.tg-auction-collections { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.tg-auction-collections article { background:#e4d3b3; border:1px solid #b69968; border-radius:9px; padding:8px 12px; }.tg-auction-collections .tg-collection-active { background:#fff0cb; box-shadow:inset 0 0 0 2px #e3bc69; }
+.tg-auction-collections h2 { display:flex; justify-content:space-between; gap:6px; font-size:22px; margin:0; }.tg-auction-collections p { font-size:18px; margin:2px 0 0; }.tg-auction-collections h2 span { color:#7e3946; }
+.tg-auction-display { min-height:0; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center; }
+.tg-current-art { display:flex; align-items:center; gap:16px; min-width:0; min-height:0; height:100%; }.tg-current-art .tg-artifact { width:45%; max-height:100%; }.tg-current-art h2 { font-family:serif; color:#703e36; font-size:30px; margin:5px 0; }.tg-current-art b { font-size:26px; }.tg-current-art span { font-size:18px; }
+.tg-auction-decision h3 { font-size:24px; margin:0; }.tg-auction-decision h3 strong { font-size:30px; color:#803e35; }.tg-auction-decision p { font-size:19px; margin:6px 0; }.tg-auction-decision > button { width:100%; }.tg-budget-warning { color:#9d332e; }
+.tg-auction-itinerary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }.tg-auction-itinerary article { background:#d7c5a3; border:1px solid #ad936c; border-radius:6px; padding:6px 8px; display:flex; flex-direction:column; font-size:18px; color:#433e32; }.tg-auction-itinerary .tg-itinerary-current { background:#ffedc5; outline:2px solid #e6bd64; outline-offset:-2px; }.tg-auction-itinerary small { font-size:16px; }
+.tg-auction-footer { display:flex; justify-content:space-between; gap:8px; align-items:center; }.tg-auction-footer button { font-size:16px; }
+@media (orientation:landscape) and (max-height:600px) {
+  .tg-lantern-desk { grid-template-columns:minmax(0,1.7fr) minmax(198px,1fr); gap:5px 8px; }
+  .tg-lantern-map { padding:4px; border-radius:8px; justify-content:space-between; }
+  .tg-lantern-totals { font-size:18px; padding:2px 0; }
+  .tg-lantern-table { border-spacing:3px 1px; font-size:18px; }.tg-lantern-table thead { font-size:15px; }.tg-lantern-table th,.tg-lantern-table td { padding:0 2px; }.tg-lantern-table th:first-child { width:36%; }.tg-lantern-table button { padding:4px; font-size:17px; }
+  .tg-lantern-map .tg-lantern-forecast { font-size:15px; margin:1px 0; }
+  .tg-lantern-tools { padding:7px; gap:6px; }.tg-lantern-reserve { font-size:18px; gap:1px; }.tg-lantern-reserve span { font-size:16px; }.tg-lantern-tools p,.tg-lantern-quantity,.tg-lantern-from { font-size:16px; }.tg-lantern-tools select { font-size:16px; }
+  .tg-workshop-desk { grid-template-columns:180px minmax(0,1fr); grid-template-rows:minmax(0,1fr) 44px auto; gap:5px 8px; }
+  .tg-workshop-ledger { padding:4px; }.tg-workshop-ledger table { font-size:18px; }.tg-workshop-ledger th,.tg-workshop-ledger td { padding:2px; line-height:1.25; }
+  .tg-workshop-options { font-size:16px; flex-wrap:nowrap; gap:3px; }.tg-workshop-options > b { display:none; }.tg-workshop-options label { width:100%; justify-content:space-between; }
+  .tg-station-table { gap:6px; }.tg-workstation { padding:5px; gap:3px; border-width:1px; border-radius:7px; }
+  .tg-station-sign { gap:3px; flex-wrap:nowrap; }.tg-station-sign > span { display:none; }.tg-station-sign b { font-size:18px; }.tg-station-sign small { font-size:14px; }.tg-workstation p { font-size:16px; min-height:0; line-height:1.25; }.tg-workstation button { padding:4px; min-height:44px; }
+  .tg-auction-desk { gap:5px; grid-template-rows:55px minmax(0,1fr) auto 30px; }
+  .tg-auction-collections { gap:6px; }.tg-auction-collections article { padding:4px 7px; border-radius:6px; }.tg-auction-collections h2 { font-size:18px; }.tg-auction-collections p { font-size:15px; margin:0; }
+  .tg-auction-display { padding:5px 8px; gap:8px; }.tg-current-art { gap:7px; }.tg-current-art .tg-artifact { width:37%; }.tg-current-art h2 { font-size:21px; margin:2px 0; }.tg-current-art span { font-size:15px; }.tg-current-art b { font-size:19px; }
+  .tg-auction-decision h3 { font-size:18px; }.tg-auction-decision h3 strong { font-size:22px; }.tg-auction-decision p { font-size:16px; margin:2px 0 4px; }.tg-auction-decision button { padding:5px 3px; }.tg-auction-decision .tg-action-grid { gap:5px; }
+  .tg-auction-itinerary { gap:4px; }.tg-auction-itinerary article { padding:3px 5px; display:grid; grid-template-columns:1fr auto; gap:0 4px; font-size:15px; line-height:1.2; }.tg-auction-itinerary article > b { grid-column:1/-1; font-size:16px; }.tg-auction-itinerary small { font-size:14px; }
+  .tg-auction-footer button { min-height:30px; font-size:15px; padding:3px 6px; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+  .tg-lantern-desk { grid-template-rows:minmax(0,1fr) 30px; }.tg-lantern-map .tg-lantern-forecast { display:none; }.tg-lantern-totals { font-size:17px; }.tg-lantern-table thead { font-size:14px; }.tg-lantern-table button { min-height:40px; }
+  .tg-lantern-tools { gap:4px; }.tg-lantern-reserve { line-height:1.2; }.tg-lantern-instruction { min-height:40px; }
+  .tg-workshop-desk { grid-template-columns:170px minmax(0,1fr); grid-template-rows:minmax(0,1fr) 44px 30px; }.tg-workstation { padding:4px; gap:2px; }.tg-station-sign { flex-wrap:wrap; gap:0 4px; }.tg-station-sign b { font-size:17px; }.tg-station-sign small { font-size:13px; }.tg-workstation p { font-size:15px; line-height:1.15; }.tg-workstation button { min-height:40px; }
+  .tg-auction-desk { grid-template-rows:48px minmax(0,1fr) auto 30px; gap:4px; }.tg-auction-collections h2 { font-size:17px; }.tg-auction-collections p { font-size:14px; }.tg-auction-itinerary article { font-size:14px; padding:2px 3px; }.tg-auction-itinerary article > b { font-size:15px; }.tg-auction-itinerary small { font-size:13px; }.tg-current-art .tg-artifact { width:29%; }.tg-auction-display { padding:4px 6px; }.tg-auction-decision p { margin:0 0 3px; }
+}
+@media (orientation:portrait) {
+  .tg-lantern-desk { grid-template-columns:1fr; grid-template-rows:auto auto auto; }.tg-lantern-map { min-height:330px; }
+  .tg-workshop-desk { grid-template-columns:1fr; grid-template-rows:auto auto 460px auto; }.tg-workshop-ledger { grid-column:1;grid-row:1; }.tg-workshop-options { grid-column:1;grid-row:2; }.tg-station-table { grid-column:1;grid-row:3;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr)); }.tg-workshop-desk > .tg-desk-note { grid-column:1;grid-row:4; }
+  .tg-auction-desk { grid-template-rows:auto 300px auto auto; }.tg-auction-display { grid-template-columns:1fr; }.tg-auction-itinerary { grid-template-columns:repeat(2,minmax(0,1fr)); }.tg-auction-collections h2 { font-size:18px; }.tg-auction-collections p { font-size:16px; }.tg-current-art .tg-artifact { max-height:120px; }.tg-auction-footer { flex-wrap:wrap; }
+}
+
+.tg-port-vignette { position:absolute; right:3px; bottom:2px; width:45%; height:90%; opacity:.14; pointer-events:none; }
+.tg-port strong,.tg-port span,.tg-port small { position:relative; z-index:1; }
+@media (orientation:landscape) and (max-height:600px) { .tg-shell.tg-live .tg-result { padding:14px 18px; max-height:100%; overflow:auto; } }
+
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-garden-tools .tg-tile-market button > b { position:absolute; top:4px; left:4px; }
+ .tg-garden-tools .tg-mini-tile { margin-top:0; }
+ .tg-workshop-ledger th,.tg-workshop-ledger td { padding:1px; line-height:1.15; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-voyage-desk { grid-template-rows:26px minmax(0,1fr) 24px; }
+ .tg-garden-desk { grid-template-rows:minmax(0,1fr) 24px; }
+}
+
+.tg-shell .tg-garden-desk button.tg-garden-cell { width:var(--garden-cell); height:var(--garden-cell); min-width:0; min-height:0; padding:0; }
+.tg-shell.tg-live .game-shell__header p { margin:0; }
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-garden-desk { grid-template-rows:minmax(0,1fr); }
+ .tg-garden-desk > .tg-desk-note { display:none; }
+ .tg-garden-desk .tg-garden-block { padding:4px; }
+ .tg-garden-tools .tg-mini-tile { --tile-cell:18px; height:58px; }
+}
+
+/* Keep bid controls in their own row even on the shortest landscape phone. */
+.tg-auction-collections { grid-template-columns:1fr 1fr auto; align-items:stretch; }
+.tg-auction-detail-toggle { align-self:center; }
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-auction-collections article { padding:3px 6px; }
+ .tg-auction-detail-toggle { padding:3px 5px; font-size:15px; }
+ .tg-auction-desk { grid-template-rows:52px minmax(0,1fr) auto 24px; }
+ .tg-auction-footer { justify-content:center; }
+ .tg-auction-decision { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:3px; }
+ .tg-auction-decision h3 { line-height:1.15; }
+ .tg-auction-decision p { margin:0; line-height:1.15; }
+ .tg-auction-decision .tg-action-grid,.tg-auction-decision > button { grid-column:1/-1; }
+ .tg-current-art > div { display:grid; grid-template-columns:auto auto; gap:1px 5px; align-items:center; }
+ .tg-current-art > div > span { grid-column:1/-1; }
+ .tg-current-art h2 { line-height:1.15; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-lantern-desk { grid-template-rows:minmax(0,1fr); }
+ .tg-lantern-desk > .tg-desk-note { display:none; }
+ .tg-workshop-desk { grid-template-rows:minmax(0,1fr) 44px; }
+ .tg-workshop-desk > .tg-desk-note { display:none; }
+ .tg-auction-desk { grid-template-rows:52px minmax(0,1fr) auto; }
+ .tg-auction-footer { display:none; }
+}

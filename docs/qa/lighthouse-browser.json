@@ -1,0 +1,320 @@
+{
+  "kind": "Desktop Chromium emulated viewports, not physical devices",
+  "measurements": [
+    {
+      "width": 568,
+      "height": 320,
+      "docWidth": 568,
+      "docHeight": 320,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "母港 · 1 行動",
+          "h": 58.78125,
+          "w": 108.625
+        },
+        {
+          "label": "白礁燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 108.640625
+        },
+        {
+          "label": "遠岬燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 108.625
+        },
+        {
+          "label": "松灣燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 108.640625
+        },
+        {
+          "label": "裝入目前貨單",
+          "h": 44,
+          "w": 225.265625
+        },
+        {
+          "label": "卸貨補給",
+          "h": 44,
+          "w": 108.625
+        },
+        {
+          "label": "整備",
+          "h": 44,
+          "w": 108.640625
+        },
+        {
+          "label": "等待",
+          "h": 44,
+          "w": 108.625
+        }
+      ],
+      "panels": [
+        {
+          "scroll": 498,
+          "client": 184,
+          "overflow": "auto"
+        },
+        {
+          "scroll": 750,
+          "client": 186,
+          "overflow": "auto"
+        }
+      ]
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "docHeight": 375,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "母港 · 1 行動",
+          "h": 58.78125,
+          "w": 131.140625
+        },
+        {
+          "label": "白礁燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 131.140625
+        },
+        {
+          "label": "遠岬燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 131.140625
+        },
+        {
+          "label": "松灣燈塔 · 1 行動",
+          "h": 58.78125,
+          "w": 131.140625
+        },
+        {
+          "label": "裝入目前貨單",
+          "h": 44,
+          "w": 270.28125
+        },
+        {
+          "label": "卸貨補給",
+          "h": 44,
+          "w": 131.140625
+        },
+        {
+          "label": "整備",
+          "h": 44,
+          "w": 131.140625
+        },
+        {
+          "label": "等待",
+          "h": 44,
+          "w": 131.140625
+        }
+      ],
+      "panels": [
+        {
+          "scroll": 517,
+          "client": 235,
+          "overflow": "auto"
+        },
+        {
+          "scroll": 750,
+          "client": 237,
+          "overflow": "auto"
+        }
+      ]
+    },
+    {
+      "width": 852,
+      "height": 393,
+      "docWidth": 852,
+      "docHeight": 393,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "母港 · 1 行動",
+          "h": 44,
+          "w": 173.171875
+        },
+        {
+          "label": "白礁燈塔 · 1 行動",
+          "h": 44,
+          "w": 173.1875
+        },
+        {
+          "label": "遠岬燈塔 · 1 行動",
+          "h": 44,
+          "w": 173.171875
+        },
+        {
+          "label": "松灣燈塔 · 1 行動",
+          "h": 44,
+          "w": 173.1875
+        },
+        {
+          "label": "裝入目前貨單",
+          "h": 44,
+          "w": 354.359375
+        },
+        {
+          "label": "卸貨補給",
+          "h": 44,
+          "w": 173.171875
+        },
+        {
+          "label": "整備",
+          "h": 44,
+          "w": 173.1875
+        },
+        {
+          "label": "等待",
+          "h": 44,
+          "w": 173.171875
+        }
+      ],
+      "panels": [
+        {
+          "scroll": 582,
+          "client": 253,
+          "overflow": "auto"
+        },
+        {
+          "scroll": 666,
+          "client": 255,
+          "overflow": "auto"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "docHeight": 900,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "母港 · 1 行動",
+          "h": 44,
+          "w": 243.515625
+        },
+        {
+          "label": "白礁燈塔 · 1 行動",
+          "h": 44,
+          "w": 243.53125
+        },
+        {
+          "label": "遠岬燈塔 · 1 行動",
+          "h": 44,
+          "w": 243.515625
+        },
+        {
+          "label": "松灣燈塔 · 1 行動",
+          "h": 44,
+          "w": 243.53125
+        },
+        {
+          "label": "裝入目前貨單",
+          "h": 44,
+          "w": 495.046875
+        },
+        {
+          "label": "卸貨補給",
+          "h": 44,
+          "w": 243.515625
+        },
+        {
+          "label": "整備",
+          "h": 44,
+          "w": 243.53125
+        },
+        {
+          "label": "等待",
+          "h": 44,
+          "w": 243.515625
+        }
+      ],
+      "panels": [
+        {
+          "scroll": 734,
+          "client": 734,
+          "overflow": "auto"
+        },
+        {
+          "scroll": 736,
+          "client": 736,
+          "overflow": "auto"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "resourceErrors": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    }
+  ],
+  "completeGame": true,
+  "cancel": true,
+  "reload": true,
+  "restart": true
+}

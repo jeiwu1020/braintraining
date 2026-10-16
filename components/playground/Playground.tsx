@@ -4,10 +4,16 @@ import { clearSaved, readSaved } from "../../games/playground/session";
 import { ConfirmDialog } from "./Common";
 import "./playground.css";
 import "./mobile-viewport.css";
+import "./table-games.css";
 import { useExperienceViewport } from "../experience-ui/useExperienceViewport";
 const NightMarket = React.lazy(() => import("./NightMarket"));
 const WallRace = React.lazy(() => import("./WallRace"));
-const SCREENS = { "night-market": NightMarket, "wall-race": WallRace };
+const Lighthouse = React.lazy(() => import("./Lighthouse"));
+const Garden = React.lazy(() => import("./Garden"));
+const Lantern = React.lazy(() => import("./Lantern"));
+const Workshop = React.lazy(() => import("./Workshop"));
+const Auction = React.lazy(() => import("./Auction"));
+const SCREENS = { "night-market": NightMarket, "wall-race": WallRace, lighthouse: Lighthouse, garden: Garden, lantern: Lantern, workshop: Workshop, auction: Auction };
 export default function Playground({ onBack }: { onBack: () => void }) {
   const viewportStyle = useExperienceViewport();
   const [game, setGame] = useState<PlaygroundId | null>(null),
@@ -30,7 +36,7 @@ export default function Playground({ onBack }: { onBack: () => void }) {
       <aside className="pg-gallery-intro pg-paper">
         <button onClick={onBack}>← 首頁</button>
         <div>
-          <p className="pg-eyebrow">兩款桌上時光</p>
+          <p className="pg-eyebrow">一起收藏桌上時光</p>
           <h1>
             桌遊
             <br />
@@ -53,7 +59,7 @@ export default function Playground({ onBack }: { onBack: () => void }) {
             <div className="pg-box-label pg-paper">
               <h2>{c.title}</h2>
               <p>{c.description}</p>
-              <p className="pg-box-modes">單人／兩隊　一般／進階</p>
+              <p className="pg-box-modes">{c.id === "lighthouse" ? "全團體合作" : ["garden", "lantern", "workshop", "auction"].includes(c.id) ? "兩隊對局" : "單人／兩隊"}　一般／進階</p>
               <button className="pg-primary" onClick={() => setGame(c.id)}>
                 {readSaved(c.id) ? "繼續本局" : c.action}　›
               </button>

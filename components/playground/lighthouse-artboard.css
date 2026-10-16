@@ -1,0 +1,86 @@
+/* Lighthouse visual sample: illustrated sea table, a single ship deck. */
+.tg-shell.tg-lighthouse.tg-live { background:#1b4855 !important; color:#f8edcf; }
+.tg-lighthouse.tg-live .game-shell__header { background:linear-gradient(95deg,#f6ecd3,#e8d8b7); border:0; box-shadow:0 2px 8px #09252b50; color:#28483f; }
+.tg-lighthouse.tg-live .game-shell__header button { background:transparent; border-color:#a796704d; box-shadow:none; border-radius:8px; }
+.tg-lighthouse.tg-live .game-shell__header h1 { font-family:serif; letter-spacing:.08em; }
+.tg-lighthouse.tg-live .tg-session { padding:0; }
+.lh-voyage { display:grid; grid-template-rows:38px minmax(0,1fr) 116px; min-height:0; height:100%; background:radial-gradient(ellipse at 40% 40%,#39757d 0,#245764 53%,#173e4f 100%); }
+.lh-weather-log { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 20px; color:#dbe8dc; font-size:18px; border-bottom:1px solid #c4d3bd23; }
+.lh-weather-log > div { display:flex; gap:24px; }.lh-weather-log b { color:#fff0c8; }.lh-weather-log > strong { color:#efcc86; }.lh-route-key { font-size:16px; }
+.tg-lighthouse .lh-island-chart { border:0; border-radius:0; box-shadow:none; background:radial-gradient(ellipse at 48% 80%,#73b0a31a,transparent 60%); overflow:visible; }
+.lh-chart-compass { position:absolute; left:5%; top:8%; color:#c6d4b75c; font-size:50px; line-height:.8; text-align:center; }.lh-chart-compass small { display:block; font:12px serif; }
+.lh-island-chart .lh-island { position:absolute; top:10%; left:2%; width:22%; height:78%; min-height:0; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:0; border:0; border-radius:0; background:transparent; color:#f7edcf; box-shadow:none; opacity:1; }
+.lh-island-chart .lh-island:disabled { opacity:1; background:transparent; color:#f7edcf; }
+.lh-island-chart .lh-island:not(:disabled):hover { background:transparent; filter:brightness(1.12); }
+.lh-island-chart .lh-island:focus-visible { outline:2px solid #f0d38f; outline-offset:1px; border-radius:16px; }
+.lh-island-chart .lh-island-1 { left:27%; top:0; }.lh-island-chart .lh-island-2 { left:76%; top:10%; }.lh-island-chart .lh-island-3 { left:52%; top:21%; }
+.lh-island-art { width:100%; min-height:0; flex:1; background-image:url('/assets/playground/lighthouse/islands-atlas-v1.png'); background-size:200% 200%; background-repeat:no-repeat; filter:drop-shadow(0 6px 7px #0b354a55); }
+.lh-atlas-0 { background-position:0 0; }.lh-atlas-1 { background-position:100% 0; }.lh-atlas-2 { background-position:0 100%; }.lh-atlas-3 { background-position:100% 100%; }
+.lh-island-label { width:90%; display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:-6px; padding:3px 8px 4px; background:linear-gradient(100deg,#ecdbb4,#fbefce 50%,#e9d7af); clip-path:polygon(4% 0,98% 1%,100% 95%,2% 100%,0 7%); color:#254643; text-shadow:none; box-shadow:0 3px 4px #0d3146; }
+.lh-island-label strong { font:700 26px/1.1 serif; letter-spacing:.12em; }.lh-island-label > span { font-size:19px; white-space:nowrap; }
+.lh-island-status { font-size:16px; line-height:1.3; margin-top:4px; color:#e4edd8; min-height:21px; }
+.lh-island-current .lh-island-label { background:#f2d38f; }.lh-island-current .lh-island-status { color:#f1cd83; }.lh-island-complete .lh-island-label { background:#d3e1b6; }
+.lh-moored { position:absolute; top:38%; left:-4%; width:44%; pointer-events:none; }.lh-supply-boat { width:100%; height:auto; }.lh-moored b { position:absolute; bottom:3px; left:15%; background:#f8e2ac; color:#244d4b; border-radius:10px; padding:1px 6px; font-size:13px; }
+.lh-ship-deck { display:grid; grid-template-columns:180px minmax(0,1fr) 180px; gap:24px; align-items:center; padding:12px 22px; border-top:2px solid #c4ad79; background:linear-gradient(180deg,#f0e5c9,#ded2b3); color:#284b43; box-shadow:0 -7px 20px #092e3d35,inset 0 4px #faf2dd66; }
+.lh-cargo-manifest { display:flex; flex-direction:column; justify-content:center; gap:3px; padding-right:15px; border-right:1px solid #9a8a6266; font-size:18px; }.lh-cargo-manifest > strong { font:700 23px/1.1 serif; }.lh-cargo-manifest b { font-size:27px; color:#815c3c; }.lh-cargo-manifest small { font:16px sans-serif; margin-left:3px; }.lh-ready { color:#53624d; }
+.lh-dock-task { display:flex; flex-direction:column; gap:7px; }.lh-dock-task > strong { font-size:21px; }.lh-dock-task small { font-size:16px; font-weight:normal; margin-left:12px; color:#68705b; }
+.lh-load-order { display:flex; align-items:center; gap:14px; }.lh-load-order label { display:flex; align-items:center; gap:6px; font-size:19px; }.lh-load-order select { width:60px; background:#fbf5e5; border:1px solid #a4a284; border-radius:6px; }.lh-load-order > button { flex:1; }
+.tg-shell .lh-ship-deck button { border:1px solid #9c987b; border-radius:8px; background:#f8f0db; box-shadow:0 2px 0 #a69e7866; padding:8px 16px; }
+.tg-shell .lh-ship-deck .pg-primary { background:linear-gradient(#487e76,#2d625d); border-color:#315b56; color:#fff6dd; box-shadow:0 3px 0 #163f40; }
+.lh-deck-secondary { display:flex; flex-direction:column; gap:7px; }.lh-deck-secondary > span { font-size:16px; color:#68705b; }.lh-deck-secondary > div { display:flex; gap:8px; }.lh-deck-secondary button { flex:1; }
+.lh-unload-task > div { display:flex; align-items:center; justify-content:space-between; gap:12px; }.lh-unload-task > div > span { font-size:19px; }.lh-unload-task button { min-width:120px; }
+.lh-day-end { grid-column:2/-1; display:grid; grid-template-columns:1fr auto; gap:4px 18px; }.lh-day-end > span { grid-column:1; font-size:18px; }.lh-day-end > button { grid-column:2; grid-row:1/3; }
+.tg-real-lesson .lh-island-chart { background:#285c68; height:280px; }.tg-real-lesson .lh-island { pointer-events:none; }
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-shell.tg-lighthouse.tg-live .game-shell__header { min-height:47px; padding:0 5px; }
+ .tg-lighthouse.tg-live .game-shell__header h1 { font-size:19px; }
+ .tg-lighthouse.tg-live .tg-session { padding:0; }
+ .lh-voyage { grid-template-rows:30px minmax(0,1fr) 96px; }
+ .lh-weather-log { padding:0 12px; gap:8px; font-size:16px; }.lh-weather-log > div { gap:16px; }.lh-route-key { font-size:14px; }
+ .lh-island-label { padding:2px 4px 3px; width:94%; }.lh-island-label strong { font-size:23px; }.lh-island-label > span { font-size:17px; }.lh-island-status { font-size:14px; margin-top:2px; min-height:18px; }
+ .lh-ship-deck { grid-template-columns:110px minmax(0,1fr) 116px; gap:12px; padding:9px 12px; }
+ .lh-cargo-manifest { font-size:16px; padding-right:7px; gap:2px; }.lh-cargo-manifest > strong { font-size:20px; }.lh-cargo-manifest b { font-size:24px; }.lh-cargo-manifest small { font-size:14px; }
+ .lh-dock-task { gap:5px; }.lh-dock-task > strong { font-size:18px; }.lh-dock-task small { font-size:14px; margin-left:7px; }
+ .lh-load-order { gap:7px; }.lh-load-order label { font-size:17px; gap:3px; }.lh-load-order select { width:44px; padding:3px; font-size:18px; }
+ .tg-shell .lh-ship-deck button { padding:5px 7px; font-size:17px; }
+ .lh-deck-secondary { gap:5px; }.lh-deck-secondary > span { font-size:14px; }.lh-deck-secondary > div { gap:6px; }
+ .lh-unload-task > div { gap:6px; }.lh-unload-task > div > span { font-size:16px; }.lh-unload-task button { min-width:92px; }
+ .lh-day-end > span { font-size:16px; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .lh-voyage { grid-template-rows:29px minmax(0,1fr) 88px; }
+ .lh-weather-log { font-size:15px; padding:0 9px; }.lh-weather-log > div { gap:12px; }.lh-route-key { font-size:13px; }
+ .lh-ship-deck { grid-template-columns:97px minmax(0,1fr) 105px; gap:9px; padding:6px 9px; }
+ .lh-cargo-manifest { font-size:15px; }.lh-cargo-manifest > strong { font-size:19px; }.lh-cargo-manifest b { font-size:22px; }
+ .lh-dock-task > strong { font-size:17px; }.lh-dock-task small { font-size:13px; margin-left:5px; }
+ .lh-load-order { gap:5px; }.lh-load-order label { font-size:16px; }.lh-load-order select { width:44px; }
+ .tg-shell .lh-ship-deck button { font-size:17px; padding:4px 5px; }
+ .lh-island-label strong { font-size:21px; }.lh-island-label > span { font-size:17px; }.lh-island-status { font-size:13px; min-height:17px; }
+ .lh-chart-compass { font-size:32px; }
+}
+@media (orientation:portrait) {
+ .lh-voyage { grid-template-rows:auto 330px auto; }
+ .lh-weather-log { flex-wrap:wrap; padding:8px; }
+ .lh-ship-deck { grid-template-columns:1fr; }.lh-cargo-manifest { border:0; }.lh-day-end { grid-column:1; }
+ .lh-island-label strong { font-size:18px; }.lh-island-label > span { font-size:14px; }.lh-island-status { font-size:11px; }
+}
+@media (orientation:landscape) and (min-height:601px) {
+ .lh-island-chart .lh-island { justify-content:center; }
+ .lh-island-art { flex:0 1 auto; aspect-ratio:3/2; max-height:calc(100% - 90px); }
+}
+/* Keep each painted island's original proportions; route costs are small chart tags. */
+.lh-island-chart .lh-island { container-type:size; --lh-label-space:72px; }
+.lh-island-art { flex:none; width:min(100%,calc((100cqh - var(--lh-label-space))*1.5)); height:min(calc(100cqw / 1.5),calc(100cqh - var(--lh-label-space))); aspect-ratio:3/2; max-height:none; }
+.lh-island-status { position:absolute; right:-1%; top:21%; margin:0; padding:2px 5px; min-height:0; color:#f2e3bc; background:#214b57e8; border-radius:4px; font-size:14px; }
+.lh-island-current .lh-island-status { display:none; }
+@media (orientation:landscape) and (max-height:600px) { .lh-island-chart .lh-island { --lh-label-space:56px; }.lh-island-status { font-size:13px; top:14%; } }
+@media (orientation:landscape) and (max-height:340px) { .lh-island-chart .lh-island { --lh-label-space:53px; }.lh-island-status { font-size:12px; right:-2%; top:10%; } }
+.lh-moored { z-index:3; top:17%; }
+.lh-cargo-manifest > span { white-space:nowrap; }
+/* Route costs and essential resource counts remain projection-readable. */
+@media (orientation:landscape) and (max-height:600px) {
+ .lh-island-status { font-size:16px; line-height:1.15; }
+ .lh-weather-log { font-size:16px; }
+ .tg-lighthouse.tg-live .game-shell__header p { font-size:16px; }
+ .lh-cargo-manifest { font-size:16px; }
+}

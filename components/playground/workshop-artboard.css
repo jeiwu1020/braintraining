@@ -1,0 +1,39 @@
+/* A shared maker's workshop: illustrated stations on wood, with one stock ledger. */
+.tg-shell.tg-workshop.tg-live { background:linear-gradient(105deg,#7a563c,#a47a50 45%,#79563d) !important; }
+.tg-workshop.tg-live .game-shell__header { background:linear-gradient(95deg,#eee0bd,#e8d0a3); border:0; color:#443e2b; }
+.tg-workshop.tg-live .game-shell__header h1 { font-family:serif; letter-spacing:.08em; }
+.tg-workshop.tg-live .game-shell__header button { background:transparent; border-color:#a58c5f4d; box-shadow:none; }
+.tg-workshop.tg-live .tg-session { background:repeating-linear-gradient(1deg,transparent 0 33px,#3d23151c 34px,transparent 36px),linear-gradient(105deg,#c3a078,#d2b58a 60%,#b59168); padding:10px; }
+.tg-workshop-desk { grid-template-columns:195px minmax(0,1fr); gap:6px 12px; }
+.tg-workshop-ledger.pg-paper { background:linear-gradient(115deg,#3b5147,#2e433b); color:#f8edce; border:0; border-radius:8px; padding:8px; box-shadow:0 3px 7px #3a291e50; }
+.tg-workshop-ledger th,.tg-workshop-ledger td { border-color:#e4d9b52e; font-size:20px; }
+.tg-workshop-ledger .tg-ledger-active { background:#fff1bd13; color:#fff2bf; }
+.tg-workshop-options { color:#3f4833; }.tg-workshop-options select { background:#f7e6bc; border-color:#8e845f; }
+.tg-station-table { gap:4px 10px; }
+.tg-shell button.wk-station { position:relative; display:grid; grid-template-rows:minmax(0,1fr) auto auto auto; gap:2px; width:100%; min-width:0; min-height:0; padding:1px 4px 5px; background:transparent; border:0; border-radius:10px; color:#342d20; box-shadow:none; text-align:center; font-weight:normal; }
+.tg-shell button.wk-station:hover:not(:disabled) { background:#fff1c22b; }
+.tg-shell button.wk-station:focus-visible { outline:3px solid #315e4a; }
+.tg-shell button.wk-station:disabled { opacity:1; cursor:default; }.wk-station:disabled .wk-station-art { filter:saturate(.55); }
+.wk-station-art { min-height:0; width:100%; height:100%; filter:drop-shadow(0 3px 2px #4b2e1a40); }
+.wk-station > b { font-family:serif; font-size:24px; line-height:1.1; }
+.wk-recipe { font-size:17px; line-height:1.2; min-height:40px; display:block; }
+.wk-station > small { justify-self:center; font-size:16px; line-height:1.2; color:#f8edd0; background:#49624b; border-radius:12px; padding:2px 10px; }
+.wk-station:disabled > small { color:#67533c; background:#e0c9a1b0; }.wk-station > small.wk-occupied { background:#76533f; color:#fff0d5; }
+.tg-workshop .tg-desk-note { color:#453b29; }
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-workshop.tg-live .game-shell__header { min-height:47px; padding:0 5px; }.tg-workshop.tg-live .game-shell__header h1 { font-size:19px; }.tg-workshop.tg-live .game-shell__header p { font-size:16px; }
+ .tg-workshop.tg-live .tg-session { padding:6px; }
+ .tg-workshop-desk { grid-template-columns:170px minmax(0,1fr); grid-template-rows:minmax(0,1fr) 44px auto; gap:5px 8px; }
+ .tg-workshop-ledger.pg-paper { padding:5px; }.tg-workshop-ledger th,.tg-workshop-ledger td { font-size:18px; padding:3px 1px; }
+ .tg-station-table { gap:5px 8px; }.tg-shell button.wk-station { gap:1px; padding:0 3px 3px; }
+ .wk-station > b { font-size:20px; }.wk-recipe { font-size:16px; min-height:38px; }.wk-station > small { font-size:14px; padding:2px 7px; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-workshop-desk { grid-template-columns:145px minmax(0,1fr); grid-template-rows:minmax(0,1fr) 44px; gap:4px 6px; }
+ .tg-workshop-ledger th,.tg-workshop-ledger td { padding:2px 1px; font-size:17px; }
+ .tg-workshop-options label { font-size:15px; gap:2px; }.tg-workshop-options select { width:58px; padding:2px; font-size:17px; }
+ .tg-station-table { gap:4px; }.wk-station > b { font-size:18px; }.wk-recipe { font-size:15px; min-height:35px; }.wk-station > small { font-size:13px; padding:1px 6px; }
+}
+@media (orientation:portrait) { .tg-workshop-desk { grid-template-columns:1fr; grid-template-rows:auto auto 620px auto; }.tg-station-table { grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr)); } }
+
+.tg-shell.tg-workshop.tg-live .tg-desk-note { color:#453b29; }

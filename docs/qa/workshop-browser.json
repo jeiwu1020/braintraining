@@ -1,0 +1,233 @@
+{
+  "kind": "Desktop Chromium emulated viewports, not physical devices",
+  "measurements": [
+    {
+      "width": 568,
+      "height": 320,
+      "docWidth": 568,
+      "docHeight": 320,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "使用木料站",
+          "h": 44,
+          "w": 100
+        },
+        {
+          "label": "使用金屬站",
+          "h": 44,
+          "w": 100
+        },
+        {
+          "label": "使用加工臺",
+          "h": 58.78125,
+          "w": 100
+        },
+        {
+          "label": "使用升級坊",
+          "h": 44,
+          "w": 100
+        },
+        {
+          "label": "使用出貨埠",
+          "h": 58.78125,
+          "w": 100
+        },
+        {
+          "label": "安排休息",
+          "h": 44,
+          "w": 225.265625
+        }
+      ]
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "docHeight": 375,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "使用木料站",
+          "h": 44,
+          "w": 119.21875
+        },
+        {
+          "label": "使用金屬站",
+          "h": 44,
+          "w": 119.21875
+        },
+        {
+          "label": "使用加工臺",
+          "h": 58.78125,
+          "w": 119.21875
+        },
+        {
+          "label": "使用升級坊",
+          "h": 44,
+          "w": 119.21875
+        },
+        {
+          "label": "使用出貨埠",
+          "h": 58.78125,
+          "w": 119.21875
+        },
+        {
+          "label": "安排休息",
+          "h": 44,
+          "w": 270.28125
+        }
+      ]
+    },
+    {
+      "width": 852,
+      "height": 393,
+      "docWidth": 852,
+      "docHeight": 393,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "使用木料站",
+          "h": 44,
+          "w": 157.421875
+        },
+        {
+          "label": "使用金屬站",
+          "h": 44,
+          "w": 157.421875
+        },
+        {
+          "label": "使用加工臺",
+          "h": 44,
+          "w": 157.421875
+        },
+        {
+          "label": "使用升級坊",
+          "h": 44,
+          "w": 157.421875
+        },
+        {
+          "label": "使用出貨埠",
+          "h": 44,
+          "w": 157.421875
+        },
+        {
+          "label": "安排休息",
+          "h": 44,
+          "w": 354.359375
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "docHeight": 900,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "使用木料站",
+          "h": 44,
+          "w": 221.375
+        },
+        {
+          "label": "使用金屬站",
+          "h": 44,
+          "w": 221.375
+        },
+        {
+          "label": "使用加工臺",
+          "h": 44,
+          "w": 221.375
+        },
+        {
+          "label": "使用升級坊",
+          "h": 44,
+          "w": 221.375
+        },
+        {
+          "label": "使用出貨埠",
+          "h": 44,
+          "w": 221.375
+        },
+        {
+          "label": "安排休息",
+          "h": 44,
+          "w": 495.046875
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "resourceErrors": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    }
+  ],
+  "turns": 25,
+  "completeGame": true,
+  "cancel": true,
+  "reload": true,
+  "restart": true
+}

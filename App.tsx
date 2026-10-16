@@ -480,7 +480,7 @@ const MainMenu: React.FC<MenuProps> = ({ onSelectGame, difficulty, setDifficulty
                     className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left flex flex-row items-center gap-3 sm:gap-4 group h-full w-full md:col-span-2"
                 >
                     <div className="bg-white p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm shrink-0"><Layers className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-700" /></div>
-                    <div className="text-left min-w-0 flex-1"><h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">桌遊新樂園</h3><p className="text-gray-600 text-xs sm:text-base leading-snug">兩款新桌遊，一起選牌、築牆對決</p></div>
+                    <div className="text-left min-w-0 flex-1"><h3 className="text-base sm:text-2xl font-bold text-gray-800 mb-1">桌遊新樂園</h3><p className="text-gray-600 text-xs sm:text-base leading-snug">一起收藏桌上時光，口述討論、輪流決策</p></div>
                     <ChevronRight className="w-6 h-6 text-emerald-700 shrink-0" />
                 </button>
                 <button

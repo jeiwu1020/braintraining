@@ -1,0 +1,154 @@
+{
+  "kind": "Desktop Chromium emulated viewports, not physical devices",
+  "baseUrl": "http://localhost:3001",
+  "measurements": [
+    {
+      "width": 568,
+      "height": 320,
+      "docWidth": 568,
+      "docHeight": 320,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "加一枚籌碼",
+          "h": 58.78125,
+          "w": 108.625
+        },
+        {
+          "label": "退出本件",
+          "h": 58.78125,
+          "w": 108.640625
+        }
+      ]
+    },
+    {
+      "width": 667,
+      "height": 375,
+      "docWidth": 667,
+      "docHeight": 375,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "加一枚籌碼",
+          "h": 44,
+          "w": 131.140625
+        },
+        {
+          "label": "退出本件",
+          "h": 44,
+          "w": 131.140625
+        }
+      ]
+    },
+    {
+      "width": 852,
+      "height": 393,
+      "docWidth": 852,
+      "docHeight": 393,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 54.015625
+        },
+        {
+          "label": "加一枚籌碼",
+          "h": 44,
+          "w": 173.171875
+        },
+        {
+          "label": "退出本件",
+          "h": 44,
+          "w": 173.1875
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "docWidth": 1440,
+      "docHeight": 900,
+      "buttons": [
+        {
+          "label": "返回桌遊新樂園",
+          "h": 44,
+          "w": 46
+        },
+        {
+          "label": "玩法",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "重開",
+          "h": 44,
+          "w": 56
+        },
+        {
+          "label": "加一枚籌碼",
+          "h": 44,
+          "w": 243.515625
+        },
+        {
+          "label": "退出本件",
+          "h": 44,
+          "w": 243.53125
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "resourceErrors": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap",
+      "error": "net::ERR_TUNNEL_CONNECTION_FAILED"
+    }
+  ],
+  "turns": 25,
+  "completeGame": true,
+  "cancel": true,
+  "reload": true,
+  "restart": true
+}

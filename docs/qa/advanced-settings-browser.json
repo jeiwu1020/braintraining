@@ -1,0 +1,127 @@
+{
+  "kind": "Desktop Chromium emulated viewports, not physical devices",
+  "baseUrl": "http://localhost:3001",
+  "results": [
+    {
+      "game": "lighthouse",
+      "settings": {
+        "mode": "teams",
+        "level": "advanced"
+      },
+      "measurements": [
+        {
+          "width": 568,
+          "height": 320,
+          "docWidth": 568,
+          "docHeight": 320,
+          "invalidButtons": []
+        },
+        {
+          "width": 852,
+          "height": 393,
+          "docWidth": 852,
+          "docHeight": 393,
+          "invalidButtons": []
+        }
+      ],
+      "corruptRecovery": true
+    },
+    {
+      "game": "garden",
+      "settings": {
+        "mode": "teams",
+        "level": "advanced"
+      },
+      "measurements": [
+        {
+          "width": 568,
+          "height": 320,
+          "docWidth": 568,
+          "docHeight": 320,
+          "invalidButtons": []
+        },
+        {
+          "width": 852,
+          "height": 393,
+          "docWidth": 852,
+          "docHeight": 393,
+          "invalidButtons": []
+        }
+      ],
+      "corruptRecovery": true
+    },
+    {
+      "game": "lantern",
+      "settings": {
+        "mode": "teams",
+        "level": "advanced"
+      },
+      "measurements": [
+        {
+          "width": 568,
+          "height": 320,
+          "docWidth": 568,
+          "docHeight": 320,
+          "invalidButtons": []
+        },
+        {
+          "width": 852,
+          "height": 393,
+          "docWidth": 852,
+          "docHeight": 393,
+          "invalidButtons": []
+        }
+      ],
+      "corruptRecovery": true
+    },
+    {
+      "game": "workshop",
+      "settings": {
+        "mode": "teams",
+        "level": "advanced"
+      },
+      "measurements": [
+        {
+          "width": 568,
+          "height": 320,
+          "docWidth": 568,
+          "docHeight": 320,
+          "invalidButtons": []
+        },
+        {
+          "width": 852,
+          "height": 393,
+          "docWidth": 852,
+          "docHeight": 393,
+          "invalidButtons": []
+        }
+      ],
+      "corruptRecovery": true
+    },
+    {
+      "game": "auction",
+      "settings": {
+        "mode": "teams",
+        "level": "advanced"
+      },
+      "measurements": [
+        {
+          "width": 568,
+          "height": 320,
+          "docWidth": 568,
+          "docHeight": 320,
+          "invalidButtons": []
+        },
+        {
+          "width": 852,
+          "height": 393,
+          "docWidth": 852,
+          "docHeight": 393,
+          "invalidButtons": []
+        }
+      ],
+      "corruptRecovery": true
+    }
+  ],
+  "errors": []
+}

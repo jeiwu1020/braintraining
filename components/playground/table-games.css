@@ -1,0 +1,781 @@
+/* Scoped to the five public-table games. */
+.tg-shell {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.tg-shell h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.tg-shell h3 {
+  font-size: 19px;
+  margin: 12px 0 6px;
+}
+.tg-shell p {
+  margin: 8px 0;
+}
+.tg-shell .game-shell__header h1 {
+  font-size: 24px;
+}
+.tg-shell .game-shell__header p {
+  font-size: 16px;
+}
+.tg-shell .game-shell__header {
+  min-height: 64px;
+}
+.tg-shell .game-shell__header button {
+  padding: 8px 10px;
+}
+.tg-setup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100%;
+}
+.tg-cover {
+  color: #fff0d4;
+  text-align: center;
+  align-self: center;
+}
+.tg-cover h2 {
+  font-family: serif;
+  font-size: 36px;
+  letter-spacing: 0.08em;
+}
+.tg-settings {
+  align-self: center;
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+.tg-session {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px;
+  gap: 10px;
+}
+.tg-feedback {
+  color: #fff4d8;
+  background: #123c40;
+  border: 1px solid #b89a63;
+  border-radius: 8px;
+  padding: 10px 14px;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.tg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(270px, 1fr);
+  gap: 14px;
+  min-height: 0;
+  flex: 1;
+}
+.tg-board {
+  min-width: 0;
+  overflow: auto;
+  color: #fff4d8;
+  padding: 12px;
+  background: #122f40;
+  border: 2px solid #b49254;
+  border-radius: 15px;
+}
+.tg-controls {
+  overflow: auto;
+  padding: 16px;
+  min-width: 0;
+}
+.tg-controls > button {
+  width: 100%;
+  margin: 5px 0;
+}
+.tg-sea-chart {
+  display: block;
+  width: 100%;
+  max-height: 390px;
+  min-height: 200px;
+}
+.tg-weather {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  background: #e8d7b5;
+  color: #173749;
+  border-radius: 8px;
+  padding: 8px;
+}
+.tg-demand {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.tg-demand article {
+  padding: 8px;
+  background: #26495b;
+  border: 1px solid #7d9b9b;
+  border-radius: 8px;
+}
+.tg-demand h3 {
+  font-size: 18px;
+}
+.tg-demand p {
+  font-size: 17px;
+}
+.tg-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.tg-action-grid button[aria-pressed="true"] {
+  background: #215b50;
+  color: #fff3d7;
+  outline: 3px solid #b99a54;
+}
+.tg-manifest {
+  display: flex;
+  gap: 12px;
+}
+.tg-manifest label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tg-shell select {
+  min-height: 44px;
+  min-width: 54px;
+  border: 1px solid #92734b;
+  border-radius: 7px;
+  color: #183b34;
+  background: #fffaf0;
+  font-size: 20px;
+  padding: 5px;
+}
+.tg-key {
+  font-size: 24px;
+  font-weight: 800;
+}
+.tg-demo {
+  border: 1px solid #997a4e;
+  background: #fff8e8;
+  padding: 14px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+.tg-result {
+  padding: 30px;
+  align-self: center;
+  margin: auto;
+  max-width: 750px;
+}
+.tg-result > button {
+  margin: 12px 12px 0 0;
+}
+.pg-art-lighthouse {
+  background:
+    radial-gradient(ellipse at 70% 20%, #f6d988 0, transparent 25%),
+    repeating-linear-gradient(
+      170deg,
+      #254e68 0,
+      #254e68 22px,
+      #1d4058 24px,
+      #1d4058 46px
+    );
+}
+.pg-art-lighthouse:before {
+  content: "";
+  height: 80%;
+  width: 30%;
+  background: linear-gradient(
+    #e8c16f 0 15%,
+    #f7e8c6 15% 40%,
+    #b95e47 40% 50%,
+    #f7e8c6 50% 70%,
+    #b95e47 70% 80%,
+    #f7e8c6 80%
+  );
+  clip-path: polygon(
+    50% 0,
+    80% 20%,
+    70% 20%,
+    88% 100%,
+    10% 100%,
+    28% 20%,
+    18% 20%
+  );
+  position: absolute;
+  right: 15%;
+  bottom: 0;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-shell .game-shell__header {
+    min-height: 56px;
+  }
+  .tg-shell .game-shell__header h1 {
+    font-size: 21px;
+  }
+  .tg-shell .game-shell__header p {
+    font-size: 14px;
+  }
+  .tg-session {
+    padding: 8px;
+    gap: 6px;
+  }
+  .tg-feedback {
+    font-size: 17px;
+    padding: 6px 10px;
+  }
+  .tg-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(245px, 1fr);
+    gap: 8px;
+  }
+  .tg-board,
+  .tg-controls {
+    padding: 10px;
+  }
+  .tg-setup {
+    padding: 14px;
+    gap: 16px;
+  }
+  .tg-settings {
+    padding: 16px;
+    gap: 8px;
+  }
+  .tg-sea-chart {
+    min-height: 190px;
+  }
+  .tg-demand {
+    grid-template-columns: 1fr;
+  }
+  .tg-demand article {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .tg-demand h3,
+  .tg-demand p {
+    margin: 4px 0;
+  }
+  .tg-cover h2 {
+    font-size: 28px;
+  }
+  .tg-shell .game-shell__header button {
+    font-size: 16px;
+  }
+  .tg-shell .game-shell__header p {
+    max-width: 300px;
+  }
+}
+@media (orientation: portrait) {
+  .tg-layout,
+  .tg-setup {
+    grid-template-columns: 1fr;
+  }
+  .tg-session {
+    height: auto;
+  }
+  .tg-board,
+  .tg-controls {
+    overflow: visible;
+  }
+  .tg-shell > main {
+    overflow-y: auto;
+  }
+  .tg-setup {
+    gap: 12px;
+  }
+  .tg-cover .tg-sea-chart {
+    height: 210px;
+  }
+}
+.tg-theme-art {
+  width: 100%;
+  max-height: 340px;
+  display: block;
+}
+.tg-garden-board {
+  background: #d9d7b6;
+  color: #2c513c;
+}
+.tg-garden-block + section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px dashed #8b9169;
+}
+.tg-grid-wrap {
+  overflow: auto;
+  padding: 6px 0;
+}
+.tg-coordinate-board {
+  display: grid;
+  gap: 3px;
+  width: max-content;
+}
+.tg-coordinate-board > b {
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+}
+.tg-shell button.tg-garden-cell,
+.tg-garden-cell {
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #748268;
+  background: #f0ecd5;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: #345c45;
+  font-size: 12px;
+}
+.tg-garden-cell svg {
+  width: 42px;
+  height: 42px;
+}
+.tg-shell button.tg-garden-cell[data-valid-anchor="true"] {
+  background: #f8f4df;
+  border-bottom: 3px solid #67876a;
+}
+.tg-shell button.tg-garden-cell.tg-ghost {
+  outline: 3px dashed #1e695e;
+  outline-offset: -3px;
+  background: #bfdbbe;
+}
+.tg-shell button.tg-garden-cell[aria-pressed="true"] {
+  outline: 3px solid #174d45;
+  outline-offset: -3px;
+}
+.tg-tile-market {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 12px 0;
+}
+.tg-tile-market button {
+  padding: 8px 4px;
+  font-size: 16px;
+}
+.tg-tile-market button[aria-pressed="true"] {
+  outline: 3px solid #1e6756;
+  background: #e4e6c5;
+}
+.tg-mini-tile {
+  display: grid;
+  width: max-content;
+  min-height: 56px;
+  gap: 2px;
+  margin: 8px auto;
+}
+.tg-mini-tile > div {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #8c9878;
+  border-radius: 3px;
+  background: #e8e7c9;
+}
+.tg-mini-tile svg {
+  width: 26px;
+  height: 26px;
+}
+.pg-art-garden {
+  background:
+    radial-gradient(circle at 30% 25%, #c67a8a 0 8%, transparent 9%),
+    radial-gradient(circle at 70% 65%, #e1bc56 0 12%, transparent 13%),
+    linear-gradient(30deg, #b6bc87 0 40%, #deceb0 41% 52%, #a5b47e 53%);
+}
+.tg-lantern-board {
+  background: radial-gradient(ellipse at 60% 5%, #945c3d, #392b35);
+  color: #fff1cc;
+}
+.tg-score-strip {
+  display: flex;
+  gap: 12px;
+  justify-content: space-around;
+  font-size: 22px;
+  border-bottom: 1px solid #c39b65;
+  padding: 8px 0;
+}
+.tg-districts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.tg-district {
+  background: linear-gradient(#80533d, #5b382f);
+  border: 1px solid #d3ac6d;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+  padding: 0 10px 12px;
+}
+.tg-shop-roof {
+  height: 35px;
+  background: repeating-linear-gradient(
+    90deg,
+    #a66e44 0 22px,
+    #cf9b5b 23px 25px
+  );
+  border-bottom: 3px solid #edc785;
+  color: #ffe7a4;
+  text-shadow: 0 0 15px #ffe371;
+  font-size: 24px;
+  line-height: 30px;
+}
+.tg-value-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.tg-value-row > div {
+  border: 1px solid #b3885f;
+  border-radius: 5px;
+  padding: 6px 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.tg-current-value {
+  background: #ffe0a0;
+  color: #542f23;
+  outline: 2px solid #ffe8ac;
+}
+.tg-controls > label {
+  display: block;
+  margin: 14px 0;
+}
+.tg-controls > label > select {
+  max-width: 100%;
+}
+.pg-art-lantern {
+  background:
+    radial-gradient(
+      ellipse at 25% 40%,
+      #e5a351 0 13%,
+      #c17a3e 14% 16%,
+      transparent 17%
+    ),
+    radial-gradient(
+      ellipse at 70% 50%,
+      #e5a351 0 15%,
+      #c17a3e 16% 18%,
+      transparent 19%
+    ),
+    linear-gradient(#322a36, #84513c);
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-districts {
+    grid-template-columns: 1fr;
+  }
+  .tg-district {
+    padding: 0 8px 8px;
+  }
+  .tg-district h2 {
+    font-size: 22px;
+    margin: 6px;
+  }
+  .tg-district p {
+    margin: 5px;
+  }
+  .tg-value-row small {
+    font-size: 14px;
+  }
+  .tg-score-strip {
+    font-size: 18px;
+  }
+  .tg-shop-roof {
+    height: 26px;
+    line-height: 24px;
+  }
+}
+.tg-district-summary {
+  display: none;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 17px;
+  text-align: center;
+}
+.tg-district-summary th,
+.tg-district-summary td {
+  padding: 5px 2px;
+  border-bottom: 1px solid #bd9664;
+}
+.tg-district-summary thead {
+  color: #ffe3a5;
+}
+.tg-district-summary .tg-current-value {
+  outline: none;
+  border-radius: 5px;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-district-summary {
+    display: table;
+  }
+  .tg-lantern-board .tg-districts,
+  .tg-lantern-board .tg-score-preview {
+    display: none;
+  }
+  .tg-lantern-board .tg-score-strip {
+    padding: 2px 0;
+  }
+  .tg-district-summary th,
+  .tg-district-summary td {
+    padding: 3px 1px;
+  }
+}
+.tg-workshop-board {
+  background: repeating-linear-gradient(
+    3deg,
+    #876343 0,
+    #a47b52 3px,
+    #97704b 14px
+  );
+  color: #fff3d6;
+}
+.tg-inventories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.tg-inventory {
+  background: #463f33;
+  border: 2px solid #ab9d76;
+  border-radius: 9px;
+  padding: 12px;
+}
+.tg-active-inventory {
+  border-color: #ffe3a0;
+  box-shadow: 0 0 0 2px #ffe3a044;
+}
+.tg-inventory h2 {
+  font-size: 22px;
+}
+.tg-inventory p {
+  font-size: 19px;
+}
+.tg-stations {
+  display: grid;
+  gap: 8px;
+}
+.tg-stations article {
+  border: 1px solid #d6b681;
+  background: #604c38;
+  border-radius: 8px;
+  padding: 10px;
+}
+.tg-stations h3 {
+  margin: 0;
+}
+.tg-stations h3 span {
+  float: right;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffe3a0;
+}
+.tg-station-occupied {
+  background: #463e32 !important;
+  border-style: dashed !important;
+}
+.tg-work-actions {
+  display: grid;
+  gap: 10px;
+}
+.tg-work-actions > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) 1.2fr;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #c4ae87;
+  padding-bottom: 8px;
+}
+.tg-work-actions p {
+  font-size: 17px;
+}
+.pg-art-workshop {
+  background:
+    linear-gradient(40deg, transparent 40%, #e3cf9c 41% 47%, transparent 48%),
+    repeating-linear-gradient(
+      0deg,
+      #936e49 0 50px,
+      #654932 51px 54px,
+      #a17b52 55px 100px
+    );
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-inventory {
+    padding: 8px;
+  }
+  .tg-inventory h2 {
+    font-size: 19px;
+  }
+  .tg-inventory p {
+    font-size: 17px;
+    margin: 4px 0;
+  }
+  .tg-workshop-board .tg-inventories {
+    grid-template-columns: 1fr;
+  }
+  .tg-stations article {
+    padding: 8px;
+  }
+  .tg-stations p {
+    font-size: 17px;
+  }
+}
+.tg-inventory-summary {
+  display: none;
+  width: 100%;
+  border-spacing: 3px;
+  text-align: center;
+  font-size: 18px;
+}
+.tg-inventory-summary th,
+.tg-inventory-summary td {
+  border-bottom: 1px solid #dac494;
+  padding: 4px 2px;
+}
+.tg-inventory-summary .tg-active-inventory {
+  background: #4b4936;
+  box-shadow: none;
+  color: #fff1b9;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-inventory-summary {
+    display: table;
+  }
+  .tg-workshop-board .tg-inventories {
+    display: none;
+  }
+}
+.tg-auction-board {
+  background: radial-gradient(ellipse at 30% 10%, #f4e7c9, #d3bd97);
+  color: #493d36;
+}
+.tg-museum-cover {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tg-artifact {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  display: block;
+}
+.tg-museum-cover .tg-artifact {
+  width: 33%;
+  min-width: 0;
+}
+.tg-museum-cover .tg-artifact:nth-child(2) {
+  transform: translateY(-15px);
+}
+.tg-lot {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) 1fr;
+  gap: 16px;
+  align-items: center;
+}
+.tg-lot .tg-artifact {
+  max-height: 230px;
+}
+.tg-lot h2 {
+  font-family: serif;
+  color: #673c36;
+  font-size: 28px;
+}
+.tg-exhibit-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  text-align: left;
+}
+.tg-exhibit-list th,
+.tg-exhibit-list td {
+  padding: 9px 7px;
+  border-bottom: 1px solid #ab9472;
+}
+.tg-exhibit-list thead {
+  color: #6d5143;
+}
+.tg-current-lot {
+  background: #fff7e5;
+  outline: 2px solid #856a4e;
+  outline-offset: -2px;
+}
+.tg-exhibitions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.tg-exhibitions article {
+  padding: 10px;
+  border: 1px solid #af9674;
+  border-radius: 8px;
+  background: #eee2c7;
+}
+.tg-exhibitions p {
+  font-size: 17px;
+}
+.tg-budgets {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  padding: 10px 6px;
+  background: #e4d5b7;
+  border-radius: 7px;
+  border: 1px solid #b69c70;
+  font-size: 21px;
+}
+.pg-art-auction {
+  background:
+    radial-gradient(ellipse at 35% 50%, #80a698 0 16%, transparent 17%),
+    radial-gradient(ellipse at 68% 45%, #b2a47a 0 14%, transparent 15%),
+    linear-gradient(90deg, #724d46, #8b6250);
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .tg-lot {
+    grid-template-columns: 90px 1fr;
+    gap: 8px;
+  }
+  .tg-lot h2 {
+    font-size: 22px;
+  }
+  .tg-lot .tg-artifact {
+    height: 100px;
+  }
+  .tg-lot p {
+    font-size: 17px;
+  }
+  .tg-lot .tg-key {
+    font-size: 22px;
+  }
+  .tg-exhibit-list {
+    font-size: 17px;
+  }
+  .tg-exhibit-list th,
+  .tg-exhibit-list td {
+    padding: 7px 3px;
+  }
+  .tg-exhibitions {
+    grid-template-columns: 1fr;
+  }
+  .tg-budgets {
+    font-size: 19px;
+    padding: 6px 4px;
+  }
+}
+/* Collection boxes reuse the same original vector illustrations as their game covers. */
+.pg-art-lighthouse{background-image:url('../../assets/playground/lighthouse.svg');background-size:cover;background-position:center}.pg-art-lighthouse:before{display:none}
+.pg-art-garden{background-image:url('../../assets/playground/garden.svg');background-size:cover;background-position:center}
+.pg-art-lantern{background-image:url('../../assets/playground/lantern.svg');background-size:cover;background-position:center}
+.pg-art-workshop{background-image:url('../../assets/playground/workshop.svg');background-size:cover;background-position:center}
+.pg-art-auction{background-image:url('../../assets/playground/auction.svg');background-size:cover;background-position:center}

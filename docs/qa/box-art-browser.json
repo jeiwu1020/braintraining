@@ -1,0 +1,35 @@
+{
+  "baseUrl": "http://localhost:3001",
+  "images": [
+    {
+      "game": "lighthouse",
+      "width": 234,
+      "height": 150,
+      "decoded": true
+    },
+    {
+      "game": "garden",
+      "width": 268,
+      "height": 150,
+      "decoded": true
+    },
+    {
+      "game": "lantern",
+      "width": 268,
+      "height": 150,
+      "decoded": true
+    },
+    {
+      "game": "workshop",
+      "width": 268,
+      "height": 150,
+      "decoded": true
+    },
+    {
+      "game": "auction",
+      "width": 300,
+      "height": 81,
+      "decoded": true
+    }
+  ]
+}

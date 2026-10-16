@@ -1,0 +1,91 @@
+/* A planted game board and a gardener's work mat, not an app dashboard. */
+.tg-shell.tg-garden.tg-live { background:radial-gradient(ellipse at 25% 5%,#7a8d64,#4b654c 75%) !important; }
+.tg-garden.tg-live .game-shell__header { background:linear-gradient(95deg,#f5ecd7,#e5dcc0); border:0; color:#3e5b44; box-shadow:0 2px 8px #233b3240; }
+.tg-garden.tg-live .game-shell__header h1 { font-family:serif; letter-spacing:.08em; }
+.tg-garden.tg-live .game-shell__header button { background:transparent; border-color:#a196754d; box-shadow:none; }
+.tg-garden.tg-live .tg-session { padding:10px 12px; }
+.tg-garden-desk { gap:10px 18px; }
+.tg-garden-desk .tg-garden-block { background:radial-gradient(ellipse at 20% 0,#f5f0d7,#d3dab5); border:1px solid #b9bc8c; border-radius:14px; box-shadow:0 5px 12px #1c392e50,inset 0 0 0 5px #e8dbb7; padding:13px; }
+.tg-garden-caption h2 { font-family:serif; font-size:25px; }.tg-garden-caption strong { color:#a15b4a; }.tg-garden-tally { color:#586647; }
+.tg-garden-desk .tg-coordinate-board { gap:3px; }
+.tg-shell .tg-garden-desk .tg-garden-cell { border:1px solid #80936c33; border-radius:3px; background:linear-gradient(140deg,#e3e8c8,#cfd8b0); box-shadow:inset 0 1px 3px #6a805329; }
+.tg-shell .tg-garden-desk .tg-garden-cell[data-terrain]:not([data-terrain=""]) { background:#e4e8c6; box-shadow:0 1px 1px #536b4f30; }
+.tg-shell .tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"] { border-bottom:1px solid #859a6b77; }
+.tg-shell .tg-garden-desk button.tg-garden-cell.tg-ghost { background:#adcaa0; outline:3px dashed #195e43; }
+.tg-shell .tg-garden-desk button.tg-garden-cell.tg-invalid-ghost { background:#e7b8a6; outline-color:#a34031; }
+.tg-garden-desk .tg-garden-cell svg { width:100%; height:100%; filter:drop-shadow(0 1px 1px #41543622); }
+.tg-garden-desk .tg-coordinate-board > b { color:#566b47; }
+.tg-garden-desk .tg-entry { color:#6a7751; }
+.tg-garden-tools.pg-paper { position:relative; border:0; border-radius:9px 14px 11px 8px; background:linear-gradient(110deg,#f6eed8,#eee3c7); box-shadow:0 5px 12px #1c392e40,inset 0 0 0 1px #c6b88e77; }
+.tg-garden-tools .tg-market-title { font-family:serif; color:#456346; }
+.tg-garden-tools .tg-tile-market { gap:12px; }
+.tg-garden-tools .tg-tile-market button { background:transparent; border:0; border-radius:0; box-shadow:none; padding:6px 3px; border-bottom:3px solid transparent; }
+.tg-garden-tools .tg-tile-market button[aria-pressed="true"] { background:#d8dfbd65; border-bottom-color:#6b8559; }
+.tg-garden-tools .tg-tile-market button > b { color:#55704b; background:#e9debd; padding:3px 5px; border-radius:50%; }
+.tg-garden-tools .tg-mini-tile { gap:1px; --tile-cell:28px; }
+.tg-garden-tools .tg-mini-tile > div { background:#eee8cb; border:1px solid #c2bd96; box-shadow:1px 2px 1px #7e81575c; border-radius:2px; }
+.tg-garden-tools .tg-mini-tile svg { width:100%; height:100%; }
+.tg-garden-tools button:not(.pg-primary),.tg-garden-tools select { background:#fbf5e5; border-color:#a8ad8c; box-shadow:none; }
+.tg-garden-tools button.pg-primary { background:linear-gradient(#688a64,#4a7050); border:1px solid #47694b; box-shadow:0 2px 0 #2c4c37; color:#fff9e7; }
+.tg-garden-comparison { color:#4f6249; }
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-shell.tg-garden.tg-live .game-shell__header { min-height:47px; padding:0 5px; }
+ .tg-garden.tg-live .game-shell__header h1 { font-size:19px; }.tg-garden.tg-live .game-shell__header p { font-size:16px; }
+ .tg-garden.tg-live .tg-session { padding:6px 8px; }
+ .tg-garden-desk { grid-template-columns:minmax(0,.9fr) minmax(290px,1.1fr); gap:7px 10px; }
+ .tg-garden-desk .tg-garden-block { padding:7px; border-radius:10px; box-shadow:0 3px 8px #1c392e40,inset 0 0 0 4px #e8dbb7; }
+ .tg-garden-caption h2 { font-size:21px; }.tg-garden-desk .tg-garden-tally { font-size:15px; }
+ .tg-garden-tools { gap:6px; padding:8px; }
+ .tg-garden-tools .tg-tile-market { gap:8px; }.tg-garden-tools .tg-mini-tile { --tile-cell:21px; height:65px; }
+ .tg-garden-tools .tg-tile-market button { padding:2px; }.tg-garden-tools .tg-tile-market button > b { font-size:14px; }
+ .tg-garden-tools .tg-rotation-line,.tg-garden-tools .tg-placement-status,.tg-garden-tools .tg-garden-comparison { font-size:16px; }
+ .tg-garden-tools .tg-coordinate-input select { font-size:18px; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-garden.tg-live .tg-session { padding:5px; }
+ .tg-garden-desk { grid-template-columns:minmax(0,1fr) minmax(285px,1.25fr); gap:8px; }
+ .tg-garden-desk .tg-garden-block { padding:5px; }
+ .tg-garden-tools { gap:3px; padding:5px 7px; }
+ .tg-garden-tools .tg-mini-tile { --tile-cell:18px; height:56px; }
+ .tg-garden-tools .tg-tile-market button > b { font-size:13px; padding:2px 4px; }
+ .tg-garden-desk .tg-garden-tally { font-size:14px; }
+ .tg-garden-tools .tg-coordinate-input label { font-size:16px; }
+}
+/* One paper work surface; terrain pieces sit loose beside the actual garden. */
+.tg-garden.tg-live .tg-session { background:linear-gradient(115deg,#e2d8b8,#f0e6ca); }
+.tg-garden-tools.pg-paper { background:transparent; box-shadow:none; border-radius:0; }
+.tg-shell.tg-garden .tg-tile-market button { background:transparent; box-shadow:none; outline:0; border:0; border-bottom:3px solid transparent; }
+.tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] { outline:0; background:#d8dfbd40; border-bottom-color:#658253; }
+.tg-shell.tg-garden .tg-tile-market button > b { background:#d6d6ad; }
+.gdn-entry-row { position:relative; }.gdn-entry-row:before { content:'›'; position:absolute; left:-8px; top:-2px; color:#8d663c; font-size:21px; }
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-garden-tools .tg-mini-tile { --tile-cell:21px; height:65px; }
+ .tg-garden-tools { gap:2px; }
+}
+.tg-shell.tg-garden.tg-live .tg-desk-note { color:#4f6345; }
+@media (orientation:landscape) and (min-height:341px) and (max-height:600px) { .tg-garden-tools .tg-mini-tile { --tile-cell:26px; height:80px; } }
+
+/* Refined board-first workflow: large loose pieces; coordinates are optional assistance. */
+.tg-shell.tg-garden .tg-tile-market button { border:1px solid transparent; border-bottom:1px solid transparent; border-radius:12px; }
+.tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] { background:radial-gradient(ellipse,#d2ddafaa,#d2ddaf33); border:1px solid #708a5270; box-shadow:0 2px 3px #59703f25; }
+.tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] > b { background:#486f47; color:#fff8de; border-radius:9px; padding:3px 7px; }
+.tg-garden-tools .tg-mini-tile { --tile-cell:35px; height:109px; }
+.gdn-placement-guide { display:flex; justify-content:space-between; gap:6px; align-items:center; color:#385c3d; font-size:18px; }
+.gdn-placement-guide > span { color:#69734f; font-size:16px; }
+.gdn-main-actions { display:grid; grid-template-columns:1fr 1.35fr auto; gap:7px; }
+.gdn-main-actions .gdn-coordinates-toggle { background:transparent; border-color:transparent; color:#52684a; padding-left:6px; padding-right:6px; }
+.tg-shell .tg-garden-desk .tg-garden-cell { background:radial-gradient(circle at 22% 30%,#8d8b5e18 0 1px,transparent 1.3px),radial-gradient(circle at 65% 76%,#ad936b1c 0 1px,transparent 1.3px),linear-gradient(145deg,#e8e9ce,#d2d8b5); background-size:13px 17px,19px 11px,100% 100%; border-color:#9b9e732b; box-shadow:inset 0 1px 2px #83844f1c; }
+.tg-garden-desk .tg-garden-block { border-color:#a69a6a; box-shadow:0 3px 7px #374d3433,inset 0 0 0 3px #d4c49b; }
+@media (orientation:landscape) and (max-height:600px) {
+ .tg-garden-tools { justify-content:space-evenly; gap:5px; }
+ .tg-garden-tools .tg-mini-tile { --tile-cell:33px; height:103px; }
+ .gdn-placement-guide { font-size:17px; }
+ .tg-garden-tools .tg-tile-market button { padding:4px 3px; }
+}
+@media (orientation:landscape) and (max-height:340px) {
+ .tg-garden-tools .tg-mini-tile { --tile-cell:26px; height:82px; }
+ .tg-garden-tools { gap:4px; }
+ .gdn-main-actions { gap:4px; }
+ .gdn-main-actions button { padding-left:4px; padding-right:4px; }
+}
+.tg-shell.tg-garden .tg-tile-market button:focus-visible { outline:3px solid #234f3c; outline-offset:2px; }
