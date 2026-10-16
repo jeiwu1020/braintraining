@@ -539,6 +539,11 @@
   gap: 14px;
   padding: 22px;
 }
+/* Keep both ends of a tall settlement reachable inside a short panel. */
+.pg-night .pg-round-summary {
+  overflow-y: auto;
+  justify-content: flex-start;
+}
 .pg-round-summary h2 {
   font-size: 32px;
 }
@@ -1475,5 +1480,44 @@
   .pg-orders .pg-order-compact-points {
     display: inline;
     margin-left: 4px;
+  }
+}
+
+/* Keep the final dish visible until the facilitator reveals the score details. */
+.pg-last-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px, 2vw, 24px);
+  padding: clamp(14px, 2vw, 28px);
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.pg-last-pick-copy { display: grid; gap: 10px; min-width: 0; }
+.pg-last-pick-kicker { font-weight: 800; color: #80512b; }
+.pg-last-pick h2 { margin: 0; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.3; }
+.pg-last-pick p, .pg-last-pick small { margin: 0; line-height: 1.45; }
+.pg-last-pick strong { font-size: clamp(18px, 1.9vw, 25px); }
+.pg-last-pick-food { width: clamp(72px, 15vw, 180px); max-width: 34%; height: auto; object-fit: contain; flex-shrink: 0; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .pg-last-pick { gap: 10px; padding: 10px 14px; }
+  .pg-last-pick-copy { gap: 4px; }
+  .pg-last-pick h2 { font-size: 19px; }
+  .pg-last-pick p, .pg-last-pick small { font-size: 13px; }
+  .pg-last-pick strong { font-size: 17px; }
+  .pg-last-pick-food { width: 86px; max-height: 100px; }
+}
+
+.pg-deck-foods { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px 14px; padding:8px 12px; color:var(--pg-ink, #30251e); background:#fff5dd; border-radius:12px; font-size:clamp(14px,1.6vw,18px); }
+.pg-deck-foods strong { font-size:.9em; }
+.pg-deck-foods span { white-space:nowrap; }
+
+/* Leave room for the public counts and readable dish cards; the game shell
+   already scrolls vertically when a compact viewport cannot fit the table. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .pg-night .pg-play-layout[data-phase="playing"],
+  .pg-night .pg-play-layout[data-phase="awaiting_ai_reveal"] {
+    min-height: 430px;
   }
 }

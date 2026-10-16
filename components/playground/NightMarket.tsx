@@ -51,12 +51,14 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
   const [settings, setSettings] = useState<Settings>(() =>
     savedSettings("night-market"),
   );
+  const [reviewedRound, setReviewedRound] = useState<string | null>(null);
   const [selection, setSelection] = useState<{
       slot: number;
       token: string;
     } | null>(null),
     [dialog, setDialog] = useState<string | null>(null);
   const confirm = useRef<HTMLButtonElement>(null);
+  const reviewButton = useRef<HTMLButtonElement>(null);
   const grid = useRoving(4, 2, confirm);
   const aiTurn = !!(
     s &&
@@ -77,6 +79,10 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
     () => ({ type: "pick", slot: s!.market.findIndex(Boolean) }),
   );
   useEffect(() => setSelection(null), [token]);
+  useEffect(() => {
+    if (s && s.phase !== "playing" && reviewedRound !== token)
+      reviewButton.current?.focus();
+  }, [s?.phase, token, reviewedRound]);
   const selected = selection?.token === token ? selection.slot : null;
   const clear = () => {
     setSelection(null);
@@ -138,6 +144,7 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
         {rules}
       </>
     );
+  const remainingFood = observeNight(s).unknown;
   const currentScore = scoreNight(s, s.turn).base;
   const preview =
     selected !== null && s.market[selected]
@@ -153,6 +160,12 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
   };
   const finished = s.phase === "finished",
     summary = s.phase !== "playing";
+  const showSummary = summary && reviewedRound === token;
+  const lastTeam = other(s.turn);
+  const lastCard = summary ? s.hands[lastTeam].at(-1) : undefined;
+  const beforeLastScore = lastCard
+    ? scoreCounts(counts(s.hands[lastTeam].slice(0, -1))).base
+    : 0;
   const winner =
     scores.A === scores.B
       ? "同分，共享勝利"
@@ -251,6 +264,12 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
               ))}
             </div>
           )}
+          <div className="pg-deck-foods" role="group" aria-label="牌庫未翻開">
+            <strong>牌庫未翻開</strong>
+            {FOODS.map((food) => (
+              <span key={food}>{food === "corn" ? "玉米" : FOOD_NAMES[food]} <b>{remainingFood[food]}</b> 張</span>
+            ))}
+          </div>
           {!summary ? (
             <div className="pg-market" role="group" aria-label="四張公開菜牌">
               {s.market.map((card, i) => (
@@ -292,6 +311,23 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
                 </button>
               ))}
             </div>
+          ) : !showSummary && lastCard ? (
+            <section className="pg-last-pick pg-paper" aria-label="最後一手">
+              <div className="pg-last-pick-copy" id="night-last-pick-detail">
+                <span className="pg-last-pick-kicker">第 {s.round} 輪・最後一手</span>
+                <h2>{s.last}</h2>
+                <p>餐盤已更新，先看清楚這一手，再查看結算。</p>
+                <strong>
+                  基本菜分 {beforeLastScore} → {scoreNight(s, lastTeam).base} 分
+                </strong>
+                <small>公開訂單加分會在結算明細列出</small>
+              </div>
+              <img
+                className="pg-last-pick-food"
+                src={`/playground/${lastCard.food}.webp`}
+                alt={FOOD_NAMES[lastCard.food]}
+              />
+            </section>
           ) : (
             <section
               className="pg-round-summary pg-paper"
@@ -339,7 +375,7 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
         <aside className="pg-control-panel pg-paper">
           <h2 aria-live="polite">
             {summary
-              ? "本輪結算"
+              ? showSummary ? "本輪結算" : "看看最後一手"
               : aiTurn
                 ? "▲ 電腦回合"
                 : `輪到 ${teamLabel(s.turn, "teams")}`}
@@ -406,6 +442,15 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
           )}
           {summary && (
             <>
+              <p className="pg-last-action" aria-label="最後拿取紀錄" aria-live="polite">
+                {s.last}
+              </p>
+              {!showSummary ? (
+                <button ref={reviewButton} className="pg-primary" aria-describedby="night-last-pick-detail" onClick={() => setReviewedRound(token)}>
+                  查看結算
+                </button>
+              ) : (
+              <>
               <p>{finished ? winner : "雙方各拿滿六張"}</p>
               <button
                 className="pg-primary"
@@ -427,6 +472,8 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
                 >
                   重新設定
                 </button>
+              )}
+              </>
               )}
             </>
           )}
