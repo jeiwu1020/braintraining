@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "filename": "box-lighthouse-preview.png",
+      "sha256": "f223488c7ed9574de95233bd4d12e6454c110e2fb9d93009cd90975afafc0ae0",
+      "bytes": 2818063
+    },
+    {
+      "filename": "box-garden-preview.png",
+      "sha256": "1f3b3db35c64bd56cadade9bde1a4d1fb508124cc38887e8c4b29818ce051ec9",
+      "bytes": 3197010
+    },
+    {
+      "filename": "box-lantern-preview.png",
+      "sha256": "13a36942bde3ba499fbd274d208582ebeb594ed6dade623ce07a82457d058d32",
+      "bytes": 3008348
+    },
+    {
+      "filename": "box-workshop-preview.png",
+      "sha256": "cbb4826657b96db184d5b43df1c38921010ca9a61553ad7ec22e763ba94b3be4",
+      "bytes": 2753000
+    },
+    {
+      "filename": "box-auction-preview.png",
+      "sha256": "86f6acfab2f92ccaba63ef524a95bcd8eea76d2f9817b826571e74eba5ecb782",
+      "bytes": 2827492
+    }
+  ]
+}
+
