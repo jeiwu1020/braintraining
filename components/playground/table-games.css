@@ -774,9 +774,10 @@
   }
 }
 /* Approved wordless collection art; original SVGs remain available for game covers. */
-.pg-art-lighthouse{background-image:url('/playground/box-lighthouse.webp');background-size:cover;background-position:center}.pg-art-lighthouse:before{display:none}
-.pg-art-garden{background-image:url('/playground/box-garden.webp');background-size:cover;background-position:center}
-.pg-art-lantern{background-image:url('/playground/box-lantern.webp');background-size:cover;background-position:center}
-.pg-art-workshop{background-image:url('/playground/box-workshop.webp');background-size:cover;background-position:center}
-.pg-art-auction{background-image:url('/playground/box-auction.webp');background-size:cover;background-position:center}
-.pg-gallery .pg-box-art:is(.pg-art-lighthouse,.pg-art-garden,.pg-art-lantern,.pg-art-workshop,.pg-art-auction){aspect-ratio:4/3;flex:none;background-origin:border-box}
+.pg-art-lighthouse{background-image:url('/playground/box-lighthouse.webp');background-size:cover;background-position:center 12%}.pg-art-lighthouse:before{display:none}
+.pg-art-garden{background-image:url('/playground/box-garden.webp');background-size:cover;background-position:center 55%}
+.pg-art-lantern{background-image:url('/playground/box-lantern.webp');background-size:cover;background-position:center 55%}
+.pg-art-workshop{background-image:url('/playground/box-workshop.webp');background-size:cover;background-position:center 70%}
+.pg-art-auction{background-image:url('/playground/box-auction.webp');background-size:cover;background-position:center 38%}
+/* Let captions determine each card's height without stretching another image. */
+.pg-gallery .pg-game-box { align-self: start; min-height: 0; }

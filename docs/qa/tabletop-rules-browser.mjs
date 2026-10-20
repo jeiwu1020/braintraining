@@ -96,7 +96,9 @@ try {
         return { game, width: r.width, height: r.height, naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight, backgroundImage: style.backgroundImage, backgroundSize: style.backgroundSize, backgroundPosition: style.backgroundPosition, backgroundOrigin: style.backgroundOrigin };
       }, game);
       assert(art.naturalWidth === 1000 && art.naturalHeight === 750, `${game}: invalid image dimensions`);
-      assert(Math.abs(art.width / art.height - 4 / 3) < 0.01, `${game}/${w}: 4:3 art clipped ${JSON.stringify(art)}`);
+      const reference = await page.locator('[data-game-card="night-market"] .pg-box-art').boundingBox();
+      assert(Math.abs(art.height - reference.height) < 1, `${game}/${w}: image height differs from Night Market ${JSON.stringify(art)}`);
+      assert(art.backgroundSize === 'cover', `${game}/${w}: image must preserve proportions with cover`);
       images.push({ viewport: { width: w, height: h }, ...art });
       if ([390, 640].includes(w)) await card.screenshot({ path: `${output}/screenshots/menu-${game}-${w}.png` });
     }
@@ -134,4 +136,4 @@ try {
   await browser.close();
 }
 assert(errors.length === 0, errors.join('\n'));
-console.log(`PASS: ${results.length} rules checks; ${images.length} menu image/4:3 checks; all five WebPs HTTP 200, image/webp and decode 1000x750; modal scroll/close/Escape/focus/return; 0 unexpected console errors; ${knownResourceErrors.length} known font/favicon resource errors (retained in JSON).`);
+console.log(`PASS: ${results.length} rules checks; ${images.length} menu image/height checks; all five WebPs HTTP 200, image/webp and decode 1000x750; modal scroll/close/Escape/focus/return; 0 unexpected console errors; ${knownResourceErrors.length} known font/favicon resource errors (retained in JSON).`);
