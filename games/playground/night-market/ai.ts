@@ -1,4 +1,4 @@
-import { other, random, Team } from "../types";
+import { AiDifficulty, other, random } from "../types";
 import {
   Counts,
   Food,
@@ -51,7 +51,37 @@ function value(o: Observation, c: Counts, remaining: number): number {
     }
   return v;
 }
-export function chooseNight(o: Observation, aiSeed: number): number {
+/** One extra own pick, averaged over public unseen-food counts. No opponent search. */
+function nextOwnGain(o: Observation, slot: number, mine: Counts): number {
+  const remaining = o.remaining[o.turn] - 1;
+  if (remaining <= 0) return 0;
+  const total = FOODS.reduce((n, f) => n + o.unknown[f], 0);
+  const draws: { food: Food | null; weight: number }[] = total
+    ? FOODS.filter((f) => o.unknown[f] > 0).map((food) => ({
+        food,
+        weight: o.unknown[food] / total,
+      }))
+    : [{ food: null, weight: 1 }];
+  let gain = 0;
+  for (const draw of draws) {
+    const market = [...o.market];
+    market[slot] = draw.food;
+    const next = {
+      ...o,
+      market,
+      unknown: draw.food
+        ? { ...o.unknown, [draw.food]: o.unknown[draw.food] - 1 }
+        : o.unknown,
+    };
+    const before = value(next, mine, remaining);
+    gain += draw.weight * Math.max(0, ...market
+      .filter((f): f is Food => f !== null)
+      .map((f) => value(next, add(mine, f), remaining - 1) - before));
+  }
+  return gain;
+}
+
+export function chooseNight(o: Observation, aiSeed: number, difficulty?: AiDifficulty): number {
   const me = o.turn,
     op = other(me),
     legal = o.market
@@ -59,6 +89,16 @@ export function chooseNight(o: Observation, aiSeed: number): number {
       .filter((i) => i >= 0);
   if (!legal.length) throw new Error("沒有合法菜牌");
   const tie = random(aiSeed);
+  if (difficulty === "easy") {
+    const scored = legal.map((slot) => ({
+      slot,
+      score: value(o, add(o.hands[me], o.market[slot]!), o.remaining[me] - 1),
+    }));
+    const best = Math.max(...scored.map((move) => move.score));
+    // Keep mistakes modest and reproducible; never deliberately deny a dish.
+    const nearBest = scored.filter((move) => move.score >= best - 1.5);
+    return nearBest[Math.floor(tie() * nearBest.length)].slot;
+  }
   let best = -Infinity,
     chosen = legal[0];
   for (const slot of legal) {
@@ -67,7 +107,9 @@ export function chooseNight(o: Observation, aiSeed: number): number {
     let score =
       value(o, mine, o.remaining[me] - 1) -
       value(o, o.hands[me], o.remaining[me]);
-    if (o.level === "advanced" && o.remaining[op] > 0) {
+    if (difficulty === "standard") score += 0.35 * nextOwnGain(o, slot, mine);
+    // An omitted difficulty keeps the original normal/advanced policy exactly.
+    if ((difficulty === "challenge" || (difficulty === undefined && o.level === "advanced")) && o.remaining[op] > 0) {
       const unknownTotal = FOODS.reduce((n, f) => n + o.unknown[f], 0);
       const outcomes: { food: Food | null; weight: number }[] = unknownTotal
         ? FOODS.filter((f) => o.unknown[f] > 0).map((f) => ({

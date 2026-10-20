@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { PlaygroundId, PLAYGROUND_CATALOG } from "../../data/playgroundCatalog";
 import { PREFIX } from "../../games/playground/session";
-import { Settings, Team } from "../../games/playground/types";
+import { AI_DIFFICULTY_LABELS, AiDifficulty, Settings, Team } from "../../games/playground/types";
 import GameShell from "../game-ui/GameShell";
 export const teamLabel = (team: Team, mode: string) =>
   `${team === "A" ? "●" : "▲"} ${team} 隊${mode === "solo" && team === "B" ? "・電腦" : ""}`;
@@ -111,7 +111,7 @@ export function Setup({
       <GameShell
         className="pg-shell"
         title={c.title}
-        subtitle="先選模式與難度，再開始本局"
+        subtitle="先選模式與玩法，單人可另選電腦難度"
         onBack={onBack}
         backLabel="返回桌遊新樂園"
         actions={
@@ -147,7 +147,8 @@ export function Setup({
                 ? "A、B 兩隊共用畫面輪流"
                 : "你或全團體對電腦，按鈕揭示電腦行動"}
             </p>
-            <div className="pg-choice" aria-label="難度">
+            <h3>玩法</h3>
+            <div className="pg-choice" aria-label="玩法難度">
               {(["normal", "advanced"] as const).map((level) => (
                 <button
                   key={level}
@@ -159,6 +160,31 @@ export function Setup({
               ))}
             </div>
             <p>{c.difficultyDescriptions[settings.level]}</p>
+            {settings.mode === "solo" && (
+              <>
+                <h3>電腦難度</h3>
+                <div className="pg-choice" aria-label="電腦難度">
+                  {(["easy", "standard", "challenge"] as AiDifficulty[]).map(difficulty => (
+                    <button
+                      key={difficulty}
+                      aria-pressed={settings.aiDifficulty === difficulty}
+                      onClick={() => onChange({ ...settings, aiDifficulty: difficulty })}
+                    >
+                      {AI_DIFFICULTY_LABELS[difficulty]}
+                    </button>
+                  ))}
+                </div>
+                <p className="pg-ai-description">
+                  {!settings.aiDifficulty
+                    ? "沿用舊版電腦：維持原本一般／進階策略。選擇上方難度後，新局才使用新設定。"
+                    : settings.aiDifficulty === "easy"
+                      ? "以自身收益為主，在接近最佳的合理選擇間變化，較少針對對手阻擋。"
+                      : settings.aiDifficulty === "standard"
+                        ? "評估自身收益與有限前瞻，兼顧眼前機會。"
+                        : "認真計分、考慮對手回應；築牆使用較深搜尋。"}
+                </p>
+              </>
+            )}
             <button className="pg-primary" onClick={start}>
               開始本局
             </button>
@@ -294,4 +320,4 @@ export function ConfirmDialog({
   );
 }
 export const modeTitle = (settings: Settings) =>
-  `${settings.mode === "teams" ? "兩隊" : "單人"}・${settings.level === "normal" ? "一般" : "進階"}`;
+  `${settings.mode === "teams" ? "兩隊" : "單人"}・${settings.level === "normal" ? "一般" : "進階"}${settings.mode === "solo" ? `・${settings.aiDifficulty ? `${AI_DIFFICULTY_LABELS[settings.aiDifficulty]}電腦` : "舊版電腦"}` : ""}`;

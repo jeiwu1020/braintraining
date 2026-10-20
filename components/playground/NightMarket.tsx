@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import GameShell from "../game-ui/GameShell";
 import { Engine, savedSettings } from "../../games/playground/session";
 import { other, Settings, TEAMS } from "../../games/playground/types";
+import { chooseNight } from "../../games/playground/night-market/ai";
 import {
   applyNight,
   counts,
@@ -66,6 +67,9 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
     s.turn === "B" &&
     s.phase === "playing"
   );
+  const aiSeed = s && session
+    ? (session.aiSeed ^ (s.round * 97) ^ s.picks) >>> 0
+    : 0;
   const ai = useAi<NightAction>(
     aiTurn,
     token,
@@ -73,10 +77,16 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
     s
       ? {
           observation: observeNight(s),
-          seed: (session!.aiSeed ^ (s.round * 97) ^ s.picks) >>> 0,
+          seed: aiSeed,
+          difficulty: session!.settings.aiDifficulty,
         }
       : {},
-    () => ({ type: "pick", slot: s!.market.findIndex(Boolean) }),
+    () => ({
+      type: "pick",
+      slot: session!.settings.aiDifficulty === undefined
+        ? s!.market.findIndex(Boolean)
+        : chooseNight(observeNight(s!), aiSeed, session!.settings.aiDifficulty),
+    }),
   );
   useEffect(() => setSelection(null), [token]);
   useEffect(() => {

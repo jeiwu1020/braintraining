@@ -90,12 +90,16 @@ export default function WallRace({ onBack }: { onBack: () => void }) {
     s.turn === "B" &&
     s.phase === "playing"
   );
+  const aiOptions = {
+    difficulty: session?.settings.aiDifficulty,
+    seed: ((session?.aiSeed ?? 0) + (s?.ply ?? 0)) >>> 0,
+  };
   const ai = useAi<WallAction>(
     aiTurn,
     token,
     makeWorker,
-    s ? { state: s } : {},
-    () => fallbackWall(s!),
+    s ? { state: s, options: aiOptions } : {},
+    () => fallbackWall(s!, aiOptions),
   );
   useEffect(() => {
     setSelection(null);

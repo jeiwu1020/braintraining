@@ -1,9 +1,20 @@
 export type Team = "A" | "B";
 export type Mode = "teams" | "solo";
 export type Level = "normal" | "advanced";
+export type AiDifficulty = "easy" | "standard" | "challenge";
+export const AI_DIFFICULTY_LABELS: Record<AiDifficulty, string> = {
+  easy: "輕鬆",
+  standard: "標準",
+  challenge: "挑戰",
+};
+export function validAiDifficulty(value: unknown): value is AiDifficulty {
+  return value === "easy" || value === "standard" || value === "challenge";
+}
 export interface Settings {
   mode: Mode;
   level: Level;
+  /** Absent in v1 journals: preserve the original level-dependent AI policy. */
+  aiDifficulty?: AiDifficulty;
 }
 export const other = (team: Team): Team => (team === "A" ? "B" : "A");
 export const TEAMS: Team[] = ["A", "B"];

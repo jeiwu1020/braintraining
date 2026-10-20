@@ -1,5 +1,5 @@
 import { PlaygroundId } from "../../data/playgroundCatalog";
-import { Settings, Team } from "./types";
+import { Settings, Team, validAiDifficulty } from "./types";
 export const PREFIX = "braintraining.playground.v1";
 export interface SavedSession<A> {
   version: 1;
@@ -50,6 +50,7 @@ export function restore<S, A>(
     !["A", "B"].includes(v.starter) ||
     !["solo", "teams"].includes(v.settings?.mode) ||
     !["normal", "advanced"].includes(v.settings?.level) ||
+    ("aiDifficulty" in v.settings && !validAiDifficulty(v.settings.aiDifficulty)) ||
     ![v.seed, v.aiSeed].every(
       (x) => Number.isInteger(x) && x >= 0 && x <= 0xffffffff,
     ) ||
@@ -90,9 +91,12 @@ export function savedSettings(game: PlaygroundId): Settings {
     );
     if (
       ["teams", "solo"].includes(s?.mode) &&
-      ["normal", "advanced"].includes(s?.level)
+      ["normal", "advanced"].includes(s?.level) &&
+      (!("aiDifficulty" in s) || validAiDifficulty(s.aiDifficulty))
     )
       return s;
   } catch {}
-  return { mode: "teams", level: "normal" };
+  return game === "night-market" || game === "wall-race"
+    ? { mode: "teams", level: "normal", aiDifficulty: "standard" }
+    : { mode: "teams", level: "normal" };
 }

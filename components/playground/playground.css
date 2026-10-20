@@ -1388,7 +1388,22 @@
     overflow: auto;
   }
   .pg-wall-area {
-    min-height: 360px;
+    min-height: 440px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pg-wall .pg-board-legend {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+  }
+  .pg-wall .pg-board-frame {
+    width: min(100%, 320px);
+    height: auto;
+    max-width: 100%;
+    padding: 6px;
   }
   .pg-night-table {
     min-height: 400px;
