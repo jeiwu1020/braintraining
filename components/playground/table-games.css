@@ -773,9 +773,10 @@
     padding: 6px 4px;
   }
 }
-/* Collection boxes reuse the same original vector illustrations as their game covers. */
-.pg-art-lighthouse{background-image:url('../../assets/playground/lighthouse.svg');background-size:cover;background-position:center}.pg-art-lighthouse:before{display:none}
-.pg-art-garden{background-image:url('../../assets/playground/garden.svg');background-size:cover;background-position:center}
-.pg-art-lantern{background-image:url('../../assets/playground/lantern.svg');background-size:cover;background-position:center}
-.pg-art-workshop{background-image:url('../../assets/playground/workshop.svg');background-size:cover;background-position:center}
-.pg-art-auction{background-image:url('../../assets/playground/auction.svg');background-size:cover;background-position:center}
+/* Approved wordless collection art; original SVGs remain available for game covers. */
+.pg-art-lighthouse{background-image:url('/playground/box-lighthouse.webp');background-size:cover;background-position:center}.pg-art-lighthouse:before{display:none}
+.pg-art-garden{background-image:url('/playground/box-garden.webp');background-size:cover;background-position:center}
+.pg-art-lantern{background-image:url('/playground/box-lantern.webp');background-size:cover;background-position:center}
+.pg-art-workshop{background-image:url('/playground/box-workshop.webp');background-size:cover;background-position:center}
+.pg-art-auction{background-image:url('/playground/box-auction.webp');background-size:cover;background-position:center}
+.pg-gallery .pg-box-art:is(.pg-art-lighthouse,.pg-art-garden,.pg-art-lantern,.pg-art-workshop,.pg-art-auction){aspect-ratio:4/3;flex:none;background-origin:border-box}

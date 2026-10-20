@@ -54,7 +54,7 @@ export default function Playground({ onBack }: { onBack: () => void }) {
         {PLAYGROUND_CATALOG.map((c) => (
           <article className="pg-game-box" key={c.id} data-game-card={c.id}>
             <div className={`pg-box-art pg-art-${c.id}`} aria-hidden="true">
-              <span>{c.title}</span>
+              {(c.id === "night-market" || c.id === "wall-race") && <span>{c.title}</span>}
             </div>
             <div className="pg-box-label pg-paper">
               <h2>{c.title}</h2>

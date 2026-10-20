@@ -8,3 +8,19 @@
 - 原始來源版本：comic-assets-v3。食物使用乾淨輪廓、簡化陰影，不採半仿真油光。
 
 圖像是裝飾／辨識輔助；牌號、菜名、得分、棋盤座標與隊伍文字均不嵌入圖檔。
+
+## 五款無字選單盒繪（2026-10-20）
+
+以下來源由使用者核准為各遊戲的無字 PNG 預覽。原圖1448×1086，依 manifest 核對 SHA256 與大小、逐張檢視後，完整縮至1000×750並以 WebP quality 84 / method 6壓縮。僅用於選單 `pg-box-art`；圖區維持4:3完整構圖，不替換遊戲內素材或原 SVG。
+
+| 遊戲 | 原始 Library 來源 ID | 使用檔案 |
+| --- | --- | --- |
+| lighthouse | `libfile_b9e0f0b302bc8191a535f26b7cb89322` | `box-lighthouse.webp` |
+| garden | `libfile_293904928df88191b1a368308448784d` | `box-garden.webp` |
+| lantern | `libfile_11ee9664e4608191a4e5e3e3687f59d0` | `box-lantern.webp` |
+| workshop | `libfile_da94b65972ac8191becc295b974be2aa` | `box-workshop.webp` |
+| auction | `libfile_f875b1be0c10819186ed219803a047c4` | `box-auction.webp` |
+
+實際取得來源：同一私有儲存庫素材分支 `backup/tabletop-menu-20261020` 的固定提交 [`2313fce3fc90563cad799d55a2854d60c067c336`](https://github.com/jeiwu1020/braintraining/tree/2313fce3fc90563cad799d55a2854d60c067c336/asset-backup/tabletop-menu-20261020)，目錄 `asset-backup/tabletop-menu-20261020/`。原檔為 `box-{id}-preview.png`，雜湊與大小依同目錄 `manifest.json` 驗證；未合併素材分支。
+
+五張 PNG 共14,603,913 bytes，執行用 WebP共1,071,398 bytes（減少約92.7%）。原圖完整保留於素材提交及本機 `/workspace/tabletop-menu-originals/`。夜市、築牆盒繪、原 SVG 與所有遊戲內素材均保留；標題、描述、可存取名稱仍由 HTML 呈現，五款圖區不再重複疊標題。
