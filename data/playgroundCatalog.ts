@@ -29,7 +29,7 @@ export const PLAYGROUND_CATALOG = [
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
       normal: "9回合交付8箱補給，較平穩海況",
-      advanced: "9回合交付10箱補給，風浪更多",
+      advanced: "9回合交付12箱，3種需求配置、部分燈塔需分批",
     },
   },
   {
@@ -62,7 +62,7 @@ export const PLAYGROUND_CATALOG = [
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
       normal: "5工作日，每隊每日2位工匠",
-      advanced: "6工作日，每隊每日3位工匠，站位更緊",
+      advanced: "6工作日，對稱多樣開局；休息可取1基本資源",
     },
   },
   {
@@ -78,3 +78,4 @@ export const PLAYGROUND_CATALOG = [
   },
 ] as const;
 export type PlaygroundId = (typeof PLAYGROUND_CATALOG)[number]["id"];
+

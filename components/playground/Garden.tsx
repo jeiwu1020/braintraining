@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableGame from "./TableGame";
+import { tableAction } from "./tableReview";
 import "./garden-artboard.css";
 import { Modal } from "./Common";
 import {
@@ -102,6 +103,7 @@ function GardenTable({ state: s, choose }: { state: GardenState; choose: (a: Gar
   const action:Extract<GardenAction,{type:'place'}>|null=anchor?{type:'place',slot,rotation,...anchor}:null;
   const error=action?placementError(s,action):'② 點花園，選擇落點';
   const scores={A:scoreGarden(s.boards.A,s.size),B:scoreGarden(s.boards.B,s.size)};
+  const preview=action&&!error?applyGarden(s,action):null;
   const other=s.turn==='A'?'B':'A';
   const ghost=anchor?rotated(s.market[slot],rotation).map(c=>({...c,x:c.x+anchor.x,y:c.y+anchor.y})):[];
   const board=(team:'A'|'B',active:boolean)=><section className={`tg-garden-block ${active?'tg-garden-active':'tg-garden-other'}`} key={team}>
@@ -123,6 +125,7 @@ function GardenTable({ state: s, choose }: { state: GardenState; choose: (a: Gar
       <div className="tg-market-title"><b>① 選地形</b><span>本隊 {Math.floor(s.ply/2)+1}/{s.limit/2} 塊</span></div>
       <div className="tg-tile-market">{s.market.map((tile,i)=><button key={i} aria-label={`選地形${i+1}`} aria-pressed={slot===i} data-tile-available={all.some(a=>a.slot===i)} onClick={()=>{setSlot(i);setAnchor(null);}}><b>{slot===i?'✓ ':''}{i+1}</b><MiniTile tile={tile} rotation={slot===i?rotation:0}/>{!all.some(a=>a.slot===i)&&<small>無落點</small>}</button>)}</div>
       <div className="gdn-placement-guide"><b>{error||`② ${String.fromCharCode(65+anchor!.x)}${anchor!.y+1} 可放`}</b><span>{rotation*90}°</span></div>
+      {preview && action && <p className="gdn-score-preview" role="status">{tableAction("garden",s,action,preview)}</p>}
       <div className="gdn-main-actions"><button onClick={()=>{setRotation((rotation+1)%4);setAnchor(null);}}>旋轉90°</button>
         {all.length===0?<button className="pg-primary" onClick={()=>choose({type:'discard'},'三塊地形都沒有合法落點，本手略過。')}>本手略過</button>:<button className="pg-primary" disabled={!action||!!error} onClick={()=>{if(action){const n=applyGarden(s,action);choose(action,`${s.turn}隊放置地形${slot+1}，方向${rotation*90}°，左上角 ${String.fromCharCode(65+anchor!.x)}${anchor!.y+1}。暫計 ${scoreGarden(n.boards[s.turn],s.size).total} 分。`);}}}>預覽放置</button>}<button className="gdn-coordinates-toggle" onClick={()=>setCoords(true)}>座標</button></div>
       <span className="sr-only" role="status">{error||`③ ${String.fromCharCode(65+anchor!.x)}${anchor!.y+1} 可放 · 虛線為預覽`}</span>
@@ -219,3 +222,4 @@ export default function Garden({ onBack }: { onBack: () => void }) {
     </TableGame>
   );
 }
+

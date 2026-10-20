@@ -20,7 +20,7 @@ describe("lighthouse cooperative logistics", () => {
     expect(JSON.stringify(s)).toBe(before);
     expect(() => applyLighthouse(n, { type: "unload" })).toThrow();
   });
-  it.each(["normal", "advanced"] as const)(
+  it.each(["normal"] as const)(
     "offers a winnable complete %s voyage across weather seeds",
     (level) => {
       // A public-information itinerary serves each port in turn; rough crossings may wait for two AP.
@@ -82,6 +82,22 @@ describe("lighthouse cooperative logistics", () => {
       }
     },
   );
+  it("preserves the original normal opening, including its weather sequence", () => {
+    expect(createLighthouse(7, "normal", "B")).toEqual({
+      phase: "playing",
+      turn: "B",
+      round: 1,
+      limit: 9,
+      ap: 2,
+      at: 0,
+      cargo: [0, 0],
+      needs: [[0, 0], [2, 1], [1, 2], [1, 1]],
+      ready: 0,
+      weather: [false, true, true, false, false, false, false, false, true, false],
+      won: false,
+      message: "全團體共同決策。先在母港裝貨，再選一條航線。",
+    });
+  });
   it("charges rough outer crossings, consumes readiness, and accepts a last-action delivery", () => {
     const s = {
       ...createLighthouse(1, "normal", "A"),
@@ -124,3 +140,4 @@ describe("lighthouse cooperative logistics", () => {
     ).toThrow();
   });
 });
+

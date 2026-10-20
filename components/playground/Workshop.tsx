@@ -78,6 +78,18 @@ const info = {
 };
 function WorkshopTable({state:s,choose}:{state:WorkshopState;choose:(a:WorkshopAction,l:string)=>void}) {
   const [count,setCount]=useState(1);
+  const [restResource,setRestResource]=useState<"wood"|"metal"|"none">("wood");
+  const advanced=s.perTeam===3;
+  const restAction:WorkshopAction=advanced&&restResource!=="none"?{type:"rest",resource:restResource}:{type:"rest"};
+  const restError=s.phase==="round_summary"?null:workshopError(s,restAction);
+  const restName=restResource==="wood"?"木料":"金屬";
+  const remainingDays=s.limit-s.round+(s.phase==="playing"?1:0);
+  const restButton=<button className="wk-station wk-rest" aria-describedby="wk-rest-info" aria-label={s.phase==='round_summary'?(s.round===s.limit?'查看總結果':'下一工作日'):'安排休息'} disabled={!!restError} title={restError||undefined} onClick={()=>s.phase==='round_summary'?choose({type:'next'},s.round===s.limit?'最後工作日已完成，查看出貨總分。':'進入下一工作日，清空工作站並補回工匠。'):choose(restAction,advanced&&restResource!=="none"?`休息取${restName}1。花費1位工匠，不占工作站；取材不受升級加成，資源上限6。`:'安排1位工匠休息，不占用工作站，也不獲得資源。')}>
+    <svg className="wk-station-art" viewBox="1024 512 512 512" aria-hidden="true"><defs><clipPath id="wk-crop-rest"><rect x="1024" y="512" width="512" height="512"/></clipPath></defs><image clipPath="url(#wk-crop-rest)" href="/assets/playground/workshop/stations-atlas-v1.png" width="1536" height="1024"/></svg>
+    <b>{s.phase==='round_summary'?'今日完成':'休息區'}</b>
+    <span className="wk-recipe" id="wk-rest-info">{s.phase==='round_summary'?'庫存保留 · 隔日換先手':<>用1工匠{advanced&&restResource!=="none"?` · 取${restName}1`:""}<br/>不占工作站</>}</span>
+    <small>{s.phase==='round_summary'?(s.round===s.limit?'查看總結果':'下一工作日'):restError?'已滿，請改選':'安排休息'}</small>
+  </button>;
   return <div className="tg-workshop-desk">
     <section className="tg-workshop-ledger pg-paper"><table aria-label="兩隊工坊庫存與工匠"><thead><tr><th>庫存</th>{(['A','B'] as const).map(t=><th key={t} className={s.turn===t?'tg-ledger-active':''}>{t}隊{s.turn===t?' ◀':''}</th>)}</tr></thead><tbody>{([['wood','木料','/6'],['metal','金屬','/6'],['goods','成品','/3'],['level','等級','/2'],['workers','工匠',''],['score','分數','']] as const).map(([key,name,max])=><tr key={key}><th>{name}</th>{(['A','B'] as const).map(t=><td key={t} className={s.turn===t?'tg-ledger-active':''}>{key==='workers'?s.workers[t]:s.stock[t][key]}{max}</td>)}</tr>)}</tbody></table></section>
     <div className="tg-workshop-options"><b>{s.phase==='round_summary'?'工作日結算':`輪到 ${s.turn} 隊`}</b>{s.phase!=='round_summary'&&<label>加工／出貨<select aria-label="加工出貨件數" value={count} onChange={e=>setCount(Number(e.target.value))}><option value="1">1件</option><option value="2">2件</option></select></label>}</div>
@@ -85,10 +97,18 @@ function WorkshopTable({state:s,choose}:{state:WorkshopState;choose:(a:WorkshopA
       <svg className="wk-station-art" viewBox={`${i%3*512} ${Math.floor(i/3)*512} 512 512`} aria-hidden="true"><defs><clipPath id={`wk-crop-${st}`}><rect x={i%3*512} y={Math.floor(i/3)*512} width="512" height="512"/></clipPath></defs><image clipPath={`url(#wk-crop-${st})`} href="/assets/playground/workshop/stations-atlas-v1.png" width="1536" height="1024"/></svg>
       <b>{STATION_NAMES[st]}</b><span id={`wk-info-${st}`} className="wk-recipe">{{wood:<>取木料<br/>2＋等級</>,metal:<>取金屬<br/>2＋等級</>,craft:<>每件：木1＋金1<br/>→ 成品1</>,upgrade:<>木2＋金1<br/>→ 等級＋1</>,ship:<>每件成品<br/>4＋2×等級 分</>}[st]}</span><span className="sr-only" id={`wk-cost-${st}`}>每次使用1位工匠。{st==='craft'||st==='ship'?`本次${count}件。`:''}{error||'可以派工。'}</span><small id={`wk-status-${st}`} className={occupied?'wk-occupied':''}>{occupied?`${occupied}隊已占用`:error?'條件不足':st==='craft'||st==='ship'?`派工 · ${count}件`:'點此派工'}</small>
     </button>;})}
-    <button className="wk-station wk-rest" aria-describedby="wk-rest-info" aria-label={s.phase==='round_summary'?(s.round===s.limit?'查看總結果':'下一工作日'):'安排休息'} onClick={()=>s.phase==='round_summary'?choose({type:'next'},s.round===s.limit?'最後工作日已完成，查看出貨總分。':'進入下一工作日，清空工作站並補回工匠。'):choose({type:'rest'},'安排1位工匠休息，不占用工作站，也不獲得資源。')}>
-      <svg className="wk-station-art" viewBox="1024 512 512 512" aria-hidden="true"><defs><clipPath id="wk-crop-rest"><rect x="1024" y="512" width="512" height="512"/></clipPath></defs><image clipPath="url(#wk-crop-rest)" href="/assets/playground/workshop/stations-atlas-v1.png" width="1536" height="1024"/></svg><b>{s.phase==='round_summary'?'今日完成':'休息區'}</b><span className="wk-recipe" id="wk-rest-info">{s.phase==='round_summary'?'庫存保留 · 隔日換先手':<>用1工匠<br/>不占工作站</>}</span><small>{s.phase==='round_summary'?(s.round===s.limit?'查看總結果':'下一工作日'):'安排休息'}</small>
-    </button></div>
-    <p className="tg-desk-note">每次派1位工匠 · 最後只計出貨分數，剩餘材料與成品不加分。</p>
+    {advanced&&s.phase==="playing"?<div style={{display:"grid",gridTemplateRows:"minmax(0,1fr) auto",minHeight:0}}>
+      {restButton}
+      <label style={{display:"flex",alignItems:"center",justifyContent:"center",gap:4,fontSize:16}}>
+        休息取材
+        <select aria-label="休息取材" value={restResource} onChange={e=>setRestResource(e.target.value as "wood"|"metal"|"none")} style={{minWidth:0,maxWidth:"65%"}}>
+          <option value="wood" disabled={s.stock[s.turn].wood>=6}>木料＋1{s.stock[s.turn].wood>=6?"（已滿）":""}</option>
+          <option value="metal" disabled={s.stock[s.turn].metal>=6}>金屬＋1{s.stock[s.turn].metal>=6?"（已滿）":""}</option>
+          <option value="none">不取材</option>
+        </select>
+      </label>
+    </div>:restButton}</div>
+    <p className="tg-desk-note">{advanced&&<span>{s.phase==="playing"?"含今日剩":"剩餘"}{remainingDays}日 · 升級：木2＋金1＋1工匠，往後取材站＋1／每件出貨＋2分，本手不加分。<br/></span>}每次派1位工匠 · 最後只計出貨分數，剩餘材料與成品不加分。</p>
   </div>;
 }
 export default function Workshop({ onBack }: { onBack: () => void }) {
@@ -101,7 +121,7 @@ export default function Workshop({ onBack }: { onBack: () => void }) {
       summary={(s) => `第 ${s.round} / ${s.limit} 日・輪到 ${s.turn}隊・五站共用`}
       steps={[
         "先取木料與金屬，再加工成品，最後出貨得分；也可投資升級。",
-        "每次派一位工匠；加工或出貨1／2件都只用一位，被占的共用站當日不能再用。",
+        "每次派一位工匠；加工或出貨1／2件都只用一位，被占的共用站當日不能再用。進階休息可取1木料或1金屬。",
         "兩隊工匠用完後進下一日，最後比較出貨總分。",
       ]}
       demo={[
@@ -112,7 +132,7 @@ export default function Workshop({ onBack }: { onBack: () => void }) {
       rules={
         <>
           <p>
-            兩隊各經營自己的工坊：取木料／金屬 → 加工成品 → 出貨得分，只有出貨會增加分數。共用五個工作站，每站每天兩隊合計只能使用一次。一般5工作日、每隊每日2位工匠；進階6工作日、每隊每日3位，兩隊合計6位工匠，所以每天至少1位必須休息。起始各有木料1、金屬1，等級0。
+            兩隊各經營自己的工坊：取木料／金屬 → 加工成品 → 出貨得分，只有出貨會增加分數。共用五個工作站，每站每天兩隊合計只能使用一次。一般5工作日、每隊每日2位工匠；進階6工作日、每隊每日3位，兩隊合計6位工匠，所以每天至少1位必須休息。一般起始各有木料1、金屬1；進階每局從木1金1、木2金1、木1金2中選一組，兩隊配置相同，開局會公開顯示。起始等級皆為0。
           </p>
           <ol>
             <li>
@@ -129,7 +149,7 @@ export default function Workshop({ onBack }: { onBack: () => void }) {
               出貨埠可一次出1或2件，每件得4＋2×目前等級分。加工、出貨批量都只使用1位工匠、占1站。
             </li>
             <li>
-              也可安排休息使用1工匠，不占站、不取資源。工匠全用完後確認結算，下一日工匠補滿、工作站清空，庫存／等級／分數保留。
+              也可安排休息使用1工匠，不占站。一般休息不取資源；進階可選取木料1或金屬1（不受等級加成，各上限6），也可不取材。主要取材站即使已被占用，仍可休息取材。工匠全用完後確認結算，下一日工匠補滿、工作站清空，庫存／等級／分數保留。
             </li>
             <li>
               最後一天完成後比較出貨總分，剩餘材料、成品與等級不加分；同分共同獲勝。
@@ -157,3 +177,4 @@ export default function Workshop({ onBack }: { onBack: () => void }) {
     </TableGame>
   );
 }
+

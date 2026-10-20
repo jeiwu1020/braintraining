@@ -11,7 +11,7 @@ beforeEach(()=>{sessionStorage.clear();host=document.createElement('div');docume
 afterEach(()=>{act(()=>root.unmount());host.remove();});
 const button=(name:string)=>[...host.querySelectorAll('button')].find(b=>b.textContent===name||b.ariaLabel===name)!;
 const click=(name:string)=>{const b=button(name);expect(b,name).toBeTruthy();expect(b.disabled,name).toBe(false);act(()=>b.click());};
-const saved=(game:string)=>JSON.parse(sessionStorage.getItem(`${PREFIX}.${game}`)!);
+const saved=(game:string)=>JSON.parse(sessionStorage.getItem(`${PREFIX}.${game}${["lighthouse","workshop"].includes(game)?".rules-v2":""}`)!);
 const select=(label:string,value:string)=>{const el=host.querySelector(`select[aria-label="${label}"]`) as HTMLSelectElement;expect(el).toBeTruthy();act(()=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));});};
 it('lighthouse practice uses actual AP, cargo, sailing, next day and delivery without writing a session',()=>{
   act(()=>root.render(<Lighthouse onBack={()=>{}}/>));click('開始本局');

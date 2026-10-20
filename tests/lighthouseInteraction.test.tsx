@@ -23,7 +23,7 @@ const click = (t: string) => {
   expect(b, t).toBeTruthy();
   act(() => b!.click());
 };
-const save = () => JSON.parse(sessionStorage.getItem(`${PREFIX}.lighthouse`)!);
+const save = () => JSON.parse(sessionStorage.getItem(`${PREFIX}.lighthouse.rules-v2`)!);
 it("teaches, previews, cancels, prevents duplicate commits and restores interruption", () => {
   act(() => root.render(<Lighthouse onBack={() => {}} />));
   click("開始本局");
@@ -55,4 +55,29 @@ it("teaches, previews, cancels, prevents duplicate commits and restores interrup
   click("重開");
   click("確定");
   expect(save().actions).toHaveLength(0);
+});
+
+
+it("explains the advanced split-delivery mission and keeps its identity after restoring", () => {
+  act(() => root.render(<Lighthouse onBack={() => {}} />));
+  click("進階");
+  click("開始本局");
+  click("開始正式局");
+  expect(host.textContent).toContain("進階任務");
+  expect(host.textContent).toContain("共12箱");
+  expect(host.textContent).toContain("分批");
+  expect(host.querySelector(".game-shell__header")?.textContent).toMatch(/白礁增援|遠岬輪補|松灣增援/);
+  click("裝入目前貨單");
+  click("確認行動");
+  const summary = host.querySelector(".game-shell__header")?.textContent;
+  const journal = save();
+  expect(journal.actions).toHaveLength(1);
+  act(() => root.unmount());
+  root = createRoot(host);
+  act(() => root.render(<Lighthouse onBack={() => {}} />));
+  expect(save()).toEqual(journal);
+  expect(host.querySelector(".game-shell__header")?.textContent).toBe(summary);
+  click("玩法");
+  expect(host.textContent).toContain("3組需求配置");
+  expect(host.textContent).toContain("每塔各送一趟");
 });

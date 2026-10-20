@@ -13,9 +13,20 @@ import { Settings, Team } from "../../games/playground/types";
 export function useSession<S extends { phase: string; turn: Team }, A>(
   game: PlaygroundId,
   engine: Engine<S, A>,
+  storageScope?: string,
 ) {
+  const storageKey = `${PREFIX}.${game}${storageScope ? `.${storageScope}` : ""}`;
   const [initial] = useState(() => {
-    const raw = readSaved(game);
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem(storageKey); } catch {}
+    // Normal-mode rules are unchanged: copy a compatible old journal into the new scope.
+    // Advanced old journals remain untouched instead of replaying them under new rules.
+    let legacyDismissed = false;
+    try { legacyDismissed = sessionStorage.getItem(`${storageKey}.legacyDismissed`) === "1"; } catch {}
+    if (!raw && storageScope && !legacyDismissed) {
+      const legacy = readSaved(game);
+      try { if (legacy && JSON.parse(legacy)?.settings?.level === "normal") raw = legacy; } catch {}
+    }
     if (!raw) return { value: null as SavedSession<A> | null, error: false };
     try {
       return { value: restore(raw, game, engine), error: false };
@@ -37,7 +48,7 @@ export function useSession<S extends { phase: string; turn: Team }, A>(
   useEffect(() => {
     if (!session) return;
     try {
-      sessionStorage.setItem(`${PREFIX}.${game}`, JSON.stringify(session));
+      sessionStorage.setItem(storageKey, JSON.stringify(session));
       sessionStorage.setItem(
         `${PREFIX}.${game}.settings`,
         JSON.stringify(session.settings),
@@ -46,9 +57,10 @@ export function useSession<S extends { phase: string; turn: Team }, A>(
     } catch {
       setStorageError(true);
     }
-  }, [session, game]);
-  function start(settings: Settings, starter: Team = "A") {
+  }, [session, game, storageKey]);
+  function start(settings: Settings, starter: Team = "A", seed?: number) {
     const n = newSession<A>(game, settings, starter);
+    if (seed !== undefined && Number.isInteger(seed) && seed >= 0 && seed <= 0xffffffff) n.seed = seed;
     current.current = n;
     setSession(n);
     setCorrupt(false);
@@ -98,7 +110,9 @@ export function useSession<S extends { phase: string; turn: Team }, A>(
   }
   function clear() {
     try {
-      sessionStorage.removeItem(`${PREFIX}.${game}`);
+      sessionStorage.removeItem(storageKey);
+      // Keep the original journal for rollback, but respect an explicit recovery/reset.
+      if (storageScope) sessionStorage.setItem(`${storageKey}.legacyDismissed`, "1");
     } catch {}
     current.current = null;
     setSession(null);
@@ -186,3 +200,4 @@ export function useAi<A>(
   }, [active, token, makeWorker]);
   return { ready: result?.token === token ? result : null, failed };
 }
+

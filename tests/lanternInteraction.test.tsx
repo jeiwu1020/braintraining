@@ -51,8 +51,9 @@ it("previews, cancels, prevents duplicate scoring and completes a public match",
   act(() => root.render(<Lantern onBack={() => {}} />));
   expect(host.textContent).toContain("本局結果");
   click("再玩一局");
-  click("確定");
+  click("全新一局");
   expect(save().actions).toHaveLength(0);
   act(() => root.unmount());
   host.remove();
 });
+

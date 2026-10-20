@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PLAYGROUND_CATALOG, PlaygroundId } from "../../data/playgroundCatalog";
-import { Engine, savedSettings } from "../../games/playground/session";
+import { Engine, savedSettings, readSaved } from "../../games/playground/session";
 import { Settings, Team } from "../../games/playground/types";
 import { useSession } from "./useSession";
 import { Modal, ConfirmDialog, Recovery } from "./Common";
+import { tableScore, tableAction } from "./tableReview";
 import GameShell from "../game-ui/GameShell";
 import "./table-games.css";
 import "./table-landscape.css";
@@ -11,6 +12,7 @@ export interface TableContext<S, A> {
   state: S;
   choose: (a: A, label: string) => void;
   pending: boolean;
+  confirmation?: React.ReactNode;
 }
 interface Props<S, A> {
   onBack: () => void;
@@ -30,7 +32,22 @@ export default function TableGame<
   S extends { phase: string; turn: Team; message: string },
   A,
 >(p: Props<S, A>) {
-  const j = useSession(p.game, p.engine);
+  const updatedRules = p.game === "lighthouse" || p.game === "workshop";
+  const j = useSession(p.game, p.engine, updatedRules ? "rules-v2" : undefined);
+  const [starter, setStarter] = useState<Team>("A");
+  const comparisonKey = "braintraining.playground.lantern.comparison";
+  const [comparison, setComparison] = useState<{ seed: number; summary: string } | null>(() => {
+    if (p.game !== "lantern") return null;
+    try { const value = JSON.parse(sessionStorage.getItem(comparisonKey) || "null"); return Number.isInteger(value?.seed) && typeof value?.summary === "string" ? value : null; } catch { return null; }
+  });
+  const rematch = (swap: boolean) => {
+    const old = j.session!;
+    const value = { seed: old.seed, summary: `${old.starter}隊先手，${j.state!.phase === "finished" ? "已完成" : "中途重開"}：${tableScore(p.game, j.state)}` };
+    setComparison(value);
+    try { sessionStorage.setItem(comparisonKey, JSON.stringify(value)); } catch {}
+    j.start(old.settings, swap ? (old.starter === "A" ? "B" : "A") : old.starter, old.seed);
+    setModal(null); setPending(null);
+  };
   const [settings, setSettings] = useState<Settings>(() =>
     savedSettings(p.game),
   );
@@ -41,9 +58,21 @@ export default function TableGame<
       label: string;
       token: string;
     } | null>(null);
+  const inlineCancel = useRef<HTMLButtonElement>(null);
+  const auctionTrigger = useRef<string | null>(null);
+  useEffect(() => {
+    if (p.game !== "auction") return;
+    if (pending) inlineCancel.current?.focus();
+    else if (auctionTrigger.current) {
+      const name = auctionTrigger.current;
+      const target = [...document.querySelectorAll<HTMLButtonElement>("button")].find(b => !b.disabled && (b.ariaLabel || b.textContent) === name);
+      (target || document.querySelector<HTMLButtonElement>(".tg-auction-decision button:not(:disabled), .tg-auction .tg-result button"))?.focus();
+      auctionTrigger.current = null;
+    }
+  }, [pending, p.game]);
   const c = PLAYGROUND_CATALOG.find((x) => x.id === p.game)!;
   const begin = () => {
-    j.start({ ...settings, mode: "teams" });
+    j.start({ ...settings, mode: "teams" }, starter);
     setModal(null);
     setPending(null);
   };
@@ -112,6 +141,8 @@ export default function TableGame<
                 ))}
               </div>
               <p>{c.difficultyDescriptions[settings.level]}</p>
+              {updatedRules && readSaved(p.game) && <p>本款規則已更新，請開啟新局。舊版暫存已另外保留，不會套用新規則改寫。</p>}
+              {p.game === "lantern" && <div className="pg-choice" aria-label="選擇先手">{(["A", "B"] as Team[]).map(team => <button key={team} aria-pressed={starter === team} onClick={() => setStarter(team)}>{team}隊先手</button>)}</div>}
               <button
                 className="pg-primary"
                 onClick={() => {
@@ -128,6 +159,7 @@ export default function TableGame<
             <div className="tg-feedback tg-announcement" role="status">
               {j.state.message}
             </div>
+            {p.game === "lantern" && comparison?.seed === j.session?.seed && <p className="tg-rematch-comparison">同局比較 · 上一局{comparison.summary}。本局 {j.session?.starter}隊先手。</p>}
             {j.storageError && (
               <p role="alert">此瀏覽器無法暫存，離開前請先完成本局。</p>
             )}
@@ -146,31 +178,27 @@ export default function TableGame<
             ) : (
               p.children({
                 state: j.state,
-                choose: (action, label) =>
-                  setPending({ action, label, token: j.token }),
+                choose: (action, label) => {
+                  if (p.game === "auction" && document.activeElement instanceof HTMLButtonElement) auctionTrigger.current = document.activeElement.ariaLabel || document.activeElement.textContent;
+                  setPending({ action, label, token: j.token });
+                },
                 pending: !!pending,
+                confirmation: p.game === "auction" && pending ? <section className="tg-inline-confirm" aria-label="確認拍賣選擇" role="region"><p aria-live="polite">{pending.label}</p><div className="pg-choice"><button ref={inlineCancel} onClick={() => setPending(null)}>取消選擇</button><button className="pg-primary" onClick={() => { j.commit(pending.action, pending.token); setPending(null); }}>確認行動</button></div></section> : null,
               })
             )}
           </div>
         )}
       </GameShell>
-      {modal === "record" && <Modal title="最近一次行動" onClose={() => setModal(null)}><p>{j.state?.message}</p><p>已確認的進度會保留在此分頁。</p></Modal>}
-      {pending && (
+      {modal === "record" && <Modal title="完整操作與得分回顧" onClose={() => setModal(null)}>
+        <p>局號 {j.session?.seed} · {j.session?.starter}隊先手 · 已確認 {j.session?.actions.length} 步</p>
+        <p>開局：{j.states[0]?.message} {j.states[0] && tableScore(p.game, j.states[0])}</p>
+        <ol>{j.states.slice(1).map((state, i) => <li key={i} data-review-step={i + 1}><strong>第{i + 1}步 · {j.states[i].turn}隊</strong><p>{tableAction(p.game, j.states[i], j.session!.actions[i], state)}</p><p>{state.message}</p><small>{p.summary(state)} · {tableScore(p.game, state)}</small></li>)}</ol>
+        <p>紀錄由每一步正式規則重播，重新整理後仍可查看。</p>
+      </Modal>}
+      {pending && p.game !== "auction" && (
         <Modal title="確認這個選擇" onClose={() => setPending(null)}>
-          <p>{pending.label}</p>
-          <p>確認才會扣除資源或推進回合。</p>
-          <div className="pg-choice">
-            <button onClick={() => setPending(null)}>取消選擇</button>
-            <button
-              className="pg-primary"
-              onClick={() => {
-                j.commit(pending.action, pending.token);
-                setPending(null);
-              }}
-            >
-              確認行動
-            </button>
-          </div>
+          <p>{pending.label}</p><p>確認才會扣除資源或推進回合。</p>
+          <div className="pg-choice"><button onClick={() => setPending(null)}>取消選擇</button><button className="pg-primary" onClick={() => { j.commit(pending.action, pending.token); setPending(null); }}>確認行動</button></div>
         </Modal>
       )}
       {modal === "rules" && (
@@ -213,7 +241,13 @@ export default function TableGame<
         </Modal>
       )}
       {modal === "reset" && (
-        <ConfirmDialog
+        p.game === "lantern" ? <Modal title="再戰花燈街區" onClose={() => setModal(null)}>
+          <p>同局保留三次公開價值，清空布局與分數。先後手可能影響結果，建議交換先手各玩一局，再比較兩局合計分數。</p>
+          <div className="pg-choice"><button onClick={() => setModal(null)}>保留本局</button>
+            <button onClick={() => { rematch(false); }}>同局再戰</button>
+            <button onClick={() => { rematch(true); }}>同局交換先手</button>
+            <button onClick={() => { j.start(j.session!.settings, j.session!.starter); setComparison(null); try { sessionStorage.removeItem(comparisonKey); } catch {} setModal(null); setPending(null); }}>全新一局</button></div>
+        </Modal> : <ConfirmDialog
           title="重開這款桌遊？"
           onCancel={() => setModal(null)}
           onConfirm={() => {
@@ -226,3 +260,4 @@ export default function TableGame<
     </>
   );
 }
+

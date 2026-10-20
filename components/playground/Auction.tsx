@@ -24,12 +24,12 @@ export function AuctionArt() {
     </div>
   );
 }
-function AuctionTable({state:s,choose}:{state:AuctionState;choose:(a:AuctionAction,l:string)=>void}) {
+function AuctionTable({state:s,choose,confirmation}:{state:AuctionState;choose:(a:AuctionAction,l:string)=>void;confirmation?:React.ReactNode}) {
   const e=s.exhibits[s.lot],last=s.sales.at(-1);const [details,setDetails]=useState(false);
   return <div className="tg-auction-desk">
     <section className="tg-auction-collections">{(['A','B'] as const).map(t=>{const score=exhibitionScore(s.collections[t]);return <article className={s.turn===t?'tg-collection-active':''} key={t}><h2>{t}隊 <strong>{s.budgets[t]}枚</strong><span>{score.total}分</span></h2><p>陶{score.counts.ceramic} · 銅{score.counts.bronze} · 畫{score.counts.scroll} ／ {score.sets}套</p></article>;})}<button className="tg-auction-detail-toggle" onClick={()=>setDetails(true)}>成交明細</button></section>
     <section className="tg-auction-display pg-paper"><div className="tg-current-art"><ArtifactArt kind={e.kind} id={e.id} name={e.name}/><div><span>第{s.lot+1}件 · {KIND_NAMES[e.kind]}</span><h2>{e.name}</h2><b>{e.points}分</b></div></div>
-      <div className="tg-auction-decision">{s.phase==='round_summary'?<><h3>{last?.owner?'本件成交':'本件流標'}</h3><p>{last?.owner?`${last.owner}隊取得，支付${last.price}枚`:'兩隊退出，無人付款'}</p><button className="pg-primary" onClick={()=>choose({type:'next'},s.lot===s.exhibits.length-1?'全部展品拍賣結束，查看展覽總分。':'下一件叫價從0開始，先叫價隊伍交換。')}>{s.lot===s.exhibits.length-1?'查看展覽總分':'下一件展品'}</button></>:<><h3>{s.leader?`${s.leader}隊最高`:'尚未叫價'} <strong>{s.price}枚</strong></h3><p>輪到{s.turn}隊 · 再加至 {s.price+1} 枚</p><div className="tg-action-grid"><button className="pg-primary" disabled={s.price+1>s.budgets[s.turn]} onClick={()=>choose({type:'bid'},`${s.turn}隊叫價${s.price+1}枚遊戲籌碼。若得標才付全額；被加價超過就不扣。`)}>加一枚籌碼</button><button onClick={()=>choose({type:'pass'},s.leader?`${s.turn}隊退出本件，${s.leader}隊將以${s.price}枚取得展品。`:`${s.turn}隊退出本件，之後不能再加入本件競價。`)}>退出本件</button></div>{s.price+1>s.budgets[s.turn]&&<p className="tg-budget-warning" role="status">預算不足，請退出本件。</p>}</>}</div>
+      <div className="tg-auction-decision">{confirmation || (s.phase==='round_summary'?<><h3>{last?.owner?'本件成交':'本件流標'}</h3><p>{last?.owner?`${last.owner}隊取得，支付${last.price}枚`:'兩隊退出，無人付款'}</p><button className="pg-primary" onClick={()=>choose({type:'next'},s.lot===s.exhibits.length-1?'全部展品拍賣結束，查看展覽總分。':'下一件叫價從0開始，先叫價隊伍交換。')}>{s.lot===s.exhibits.length-1?'查看展覽總分':'下一件展品'}</button></>:<><h3>{s.leader?`${s.leader}隊最高`:'尚未叫價'} <strong>{s.price}枚</strong></h3><p>輪到{s.turn}隊 · 再加至 {s.price+1} 枚</p><div className="tg-action-grid"><button className="pg-primary" disabled={s.price+1>s.budgets[s.turn]} onClick={()=>choose({type:'bid'},`${s.turn}隊叫價${s.price+1}枚遊戲籌碼。若得標才付全額；被加價超過就不扣。`)}>加一枚籌碼</button><button onClick={()=>choose({type:'pass'},s.leader?`${s.turn}隊退出本件，${s.leader}隊將以${s.price}枚取得展品。`:`${s.turn}隊退出本件，之後不能再加入本件競價。`)}>退出本件</button></div>{s.price+1>s.budgets[s.turn]&&<p className="tg-budget-warning" role="status">預算不足，請退出本件。</p>}</>)}</div>
     </section>
     <section className="tg-auction-itinerary" aria-label="全部公開展品，依拍賣順序">{s.exhibits.map((x,i)=><article key={x.id} className={i===s.lot?'tg-itinerary-current':''}><b>{i+1}. {x.name}</b><span>{KIND_NAMES[x.kind]} · {x.points}分</span><small>{i<s.sales.length?s.sales[i].owner?`${s.sales[i].owner}隊 ${s.sales[i].price}枚`:'流標':i===s.lot?'正在競拍':'待拍'}</small></article>)}</section>
     <div className="tg-auction-footer"><p className="tg-desk-note">陶瓷＋銅器＋書畫，每套＋5分 · 剩餘籌碼不加分</p></div>
@@ -104,7 +104,7 @@ export default function Auction({ onBack }: { onBack: () => void }) {
         );
       }}
     >
-      {(c) => <AuctionTable state={c.state} choose={c.choose} />}
+      {(c) => <AuctionTable state={c.state} choose={c.choose} confirmation={c.confirmation} />}
     </TableGame>
   );
 }

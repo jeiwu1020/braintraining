@@ -11,6 +11,7 @@ import {
   legalLighthouse,
   createLighthouse,
   applyLighthouse,
+  LIGHTHOUSE_MISSIONS,
 } from "../../games/playground/lighthouse/rules";
 const XY = [
   [90, 190],
@@ -132,7 +133,7 @@ function NavigationChart({ state: s, choose }: { state: LighthouseState; choose?
       const available=legal.some(a=>a.type==='sail'&&a.to===to),current=s.at===to;
       const connected=ROUTES.some(([a,b])=>(a===s.at&&b===to)||(b===s.at&&a===to));
       const need=s.needs[to],completed=to>0&&need[0]+need[1]===0;
-      return <button key={name} className={`lh-island lh-island-${to} ${current?'lh-island-current':''} ${completed?'lh-island-complete':''}`} disabled={!choose || !available} aria-label={`${name} · ${sailCost(s,to)} 行動`} onClick={()=>choose?.({type:'sail',to},`航向${name}，花費 ${sailCost(s,to)} 行動。`)}>
+      return <button key={name} className={`lh-island lh-island-${to} ${current?'lh-island-current':''} ${completed?'lh-island-complete':''}`} disabled={!choose || !available} aria-label={`${name} · ${sailCost(s,to)} 行動${need[0]+need[1]>4?' · 需求超過4箱，須分批補給':''}`} onClick={()=>choose?.({type:'sail',to},`航向${name}，花費 ${sailCost(s,to)} 行動。`)}>
         <span className={`lh-island-art lh-atlas-${to}`} aria-hidden="true"/>
         {current&&<span className="lh-moored"><SupplyBoat/><b>停靠</b></span>}
         <span className="lh-island-label"><strong>{name.replace('燈塔','')}</strong><span>{to===0?'補給出發地':completed?'✓ 補給完成':`燃 ${need[0]}  ·  糧 ${need[1]}`}</span></span>
@@ -174,7 +175,7 @@ export default function Lighthouse({ onBack }: { onBack: () => void }) {
       art={<SeaChart />}
       tutorial={<LighthouseLesson />}
       summary={(s) =>
-        `合作補給・第 ${s.round} / ${s.limit} 回合・剩 ${s.ap} 行動`
+        `${s.mission === undefined ? "合作補給" : LIGHTHOUSE_MISSIONS[s.mission].name}・第 ${s.round} / ${s.limit} 回合・剩 ${s.ap} 行動`
       }
       steps={[
         "看三座燈塔的燃料與糧食需求，母港裝貨。",
@@ -189,7 +190,10 @@ export default function Lighthouse({ onBack }: { onBack: () => void }) {
       rules={
         <>
           <p>
-            全團體共同控制一艘船，在9回合內完成三座燈塔的全部需求就獲勝；期限到仍未完成則任務未完成。一般共8箱，進階共10箱且風浪較多。
+            全團體共同控制一艘船，在9回合內完成三座燈塔的全部需求就獲勝；期限到仍未完成則任務未完成。一般共8箱。進階共12箱且風浪較多，每局抽出3組需求配置之一：白礁增援、遠岬輪補、松灣增援；同一局的配置不會中途改變。
+          </p>
+          <p>
+            進階每組都有一座燈塔需要5箱，超過船艙上限，必須分批補給；不能只用「每塔各送一趟」完成。先看全圖需求，討論哪批貨可順路分送、哪座塔需要再訪，再配合今日與明日海況安排整備。
           </p>
           <ol>
             <li>每回合2行動；裝貨、航行、卸貨是三個獨立行動，抵達燈塔不會自動交貨。用完按「下一回合」，不會自動跳過討論。</li>
@@ -224,3 +228,4 @@ export default function Lighthouse({ onBack }: { onBack: () => void }) {
     </TableGame>
   );
 }
+

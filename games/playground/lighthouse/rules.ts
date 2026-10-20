@@ -8,6 +8,16 @@ export const ROUTES = [
   [3, 2],
   [1, 3],
 ];
+/**
+ * Each advanced mission has 12 crates and one five-crate tower.
+ * Both loading plans in tests/lighthouseFixtures.ts solve every reachable
+ * nine-day forecast; keep that exhaustive check when changing these demands.
+ */
+export const LIGHTHOUSE_MISSIONS = [
+  { name: "白礁增援", needs: [[0, 0], [3, 2], [2, 2], [1, 2]] },
+  { name: "遠岬輪補", needs: [[0, 0], [2, 2], [3, 2], [1, 2]] },
+  { name: "松灣增援", needs: [[0, 0], [2, 1], [2, 2], [2, 3]] },
+] as const;
 export type LighthouseAction =
   | { type: "load"; fuel: number; food: number }
   | { type: "sail"; to: number }
@@ -25,6 +35,8 @@ export interface LighthouseState {
   weather: boolean[];
   won: boolean;
   message: string;
+  /** Advanced mission only; normal games retain their original state. */
+  mission?: number;
 }
 export function createLighthouse(
   seed: number,
@@ -32,19 +44,24 @@ export function createLighthouse(
   starter: Team,
 ): LighthouseState {
   const rng = random(seed);
+  // A separate, domain-separated draw leaves the original weather RNG intact.
+  const mission = level === "advanced"
+    ? Math.floor(random(seed ^ 0x4c484d49)() * LIGHTHOUSE_MISSIONS.length)
+    : undefined;
+  const supply = mission === undefined ? undefined : LIGHTHOUSE_MISSIONS[mission];
   return {
     phase: "playing",
     turn: starter,
     round: 1,
-    limit: level === "normal" ? 9 : 9,
+    limit: 9,
     ap: 2,
     at: 0,
     cargo: [0, 0],
-    needs: [
+    needs: supply ? supply.needs.map((need) => [...need]) : [
       [0, 0],
       [2, 1],
-      [1, level === "normal" ? 2 : 3],
-      [1, level === "normal" ? 1 : 2],
+      [1, 2],
+      [1, 1],
     ],
     ready: 0,
     weather: Array.from(
@@ -52,7 +69,10 @@ export function createLighthouse(
       (_, i) => i > 0 && rng() < (level === "normal" ? 0.3 : 0.6),
     ),
     won: false,
-    message: "全團體共同決策。先在母港裝貨，再選一條航線。",
+    message: supply
+      ? `進階任務：${supply.name}，共12箱。${PORTS[supply.needs.findIndex((need) => need[0] + need[1] > 4)]}需分批補給；船艙仍限4箱，請一起規劃裝貨與航線。`
+      : "全團體共同決策。先在母港裝貨，再選一條航線。",
+    ...(mission === undefined ? {} : { mission }),
   };
 }
 export function sailCost(s: LighthouseState, to: number) {
@@ -164,3 +184,4 @@ export const lighthouseEngine: Engine<LighthouseState, LighthouseAction> = {
   apply: applyLighthouse,
   validAction: validLighthouse,
 };
+

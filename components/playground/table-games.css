@@ -781,3 +781,12 @@
 .pg-art-auction{background-image:url('/playground/box-auction.webp');background-size:cover;background-position:center 38%}
 /* Let captions determine each card's height without stretching another image. */
 .pg-gallery .pg-game-box { align-self: start; min-height: 0; }
+
+
+/* Confirmation stays in the auction decision area, without covering exhibits. */
+.tg-inline-confirm { grid-column: 1 / -1; }
+.tg-inline-confirm p { margin: 0 0 8px; }
+.tg-inline-confirm .pg-choice { display: flex; gap: 8px; }
+.tg-inline-confirm .pg-choice button { flex: 1; }
+[data-review-step] { margin-bottom: 16px; }
+[data-review-step] p { margin: 4px 0; }

@@ -3,6 +3,8 @@ import {
   createWorkshop,
   applyWorkshop,
   legalWorkshop,
+  validWorkshop,
+  workshopError,
   workshopEngine,
 } from "../games/playground/workshop/rules";
 import { restore, replay } from "../games/playground/session";
@@ -104,3 +106,110 @@ it("uses one worker for a two-piece batch, alternates daily first player and lea
   expect(s.stock.A.goods).toBe(2);
   expect(s.stock.A.wood).toBe(4);
 });
+
+it.each(["wood", "metal"] as const)(
+  "lets an advanced worker rest for one %s without claiming a shared station",
+  (resource) => {
+    const s = createWorkshop(0, "advanced", "A");
+    s.occupied[resource] = "B";
+    s.stock.A.level = 2;
+    const original = JSON.stringify(s);
+    const action = { type: "rest", resource } as const;
+    const n = applyWorkshop(s, action);
+    expect(n.stock.A[resource]).toBe(s.stock.A[resource] + 1);
+    expect(n.stock.A[resource === "wood" ? "metal" : "wood"]).toBe(
+      s.stock.A[resource === "wood" ? "metal" : "wood"],
+    );
+    expect(n.workers.A).toBe(2);
+    expect(n.workers.B).toBe(3);
+    expect(n.turn).toBe("B");
+    expect(n.occupied).toEqual(s.occupied);
+    expect(n.stock.A.score).toBe(0);
+    expect(JSON.stringify(s)).toBe(original);
+  },
+);
+
+it("offers only legal advanced rest resources and keeps no-resource rest available at capacity", () => {
+  const s = createWorkshop(0, "advanced", "A");
+  s.stock.A.wood = 6;
+  s.stock.A.metal = 5;
+  expect(workshopError(s, { type: "rest", resource: "wood" } as any)).toBeTruthy();
+  expect(() =>
+    applyWorkshop(s, { type: "rest", resource: "wood" } as any),
+  ).toThrow();
+  expect(legalWorkshop(s)).not.toContainEqual({ type: "rest", resource: "wood" });
+  expect(legalWorkshop(s)).toContainEqual({ type: "rest", resource: "metal" });
+  const n = applyWorkshop(s, { type: "rest", resource: "metal" } as any);
+  expect(n.stock.A.metal).toBe(6);
+  s.stock.A.metal = 6;
+  expect(legalWorkshop(s).filter((a) => a.type === "rest")).toEqual([
+    { type: "rest" },
+  ]);
+  expect(applyWorkshop(s, { type: "rest" }).stock).toEqual(s.stock);
+});
+
+it("keeps normal opening and rest unchanged, and rejects resource collection in normal mode", () => {
+  for (const seed of [0, 1, 2, 17, 0xffffffff]) {
+    const s = createWorkshop(seed, "normal", "A");
+    expect(s.stock.A).toEqual({ wood: 1, metal: 1, goods: 0, level: 0, score: 0 });
+    expect(s.stock.B).toEqual(s.stock.A);
+    expect(applyWorkshop(s, { type: "rest" }).stock).toEqual(s.stock);
+    expect(legalWorkshop(s).filter((a) => a.type === "rest")).toEqual([
+      { type: "rest" },
+    ]);
+    expect(() =>
+      applyWorkshop(s, { type: "rest", resource: "wood" } as any),
+    ).toThrow();
+  }
+});
+
+it("validates rest-resource choices instead of accepting arbitrary stock names", () => {
+  expect(validWorkshop({ type: "rest" })).toBe(true);
+  expect(validWorkshop({ type: "rest", resource: "wood" })).toBe(true);
+  expect(validWorkshop({ type: "rest", resource: "metal" })).toBe(true);
+  for (const resource of ["goods", "score", "level", "", 1, null]) {
+    expect(validWorkshop({ type: "rest", resource })).toBe(false);
+  }
+});
+
+it("uses a small deterministic set of symmetric advanced opening supplies", () => {
+  const openings = new Set<string>();
+  for (let seed = 0; seed < 24; seed++) {
+    const s = createWorkshop(seed, "advanced", "A");
+    expect(s).toEqual(createWorkshop(seed, "advanced", "A"));
+    expect(s.stock.A).toEqual(s.stock.B);
+    expect(s.stock.A).not.toBe(s.stock.B);
+    expect(s.stock.A.goods).toBe(0);
+    expect(s.stock.A.level).toBe(0);
+    expect(s.stock.A.score).toBe(0);
+    expect(s.workers).toEqual({ A: 3, B: 3 });
+    expect(s.limit).toBe(6);
+    expect(s.message).toContain(`木料${s.stock.A.wood}`);
+    expect(s.message).toContain(`金屬${s.stock.A.metal}`);
+    openings.add(`${s.stock.A.wood}/${s.stock.A.metal}`);
+  }
+  expect(openings).toEqual(new Set(["1/1", "2/1", "1/2"]));
+});
+
+it("ends an advanced workday after six rests and preserves gained resources across days", () => {
+  let s = createWorkshop(0, "advanced", "B");
+  for (let i = 0; i < 6; i++) {
+    s = applyWorkshop(s, {
+      type: "rest",
+      resource: i % 2 === 0 ? "wood" : "metal",
+    } as any);
+  }
+  expect(s.phase).toBe("round_summary");
+  expect(s.workers).toEqual({ A: 0, B: 0 });
+  expect(s.stock.A.metal).toBe(4);
+  expect(s.stock.B.wood).toBe(4);
+  expect(Object.values(s.occupied).every((station) => station === null)).toBe(true);
+  expect(() =>
+    applyWorkshop(s, { type: "rest", resource: "wood" } as any),
+  ).toThrow();
+  const n = applyWorkshop(s, { type: "next" });
+  expect(n.stock).toEqual(s.stock);
+  expect(n.workers).toEqual({ A: 3, B: 3 });
+  expect(n.turn).toBe("A");
+});
+

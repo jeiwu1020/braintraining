@@ -190,6 +190,9 @@ export function applyGarden(s: GardenState, a: GardenAction): GardenState {
     market[a.slot] = deck.shift()!;
     message = `${s.turn}隊在 ${String.fromCharCode(65 + a.x)}${a.y + 1} 種下地形，暫計 ${scoreGarden(boards[s.turn], s.size).total} 分。`;
   }
+  const before = scoreGarden(s.boards[s.turn], s.size), after = scoreGarden(boards[s.turn], s.size);
+  const signed = (n: number) => n >= 0 ? `+${n}` : `${n}`;
+  message += ` 本手 ${signed(after.total - before.total)}分（花圃${signed(after.flowers - before.flowers)}、步道${signed(after.paths - before.paths)}、空洞扣分${signed(after.penalty - before.penalty)}）。`;
   const ply = s.ply + 1;
   return {
     ...s,
@@ -207,3 +210,4 @@ export const gardenEngine: Engine<GardenState, GardenAction> = {
   apply: applyGarden,
   validAction: validGarden,
 };
+
