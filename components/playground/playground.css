@@ -1548,3 +1548,87 @@
     min-height: 430px;
   }
 }
+
+/* Night Market in a short landscape viewport: fit the table to the visible page.
+   Keep the two-by-two market and all public scoring information. */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
+  .pg-night .game-shell__header {
+    min-height: 49px;
+    height: 49px;
+    padding: 1px 8px;
+    gap: 8px;
+  }
+  .pg-night .game-shell__header > div:first-of-type {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .pg-night .game-shell__header h1 { flex-shrink: 0; font-size: 20px; line-height: 24px; }
+  .pg-night .game-shell__header p { font-size: 13px; line-height: 18px; }
+  .pg-night .game-shell__header button { height: 44px; padding: 6px 10px; }
+  .pg-viewport .pg-shell.pg-night > main { overflow: hidden; }
+  .pg-shell.pg-night .pg-play-layout {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(192px, 24vw, 224px);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 8px;
+    padding: 4px;
+  }
+  .pg-night .pg-night-table {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 3px;
+  }
+  .pg-night .pg-receipts { grid-column: 1 / -1; grid-row: 1; gap: 6px; }
+  .pg-night .pg-receipt { padding: 3px 6px; }
+  .pg-night .pg-receipt > div:first-child { line-height: 24px; }
+  .pg-night .pg-receipt strong { font-size: 17px; }
+  .pg-night .pg-receipt > div:first-child > span { font-size: 13px; }
+  .pg-night .pg-receipt > div:first-child > b { font-size: 24px; line-height: 24px; }
+  .pg-night .pg-counts { font-size: 14px; line-height: 20px; }
+  .pg-night .pg-counts b { font-size: 18px; line-height: 20px; }
+  .pg-night .pg-previous { display: block; font-size: 13px; line-height: 16px; }
+  .pg-night .pg-orders { grid-column: 1 / -1; grid-row: 2; grid-template-columns: 96px repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .pg-night .pg-play-layout:is([data-phase="round_summary"], [data-phase="finished"]) .pg-orders { display: grid; }
+  .pg-night .pg-orders .pg-orders-label { grid-column: auto; display: flex; align-items: center; font-size: 12px; line-height: 16px; padding: 2px 4px; }
+  .pg-night .pg-orders > div { padding: 2px 4px; min-width: 0; }
+  .pg-night .pg-orders .pg-order-condition { font-size: 14px; line-height: 18px; white-space: normal; }
+  .pg-night .pg-orders > div > span:last-child { font-size: 13px; line-height: 16px; }
+  .pg-night .pg-market, .pg-night .pg-last-pick, .pg-night .pg-round-summary { grid-column: 1 / -1; grid-row: 3; }
+  .pg-night .pg-market { gap: 5px; }
+  .pg-night .pg-deck-foods { grid-column: 1; grid-row: 4; gap: 0 3px; padding: 2px 4px; font-size: 13px; line-height: 18px; }
+  .pg-night .pg-deck-foods strong { font-size: 12px; }
+  .pg-night .pg-scoring-ribbon { grid-column: 2; grid-row: 4; flex-wrap: wrap; align-items: center; padding: 2px 4px; gap: 0 5px; font-size: 13px; line-height: 18px; }
+  .pg-night .pg-scoring-ribbon span { white-space: nowrap; }
+  .pg-night .pg-scoring-ribbon b { font-size: 17px; }
+  .pg-night .pg-control-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-self: start; max-height: 100%; padding: 6px; gap: 4px; }
+  .pg-night .pg-control-panel > :is(h2, p, div, span) { grid-column: 1 / -1; }
+  .pg-night .pg-control-panel h2 { font-size: 19px; line-height: 24px; }
+  .pg-night .pg-preview { min-height: 0; padding: 3px 0; gap: 2px; }
+  .pg-night .pg-preview strong { font-size: 20px; line-height: 24px; }
+  .pg-night .pg-preview span { font-size: 15px; line-height: 18px; }
+  .pg-night .pg-preview small { font-size: 12px; line-height: 15px; }
+  .pg-night .pg-control-panel > button { min-height: 44px; padding: 6px 4px; font-size: 17px; }
+  .pg-night .pg-control-panel > .pg-primary { min-height: 44px; font-size: 17px; }
+  .pg-night .pg-last-action { margin-top: 0; font-size: 14px; line-height: 18px; }
+  .pg-night .pg-deck-count { font-size: 13px; line-height: 18px; }
+  .pg-night .pg-control-panel > p { font-size: 15px; line-height: 20px; }
+  .pg-night .pg-play-layout:is([data-phase="round_summary"], [data-phase="finished"]) .pg-control-panel > button { grid-column: 1 / -1; }
+  .pg-night .pg-round-summary { padding: 4px 6px; gap: 4px; }
+  .pg-night .pg-score-details { gap: 12px; }
+  .pg-night .pg-score-details h3 { font-size: 17px; line-height: 20px; }
+  .pg-night .pg-score-details p { font-size: 14px; line-height: 18px; margin: 2px 0; }
+  .pg-night .pg-score-details strong { font-size: 19px; line-height: 23px; }
+  .pg-night .pg-last-pick { padding: 2px 8px; gap: 6px; }
+  .pg-night .pg-last-pick-copy { gap: 1px; }
+  .pg-night .pg-last-pick-kicker { font-size: 14px; line-height: 16px; }
+  .pg-night .pg-last-pick h2 { font-size: 17px; line-height: 20px; }
+  .pg-night .pg-last-pick p { font-size: 13px; line-height: 16px; }
+  .pg-night .pg-last-pick strong { font-size: 16px; line-height: 19px; }
+  .pg-night .pg-last-pick small { font-size: 12px; line-height: 14px; }
+  .pg-night .pg-last-pick-food { width: 74px; max-height: 90px; }
+}

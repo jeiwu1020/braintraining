@@ -119,14 +119,8 @@ for (const level of ['normal', 'advanced'] as const) {
   });
 }
 
-// The public-count row must not squeeze mobile dish buttons below a readable size.
-it('reserves a scrollable mobile play area for both human and computer turns', () => {
-  const css = readFileSync('components/playground/playground.css', 'utf8');
-  expect(css).toMatch(/@media \(orientation: landscape\) and \(max-height: 600px\)\s*\{\s*\.pg-night \.pg-play-layout\[data-phase="playing"\],\s*\.pg-night \.pg-play-layout\[data-phase="awaiting_ai_reveal"\]\s*\{\s*min-height: 430px;/);
-  const viewportCss = readFileSync('components/playground/mobile-viewport.css', 'utf8');
-  expect(viewportCss).toContain('.pg-viewport .pg-shell > main { overflow-y: auto; }');
-});
-
+// Actual compact-viewport geometry is covered by
+// docs/qa/night-market-landscape-browser.mjs (all four dishes and actions fit).
 it('keeps a short settlement panel scrollable from its heading to the closing text', () => {
   const css = readFileSync('components/playground/playground.css', 'utf8');
   const summaryRule = css.match(/\.pg-night \.pg-round-summary\s*\{([^}]+)\}/)?.[1];
