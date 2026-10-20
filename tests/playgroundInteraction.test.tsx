@@ -230,3 +230,52 @@ it.each(ORDER_IDS)(
     expect(host.querySelectorAll("[data-market-slot]")).toHaveLength(4);
   },
 );
+
+it("keeps normal mode free of active order labels", () => {
+  mount("night");
+  click("開始本局");
+  click("略過並開始");
+  expect(host.querySelector('[aria-label="本輪公開訂單"]')).toBeNull();
+  expect(host.textContent).not.toContain("本輪啟用");
+  expect(host.querySelectorAll("[data-market-slot]")).toHaveLength(4);
+});
+
+it("labels only the two active advanced orders out of four possibilities", () => {
+  mount("night");
+  click("進階");
+  click("開始本局");
+  click("略過並開始");
+  const goals = host.querySelector('[aria-label="本輪公開訂單"]')!;
+  const state = createNight(saved().seed, "advanced", "A");
+  expect(goals.textContent).toContain("本輪啟用 2／4 種訂單");
+  expect(goals.querySelectorAll('[role="group"]')).toHaveLength(2);
+  for (const order of ORDER_IDS) {
+    expect(goals.textContent?.includes(ORDERS[order].name)).toBe(state.orders.includes(order));
+  }
+});
+
+it.each(["setup", "playing"])("explains all possible orders and selection in the %s rules dialog", (phase) => {
+  mount("night");
+  if (phase === "playing") {
+    click("開始本局");
+    click("略過並開始");
+  }
+  const rulesButton = phase === "setup" ? "玩法" : "規則";
+  click(rulesButton);
+  const dialog = host.querySelector('[role="dialog"]')!;
+  const text = dialog.textContent!.replace(/\s+/g, "");
+  expect(text).toContain("可能抽到的四種訂單");
+  expect([...dialog.querySelectorAll("p")].filter(p => ORDER_IDS.some(order => p.textContent?.startsWith(ORDERS[order].name)))).toHaveLength(4);
+  for (const order of ORDER_IDS) {
+    expect(text).toContain(`${ORDERS[order].name}：${ORDERS[order].condition}，＋${ORDERS[order].points}分。`.replace(/\s+/g, ""));
+  }
+  expect(text).toContain("進階模式每輪從四種訂單隨機抽出兩種");
+  expect(text).toContain("本輪只有畫面顯示的兩種有效，雙方都可完成");
+  expect(text).toContain("每人拿滿6張後才結算符合的訂單加分");
+  expect(text).toContain("第2輪重新抽選，可能與上一輪重複");
+  click("關閉");
+  expect(host.querySelector('[role="dialog"]')).toBeNull();
+  click(rulesButton);
+  act(() => host.querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+  expect(host.querySelector('[role="dialog"]')).toBeNull();
+});

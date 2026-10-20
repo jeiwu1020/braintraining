@@ -516,6 +516,18 @@
 .pg-orders span {
   font-size: 13px;
 }
+.pg-orders .pg-orders-label {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  background: #fff0c9;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+@media (orientation: portrait) {
+  .pg-night-table:has(.pg-orders-label) {
+    min-height: 460px;
+  }
+}
 .pg-scoring-ribbon {
   display: flex;
   justify-content: space-evenly;

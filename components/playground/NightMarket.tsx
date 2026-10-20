@@ -106,15 +106,18 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
         分；按確認前不入帳。
       </p>
       <h3>進階公開訂單</h3>
+      <p>
+        進階模式每輪從四種訂單隨機抽出兩種；本輪只有畫面顯示的兩種有效，雙方都可完成。
+        每人拿滿 6 張後才結算符合的訂單加分，中途符合不先加分。
+        第 2 輪重新抽選，可能與上一輪重複。
+      </p>
+      <h3>可能抽到的四種訂單</h3>
       {Object.entries(ORDERS).map(([id, o]) => (
         <p key={id}>
           {o.name}：{o.condition}，＋{o.points} 分。
         </p>
       ))}
-      <p>
-        兩張訂單每輪公開，雙方都能完成。只在每人六張時結算；中途符合不先加分。「整整齊齊」忽略
-        0 張菜色。
-      </p>
+      <p>「整整齊齊」忽略 0 張菜色。</p>
       <p>
         每輪 18 張，三種各 6
         張；補牌留在原槽位，最後一手不補。未知牌序不公開，剩餘牌庫張數公開。
@@ -239,6 +242,9 @@ export default function NightMarket({ onBack }: { onBack: () => void }) {
           </div>
           {s.orders.length > 0 && (
             <div className="pg-orders" aria-label="本輪公開訂單">
+              <span className="pg-orders-label">
+                本輪啟用 {s.orders.length}／{Object.keys(ORDERS).length} 種訂單
+              </span>
               {s.orders.map((o) => (
                 <div
                   key={o}
