@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-27",
+  "purpose": "Master-only setup backdrop without food competing with six foreground food illustrations",
+  "generation": {
+    "tool": "built-in image_gen",
+    "prompt": "Use case: illustration-story. Asset: one 4:3 opaque background illustration for a Taiwanese night-market board-game setup panel. The provided image is a STYLE REFERENCE and the existing competing background to redesign, not a layout to copy. Match its friendly hand-drawn dark outlines, softly painted warm lighting and traditional illustrated board-game look. Create a completely new quiet environmental backdrop: a deep jade / dusk blue-green empty central area taking about 75 percent of the image, softly atmospheric rather than flat; very subdued distant empty stall silhouettes and a few amber lanterns only along the far outer edges and top corners. Keep all important decorative details outside the central foreground-food grid. No large subject in the center. There will be SIX separate food illustrations overlaid by HTML, so the background MUST contain absolutely NO FOOD, no bowls, no plates, no drinks, no ingredients, no utensils, no menu pictures, no food silhouettes, no people. Do not retain the rice ball, corn or tofu from the reference. No words, lettering, numbers, logos or watermarks. Low contrast and low detail through the entire middle and lower-middle; softly textured illustrated ambience, not a photorealistic scene. Edge lantern glow restrained, not bright or visually dominant. Output only the finished clean background asset, not a UI mockup and not a collage.",
+    "reference": {
+      "path": "public/playground/box-night-market.webp",
+      "sha256": "e7024f034d26b9f9f89f87fe70d358ad0f0bc7ddca03688608b57850a5dfd214",
+      "bytes": 174550,
+      "dimensions": [
+        1000,
+        750
+      ],
+      "mode": "RGB",
+      "preservedUnchanged": true
+    }
+  },
+  "source": {
+    "sha256": "c169e9f4f324c8bf0884f325efd88144145729098e8a3c81dbf7b3feea3c1b6f",
+    "bytes": 2017068,
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGB",
+    "library_file_id": "libfile_139a183e0c6c8191b72fc5ea740ad85a",
+    "version": 0
+  },
+  "derivative": {
+    "path": "public/playground/master/night-market-backdrop-v1.webp",
+    "sha256": "94e235766e9e95340df20f8b0ce3bd4a29618a2e2680e5ef24e7e48cd1bf7b24",
+    "bytes": 80550,
+    "dimensions": [
+      1024,
+      768
+    ],
+    "mode": "RGB",
+    "resize": "LANCZOS",
+    "format": "WebP",
+    "quality": 85,
+    "method": 6
+  },
+  "scope": "Only .pg-master .nm-menu-art background URL; no rules, foreground cards, layout dimensions or legacy appearance changes"
+}
