@@ -180,3 +180,23 @@ it("unknown Master journals are not deleted or interpreted as legacy on load", (
     sessionStorage.getItem("braintraining.playground.v1.night-market"),
   ).toBe("legacy");
 });
+it.each(["重新設定大師版", "重開大師版本局"])(
+  "%s explains its own save scope without promising a legacy history entry",
+  (action) => {
+    fixture(1, 3);
+    const legacy = 'legacy journal';
+    sessionStorage.setItem("braintraining.playground.v1.night-market", legacy);
+    render();
+    click("選項");
+    click(action);
+    const dialog = host.querySelector('[role="dialog"]')!;
+    expect(dialog.textContent).toContain("只清除大師版本局進度；舊一般／進階的暫存不受影響。");
+    expect(dialog.textContent).not.toContain("標示未完成");
+    click("保留本局");
+    expect(JSON.parse(sessionStorage.getItem(MASTER_KEY)!).actions).toHaveLength(3);
+    click("選項");
+    click(action);
+    click("確定");
+    expect(sessionStorage.getItem("braintraining.playground.v1.night-market")).toBe(legacy);
+  },
+);

@@ -356,6 +356,12 @@
 .pg-master .nm-setup-panel p {
   margin: 0;
 }
+/* Six labels no longer fit a medium-width half-board, especially 冬瓜茶. */
+@media (max-width: 1200px) {
+  .pg-master .nm-counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (orientation: landscape) and (max-height: 600px) {
   .pg-master .game-shell__header {
     min-height: 49px;
@@ -588,15 +594,20 @@
   }
   .pg-master .nm-menu-art {
     padding: 8px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .pg-master .nm-menu-art > div {
-    max-height: 220px;
-    grid-template-rows: 1fr 1fr;
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
   .pg-master .nm-menu-art img {
     min-height: 0;
-    max-height: 105px;
+    height: 100%;
+    aspect-ratio: auto;
   }
   .pg-master .nm-menu-art > strong {
     font-size: 17px;
@@ -606,9 +617,91 @@
     padding: 12px;
     gap: 7px;
     font-size: 15px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
   }
-  .pg-master .nm-setup-panel h2 {
-    font-size: 21px;
+  .pg-master .nm-setup-options h2,
+  .pg-master .nm-setup-invitation,
+  .pg-master .nm-setup-steps {
+    display: none;
+  }
+  .pg-master .nm-difficulty-description,
+  .pg-master .nm-setup-panel > button {
+    grid-column: 1 / -1;
+  }
+  .pg-master .nm-setup-panel h3 {
+    font-size: 15px;
+  }
+  .pg-master .nm-setup-panel .pg-choice {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .pg-master .nm-setup-panel .pg-choice button {
+    flex: 1;
+    padding: 5px 8px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+}
+/* Short browser chrome leaves 300 CSS pixels. Keep real art and all decisions. */
+@media (orientation: landscape) and (max-height: 340px) {
+  .pg-master .nm-card {
+    flex-direction: row;
+    gap: 5px;
+    padding: 3px 10px 3px 18px;
+  }
+  .pg-master .nm-card img {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 32px;
+  }
+  .pg-master .nm-card > strong {
+    font-size: 18px;
+    margin: 0;
+  }
+  .pg-master .nm-controls {
+    padding: 6px;
+    gap: 4px;
+    line-height: 1.15;
+  }
+  .pg-master .nm-controls h2 {
+    line-height: 1.1;
+    font-size: 18px;
+  }
+  .pg-master .nm-preview {
+    padding: 0;
+    gap: 2px;
+  }
+  .pg-master .nm-preview > strong {
+    font-size: 18px;
+  }
+  /* These repeat the order heading, footer counts and summary totals. */
+  .pg-master .nm-preview > small,
+  .pg-master .nm-controls > small,
+  .pg-master .nm-summary-hint,
+  .pg-master .nm-score-columns > div > small {
+    display: none;
+  }
+  .pg-master .nm-last-action {
+    padding-top: 3px;
+    line-height: 1.15;
+  }
+  .pg-master .nm-summary {
+    padding: 5px 10px;
+  }
+  /* Quantities stay above; base totals and every order remain visible below. */
+  .pg-master .nm-score-parts {
+    display: none;
+  }
+  .pg-master .nm-score-columns h3 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 @media (orientation: portrait) {

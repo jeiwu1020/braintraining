@@ -28,7 +28,7 @@ import {
 import { chooseMaster } from "../../games/playground/night-market/masterAi";
 import { useAi } from "./useSession";
 import { useMasterSession } from "./useMasterSession";
-import { Modal, ConfirmDialog, teamLabel, useRoving } from "./Common";
+import { Modal, teamLabel, useRoving } from "./Common";
 import "./night-market-master.css";
 
 const makeWorker = () =>
@@ -43,6 +43,17 @@ export const masterArt = (food: MasterFood) =>
   ["noodle", "chicken", "tea"].includes(food)
     ? `/playground/master/${food}-v1.webp`
     : `/playground/${food}.webp`;
+function MasterConfirmDialog({ title, onCancel, onConfirm }: {
+  title: string; onCancel: () => void; onConfirm: () => void;
+}) {
+  return <Modal title={title} onClose={onCancel}>
+    <p>只清除大師版本局進度；舊一般／進階的暫存不受影響。</p>
+    <div className="pg-choice">
+      <button onClick={onCancel}>保留本局</button>
+      <button className="pg-primary" onClick={onConfirm}>確定</button>
+    </div>
+  </Modal>;
+}
 export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
   const game = useMasterSession(),
     { state: s, journal, token } = game;
@@ -132,7 +143,7 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
     </Modal>
   );
   const resetDialog = dialog === "reset" && (
-    <ConfirmDialog
+    <MasterConfirmDialog
       title="只重設大師版？"
       onCancel={() => setDialog(null)}
       onConfirm={() => {
@@ -183,9 +194,9 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
               </div>
               <strong>熟悉的夜市，更多的取捨</strong>
             </div>
-            <section className="pg-paper nm-setup-panel">
+            <section className="pg-paper nm-setup-panel nm-setup-options">
               <h2>夜市大師，開桌了</h2>
-              <p>搭配六種菜色，完成訂單，挑戰更高分！</p>
+              <p className="nm-setup-invitation">搭配六種菜色，完成訂單，挑戰更高分！</p>
               <h3>遊玩模式</h3>
               <div className="pg-choice">
                 {(["teams", "solo"] as const).map((mode) => (
@@ -216,7 +227,7 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
                       ),
                     )}
                   </div>
-                  <p>
+                  <p className="nm-difficulty-description">
                     {settings.aiDifficulty === "easy"
                       ? "以自身收益為主，較少卡對手。"
                       : settings.aiDifficulty === "standard"
@@ -225,7 +236,7 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
                   </p>
                 </>
               )}
-              <p>
+              <p className="nm-setup-steps">
                 ① 選一張，再確認
                 <br />② 看三張訂單的取捨
                 <br />③ 每隊8張，兩輪比總分
@@ -606,7 +617,7 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
                 </button>
               ) : (
                 <>
-                  <p>
+                  <p className="nm-summary-hint">
                     {finished ? "兩輪總分已結算" : "下一輪換先手，重新選菜。"}
                   </p>
                   <button
@@ -644,7 +655,7 @@ export default function NightMarketMaster({ onBack }: { onBack: () => void }) {
         </Modal>
       )}
       {dialog === "restart" && (
-        <ConfirmDialog
+        <MasterConfirmDialog
           title="重開大師版本局？"
           onCancel={() => setDialog(null)}
           onConfirm={() => {
