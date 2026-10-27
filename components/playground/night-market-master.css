@@ -1,0 +1,653 @@
+/* Master-only selectors. Legacy .pg-night geometry and game rules remain untouched. */
+.pg-master {
+  --nm-ink: #183b34;
+  --nm-gold: #ba8a38;
+}
+.pg-master > main {
+  overflow: hidden !important;
+}
+.pg-master .nm-layout {
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 25%);
+  gap: 16px;
+}
+.pg-master .nm-board {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+}
+.pg-master .nm-receipts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pg-master .nm-receipt {
+  padding: 10px 12px;
+  min-width: 0;
+  border-top: 5px solid #26776a;
+}
+.pg-master .nm-team-B {
+  border-top-color: #986231;
+}
+.pg-master .nm-receipt header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-size: 17px;
+}
+.pg-master .nm-receipt header > b {
+  margin-left: auto;
+  font-size: 26px;
+}
+.pg-master .nm-receipt header small {
+  font-size: 14px;
+  margin-left: 3px;
+}
+.pg-master .nm-previous {
+  font-size: 14px;
+}
+.pg-master .nm-counts {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 5px;
+  font-size: 16px;
+}
+.pg-master .nm-counts span {
+  white-space: nowrap;
+}
+.pg-master .nm-counts b {
+  color: #873c25;
+  font-size: 19px;
+}
+.pg-master .nm-orders > h2 {
+  color: #fff8e7;
+  font-size: 17px;
+  margin: 0 0 5px;
+  line-height: 1.2;
+}
+.pg-master .nm-orders > h2 small {
+  margin-left: 12px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.pg-master .nm-orders > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.pg-master .nm-order {
+  padding: 8px 10px;
+  min-width: 0;
+}
+.pg-master .nm-order-name {
+  font-size: 19px;
+  color: #613c22;
+}
+.pg-master .nm-condition {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.pg-master .nm-condition > b {
+  flex-shrink: 0;
+  color: #925029;
+}
+.pg-master .nm-order-progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 14px;
+  margin-top: 5px;
+}
+.pg-master .nm-order-progress > span {
+  min-width: 0;
+}
+.pg-master .is-met {
+  color: #12634b;
+  font-weight: 700;
+}
+.pg-master .nm-progress-short {
+  display: none;
+}
+.pg-master .nm-market {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.pg-master .nm-card {
+  position: relative;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px 10px;
+  border: 3px solid #aa7b3e;
+  background: radial-gradient(ellipse at 50% 30%, #fffef9, #f2dfb7);
+  box-shadow: 0 5px 0 #3b261c55;
+  overflow: hidden;
+}
+.pg-master .nm-card img {
+  min-height: 0;
+  height: 0;
+  flex: 1 1 0;
+  width: 100%;
+  object-fit: contain;
+}
+.pg-master .nm-card > strong {
+  font-size: 24px;
+  line-height: 1.2;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.pg-master .nm-card > small {
+  font-size: 14px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+.pg-master .nm-slot {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  font-size: 19px;
+  line-height: 1;
+  color: #805b29;
+}
+.pg-master .nm-card.is-selected {
+  border-color: #147d69;
+  background: #e6f4d7;
+  box-shadow: inset 0 0 0 3px #147d69;
+}
+.pg-master .nm-selected {
+  position: absolute;
+  right: 6px;
+  top: 3px;
+  font-size: 24px;
+  color: #147d69;
+}
+.pg-master .nm-footer {
+  color: #fff8e7;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.pg-master .nm-deck {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pg-master .nm-scoring {
+  margin-top: 4px;
+}
+.pg-master .nm-controls {
+  min-height: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  overflow: auto;
+}
+.pg-master .nm-controls h2 {
+  font-size: 24px;
+  margin: 0;
+  line-height: 1.25;
+}
+.pg-master .nm-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0;
+  font-size: 18px;
+}
+.pg-master .nm-preview > strong {
+  font-size: 24px;
+}
+.pg-master .nm-preview small {
+  font-size: 14px;
+}
+.pg-master .nm-confirm-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pg-master .nm-last-action {
+  padding-top: 10px;
+  border-top: 1px solid #c4ad83;
+  font-size: 17px;
+  line-height: 1.3;
+  margin: 0;
+}
+.pg-master .nm-warning {
+  color: #9f3422;
+}
+.pg-master .nm-gain {
+  color: #12634b;
+}
+.pg-master .nm-last-pick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 10px 18px;
+  gap: 20px;
+}
+.pg-master .nm-last-pick img {
+  min-width: 0;
+  width: 26%;
+  height: 100%;
+  object-fit: contain;
+}
+.pg-master .nm-last-pick h2 {
+  font-size: 26px;
+  margin: 5px 0;
+}
+.pg-master .nm-last-pick p {
+  font-size: 17px;
+}
+.pg-master .is-summary .nm-board {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.pg-master .nm-summary {
+  padding: 16px;
+  min-height: 0;
+  overflow: auto;
+}
+.pg-master .nm-summary > h2 {
+  font-size: 26px;
+  margin: 0 0 10px;
+  text-align: center;
+}
+.pg-master .nm-score-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.pg-master .nm-score-columns h3 {
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+.pg-master .nm-score-columns p {
+  margin: 5px 0;
+  font-size: 17px;
+}
+.pg-master .nm-score-parts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px 8px;
+}
+.pg-master .nm-score-columns ul {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+.pg-master .nm-score-columns li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 18px;
+  padding: 3px 0;
+}
+.pg-master .nm-round-total {
+  display: block;
+  font-size: 24px;
+  color: #873c25;
+}
+.pg-master .nm-score-columns small {
+  font-size: 15px;
+}
+.pg-master .nm-setup {
+  height: 100%;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  align-items: center;
+}
+.pg-master .nm-menu-art {
+  background:
+    linear-gradient(#12352a99, #12352a99),
+    url("/playground/box-night-market.webp") center/cover;
+  border: 5px solid #bb9255;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  color: #fff8e7;
+}
+.pg-master .nm-menu-art > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.pg-master .nm-menu-art img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.pg-master .nm-menu-art > strong {
+  font-size: 24px;
+  display: block;
+  padding: 10px;
+}
+.pg-master .nm-setup-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 18px;
+}
+.pg-master .nm-setup-panel h2 {
+  font-size: 28px;
+  margin: 0;
+}
+.pg-master .nm-setup-panel h3,
+.pg-master .nm-setup-panel p {
+  margin: 0;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .pg-master .game-shell__header {
+    min-height: 49px;
+    padding: 2px 7px;
+    gap: 6px;
+  }
+  .pg-master .game-shell__header h1 {
+    font-size: 19px;
+    letter-spacing: 0;
+  }
+  .pg-master .game-shell__header p {
+    font-size: 13px;
+  }
+  .pg-master .game-shell__header button {
+    padding: 5px 9px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .pg-master .nm-layout {
+    padding: 6px 8px;
+    grid-template-columns: minmax(0, 1fr) 186px;
+    gap: 8px;
+  }
+  .pg-master .nm-board {
+    gap: 5px;
+  }
+  .pg-master .nm-receipts {
+    gap: 6px;
+  }
+  .pg-master .nm-receipt {
+    padding: 3px 7px;
+    border-top-width: 3px;
+    border-radius: 8px;
+  }
+  .pg-master .nm-receipt header {
+    gap: 6px;
+    font-size: 14px;
+    flex-wrap: nowrap;
+    line-height: 1.1;
+  }
+  .pg-master .nm-receipt header > b {
+    font-size: 19px;
+  }
+  .pg-master .nm-receipt header small,
+  .pg-master .nm-previous {
+    font-size: 12px;
+  }
+  .pg-master .nm-counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px 4px;
+    font-size: 14px;
+    margin-top: 2px;
+    line-height: 1.05;
+  }
+  .pg-master .nm-counts b {
+    font-size: 15px;
+  }
+  .pg-master .nm-orders > h2 {
+    font-size: 13px;
+    margin-bottom: 3px;
+  }
+  .pg-master .nm-orders > h2 small {
+    font-size: 12px;
+    margin-left: 5px;
+  }
+  .pg-master .nm-orders > div {
+    gap: 5px;
+  }
+  .pg-master .nm-order {
+    padding: 4px 6px;
+    border-radius: 7px;
+  }
+  .pg-master .nm-order-name {
+    display: none;
+  }
+  .pg-master .nm-condition {
+    font-size: 14px;
+    line-height: 1.15;
+    min-height: 32px;
+    align-items: flex-start;
+  }
+  .pg-master .nm-order-progress {
+    font-size: 14px;
+    margin-top: 2px;
+    line-height: 1.1;
+    gap: 2px;
+  }
+  .pg-master .nm-order-progress > span {
+    white-space: nowrap;
+  }
+  .pg-master .nm-progress-full {
+    display: none;
+  }
+  .pg-master .nm-progress-short {
+    display: inline;
+  }
+  .pg-master .nm-market {
+    gap: 6px;
+  }
+  .pg-master .nm-card {
+    padding: 5px 4px 3px;
+    border-width: 2px;
+    border-radius: 9px;
+  }
+  .pg-master .nm-card > strong {
+    font-size: 18px;
+    margin-top: 1px;
+  }
+  .pg-master .nm-card > small {
+    display: none;
+  }
+  .pg-master .nm-slot {
+    font-size: 14px;
+    left: 5px;
+    top: 4px;
+  }
+  .pg-master .nm-selected {
+    font-size: 18px;
+    top: 0;
+  }
+  .pg-master .nm-footer {
+    font-size: 12px;
+    line-height: 1.15;
+  }
+  .pg-master .nm-deck {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .pg-master .nm-scoring {
+    margin-top: 2px;
+  }
+  .pg-master .nm-controls {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 9px;
+  }
+  .pg-master .nm-controls h2 {
+    font-size: 19px;
+  }
+  .pg-master .nm-preview {
+    padding: 4px 0;
+    gap: 4px;
+    font-size: 14px;
+  }
+  .pg-master .nm-preview > strong {
+    font-size: 20px;
+  }
+  .pg-master .nm-preview small {
+    font-size: 12px;
+  }
+  .pg-master .nm-confirm-row {
+    flex-direction: row;
+    gap: 5px;
+  }
+  .pg-master .nm-confirm-row button {
+    padding: 5px 7px;
+    font-size: 15px;
+  }
+  .pg-master .nm-confirm-row button:first-child {
+    flex: 1;
+  }
+  .pg-master .nm-last-action {
+    padding-top: 5px;
+    font-size: 14px;
+  }
+  .pg-master .nm-controls > p {
+    margin: 0;
+    font-size: 14px;
+  }
+  .pg-master .nm-controls > button {
+    font-size: 15px;
+    padding: 5px 7px;
+  }
+  .pg-master .nm-last-pick {
+    padding: 5px 10px;
+    gap: 8px;
+  }
+  .pg-master .nm-last-pick h2 {
+    font-size: 20px;
+    margin: 2px 0;
+  }
+  .pg-master .nm-last-pick p {
+    font-size: 13px;
+    margin: 2px 0;
+  }
+  .pg-master .nm-last-pick strong,
+  .pg-master .nm-last-pick span {
+    font-size: 14px;
+  }
+  .pg-master .nm-summary {
+    padding: 7px 10px;
+  }
+  .pg-master .nm-summary > h2 {
+    font-size: 19px;
+    margin: 0 0 4px;
+  }
+  .pg-master .nm-score-columns {
+    gap: 15px;
+  }
+  .pg-master .nm-score-columns h3 {
+    font-size: 16px;
+    margin: 0;
+  }
+  .pg-master .nm-score-columns p {
+    font-size: 14px;
+    margin: 3px 0;
+    line-height: 1.15;
+  }
+  .pg-master .nm-score-parts {
+    gap: 1px 4px;
+  }
+  .pg-master .nm-score-columns ul {
+    margin: 4px 0;
+  }
+  .pg-master .nm-score-columns li {
+    font-size: 14px;
+    padding: 1px 0;
+    line-height: 1.15;
+  }
+  .pg-master .nm-round-total {
+    font-size: 19px;
+  }
+  .pg-master .nm-score-columns small {
+    font-size: 12px;
+  }
+  .pg-master .nm-setup {
+    padding: 12px;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .pg-master .nm-menu-art {
+    padding: 8px;
+  }
+  .pg-master .nm-menu-art > div {
+    max-height: 220px;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+  }
+  .pg-master .nm-menu-art img {
+    min-height: 0;
+    max-height: 105px;
+  }
+  .pg-master .nm-menu-art > strong {
+    font-size: 17px;
+    padding: 4px;
+  }
+  .pg-master .nm-setup-panel {
+    padding: 12px;
+    gap: 7px;
+    font-size: 15px;
+  }
+  .pg-master .nm-setup-panel h2 {
+    font-size: 21px;
+  }
+}
+@media (orientation: portrait) {
+  .pg-master > main {
+    overflow-y: auto !important;
+  }
+  .pg-master .nm-layout {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+  .pg-master .nm-board {
+    grid-template-rows: auto auto 220px auto;
+  }
+  .pg-master .nm-counts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pg-master .nm-orders > div {
+    grid-template-columns: 1fr;
+  }
+  .pg-master .nm-order-progress {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+  .pg-master .nm-card > strong {
+    font-size: 18px;
+  }
+  .pg-master .nm-market {
+    gap: 6px;
+  }
+  .pg-master .nm-controls {
+    overflow: visible;
+  }
+  .pg-master .nm-setup {
+    grid-template-columns: 1fr;
+  }
+  .pg-master .is-summary .nm-board {
+    grid-template-rows: auto auto;
+  }
+  .pg-master .nm-score-columns {
+    grid-template-columns: 1fr;
+  }
+}

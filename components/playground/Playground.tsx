@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { PLAYGROUND_CATALOG, PlaygroundId } from "../../data/playgroundCatalog";
 import { clearSaved, readSaved } from "../../games/playground/session";
 import { ConfirmDialog } from "./Common";
+import { readMasterSaved } from "../../games/playground/night-market/masterSession";
 import "./playground.css";
 import "./mobile-viewport.css";
 import "./table-games.css";
 import { useExperienceViewport } from "../experience-ui/useExperienceViewport";
 const NightMarket = React.lazy(() => import("./NightMarket"));
+const NightMarketMaster = React.lazy(() => import("./NightMarketMaster"));
 const WallRace = React.lazy(() => import("./WallRace"));
 const Lighthouse = React.lazy(() => import("./Lighthouse"));
 const Garden = React.lazy(() => import("./Garden"));
@@ -18,7 +20,8 @@ export default function Playground({ onBack }: { onBack: () => void }) {
   const viewportStyle = useExperienceViewport();
   const [game, setGame] = useState<PlaygroundId | null>(null),
     [reset, setReset] = useState<PlaygroundId | null>(null);
-  const Screen = game ? SCREENS[game] : null;
+  const [nightMaster, setNightMaster] = useState(false);
+  const Screen = game === "night-market" && nightMaster ? NightMarketMaster : game ? SCREENS[game] : null;
   if (Screen)
     return (
       <div className="pg-viewport" style={viewportStyle}><React.Suspense
@@ -60,9 +63,10 @@ export default function Playground({ onBack }: { onBack: () => void }) {
               <h2>{c.title}</h2>
               <p>{c.description}</p>
               <p className="pg-box-modes">{c.id === "lighthouse" ? "全團體合作" : ["garden", "lantern", "workshop", "auction"].includes(c.id) ? "兩隊對局" : "單人／兩隊"}　一般／進階</p>
-              <button className="pg-primary" onClick={() => setGame(c.id)}>
+              <button className="pg-primary" onClick={() => { setNightMaster(false); setGame(c.id); }}>
                 {readSaved(c.id) ? "繼續本局" : c.action}　›
               </button>
+              {c.id === "night-market" && <button className="pg-primary" data-master-entry onClick={() => { setNightMaster(true); setGame(c.id); }}>{readMasterSaved() ? "繼續大師版" : "開啟大師版"}　›</button>}
               {readSaved(c.id) && (
                 <button
                   className="pg-reset-link"
@@ -81,6 +85,7 @@ export default function Playground({ onBack }: { onBack: () => void }) {
           onCancel={() => setReset(null)}
           onConfirm={() => {
             clearSaved(reset);
+            setNightMaster(false);
             setGame(reset);
             setReset(null);
           }}
