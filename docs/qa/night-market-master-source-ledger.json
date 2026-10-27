@@ -1,0 +1,83 @@
+{
+  "base": "3b1b3529366ad121fa32d72718ec21a75c8b577a",
+  "items": [
+    {
+      "food": "noodle",
+      "raw": "/workspace/shared/night-market-master-evidence/raw/noodle-v1.png",
+      "generation": "built-in image_gen; genuine transparent source; matched inspected rice/corn/tofu references",
+      "library": {
+        "operation": "create_library_file",
+        "status": "succeeded",
+        "path": "/exec-27780482-4e8f-4108-9833-016f61b7a58f.png",
+        "file_id": "file_00000000e8ec81f89d06362a91516809",
+        "library_file_id": "libfile_5e5eedfd838081919df20068dc7af47e",
+        "file_name": "exec-27780482-4e8f-4108-9833-016f61b7a58f.png",
+        "current_version_number": 0,
+        "restored_from_version_number": null,
+        "xattrs": [
+          {
+            "name": "user.library-file-version",
+            "value": "0"
+          }
+        ],
+        "directory_id": "libdir_305c837bb2788191b36ec4661d2f2944",
+        "mime_type": "image/png",
+        "library_artifact_type": "image_gen",
+        "file_size_bytes": 1673337,
+        "external_connectors_accessed": false
+      }
+    },
+    {
+      "food": "chicken",
+      "raw": "/workspace/shared/night-market-master-evidence/raw/chicken-v1.png",
+      "library": {
+        "operation": "create_library_file",
+        "status": "succeeded",
+        "path": "/exec-49847c11-3da8-4a7e-a7c6-75af38e1a623.png",
+        "file_id": "file_000000007a6081fd97d4c47dc2536847",
+        "library_file_id": "libfile_1b28cbe329d48191b7ca18b68c3f974d",
+        "file_name": "exec-49847c11-3da8-4a7e-a7c6-75af38e1a623.png",
+        "current_version_number": 0,
+        "restored_from_version_number": null,
+        "xattrs": [
+          {
+            "name": "user.library-file-version",
+            "value": "0"
+          }
+        ],
+        "directory_id": "libdir_305c837bb2788191b36ec4661d2f2944",
+        "mime_type": "image/png",
+        "library_artifact_type": "image_gen",
+        "file_size_bytes": 1354613,
+        "external_connectors_accessed": false
+      },
+      "generation": "built-in image_gen; transparent cutout matching inspected original rice/corn/tofu references"
+    },
+    {
+      "food": "tea",
+      "raw": "/workspace/shared/night-market-master-evidence/raw/tea-v1.png",
+      "library": {
+        "operation": "create_library_file",
+        "status": "succeeded",
+        "path": "/exec-48b65352-f1fd-4dc8-b83b-d551ec00fb24.png",
+        "file_id": "file_000000001a888230b12322600441aba0",
+        "library_file_id": "libfile_9a31a50b18288191a9b2c46102e3a001",
+        "file_name": "exec-48b65352-f1fd-4dc8-b83b-d551ec00fb24.png",
+        "current_version_number": 0,
+        "restored_from_version_number": null,
+        "xattrs": [
+          {
+            "name": "user.library-file-version",
+            "value": "0"
+          }
+        ],
+        "directory_id": "libdir_305c837bb2788191b36ec4661d2f2944",
+        "mime_type": "image/png",
+        "library_artifact_type": "image_gen",
+        "file_size_bytes": 840353,
+        "external_connectors_accessed": false
+      },
+      "generation": "built-in image_gen; transparent cutout matching inspected original rice/corn/tofu references"
+    }
+  ]
+}
