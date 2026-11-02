@@ -673,9 +673,10 @@
   border: 2px solid #7c641f;
 }
 .pg-wall-grid button.pg-cell.selected {
-  outline: 3px solid #08795b;
+  outline: 3px solid #073665;
   outline-offset: -3px;
-  background: #ffe5a3;
+  background: #155eaa;
+  box-shadow: inset 0 0 0 6px #e5f4ff, 0 3px 1px #664925;
 }
 .pg-wall-grid button.pg-cell[aria-disabled="true"] {
   cursor: default;
@@ -743,12 +744,12 @@
   position: absolute;
   background: repeating-linear-gradient(
     0deg,
-    #482a19,
-    #69462d 2px,
-    #765232 4px
+    #152536,
+    #243b50 2px,
+    #152536 4px
   );
-  border: 1px solid #372216;
-  box-shadow: 2px 3px 2px #32231a77;
+  border: 1px solid #071522;
+  box-shadow: 0 0 0 1px #fff4d6, 2px 3px 2px #152536aa;
   border-radius: 3px;
 }
 .pg-wall-bar.horizontal {
@@ -760,13 +761,14 @@
   transform: translateX(-50%);
 }
 .pg-wall-bar.ghost {
-  background: #efb54a99;
-  border: 2px dashed #ad6306;
-  box-shadow: 0 0 0 2px #f5d39955;
+  background: #087783;
+  border: 2px dashed #e5ffff;
+  box-shadow: 0 0 0 1px #03444c, 0 2px 3px #15253688;
 }
 .pg-wall-bar.invalid {
-  background: #b73c3c88;
-  border-color: #9b2828;
+  background: #b4233c;
+  border-color: #fff0f1;
+  box-shadow: 0 0 0 1px #710d20, 0 2px 3px #710d2088;
 }
 .pg-board-last {
   position: absolute;
