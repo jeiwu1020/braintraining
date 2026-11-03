@@ -1,0 +1,41 @@
+/* Shared system-sans typography, including buttons and carved-piece labels. */
+:root{--game-font:"Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,"Segoe UI",sans-serif}
+body,body.playing,button,input,select,textarea,svg text{font-family:var(--game-font)}
+.lost-game:has(.lost-reveal) .lost-question-box{display:none}
+.lost-game .lost-card.clue-match{outline:4px solid #f1cf7c;outline-offset:-4px}
+.lost-game .lost-card.clue-out svg,.lost-game .lost-card.clue-out .lost-description{opacity:.3}
+.lost-game .lost-card.clue-out{filter:saturate(.4)}
+.lost-candidates{padding:9px 10px;margin:8px 0 12px;background:#e4ead2;border:2px solid #5c7950;border-radius:7px;color:#1c4936}
+.lost-candidates strong{font-size:19px;line-height:1.3;display:block}
+.lost-candidates p{font-weight:700;margin:5px 0}
+.lost-candidates small{font-size:15px;line-height:1.35;display:block}
+.borrow-game [data-guide=next]{outline:4px solid #bd641e!important;outline-offset:-4px;box-shadow:inset 0 0 0 7px #ffedb7!important}
+.borrow-game .borrow-cards [data-guide=next],.borrow-game .borrow-actions [data-guide=next]{outline-offset:2px}
+.borrow-game.is-tutorial .borrow-instruction{border:2px solid #65834d;border-left-width:6px}
+.borrow-piece b{font-weight:800;letter-spacing:0;text-shadow:0 1px #fff5d0}
+@media(orientation:landscape) and (max-height:500px){
+ .lost-game:has(.lost-reveal) .lost-clues{flex:0;gap:1px;padding:2px 0;font-size:14px;line-height:1.2}
+ .lost-game:has(.lost-reveal) .lost-clues>strong{display:none}
+ .lost-reveal{display:flex;flex-direction:column;min-height:0;gap:3px;flex:1}
+ .lost-reveal>strong{font-size:16px}
+ .lost-reveal>p{font-size:14px;margin:0}
+ .lost-candidates{padding:4px 6px;margin:0;flex:1}
+ .lost-candidates strong{font-size:16px;line-height:1.2}
+ .lost-candidates p{font-size:15px;margin:3px 0;line-height:1.2}
+ .lost-candidates small{font-size:13px;line-height:1.2}
+ .lost-reveal button{flex-shrink:0}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .borrow-game.is-tutorial .borrow-controls{grid-template-rows:30px 87px minmax(64px,1fr) 44px}
+ .borrow-game.is-tutorial .borrow-center{padding:1px 6px}
+ .borrow-game.is-tutorial .borrow-center .borrow-diagram{display:none}
+ .borrow-game.is-tutorial .borrow-instruction{padding:3px 8px;justify-content:center}
+}
+
+@media(orientation:landscape) and (max-height:500px){.borrow-game.is-tutorial .borrow-instruction p{font-size:15px;line-height:1.2}.borrow-game.is-tutorial .borrow-instruction>strong{font-size:16px;line-height:1.15}}
+/* Compact landscape devices: preserve complete board and readable controls. */
+@media(orientation:landscape) and (max-width:740px){
+ .borrow-game{grid-template-columns:minmax(190px,.8fr) minmax(300px,1.2fr);gap:4px 6px}.borrow-board-side{padding-inline:4px}.borrow-status>span{display:none}.borrow-hand>strong small{font-size:12px}.borrow-cards button>b{font-size:16px}.borrow-cards button small{font-size:12px}.borrow-game.is-tutorial .borrow-instruction p{font-size:14px}.borrow-game.is-tutorial .borrow-instruction>strong{font-size:15px}.borrow-center small{font-size:12px}.borrow-center strong{font-size:17px}
+ .lost-game{grid-template-columns:minmax(0,1fr) 248px}.lost-game.advanced .lost-cards{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}.lost-cards{padding:4px;gap:4px}.lost-description strong,.lost-description>span{font-size:12px}.lost-description{min-height:29px}.lost-game .lost-card svg{height:calc(100% - 30px)}.lost-question-box label{font-size:16px}.lost-desk{padding-inline:6px}.lost-number{font-size:15px;width:20px;height:20px}.lost-answer{font-size:11px;top:24px;padding:1px}
+ .animals-game{grid-template-columns:minmax(0,1fr) 290px}.animals-seats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;width:100%}.animals-game.advanced .animals-seats{grid-template-columns:repeat(4,minmax(0,1fr))}.animals-game .animals-seat,.animals-game.advanced .animals-seat{min-height:75px;padding:17px 0 20px}.animals-token{max-width:42px}.animals-game .animals-seat strong,.animals-game.advanced .animals-seat strong{font-size:12px;padding:2px 0}.animals-seat-number{font-size:12px;padding:0 5px}.animals-instruction{margin-top:8px;font-size:12px}.animals-preferences li,.animals-game.advanced .animals-preferences li{font-size:12px}.animals-legend{font-size:12px}.animals-sheet-heading h3{font-size:17px}
+}

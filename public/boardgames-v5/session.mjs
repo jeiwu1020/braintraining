@@ -1,0 +1,1 @@
+export function sessionState(){let blockers=new Set(),out=null;return {paused:()=>blockers.size>0||out!==null,set:(key,on)=>on?blockers.add(key):blockers.delete(key),finish:r=>{out=r},result:()=>out,reset:()=>{blockers.clear();out=null}}}

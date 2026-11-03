@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+test('wood token art hides SVG fallback only after image is loaded',()=>{const css=fs.readFileSync(new URL('../../public/boardgames-v5/v2.css',import.meta.url),'utf8');assert.match(css,/\.token-art-ready \.animals-token\[data-animal\] svg\{visibility:hidden\}/);const app=fs.readFileSync(new URL('../../public/boardgames-v5/app.mjs',import.meta.url),'utf8');assert.match(app,/tokenArt\.onload/);assert.match(app,/classList\.add\('token-art-ready'\)/)});

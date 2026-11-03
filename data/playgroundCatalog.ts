@@ -76,6 +76,11 @@ export const PLAYGROUND_CATALOG = [
       advanced: "8件展品，每隊22枚，規劃更多套組",
     },
   },
+  { id: "beans", title: "豆豆分碗", description: "想好落點，一顆一顆分豆", action: "開始分豆", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "每碗4顆，預判最後一顆的落點", advanced: "對稱多樣開局，電腦預想後續" } },
+  { id: "lost", title: "失物招領所", description: "問對問題，找出真正失物", action: "開始認領", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "8件器物，最多3問", advanced: "12件器物，最多4問" } },
+  { id: "animals", title: "動物排排坐", description: "交換座位，滿足朋友的小要求", action: "開始排座位", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "6隻動物，觀察相鄰與左右關係", advanced: "8隻動物，加入不相鄰條件" } },
+  { id: "borrow", title: "借一步棋", description: "這一步用過的招式，對手也能借走", action: "開始下棋", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "看懂移動卡，親手練習換牌", advanced: "電腦預想對手的合法回應" } },
 ] as const;
 export type PlaygroundId = (typeof PLAYGROUND_CATALOG)[number]["id"];
+
 

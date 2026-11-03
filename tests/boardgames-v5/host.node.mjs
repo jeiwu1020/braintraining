@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {sessionState} from '../../public/boardgames-v5/session.mjs';
+test('help and hidden state pause until all blockers cleared',()=>{const s=sessionState();assert.equal(s.paused(),false);s.set('help',true);s.set('hidden',true);s.set('help',false);assert.equal(s.paused(),true);s.set('hidden',false);assert.equal(s.paused(),false)});
+test('finish blocks input and reset clears old result',()=>{const s=sessionState();s.finish({title:'win'});assert.equal(s.paused(),true);assert.equal(s.result().title,'win');s.reset();assert.equal(s.result(),null);assert.equal(s.paused(),false)});
