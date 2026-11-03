@@ -6,6 +6,7 @@ import { readMasterSaved } from "../../games/playground/night-market/masterSessi
 import "./playground.css";
 import "./mobile-viewport.css";
 import "./new-boardgames.css";
+import NewBoardgameArt from "./NewBoardgameArt";
 import "./table-games.css";
 import { useExperienceViewport } from "../experience-ui/useExperienceViewport";
 const NightMarket = React.lazy(() => import("./NightMarket"));
@@ -62,6 +63,7 @@ export default function Playground({ onBack }: { onBack: () => void }) {
         {PLAYGROUND_CATALOG.map((c) => (
           <article className="pg-game-box" key={c.id} data-game-card={c.id}>
             <div className={`pg-box-art pg-art-${c.id}`} aria-hidden="true">
+              {NEW_GAMES.has(c.id) && <NewBoardgameArt game={c.id}/>}
               {(c.id === "night-market" || c.id === "wall-race") && <span>{c.title}</span>}
             </div>
             <div className="pg-box-label pg-paper">

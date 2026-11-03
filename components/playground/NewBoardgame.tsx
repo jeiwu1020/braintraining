@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {PLAYGROUND_CATALOG} from '../../data/playgroundCatalog';
 import './new-boardgames.css';
+import NewBoardgameArt from './NewBoardgameArt';
 export type NewBoardgameId = 'beans' | 'lost' | 'animals' | 'borrow';
 const CHANNEL='braintraining-four-tables-v1';
 type Level='normal'|'advanced';
@@ -30,7 +31,7 @@ export default function NewBoardgame({game,onBack}:{game:NewBoardgameId;onBack:(
   </section>;
   return <section className="nb-setup pg-paper" aria-label={`${c.title}設定`}>
     <header className="nb-setup-heading"><div><p className="pg-eyebrow">桌遊新樂園</p><h1>{c.title}</h1><p>{c.description}</p></div><button onClick={onBack}>返回桌遊新樂園</button></header>
-    <div className="nb-setup-body"><div className={`nb-setup-art nb-art-${game}`} aria-hidden="true"/><div className="nb-setup-controls">
+    <div className="nb-setup-body"><div className={`nb-setup-art nb-art-${game}`} aria-hidden="true"><NewBoardgameArt game={game}/></div><div className="nb-setup-controls">
       <fieldset><legend>遊戲難度</legend><div className="nb-choice">{(['normal','advanced'] as const).map(level=><button key={level} aria-pressed={settings.level===level} onClick={()=>setSettings(s=>({...s,level}))}>{level==='normal'?'一般':'進階'}</button>)}</div><p>{c.difficultyDescriptions[settings.level]}</p></fieldset>
       {dual(game)?<fieldset><legend>一起怎麼玩</legend><div className="nb-choice"><button aria-pressed={settings.mode==='ai'} onClick={()=>setSettings(s=>({...s,mode:'ai'}))}>挑戰電腦</button><button aria-pressed={settings.mode==='local'} onClick={()=>setSettings(s=>({...s,mode:'local'}))}>同機雙人</button></div></fieldset>:<p className="nb-cooperative">單人／一起討論 · 不限時間</p>}
       <p className="nb-storage-note">離開或重新整理會結束本局。這四款目前不儲存對局進度、不計入平台統計；設定與教學紀錄只保留在此裝置。</p>
