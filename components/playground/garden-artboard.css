@@ -186,11 +186,16 @@
   box-shadow:0 0 0 1px #5ab6c755;
 }
 .tg-shell .tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"] {
-  border-color:#74a282;
-  background:#f2f6ee;
+  border:1px solid #d4ddd0;
+  background:#edf2e9;
 }
-.tg-shell .tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"]:hover:not(:disabled) {
-  background:#e5efe0;
+.tg-shell .tg-garden-desk button.tg-garden-cell[data-fertile="true"][data-valid-anchor="true"]:not([data-terrain="rose"]):not([data-terrain="gold"]):not([data-terrain="path"]) {
+  background:radial-gradient(circle, #fef6da, #f3e4b2);
+  border:1.5px dashed #d49b2a;
+}
+.tg-shell .tg-garden-desk button.tg-garden-cell:hover:not(:disabled) {
+  background:#e4ede0;
+  border-color:#93b39a;
 }
 .tg-shell .tg-garden-desk button.tg-garden-cell.tg-ghost {
   background:#cde6d5;
