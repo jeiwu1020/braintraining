@@ -1,12 +1,12 @@
 import { PlaygroundId } from '../../data/playgroundCatalog';
 import { AuctionState, AuctionAction, exhibitionScore } from '../../games/playground/auction/rules';
-import { GardenState, GardenAction, scoreGarden, formatGardenDelta } from '../../games/playground/garden/rules';
+import { GardenState, GardenAction, teamScore, formatGardenDelta } from '../../games/playground/garden/rules';
 import { LanternState, LanternAction, DISTRICTS } from '../../games/playground/lantern/rules';
 import { LighthouseState, LighthouseAction, PORTS } from '../../games/playground/lighthouse/rules';
 import { WorkshopState, WorkshopAction, STATION_NAMES } from '../../games/playground/workshop/rules';
 const signed = (n: number) => n >= 0 ? `+${n}` : `${n}`;
 export function tableScore(game: PlaygroundId, value: unknown): string {
-  if (game === 'garden') { const s=value as GardenState; return (['A','B'] as const).map(t=>{const p=scoreGarden(s.boards[t],s.size);return `${t}隊 ${p.total}分（花圃${p.flowers}＋步道${p.paths}）`;}).join(' · '); }
+  if (game === 'garden') { const s=value as GardenState; return (['A','B'] as const).map(t=>{const p=teamScore(s,t);return `${t}隊 ${p.total}分（花圃${p.flowers}＋小徑${p.paths}${p.fertile?`＋沃土${p.fertile}`:''}${p.season?`＋季節${p.season}`:''}）`;}).join(' · '); }
   if (game === 'auction') { const s=value as AuctionState; return (['A','B'] as const).map(t=>{const p=exhibitionScore(s.collections[t]);return `${t}隊 ${p.total}分（展品${p.base}＋套組${p.bonus}），餘${s.budgets[t]}枚`;}).join(' · '); }
   if (game === 'lantern') { const s=value as LanternState; return `累計 A隊 ${s.totals.A}分 · B隊 ${s.totals.B}分`; }
   if (game === 'workshop') { const s=value as WorkshopState; return (['A','B'] as const).map(t=>`${t}隊 ${s.stock[t].score}分，木${s.stock[t].wood}／金${s.stock[t].metal}／成品${s.stock[t].goods}，等級${s.stock[t].level}`).join(' · '); }
@@ -16,7 +16,7 @@ export function tableScore(game: PlaygroundId, value: unknown): string {
 export function tableAction(game: PlaygroundId, before: unknown, action: unknown, after: unknown): string {
   if (game === 'garden') {
     const s=before as GardenState, n=after as GardenState, a=action as GardenAction;
-    const old=scoreGarden(s.boards[s.turn],s.size), next=scoreGarden(n.boards[s.turn],s.size);
+    const old=teamScore(s,s.turn), next=teamScore(n,s.turn);
     return `${a.type==='discard'?'無合法落點，略過':`地形${a.slot+1}，方向${a.rotation*90}°`}；${formatGardenDelta(old, next)}。`;
   }
   if (game === 'auction') { const s=before as AuctionState,a=action as AuctionAction; return a.type==='bid'?`對「${s.exhibits[s.lot].name}」叫價${s.price+1}枚。`:a.type==='pass'?`退出「${s.exhibits[s.lot].name}」。`:'確認成交結果，繼續展覽。'; }

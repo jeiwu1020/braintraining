@@ -39,7 +39,7 @@ it('garden practice rotates and calculates a real score, without touching a live
 it('advanced garden offers all 36 cells and coordinate selection without committing; comparison does not change the move',()=>{
   act(()=>root.render(<Garden onBack={()=>{}}/>));click('進階');click('開始本局');click('開始正式局');
   expect(host.querySelectorAll('.tg-garden-active .tg-garden-cell')).toHaveLength(36);
-  click('座標');select('落點欄','0');select('落點列','0');click('回到花園');expect(button('放置地形').disabled).toBe(false);
+  const v=host.querySelector('[data-valid-anchor="true"]')!;const lbl=v.getAttribute('aria-label')!;const col=String(lbl.charCodeAt(0)-65);const row=String(Number(lbl.match(/^[A-F](\d+)/)![1])-1);click('座標');select('落點欄',col);select('落點列',row);click('回到花園');expect(button('放置地形').disabled).toBe(false);
   click('對照花園');expect(host.querySelector('[role="dialog"]')?.textContent).toContain('兩隊花園對照');click('關閉');
   click('放置地形');expect(host.querySelector('[role="dialog"]')).toBeNull();expect(saved('garden').actions).toHaveLength(0);click('確認行動');
   expect(saved('garden').actions).toHaveLength(1);expect(host.textContent).toContain('B隊花園');

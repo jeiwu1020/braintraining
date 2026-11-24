@@ -24,28 +24,26 @@ const click = (t: string) => {
   act(() => b!.click());
 };
 const saved = () => JSON.parse(sessionStorage.getItem(`${PREFIX}.garden.rules-v2`)!);
-it("rotates in place, confirms inline without blocking modal, keeps A-left/B-right order and finishes", () => {
+it("rotates in place, confirms inline without blocking modal, keeps A-left/B-right order and finishes 8 seasonal turns", () => {
   act(() => root.render(<Garden onBack={() => {}} />));
   click("開始本局");
   click("開始正式局");
-  // Verify A is always first board and B is always second board
   const boardsBefore = [...host.querySelectorAll("[data-board-team]")].map((el) =>
     el.getAttribute("data-board-team"),
   );
   expect(boardsBefore).toEqual(["A", "B"]);
+  expect(host.textContent).toContain("春季");
 
   act(() =>
     (
       host.querySelector('[data-valid-anchor="true"]') as HTMLButtonElement
     ).click(),
   );
-  // Rotating preserves selected cell instead of clearing it
   click("旋轉90°");
   expect(host.querySelectorAll(".tg-ghost").length).toBeGreaterThan(0);
 
   const before = saved();
   click("放置地形");
-  // Inline confirmation does NOT render a blocking dialog modal
   expect(host.querySelector('[role="dialog"]')).toBeNull();
   expect(host.querySelector(".tg-inline-confirm")).toBeTruthy();
   click("取消選擇");
@@ -53,8 +51,7 @@ it("rotates in place, confirms inline without blocking modal, keeps A-left/B-rig
 
   let guard = 0;
   while (!host.textContent?.includes("本局結果")) {
-    expect(++guard).toBeLessThan(40);
-    // Board order remains A then B on every single turn
+    expect(++guard).toBeLessThan(30);
     const order = [...host.querySelectorAll("[data-board-team]")].map((el) =>
       el.getAttribute("data-board-team"),
     );
@@ -91,12 +88,12 @@ it("rotates in place, confirms inline without blocking modal, keeps A-left/B-rig
       }
     }
   }
-  expect(saved().actions).toHaveLength(12);
+  expect(saved().actions).toHaveLength(8);
   expect(host.textContent).toContain("花圃");
   expect(host.textContent).not.toContain("空洞");
   click("再玩一局");
   click("保留本局");
-  expect(saved().actions).toHaveLength(12);
+  expect(saved().actions).toHaveLength(8);
   click("再玩一局");
   click("確定");
   expect(saved().actions).toHaveLength(0);

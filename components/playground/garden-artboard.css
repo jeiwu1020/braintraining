@@ -1,311 +1,550 @@
-/* A planted game board and a gardener's work mat, with fixed A-left / B-right placement. */
-.tg-shell.tg-garden.tg-live { background:radial-gradient(ellipse at 25% 5%,#7a8d64,#4b654c 75%) !important; }
-.tg-garden.tg-live .game-shell__header { background:linear-gradient(95deg,#f5ecd7,#e5dcc0); border:0; color:#3e5b44; box-shadow:0 2px 8px #233b3240; }
-.tg-garden.tg-live .game-shell__header h1 { font-family:serif; letter-spacing:.08em; }
-.tg-garden.tg-live .game-shell__header button { background:transparent; border-color:#a196754d; box-shadow:none; }
-.tg-garden.tg-live .tg-session { padding:10px 12px; background:linear-gradient(115deg,#e2d8b8,#f0e6ca); }
+/* Modern botanical tabletop aesthetic for Four Seasons Gardener, with zero-shift fixed layout slots. */
+.tg-shell.tg-garden.tg-live {
+  background:radial-gradient(ellipse at 25% 10%, #1d3c34, #10241f 75%) !important;
+}
+.tg-garden.tg-live .game-shell__header {
+  background:#faf8f2;
+  border-bottom:1px solid #d7ded0;
+  color:#1c352b;
+  box-shadow:0 2px 10px #06141038;
+}
+.tg-garden.tg-live .game-shell__header h1 {
+  letter-spacing:.04em;
+  font-weight:800;
+}
+.tg-garden.tg-live .game-shell__header button {
+  background:#eef2ea;
+  border:1px solid #c9d4c2;
+  color:#1f3b2e;
+  box-shadow:none;
+  border-radius:8px;
+}
+.tg-garden.tg-live .tg-session {
+  padding:10px 14px;
+  background:transparent;
+}
 
 .tg-garden-desk {
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(270px,.92fr) minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr) minmax(290px,.95fr) minmax(0,1fr);
   grid-template-rows:minmax(0,1fr) auto;
-  gap:8px 14px;
+  gap:10px 14px;
   height:100%;
   min-height:0;
 }
 .tg-garden-tabs { display:none; }
+
 .tg-garden-desk .tg-garden-block {
-  background:radial-gradient(ellipse at 20% 0,#f5f0d7,#d3dab5);
-  border:2px solid #b4aa7e;
-  border-radius:14px;
-  box-shadow:0 4px 10px #1c392e36,inset 0 0 0 4px #e8dbb7;
-  padding:11px;
+  display:grid;
+  grid-template-rows:32px 22px minmax(0,1fr);
+  gap:3px;
+  min-width:0;
+  min-height:0;
+  background:#faf8f2;
+  border:1.5px solid #cfd8c8;
+  border-radius:16px;
+  box-shadow:0 8px 22px #05130f3d;
+  padding:11px 12px;
+  color:#1e352b;
   transition:border-color .18s ease, box-shadow .18s ease, opacity .18s ease;
 }
-.tg-garden-desk .tg-garden-block.tg-garden-active {
-  border-color:#497349;
-  box-shadow:0 6px 14px #1c392e4a,inset 0 0 0 4px #dce6b8,0 0 0 2px #6b915855;
+.tg-garden-desk .tg-garden-block.tg-garden-active.tg-garden-team-a {
+  border-color:#d85c42;
+  box-shadow:0 10px 26px #05130f52, 0 0 0 2px #d85c4244;
+}
+.tg-garden-desk .tg-garden-block.tg-garden-active.tg-garden-team-b {
+  border-color:#217a8c;
+  box-shadow:0 10px 26px #05130f52, 0 0 0 2px #217a8c44;
 }
 .tg-garden-desk .tg-garden-block.tg-garden-other {
   opacity:.88;
 }
 
-.tg-garden-caption { display:flex; justify-content:space-between; gap:6px; align-items:center; }
-.tg-garden-caption h2 { font-family:serif; font-size:23px; margin:0; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
-.tg-garden-caption strong { color:#a15b4a; }
-.tg-garden-team-a .gdn-team-badge { color:#9e473a; }
-.tg-garden-team-b .gdn-team-badge { color:#2b6c70; }
-.gdn-delta-tag {
-  font-style:normal;
-  font-size:15px;
-  font-weight:700;
-  padding:1px 6px;
-  border-radius:999px;
-  background:#dff0d1;
-  color:#245937;
-  border:1px solid #7ea976;
+.tg-garden-caption {
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+  align-items:center;
+  min-width:0;
+  height:32px;
+}
+.tg-garden-caption h2 {
+  font-size:20px;
+  font-weight:800;
+  line-height:1.1;
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.tg-garden-team-a .tg-garden-caption strong { color:#c24b33; }
+.tg-garden-team-b .tg-garden-caption strong { color:#1a6778; }
+.tg-garden-team-a .gdn-team-badge { color:#d85c42; }
+.tg-garden-team-b .gdn-team-badge { color:#217a8c; }
+
+.gdn-turn-pill,
+.gdn-wait-pill,
+.gdn-return-pill {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:24px;
+  padding:0 9px;
+  border-radius:7px;
+  font-size:13px;
+  line-height:1;
+  white-space:nowrap;
+  flex-shrink:0;
+  font-variant-numeric:tabular-nums;
 }
 .gdn-turn-pill {
-  font-size:14px;
   font-weight:700;
-  padding:2px 8px;
-  border-radius:999px;
-  background:#486f47;
-  color:#fff8de;
-  white-space:nowrap;
+  background:#1f5e4b;
+  color:#ffffff;
 }
 .gdn-wait-pill {
-  font-size:14px;
-  color:#6c7555;
-  white-space:nowrap;
+  color:#5f6f66;
+  background:#edf1ea;
 }
-.tg-garden-tally { color:#586647; }
+.tg-shell.tg-garden button.gdn-return-pill {
+  min-height:24px;
+  min-width:0;
+  background:#fdf0d5;
+  border:1px solid #d4a14a;
+  color:#6c4711;
+  font-weight:700;
+  box-shadow:none;
+}
+
+.tg-garden-desk .tg-garden-tally {
+  color:#56695e;
+  margin:0;
+  font-size:14px;
+  line-height:22px;
+  height:22px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums;
+}
 
 .tg-garden-desk .tg-coordinate-board,
 .tg-compare-gardens .tg-coordinate-board {
   --garden-cell:min(
-    calc((100cqw - 46px - 3px * var(--garden-size)) / var(--garden-size)),
-    calc((100cqh - 24px - 3px * var(--garden-size)) / var(--garden-size))
+    calc((100cqw - 26px - 4px * var(--garden-size)) / var(--garden-size)),
+    calc((100cqh - 24px - 4px * var(--garden-size)) / var(--garden-size))
   );
-  grid-template-columns:38px repeat(var(--garden-size),var(--garden-cell));
+  grid-template-columns:20px repeat(var(--garden-size),var(--garden-cell));
   grid-template-rows:18px repeat(var(--garden-size),var(--garden-cell));
-  gap:3px;
+  gap:4px;
 }
 .tg-garden-desk .tg-coordinate-board > b {
-  color:#566b47;
+  color:#63776c;
+  font-size:14px;
   display:flex;
   align-items:center;
   justify-content:center;
 }
-.gdn-entry-row { justify-content:flex-end !important; }
-.gdn-entry-gate {
-  display:inline-flex;
-  align-items:center;
-  padding:1px 4px;
-  border-radius:4px;
-  background:#8b6840;
-  color:#fff8e6;
-  font-size:12px;
-  line-height:1.2;
-  white-space:nowrap;
-}
 
 .tg-shell .tg-garden-desk .tg-garden-cell {
-  border:1px solid #9b9e733b;
-  border-radius:4px;
-  background:radial-gradient(circle at 22% 30%,#8d8b5e18 0 1px,transparent 1.3px),radial-gradient(circle at 65% 76%,#ad936b1c 0 1px,transparent 1.3px),linear-gradient(145deg,#e8e9ce,#d2d8b5);
-  background-size:13px 17px,19px 11px,100% 100%;
-  box-shadow:inset 0 1px 2px #83844f1c;
+  border:1px solid #d4ddd0;
+  border-radius:8px;
+  background:#edf2e9;
+  box-shadow:inset 0 1px 2px #263f300e;
+  position:relative;
+  transition:transform .12s ease, outline-color .12s ease, background-color .15s ease;
+}
+.tg-shell .tg-garden-desk .tg-garden-cell[data-fertile="true"]:not([data-terrain="rose"]):not([data-terrain="gold"]):not([data-terrain="path"]) {
+  background:radial-gradient(circle, #fef6da, #f3e4b2);
+  border:1.5px dashed #d49b2a;
+}
+.gdn-fertile-mark {
+  font-size:11px;
+  font-weight:800;
+  color:#9c6514;
+  letter-spacing:-0.02em;
 }
 .tg-shell .tg-garden-desk .tg-garden-cell[data-terrain]:not([data-terrain=""]) {
-  background:#e4e8c6;
-  box-shadow:0 1px 1px #536b4f30;
+  background:#f7f8f4;
+  border-color:#c6d1c1;
+  box-shadow:0 1px 2px #10241d1c;
+}
+.tg-shell .tg-garden-desk .tg-garden-cell[data-terrain="fountain"] {
+  background:#dff2f4;
+  border:1.5px solid #4ca3b2;
 }
 .tg-shell .tg-garden-desk .tg-garden-cell[data-bonus="flower"] {
-  background:radial-gradient(circle,#fff5cb,#e5e4b4);
-  border:1.5px solid #c9963b;
-  box-shadow:inset 0 0 0 1px #f8dc8c88, 0 1px 2px #80602030;
+  background:#fff6dc;
+  border:2px solid #e0a02c;
+  box-shadow:0 0 0 1px #f8d87c66;
 }
 .tg-shell .tg-garden-desk .tg-garden-cell[data-bonus="path"] {
-  background:linear-gradient(145deg,#f5ead0,#dfd0a7);
-  border:1.5px solid #9e7b47;
-  box-shadow:inset 0 0 5px #b78d4a44;
+  background:#e1f1ef;
+  border:2px solid #2b8394;
+  box-shadow:0 0 0 1px #5ab6c755;
 }
 .tg-shell .tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"] {
-  border-bottom:2px solid #5f8656;
+  border-color:#74a282;
+  background:#f2f6ee;
+}
+.tg-shell .tg-garden-desk button.tg-garden-cell[data-valid-anchor="true"]:hover:not(:disabled) {
+  background:#e5efe0;
 }
 .tg-shell .tg-garden-desk button.tg-garden-cell.tg-ghost {
-  background:#b8ddab;
-  outline:3px dashed #185e47;
+  background:#cde6d5;
+  outline:2.5px dashed #175c46;
   outline-offset:-3px;
 }
 .tg-shell .tg-garden-desk button.tg-garden-cell.tg-invalid-ghost {
-  background:#ebc7b9;
-  outline-color:#a34031;
+  background:#f7d9d3;
+  outline-color:#b83b2d;
 }
-.tg-garden-desk .tg-garden-cell svg { width:96%; height:96%; filter:drop-shadow(0 1px 1px #41543622); }
-.tg-garden-desk .tg-entry { color:#6a7751; }
+.tg-garden-desk .tg-garden-cell svg { width:92%; height:92%; }
 
+/* Modern workbench panel */
 .tg-garden-tools.pg-paper {
   position:relative;
-  border:0;
-  border-radius:0;
-  background:transparent;
-  box-shadow:none;
+  border:1px solid #d2dacb;
+  border-radius:16px;
+  background:#faf8f2;
+  box-shadow:0 8px 22px #05130f3d;
+  color:#1f352b;
+  display:grid;
+  grid-template-rows:32px auto 46px 80px 34px;
+  align-content:center;
+  gap:9px;
+  padding:12px;
+  min-width:0;
+  min-height:0;
 }
-.gdn-viewing-banner {
+
+/* Season quest header bar */
+.gdn-season-bar {
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
   gap:8px;
-  padding:6px 10px;
+  height:32px;
+  padding:0 10px;
   border-radius:8px;
-  background:#f4e3bd;
-  border:1px solid #b59256;
-  color:#4f3e21;
-  font-size:15px;
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  border:1px solid transparent;
 }
-.gdn-viewing-banner button {
-  padding:4px 8px;
-  font-size:14px;
-  min-height:32px;
+.gdn-season-bar.season-spring { background:#fceef1; border-color:#ebb8c4; color:#80293e; }
+.gdn-season-bar.season-summer { background:#fef4dc; border-color:#eed08c; color:#754b0d; }
+.gdn-season-bar.season-autumn { background:#fbeee6; border-color:#e8baa3; color:#78351a; }
+.gdn-season-bar.season-winter { background:#eaf3f8; border-color:#b5d5e4; color:#1d4e66; }
+.gdn-season-tag {
+  font-weight:800;
+  flex-shrink:0;
 }
-.tg-garden-tools .tg-market-title { font-family:serif; color:#456346; }
-.tg-garden-tools .tg-tile-market { gap:10px; }
+.gdn-season-goal {
+  font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width:0;
+}
+.gdn-turn-count {
+  font-size:12px;
+  opacity:.82;
+  flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+}
+
+.tg-garden-tools .tg-tile-market { gap:8px; }
 .tg-shell.tg-garden .tg-tile-market button {
-  background:transparent;
+  background:#f1f4ec;
   box-shadow:none;
   outline:0;
-  border:1px solid transparent;
+  border:1.5px solid #d5ddd0;
   border-radius:12px;
-  padding:5px 3px;
+  padding:6px 4px;
+  position:relative;
+  transition:border-color .15s ease, background-color .15s ease;
 }
 .tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] {
-  background:radial-gradient(ellipse,#d2ddafaa,#d2ddaf33);
-  border:1px solid #708a5270;
-  box-shadow:0 2px 3px #59703f25;
+  background:#e3eee4;
+  border-color:#266953;
+  box-shadow:0 2px 6px #184e3d24;
 }
 .tg-shell.tg-garden .tg-tile-market button > b {
-  color:#55704b;
-  background:#d6d6ad;
-  padding:3px 6px;
-  border-radius:9px;
+  color:#4c6156;
+  background:#e1e7da;
+  padding:2px 7px;
+  border-radius:6px;
+  font-size:13px;
 }
 .tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] > b {
-  background:#486f47;
-  color:#fff8de;
+  background:#1f5e4b;
+  color:#ffffff;
 }
-.tg-shell.tg-garden .tg-tile-market button:focus-visible { outline:3px solid #234f3c; outline-offset:2px; }
-.tg-garden-tools .tg-mini-tile { gap:1px; --tile-cell:33px; height:103px; }
-.tg-garden-tools .tg-mini-tile > div { background:#eee8cb; border:1px solid #c2bd96; box-shadow:1px 2px 1px #7e81575c; border-radius:2px; }
+.tg-shell.tg-garden .tg-tile-market button:focus-visible { outline:3px solid #1f5e4b; outline-offset:2px; }
+.tg-garden-tools .tg-mini-tile { gap:2px; --tile-cell:24px; height:84px; }
+.tg-garden-tools .tg-mini-tile > div {
+  background:#ffffff;
+  border:1px solid #cdd6c7;
+  border-radius:5px;
+  box-shadow:0 1px 2px #1c32271a;
+}
 .tg-garden-tools .tg-mini-tile svg { width:100%; height:100%; }
-.tg-garden-tools button:not(.pg-primary),.tg-garden-tools select { background:#fbf5e5; border-color:#a8ad8c; box-shadow:none; }
-.tg-garden-tools button.pg-primary { background:linear-gradient(#688a64,#4a7050); border:1px solid #47694b; box-shadow:0 2px 0 #2c4c37; color:#fff9e7; }
 
-.gdn-placement-guide { display:flex; justify-content:space-between; gap:6px; align-items:center; color:#385c3d; font-size:17px; }
-.gdn-placement-guide > span { color:#69734f; font-size:15px; }
-.gdn-score-preview {
-  margin:0;
-  padding:6px 10px;
-  border-radius:8px;
-  background:#e6edd0;
-  border:1px solid #8ea878;
-  color:#274f35;
-  font-size:16px;
-  font-weight:700;
+.tg-garden-tools button:not(.pg-primary),
+.tg-garden-tools select {
+  background:#eef2ea;
+  border:1px solid #c5d0be;
+  color:#1f382c;
+  border-radius:9px;
+  box-shadow:none;
 }
-.gdn-main-actions { display:grid; grid-template-columns:1fr 1.35fr auto; gap:7px; }
-.gdn-main-actions .gdn-coordinates-toggle { background:transparent; border-color:transparent; color:#52684a; padding-left:6px; padding-right:6px; }
+.tg-garden-tools button.pg-primary {
+  background:#1f5e4b;
+  border:1px solid #164738;
+  box-shadow:0 2px 0 #103328;
+  color:#ffffff;
+  border-radius:9px;
+}
+.tg-garden-tools button.pg-primary:disabled {
+  background:#9fb4aa;
+  border-color:#8ca297;
+  box-shadow:none;
+}
+
+/* Fixed-height status box */
+.gdn-status-box {
+  height:46px;
+  display:flex;
+  align-items:center;
+  padding:4px 10px;
+  border-radius:9px;
+  border:1px solid #d4ddd0;
+  background:#f1f4ec;
+  color:#2b473a;
+  overflow:hidden;
+}
+.gdn-status-box p {
+  margin:0;
+  font-size:14px;
+  line-height:1.25;
+  font-weight:700;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.gdn-status-box.is-preview {
+  background:#e4f1e8;
+  border-color:#7bb393;
+  color:#184a36;
+}
+.gdn-status-box.is-error {
+  background:#fbe9e6;
+  border-color:#de9d92;
+  color:#922e22;
+}
+.gdn-status-box.is-confirm {
+  background:#fef3da;
+  border-color:#dfb15b;
+  color:#5c3f0e;
+}
+
+/* Fixed-height action slot */
+.gdn-action-slot {
+  height:80px;
+  display:flex;
+  align-items:center;
+  min-width:0;
+}
+.gdn-main-actions {
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1.35fr auto;
+  gap:7px;
+}
+.gdn-main-actions .gdn-coordinates-toggle {
+  background:transparent;
+  border-color:transparent;
+  color:#486155;
+  padding-left:8px;
+  padding-right:8px;
+}
 .tg-garden-tools .tg-inline-confirm {
-  padding:10px;
+  width:100%;
+  padding:7px 10px;
   border-radius:10px;
-  background:#f7efd8;
-  border:2px solid #597c52;
-  box-shadow:0 3px 8px #243b2a26;
+  background:#fef6e2;
+  border:1.5px solid #d19b3c;
 }
 .tg-garden-tools .tg-inline-confirm p {
-  font-size:16px;
+  font-size:14px;
+  line-height:1.2;
   font-weight:700;
-  color:#284a35;
-  margin:0 0 8px;
+  color:#4e350b;
+  margin:0 0 6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.tg-garden-comparison { color:#4f6249; }
-.tg-shell.tg-garden.tg-live .tg-desk-note { color:#4f6345; }
+.tg-garden-comparison {
+  color:#475d51;
+  border-top:1px solid #dfe5d9;
+  padding-top:6px;
+  font-size:15px;
+  white-space:nowrap;
+}
+.tg-shell.tg-garden.tg-live .tg-desk-note {
+  color:#c9ded5;
+  font-size:14px;
+}
 
 /* Keep 3-column fixed A-left / Tools-center / B-right on wide landscape >= 820px */
 @media (min-width:820px) and (orientation:landscape) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(250px,.92fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) minmax(268px,.95fr) minmax(0,1fr) !important;
     grid-template-rows:minmax(0,1fr) auto !important;
   }
-  .tg-garden-desk .tg-garden-block { display:flex !important; }
+  .tg-garden-desk .tg-garden-block { display:grid !important; }
   .tg-garden-tabs { display:none !important; }
 }
 
+/* Short landscape (mobile phones in landscape, <= 600px height): lock every slot height so nothing pushes */
 @media (orientation:landscape) and (max-height:600px) {
-  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:47px; padding:0 5px; }
-  .tg-garden.tg-live .game-shell__header h1 { font-size:19px; }
-  .tg-garden.tg-live .game-shell__header p { font-size:16px; }
-  .tg-garden.tg-live .tg-session { padding:6px 8px; }
-  .tg-garden-desk { gap:5px 8px; }
-  .tg-garden-desk .tg-garden-block { padding:6px; border-radius:10px; }
-  .tg-garden-caption h2 { font-size:18px; }
-  .tg-garden-desk .tg-garden-tally { font-size:14px; margin:1px 0 3px; }
-  .tg-garden-tools { gap:5px; padding:6px; justify-content:space-evenly; }
+  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:42px; padding:0 6px; }
+  .tg-garden.tg-live .game-shell__header h1 { font-size:18px; }
+  .tg-garden.tg-live .game-shell__header p { font-size:14px; }
+  .tg-garden.tg-live .tg-session { padding:4px 8px; }
+  .tg-garden-desk { gap:4px 8px; }
+  .tg-garden-desk .tg-garden-block {
+    grid-template-rows:26px 18px minmax(0,1fr);
+    gap:2px;
+    padding:5px 7px;
+    border-radius:12px;
+  }
+  .tg-garden-caption { height:26px; }
+  .tg-garden-caption h2 { font-size:16px; }
+  .gdn-turn-pill, .gdn-wait-pill, .tg-shell.tg-garden button.gdn-return-pill {
+    height:22px;
+    font-size:12px;
+    padding:0 7px;
+  }
+  .tg-garden-desk .tg-garden-tally { font-size:12px; line-height:18px; height:18px; }
+  .tg-garden-tools.pg-paper {
+    grid-template-rows:26px auto 38px 42px 28px;
+    align-content:space-between;
+    gap:4px;
+    padding:6px 7px;
+    border-radius:12px;
+  }
+  .gdn-season-bar { height:26px; padding:0 7px; font-size:12px; }
   .tg-garden-tools .tg-tile-market { gap:6px; }
-  .tg-garden-tools .tg-mini-tile { --tile-cell:25px; height:79px; }
-  .tg-garden-tools .tg-tile-market button { padding:3px 2px; }
-  .tg-garden-tools .tg-tile-market button > b { font-size:14px; }
-  .gdn-placement-guide { font-size:15px; }
-  .gdn-score-preview { font-size:14px; padding:4px 8px; }
-  .tg-garden-tools .tg-garden-comparison { font-size:15px; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell:19px; height:64px; }
+  .tg-garden-tools .tg-tile-market button { padding:3px 2px; border-radius:9px; }
+  .tg-garden-tools .tg-tile-market button > b { font-size:12px; padding:1px 5px; }
+  .gdn-status-box { height:38px; padding:2px 8px; }
+  .gdn-status-box p { font-size:12px; line-height:1.2; }
+  .gdn-action-slot { height:42px; }
+  .gdn-main-actions button { min-height:38px; padding:4px 6px; font-size:14px; }
+  .tg-garden-tools .tg-inline-confirm {
+    padding:0;
+    border:0;
+    background:transparent;
+  }
+  .tg-garden-tools .tg-inline-confirm p {
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip-path:inset(50%);
+    margin:0;
+  }
+  .tg-garden-tools .tg-inline-confirm .pg-choice button {
+    min-height:38px;
+    padding:4px 8px;
+    font-size:14px;
+  }
+  .tg-garden-tools .tg-garden-comparison { font-size:13px; padding-top:2px; }
+  .tg-garden-tools .tg-garden-comparison button { min-height:26px; padding:2px 7px; font-size:12px; }
 }
 
 @media (orientation:landscape) and (max-height:340px) {
-  .tg-garden.tg-live .tg-session { padding:4px 6px; }
-  .tg-garden-desk { gap:5px 6px; }
-  .tg-garden-desk .tg-garden-block { padding:5px; }
-  .tg-garden-tools { gap:3px; padding:4px 6px; }
-  .tg-garden-tools .tg-mini-tile { --tile-cell:20px; height:64px; }
-  .tg-garden-tools .tg-tile-market button > b { font-size:13px; padding:2px 4px; }
-  .tg-garden-desk .tg-garden-tally { font-size:13px; }
+  .tg-garden.tg-live .tg-session { padding:3px 6px; }
+  .tg-garden-desk { gap:4px 6px; }
+  .tg-garden-desk > .tg-desk-note { display:none; }
+  .tg-garden-desk .tg-garden-block { padding:4px 6px; }
+  .tg-garden-tools.pg-paper {
+    grid-template-rows:24px auto 34px 38px 26px;
+    gap:3px;
+    padding:4px 5px;
+  }
+  .gdn-season-bar { height:24px; font-size:11px; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell:16px; height:54px; }
+  .tg-garden-tools .tg-tile-market button > b { font-size:11px; padding:1px 4px; }
+  .gdn-status-box { height:34px; }
+  .gdn-action-slot { height:38px; }
+  .gdn-main-actions button,
+  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:34px; font-size:13px; }
   .gdn-main-actions { gap:4px; }
   .gdn-main-actions button { padding-left:4px; padding-right:4px; }
 }
 
-/* Narrow viewports (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
+/* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
 @media (max-width:819px), (orientation:portrait) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,.95fr) minmax(250px,1.05fr);
-    grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-columns:minmax(0,.92fr) minmax(248px,1.08fr);
+    grid-template-rows:36px minmax(0,1fr) auto;
   }
   .tg-garden-tabs {
     grid-column:1 / -1;
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:8px;
+    height:36px;
   }
   .gdn-tab {
     display:flex;
     align-items:center;
     justify-content:center;
     gap:6px;
-    padding:6px 10px;
-    border-radius:10px;
-    border:1.5px solid #b5aa7f;
-    background:#efe7ca;
-    color:#3b4d37;
-    font-size:16px;
-    min-height:40px;
+    height:36px;
+    min-height:36px;
+    padding:2px 8px;
+    border-radius:9px;
+    border:1.5px solid #355a4f;
+    background:#1c3b33;
+    color:#dce9e3;
+    font-size:15px;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
   }
   .gdn-tab em {
     font-style:normal;
     font-size:12px;
     padding:1px 6px;
-    border-radius:999px;
-    background:#486f47;
-    color:#fff8de;
+    border-radius:6px;
+    background:#26735a;
+    color:#ffffff;
   }
   .gdn-tab-a[aria-selected="true"] {
-    background:#f9ebe2;
-    border-color:#9e473a;
-    color:#6b2b22;
-    box-shadow:0 2px 4px #6b2b2225;
+    background:#faf8f2;
+    border-color:#d85c42;
+    color:#8f2e1b;
   }
   .gdn-tab-b[aria-selected="true"] {
-    background:#e2f0ee;
-    border-color:#2b6c70;
-    color:#1c4b4e;
-    box-shadow:0 2px 4px #1c4b4e25;
+    background:#faf8f2;
+    border-color:#217a8c;
+    color:#13515e;
   }
   .tg-garden-desk .tg-garden-block { display:none; }
-  .tg-garden-desk .tg-garden-block.tg-garden-viewed { display:flex; }
+  .tg-garden-desk .tg-garden-block.tg-garden-viewed { display:grid; }
 }
 
 @media (orientation:portrait) {
   .tg-garden-desk {
     grid-template-columns:1fr;
-    grid-template-rows:auto 360px auto auto;
+    grid-template-rows:38px 360px auto auto;
   }
   .tg-garden-desk > .tg-desk-note { grid-column:1; }
   .tg-garden-desk .tg-grid-wrap { min-height:260px; }
