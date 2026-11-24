@@ -490,7 +490,7 @@
 /* Keep 3-column fixed A-left / Tools-center / B-right on wide landscape >= 820px */
 @media (min-width:820px) and (orientation:landscape) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(356px,1.42fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) minmax(296px,.98fr) minmax(0,1fr) !important;
     grid-template-rows:minmax(0,1fr) !important;
   }
   .tg-garden-desk .tg-garden-block { display:grid !important; }
@@ -505,13 +505,13 @@
     padding:10px 12px;
   }
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(440px,1.48fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1.15fr) minmax(350px,1fr) minmax(0,1.15fr) !important;
     gap:10px;
   }
   .tg-garden-desk .tg-garden-block {
-    grid-template-rows:40px minmax(0,1fr);
-    gap:8px;
-    padding:14px 14px;
+    grid-template-rows:38px minmax(0,1fr);
+    gap:6px;
+    padding:10px 10px;
   }
   .tg-garden-caption { height:40px; }
   .tg-garden-caption h2 { font-size:24px; gap:8px; }
@@ -726,7 +726,7 @@
 /* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
 @media (max-width:819px), (orientation:portrait) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,.76fr) minmax(296px,1.24fr);
+    grid-template-columns:minmax(0,.94fr) minmax(280px,1.06fr);
     grid-template-rows:34px minmax(0,1fr);
   }
   .tg-garden-tabs {
