@@ -11,7 +11,7 @@ beforeEach(()=>{sessionStorage.clear();host=document.createElement('div');docume
 afterEach(()=>{act(()=>root.unmount());host.remove();});
 const button=(name:string)=>[...host.querySelectorAll('button')].find(b=>b.textContent===name||b.ariaLabel===name)!;
 const click=(name:string)=>{const b=button(name);expect(b,name).toBeTruthy();expect(b.disabled,name).toBe(false);act(()=>b.click());};
-const saved=(game:string)=>JSON.parse(sessionStorage.getItem(`${PREFIX}.${game}${["lighthouse","workshop"].includes(game)?".rules-v2":""}`)!);
+const saved=(game:string)=>JSON.parse(sessionStorage.getItem(`${PREFIX}.${game}${["lighthouse","workshop","garden"].includes(game)?".rules-v2":""}`)!);
 const select=(label:string,value:string)=>{const el=host.querySelector(`select[aria-label="${label}"]`) as HTMLSelectElement;expect(el).toBeTruthy();act(()=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));});};
 it('lighthouse practice uses actual AP, cargo, sailing, next day and delivery without writing a session',()=>{
   act(()=>root.render(<Lighthouse onBack={()=>{}}/>));click('開始本局');
@@ -34,14 +34,14 @@ it('map destinations remain the real legal sail actions and contextual port cont
 it('garden practice rotates and calculates a real score, without touching a live journal',()=>{
   act(()=>root.render(<Garden onBack={()=>{}}/>));click('開始本局');click('試轉90°');
   expect(host.textContent).toContain('方向 90°');click('放入標示位置');
-  expect(host.textContent).toContain('現在輪到B隊');expect(sessionStorage.getItem(`${PREFIX}.garden`)).toBeNull();
+  expect(host.textContent).toContain('現在輪到B隊');expect(sessionStorage.getItem(`${PREFIX}.garden.rules-v2`)).toBeNull();
 });
 it('advanced garden offers all 36 cells and coordinate selection without committing; comparison does not change the move',()=>{
   act(()=>root.render(<Garden onBack={()=>{}}/>));click('進階');click('開始本局');click('開始正式局');
   expect(host.querySelectorAll('.tg-garden-active .tg-garden-cell')).toHaveLength(36);
-  click('座標');select('落點欄','0');select('落點列','0');click('回到花園');expect(button('預覽放置').disabled).toBe(false);
+  click('座標');select('落點欄','0');select('落點列','0');click('回到花園');expect(button('放置地形').disabled).toBe(false);
   click('對照花園');expect(host.querySelector('[role="dialog"]')?.textContent).toContain('兩隊花園對照');click('關閉');
-  click('預覽放置');expect(saved('garden').actions).toHaveLength(0);click('確認行動');
+  click('放置地形');expect(host.querySelector('[role="dialog"]')).toBeNull();expect(saved('garden').actions).toHaveLength(0);click('確認行動');
   expect(saved('garden').actions).toHaveLength(1);expect(host.textContent).toContain('B隊花園');
 });
 

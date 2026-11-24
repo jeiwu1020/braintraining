@@ -32,7 +32,7 @@ export default function TableGame<
   S extends { phase: string; turn: Team; message: string },
   A,
 >(p: Props<S, A>) {
-  const updatedRules = p.game === "lighthouse" || p.game === "workshop";
+  const updatedRules = p.game === "lighthouse" || p.game === "workshop" || p.game === "garden";
   const j = useSession(p.game, p.engine, updatedRules ? "rules-v2" : undefined);
   const [starter, setStarter] = useState<Team>("A");
   const comparisonKey = "braintraining.playground.lantern.comparison";
@@ -61,12 +61,12 @@ export default function TableGame<
   const inlineCancel = useRef<HTMLButtonElement>(null);
   const auctionTrigger = useRef<string | null>(null);
   useEffect(() => {
-    if (p.game !== "auction") return;
+    if (p.game !== "auction" && p.game !== "garden") return;
     if (pending) inlineCancel.current?.focus();
     else if (auctionTrigger.current) {
       const name = auctionTrigger.current;
       const target = [...document.querySelectorAll<HTMLButtonElement>("button")].find(b => !b.disabled && (b.ariaLabel || b.textContent) === name);
-      (target || document.querySelector<HTMLButtonElement>(".tg-auction-decision button:not(:disabled), .tg-auction .tg-result button"))?.focus();
+      (target || document.querySelector<HTMLButtonElement>(".tg-auction-decision button:not(:disabled), .tg-garden-tools button:not(:disabled), .tg-auction .tg-result button, .tg-garden .tg-result button"))?.focus();
       auctionTrigger.current = null;
     }
   }, [pending, p.game]);
@@ -179,11 +179,11 @@ export default function TableGame<
               p.children({
                 state: j.state,
                 choose: (action, label) => {
-                  if (p.game === "auction" && document.activeElement instanceof HTMLButtonElement) auctionTrigger.current = document.activeElement.ariaLabel || document.activeElement.textContent;
+                  if ((p.game === "auction" || p.game === "garden") && document.activeElement instanceof HTMLButtonElement) auctionTrigger.current = document.activeElement.ariaLabel || document.activeElement.textContent;
                   setPending({ action, label, token: j.token });
                 },
                 pending: !!pending,
-                confirmation: p.game === "auction" && pending ? <section className="tg-inline-confirm" aria-label="確認拍賣選擇" role="region"><p aria-live="polite">{pending.label}</p><div className="pg-choice"><button ref={inlineCancel} onClick={() => setPending(null)}>取消選擇</button><button className="pg-primary" onClick={() => { j.commit(pending.action, pending.token); setPending(null); }}>確認行動</button></div></section> : null,
+                confirmation: (p.game === "auction" || p.game === "garden") && pending ? <section className="tg-inline-confirm" aria-label={p.game === "auction" ? "確認拍賣選擇" : "確認造園放置"} role="region"><p aria-live="polite">{pending.label}</p><div className="pg-choice"><button ref={inlineCancel} onClick={() => setPending(null)}>取消選擇</button><button className="pg-primary" onClick={() => { j.commit(pending.action, pending.token); setPending(null); }}>確認行動</button></div></section> : null,
               })
             )}
           </div>
@@ -195,7 +195,7 @@ export default function TableGame<
         <ol>{j.states.slice(1).map((state, i) => <li key={i} data-review-step={i + 1}><strong>第{i + 1}步 · {j.states[i].turn}隊</strong><p>{tableAction(p.game, j.states[i], j.session!.actions[i], state)}</p><p>{state.message}</p><small>{p.summary(state)} · {tableScore(p.game, state)}</small></li>)}</ol>
         <p>紀錄由每一步正式規則重播，重新整理後仍可查看。</p>
       </Modal>}
-      {pending && p.game !== "auction" && (
+      {pending && p.game !== "auction" && p.game !== "garden" && (
         <Modal title="確認這個選擇" onClose={() => setPending(null)}>
           <p>{pending.label}</p><p>確認才會扣除資源或推進回合。</p>
           <div className="pg-choice"><button onClick={() => setPending(null)}>取消選擇</button><button className="pg-primary" onClick={() => { j.commit(pending.action, pending.token); setPending(null); }}>確認行動</button></div>

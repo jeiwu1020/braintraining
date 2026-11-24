@@ -23,30 +23,49 @@ const click = (t: string) => {
   expect(b, t).toBeTruthy();
   act(() => b!.click());
 };
-const saved = () => JSON.parse(sessionStorage.getItem(`${PREFIX}.garden`)!);
-it("rotates, previews without placing, cancels and finishes both public gardens", () => {
+const saved = () => JSON.parse(sessionStorage.getItem(`${PREFIX}.garden.rules-v2`)!);
+it("rotates in place, confirms inline without blocking modal, keeps A-left/B-right order and finishes", () => {
   act(() => root.render(<Garden onBack={() => {}} />));
   click("開始本局");
   click("開始正式局");
-  click("旋轉90°");
-  const before = saved();
+  // Verify A is always first board and B is always second board
+  const boardsBefore = [...host.querySelectorAll("[data-board-team]")].map((el) =>
+    el.getAttribute("data-board-team"),
+  );
+  expect(boardsBefore).toEqual(["A", "B"]);
+
   act(() =>
     (
       host.querySelector('[data-valid-anchor="true"]') as HTMLButtonElement
     ).click(),
   );
-  click("預覽放置");
+  // Rotating preserves selected cell instead of clearing it
+  click("旋轉90°");
+  expect(host.querySelectorAll(".tg-ghost").length).toBeGreaterThan(0);
+
+  const before = saved();
+  click("放置地形");
+  // Inline confirmation does NOT render a blocking dialog modal
+  expect(host.querySelector('[role="dialog"]')).toBeNull();
+  expect(host.querySelector(".tg-inline-confirm")).toBeTruthy();
   click("取消選擇");
   expect(saved()).toEqual(before);
+
   let guard = 0;
   while (!host.textContent?.includes("本局結果")) {
     expect(++guard).toBeLessThan(40);
+    // Board order remains A then B on every single turn
+    const order = [...host.querySelectorAll("[data-board-team]")].map((el) =>
+      el.getAttribute("data-board-team"),
+    );
+    expect(order).toEqual(["A", "B"]);
+
     const cell = host.querySelector(
       '[data-valid-anchor="true"]',
     ) as HTMLButtonElement;
     if (cell) {
       act(() => cell.click());
-      click("預覽放置");
+      click("放置地形");
       const b = [...host.querySelectorAll("button")].find(
         (b) => b.textContent === "確認行動",
       )!;
@@ -60,9 +79,13 @@ it("rotates, previews without placing, cancels and finishes both public gardens"
       ) as HTMLButtonElement;
       if (available) {
         act(() => available.click());
-        for (let r = 0; r < 4 && !host.querySelector('[data-valid-anchor="true"]'); r++) click('旋轉90°');
-      }
-      else {
+        for (
+          let r = 0;
+          r < 4 && !host.querySelector('[data-valid-anchor="true"]');
+          r++
+        )
+          click("旋轉90°");
+      } else {
         click("本手略過");
         click("確認行動");
       }
@@ -70,6 +93,7 @@ it("rotates, previews without placing, cancels and finishes both public gardens"
   }
   expect(saved().actions).toHaveLength(12);
   expect(host.textContent).toContain("花圃");
+  expect(host.textContent).not.toContain("空洞");
   click("再玩一局");
   click("保留本局");
   expect(saved().actions).toHaveLength(12);

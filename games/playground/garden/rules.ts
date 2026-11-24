@@ -64,7 +64,7 @@ export function createGarden(
     },
     market: deck.slice(0, 3),
     deck: deck.slice(3),
-    message: "先選公開地形板，再旋轉並選花園落點。",
+    message: "先選公開地形板，再點花園格預覽並旋轉。",
   };
 }
 export function rotated(tile: TileCell[], rotation: number) {
@@ -103,6 +103,31 @@ export function placementError(
     return "新地形至少一邊要接到原有花園";
   return null;
 }
+export function resolveCellAnchor(
+  s: GardenState,
+  slot: number,
+  rotation: number,
+  cellX: number,
+  cellY: number,
+): { anchor: { x: number; y: number }; valid: boolean } | null {
+  const tile = s.market[slot];
+  if (!tile) return null;
+  const cells = [...rotated(tile, rotation)].sort(
+    (a, b) => a.y - b.y || a.x - b.x,
+  );
+  const first = cells[0];
+  const primaryAnchor = { x: cellX - first.x, y: cellY - first.y };
+  if (!placementError(s, { type: "place", slot, rotation, ...primaryAnchor })) {
+    return { anchor: primaryAnchor, valid: true };
+  }
+  for (const c of cells.slice(1)) {
+    const candidate = { x: cellX - c.x, y: cellY - c.y };
+    if (!placementError(s, { type: "place", slot, rotation, ...candidate })) {
+      return { anchor: candidate, valid: true };
+    }
+  }
+  return { anchor: primaryAnchor, valid: false };
+}
 export function placements(
   s: GardenState,
 ): Extract<GardenAction, { type: "place" }>[] {
@@ -120,13 +145,13 @@ export function placements(
 export function scoreGarden(board: (Terrain | null)[], size: number) {
   const visited = new Set<number>();
   let flowers = 0,
-    paths = 0,
-    holes = 0;
+    paths = 0;
   const entrance = Math.floor(size / 2) * size;
   for (let start = 0; start < board.length; start++) {
     if (visited.has(start)) continue;
-    const kind = board[start],
-      group = [start];
+    const kind = board[start];
+    if (!kind) continue;
+    const group = [start];
     visited.add(start);
     for (let j = 0; j < group.length; j++)
       for (const i of adjacent(group[j], size))
@@ -136,25 +161,52 @@ export function scoreGarden(board: (Terrain | null)[], size: number) {
         }
     if (kind === "path")
       paths += group.length * (group.includes(entrance) ? 2 : 1);
-    else if (kind) flowers += group.length * (group.length >= 3 ? 2 : 1);
-    else if (
-      !group.some(
-        (i) =>
-          i < size ||
-          i >= size * (size - 1) ||
-          i % size === 0 ||
-          i % size === size - 1,
-      )
-    )
-      holes += group.length;
+    else flowers += group.length * (group.length >= 3 ? 2 : 1);
   }
   return {
     flowers,
     paths,
-    holes,
-    penalty: holes * 3,
-    total: flowers + paths - holes * 3,
+    total: flowers + paths,
   };
+}
+export function gardenHighlights(board: (Terrain | null)[], size: number) {
+  const visited = new Set<number>();
+  const doubledFlowers = new Set<number>();
+  const connectedPaths = new Set<number>();
+  const entrance = Math.floor(size / 2) * size;
+  for (let start = 0; start < board.length; start++) {
+    if (visited.has(start)) continue;
+    const kind = board[start];
+    if (!kind) continue;
+    const group = [start];
+    visited.add(start);
+    for (let j = 0; j < group.length; j++)
+      for (const i of adjacent(group[j], size))
+        if (!visited.has(i) && board[i] === kind) {
+          visited.add(i);
+          group.push(i);
+        }
+    if (kind === "path") {
+      if (group.includes(entrance))
+        for (const i of group) connectedPaths.add(i);
+    } else if (group.length >= 3) {
+      for (const i of group) doubledFlowers.add(i);
+    }
+  }
+  return { doubledFlowers, connectedPaths };
+}
+const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+export function formatGardenDelta(
+  before: ReturnType<typeof scoreGarden>,
+  after: ReturnType<typeof scoreGarden>,
+): string {
+  const totalDelta = after.total - before.total;
+  const flowerDelta = after.flowers - before.flowers;
+  const pathDelta = after.paths - before.paths;
+  const parts: string[] = [];
+  if (flowerDelta !== 0) parts.push(`花圃${signed(flowerDelta)}`);
+  if (pathDelta !== 0) parts.push(`步道${signed(pathDelta)}`);
+  return `本手 ${signed(totalDelta)}分${parts.length ? `（${parts.join("、")}）` : ""}`;
 }
 export function validGarden(a: unknown): a is GardenAction {
   if (!a || typeof a !== "object") return false;
@@ -188,11 +240,11 @@ export function applyGarden(s: GardenState, a: GardenAction): GardenState {
     for (const c of rotated(s.market[a.slot], a.rotation))
       boards[s.turn][(c.y + a.y) * s.size + c.x + a.x] = c.kind;
     market[a.slot] = deck.shift()!;
-    message = `${s.turn}隊在 ${String.fromCharCode(65 + a.x)}${a.y + 1} 種下地形，暫計 ${scoreGarden(boards[s.turn], s.size).total} 分。`;
+    message = `${s.turn}隊種下地形，暫計 ${scoreGarden(boards[s.turn], s.size).total} 分。`;
   }
-  const before = scoreGarden(s.boards[s.turn], s.size), after = scoreGarden(boards[s.turn], s.size);
-  const signed = (n: number) => n >= 0 ? `+${n}` : `${n}`;
-  message += ` 本手 ${signed(after.total - before.total)}分（花圃${signed(after.flowers - before.flowers)}、步道${signed(after.paths - before.paths)}、空洞扣分${signed(after.penalty - before.penalty)}）。`;
+  const before = scoreGarden(s.boards[s.turn], s.size),
+    after = scoreGarden(boards[s.turn], s.size);
+  message += ` ${formatGardenDelta(before, after)}。`;
   const ply = s.ply + 1;
   return {
     ...s,
@@ -210,4 +262,3 @@ export const gardenEngine: Engine<GardenState, GardenAction> = {
   apply: applyGarden,
   validAction: validGarden,
 };
-
