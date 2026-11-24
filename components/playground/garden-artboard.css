@@ -599,13 +599,14 @@
   }
 }
 
-/* Short landscape (mobile phones in landscape, <= 600px height): lock every slot height so nothing pushes or clips */
+/* Short landscape (mobile phones in landscape, <= 600px height):
+   stretch Seasons & Market to fill 100% with zero dead vertical gaps, compact padding, and larger readable text */
 @media (orientation:landscape) and (max-height:600px) {
-  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:38px; padding:0 6px; }
+  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:36px; padding:0 8px; }
   .tg-garden.tg-live .game-shell__header h1 { font-size:17px; }
   .tg-garden.tg-live .game-shell__header p { font-size:13px; }
-  .tg-garden.tg-live .tg-session { padding:3px 8px; }
-  .tg-garden-desk { gap:4px 8px; }
+  .tg-garden.tg-live .tg-session { padding:3px 6px; }
+  .tg-garden-desk { gap:4px 6px; }
   .tg-garden-desk .tg-garden-block {
     grid-template-rows:26px minmax(0,1fr);
     gap:3px;
@@ -613,45 +614,48 @@
     border-radius:12px;
   }
   .tg-garden-caption { height:26px; }
-  .tg-garden-caption h2 { font-size:16px; }
+  .tg-garden-caption h2 { font-size:17px; }
   .gdn-turn-pill, .gdn-wait-pill, .tg-shell.tg-garden button.gdn-return-pill {
     height:22px;
     font-size:12px;
-    padding:0 7px;
+    padding:0 8px;
   }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:94px 74px 40px 42px;
-    align-content:space-between;
-    gap:5px;
-    padding:6px 7px;
+    grid-template-rows:minmax(108px,1.24fr) minmax(78px,.96fr) 36px 40px;
+    align-content:stretch;
+    gap:4px;
+    padding:5px 7px;
     border-radius:12px;
   }
   .gdn-seasons-panel { gap:3px; }
-  .gdn-panel-meta { min-height:18px; font-size:11px; gap:4px; }
+  .gdn-panel-meta { min-height:20px; font-size:12px; line-height:1.15; gap:4px; }
+  .gdn-base-rule { line-height:1.15; }
   .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
-    min-height:18px;
-    padding:1px 6px;
-    font-size:10.5px;
-    border-radius:5px;
+    min-height:20px;
+    padding:1px 7px;
+    font-size:11.5px;
+    border-radius:6px;
   }
   .gdn-seasons-grid { gap:4px; }
-  .gdn-season-card { padding:2px 6px; border-radius:7px; gap:1px; }
-  .gdn-season-name { font-size:10.5px; }
-  .gdn-season-now { font-size:9px; padding:0 4px; }
-  .gdn-season-rule { font-size:11.5px; line-height:1.2; }
+  .gdn-season-card { padding:3px 7px; border-radius:8px; gap:1px; }
+  .gdn-season-name { font-size:12px; }
+  .gdn-season-now { font-size:10px; padding:1px 5px; }
+  .gdn-season-rule { font-size:clamp(12.5px,3.4vh,15px); line-height:1.16; }
   .tg-shell.tg-garden .tg-garden-tools .tg-tile-market { gap:5px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:14px;
+    --tile-cell:clamp(13px,4.1vh,18px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
   .tg-shell.tg-garden .tg-tile-market button,
   .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:3px 2px; border-radius:9px; }
   .tg-shell.tg-garden .tg-tile-market button > b,
-  .gdn-next-tag { position:static; font-size:10.5px; line-height:1.1; padding:1px 5px; border-radius:5px; }
+  .gdn-next-tag { position:static; font-size:11.5px; line-height:1.1; padding:1px 6px; border-radius:5px; }
+  .tg-shell.tg-garden .tg-tile-market button > small { font-size:10.5px; padding:0 5px; bottom:2px; }
   .gdn-status-box { padding:2px 8px; }
-  .gdn-status-box p { font-size:12px; line-height:1.2; }
-  .gdn-main-actions button { min-height:36px; padding:4px 6px; font-size:14px; }
+  .gdn-status-box p { font-size:13.5px; line-height:1.18; }
+  .gdn-main-actions { gap:6px; }
+  .gdn-main-actions button { min-height:38px; padding:4px 8px; font-size:15px; font-weight:800; }
   .tg-garden-tools .tg-inline-confirm {
     padding:0;
     border:0;
@@ -666,49 +670,51 @@
     margin:0;
   }
   .tg-garden-tools .tg-inline-confirm .pg-choice button {
-    min-height:36px;
+    min-height:38px;
     padding:4px 8px;
-    font-size:14px;
+    font-size:15px;
+    font-weight:800;
   }
 }
 
 @media (orientation:landscape) and (max-height:340px) {
-  .tg-garden.tg-live .tg-session { padding:2px 6px; }
-  .tg-garden-desk { gap:4px 6px; }
+  .tg-garden.tg-live .tg-session { padding:2px 5px; }
+  .tg-garden-desk { gap:3px 5px; }
   .tg-garden-desk .tg-garden-block { padding:4px 6px; }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:80px 62px 34px 36px;
+    grid-template-rows:minmax(88px,1.2fr) minmax(62px,.9fr) 32px 36px;
     gap:3px;
     padding:4px 5px;
   }
   .gdn-seasons-panel { gap:2px; }
-  .gdn-panel-meta { min-height:16px; font-size:10px; }
+  .gdn-panel-meta { min-height:17px; font-size:10.5px; }
   .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
-    min-height:16px;
+    min-height:17px;
     padding:1px 5px;
     font-size:10px;
   }
   .gdn-seasons-grid { gap:3px; }
-  .gdn-season-card { padding:1px 5px; }
-  .gdn-season-rule { font-size:10.5px; line-height:1.15; }
+  .gdn-season-card { padding:2px 5px; }
+  .gdn-season-name { font-size:10.5px; }
+  .gdn-season-rule { font-size:11.5px; line-height:1.15; }
   .tg-shell.tg-garden .tg-tile-market button,
   .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:2px; }
   .tg-shell.tg-garden .tg-tile-market button > b,
-  .gdn-next-tag { font-size:9.5px; padding:1px 4px; }
+  .gdn-next-tag { font-size:10px; padding:1px 4px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:11px;
+    --tile-cell:12px;
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
-  .gdn-status-box p { font-size:11px; line-height:1.15; }
+  .gdn-status-box p { font-size:12px; line-height:1.15; }
   .gdn-main-actions button,
-  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:32px; font-size:13px; }
+  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:34px; font-size:13.5px; }
 }
 
 /* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
 @media (max-width:819px), (orientation:portrait) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,.92fr) minmax(256px,1.08fr);
+    grid-template-columns:minmax(0,.86fr) minmax(270px,1.14fr);
     grid-template-rows:34px minmax(0,1fr);
   }
   .tg-garden-tabs {

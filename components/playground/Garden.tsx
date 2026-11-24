@@ -494,7 +494,7 @@ function GardenTable({
       <aside className="tg-garden-tools pg-paper" aria-label="造園工作檯">
         <div className="gdn-seasons-panel" aria-label="四季規則與目前回合">
           <div className="gdn-panel-meta">
-            <span className="gdn-base-rule">基礎：3連花・連泉徑 2分</span>
+            <span className="gdn-base-rule">花海＝3朵同色直橫連・連泉徑 2分/格</span>
             <div className="gdn-mini-tools">
               <button
                 type="button"
@@ -776,13 +776,13 @@ export default function Garden({ onBack }: { onBack: () => void }) {
         `${currentSeason(s).name}・第 ${Math.min(s.ply + 1, s.limit)}/${s.limit} 手・輪到 ${s.turn} 隊`
       }
       steps={[
-        "每手從 3 塊板塊選 1 塊並旋轉，緊鄰中央噴泉或自己花園放下；下方預告「下張」補牌，降低抽牌運氣。",
-        "同色花上下左右連滿 3 格變每格 2 分（斜角不算）；小徑只要連到中央噴泉也變每格 2 分。",
-        "四季各有獨立目標（＋2～＋3 分），所有板塊最多含 2 格同色花，必須跨回合佈局規劃才拿得到高分。",
+        "每手從 3 塊板塊選 1 塊並旋轉，緊鄰噴泉或自己花園放下；右側第 4 格公開預告「下張」補牌。",
+        "花海＝同色花直橫（上下左右）相連 3 格以上，每格 2 分（斜角不算）；小徑連通噴泉也變每格 2 分。",
+        "春／夏／秋須在當季達成；冬季不限當手產生，場上具備紅金花海＋連泉徑即得 ＋3 分。",
       ]}
       demo={[
-        "操作區常駐顯示四季完整目標與「下張」補牌，能算出對手下一手會補進什麼牌。",
-        "關鍵策略：春季別把噴泉四邊用花圍死，以免秋季小徑連不到噴泉；同時培養紅、金花海搶冬季 ＋3 分！",
+        "操作區常駐顯示四季完整目標與「下張」補牌，能預判對手下一手會補進什麼牌。",
+        "關鍵策略：春季別把噴泉四邊用花圍死，預留至少一側給秋季新連或延長連泉徑；同時培養紅、金花海搶冬季 ＋3 分！",
       ]}
       rules={
         <>
@@ -796,15 +796,15 @@ export default function Garden({ onBack }: { onBack: () => void }) {
             </li>
             <li>
               <strong>常駐基礎計分（每一手都算）：</strong>
-              珊瑚花或金陽花<strong>上下左右相連 ≥3 格</strong>即成花海，該區每格 2 分（未滿 3 格每格 1 分，<strong>斜角不算相連</strong>）；石板小徑只要連通到中央噴泉，整條每格 2 分（未連通每格 1 分）。
+              珊瑚花或金陽花<strong>上下左右相連 ≥3 格</strong>即成「花海」，該區每格 2 分（未滿 3 格每格 1 分，<strong>斜角不算相連</strong>）；石板小徑只要連通到中央噴泉，整條每格 2 分（未連通每格 1 分）。
             </li>
             <li>
               <strong>四季當令賞（彼此獨立、於當季結算，已得不扣）：</strong>
               <ul>
-                <li><strong>春季（＋2 分）：</strong>本手放下的板塊有任一花朵緊鄰中央噴泉。</li>
-                <li><strong>夏季（＋2 分）：</strong>本手湊出新花海，或把原本 ≥3 格花海再擴大。</li>
-                <li><strong>秋季（＋2 分）：</strong>本手放下的板塊含小徑，且成功連通或延長連泉小徑。</li>
-                <li><strong>冬季（＋3 分）：</strong>花園同時具備「紅花海（≥3 格）＋ 金花海（≥3 格）＋ 連泉小徑」（每隊限領一次）。</li>
+                <li><strong>春季（＋2 分）：</strong>在春季放下的板塊有任一花朵緊鄰中央噴泉。</li>
+                <li><strong>夏季（＋2 分）：</strong>在夏季當手湊出新花海（≥3 格同色相連），或把原本花海再擴大。</li>
+                <li><strong>秋季（＋2 分）：</strong>在秋季當手放下的板塊含小徑，且新連通噴泉或延長既有的連泉小徑（若僅保留先前小徑、當手未延伸則不計分）。</li>
+                <li><strong>冬季（＋3 分）：</strong><strong>不限當手產生</strong>，只要自己花園在該手後同時具備「紅花海（≥3 格）＋ 金花海（≥3 格）＋ 連泉小徑」即可獲得（每隊限領一次）。</li>
               </ul>
             </li>
             <li>

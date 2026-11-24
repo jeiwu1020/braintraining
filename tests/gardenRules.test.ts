@@ -111,6 +111,38 @@ it("rejects passing when a legal placement exists and allows discard only when b
   expect(n.turn).toBe("B");
 });
 
+it("applies autumn path extension requirement and winter board-state bonus regardless of when clusters were built", () => {
+  const base = createGarden(1, "normal", "A");
+  const board = Array(25).fill(null);
+  board[12] = "fountain";
+  board[0] = "rose"; board[1] = "rose"; board[2] = "rose";
+  board[5] = "gold"; board[6] = "gold"; board[7] = "gold";
+  board[13] = "path";
+
+  // Autumn (ply 4 in normal): placing a pure flower tile without extending connected path does NOT award autumn bonus
+  const autumnState = {
+    ...base,
+    ply: 4,
+    turn: "A" as const,
+    boards: { A: [...board], B: [...base.boards.B] },
+    market: [
+      [{ x: 0, y: 0, kind: "rose" as const }, { x: 1, y: 0, kind: "gold" as const }],
+      [{ x: 0, y: 0, kind: "path" as const }, { x: 1, y: 0, kind: "rose" as const }],
+      base.market[2],
+    ],
+  };
+  const noExtend = applyGarden(autumnState, { type: "place", slot: 0, rotation: 0, x: 3, y: 0 });
+  expect(noExtend.seasonBonuses.A).toBe(0);
+  const extendPath = applyGarden(autumnState, { type: "place", slot: 1, rotation: 0, x: 3, y: 3 });
+  expect(extendPath.seasonBonuses.A).toBe(2);
+
+  // Winter (ply 6 in normal): already having red cluster + gold cluster + fountain path awards +3 even on a neutral placement
+  const winterState = { ...autumnState, ply: 6 };
+  const winterAwarded = applyGarden(winterState, { type: "place", slot: 0, rotation: 0, x: 3, y: 0 });
+  expect(winterAwarded.seasonBonuses.A).toBe(3);
+  expect(winterAwarded.winterClaimed.A).toBe(true);
+});
+
 it("completes 40 normal and advanced games without deadlocking on late placements", () => {
   for (const level of ["normal", "advanced"] as const) {
     for (let seed = 0; seed < 40; seed++) {
