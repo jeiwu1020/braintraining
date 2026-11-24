@@ -495,7 +495,7 @@ function GardenTable({
       <aside className="tg-garden-tools pg-paper" aria-label="造園工作檯">
         <div className="gdn-seasons-panel" aria-label="四季規則與目前回合">
           <div className="gdn-panel-meta">
-            <span className="gdn-base-rule">花海＝3朵同色直橫連・連泉徑 2分/格</span>
+            <span className="gdn-base-rule">花海＝3朵同色直橫連・連泉徑2分</span>
             <div className="gdn-mini-tools">
               <button
                 type="button"
