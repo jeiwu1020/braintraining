@@ -633,41 +633,49 @@
     padding:0 8px;
   }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:minmax(108px,1.24fr) minmax(74px,.96fr) 36px 40px;
+    grid-template-rows:minmax(120px,1.48fr) minmax(62px,.76fr) 32px 36px;
     align-content:stretch;
-    gap:4px;
-    padding:4px;
+    gap:3px;
+    padding:4px 5px;
     border-radius:12px;
   }
-  .gdn-seasons-panel { gap:3px; }
-  .gdn-panel-meta { min-height:20px; font-size:12.5px; line-height:1.15; gap:4px; }
-  .gdn-base-rule { line-height:1.15; }
+  .gdn-seasons-panel { gap:2px; }
+  .gdn-panel-meta { min-height:19px; font-size:12.5px; line-height:1.15; gap:4px; }
+  .gdn-base-rule { line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
-    min-height:22px;
-    padding:1px 8px;
-    font-size:12.5px;
+    min-height:20px;
+    padding:1px 7px;
+    font-size:12px;
     border-radius:6px;
   }
-  .gdn-seasons-grid { gap:4px; }
-  .gdn-season-card { padding:3px 6px; border-radius:8px; gap:1px; }
-  .gdn-season-name { font-size:clamp(12.5px,3.3vh,14.5px); }
+  .gdn-seasons-grid {
+    container-type:inline-size;
+    gap:3px;
+  }
+  .gdn-season-card { padding:2px 4px; border-radius:8px; gap:1px; }
+  .gdn-season-name { font-size:clamp(13.5px,3.85vh,16px); }
   .gdn-season-now { font-size:11px; padding:1px 5px; }
-  .gdn-season-rule { font-size:clamp(14px,3.85vh,17px); line-height:1.16; }
+  .gdn-season-rule {
+    font-size:clamp(15.5px,min(4.5vh,calc((100cqw - 29px) / 15.6)),19px);
+    line-height:1.15;
+    letter-spacing:-0.025em;
+    white-space:nowrap;
+  }
   .tg-shell.tg-garden .tg-garden-tools .tg-tile-market { gap:4px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(11px,min(calc((100cqw - 58px) / 12),calc((100cqh - 32px) / 3)),32px);
+    --tile-cell:clamp(9.5px,min(calc((100cqw - 58px) / 12),calc((100cqh - 30px) / 3)),32px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
   .tg-shell.tg-garden .tg-tile-market button,
   .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:2px 1px; border-radius:9px; }
   .tg-shell.tg-garden .tg-tile-market button > b,
-  .gdn-next-tag { position:static; font-size:13px; line-height:1.1; padding:1px 7px; border-radius:5px; }
-  .tg-shell.tg-garden .tg-tile-market button > small { font-size:11.5px; padding:0 5px; bottom:2px; }
+  .gdn-next-tag { position:static; font-size:12px; line-height:1.1; padding:1px 6px; border-radius:5px; }
+  .tg-shell.tg-garden .tg-tile-market button > small { font-size:11px; padding:0 5px; bottom:2px; }
   .gdn-status-box { padding:2px 8px; }
-  .gdn-status-box p { font-size:15px; line-height:1.18; }
+  .gdn-status-box p { font-size:14.5px; line-height:1.15; }
   .gdn-main-actions { gap:6px; }
-  .gdn-main-actions button { min-height:38px; padding:4px 8px; font-size:17px; font-weight:800; }
+  .gdn-main-actions button { min-height:36px; padding:3px 8px; font-size:16.5px; font-weight:800; }
   .tg-garden-tools .tg-inline-confirm {
     padding:0;
     border:0;
@@ -682,45 +690,54 @@
     margin:0;
   }
   .tg-garden-tools .tg-inline-confirm .pg-choice button {
-    min-height:38px;
-    padding:4px 8px;
-    font-size:17px;
+    min-height:36px;
+    padding:3px 8px;
+    font-size:16.5px;
     font-weight:800;
   }
 }
 
 @media (orientation:landscape) and (max-height:340px) {
-  .tg-garden.tg-live .tg-session { padding:2px 5px; }
-  .tg-garden-desk { gap:3px 5px; }
-  .tg-garden-desk .tg-garden-block { padding:4px 6px; }
+  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:30px; padding:0 8px; }
+  .tg-garden.tg-live .game-shell__header h1 { font-size:15.5px; }
+  .tg-garden.tg-live .game-shell__header p { font-size:12px; }
+  .tg-garden.tg-live .tg-session { padding:2px 4px; }
+  .tg-garden-desk { gap:3px 4px; }
+  .tg-garden-desk .tg-garden-block { padding:3px 5px; }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:minmax(88px,1.2fr) minmax(62px,.9fr) 32px 36px;
-    gap:3px;
-    padding:4px 5px;
+    grid-template-rows:minmax(100px,1.5fr) minmax(52px,.72fr) 28px 32px;
+    gap:2px;
+    padding:3px 4px;
   }
   .gdn-seasons-panel { gap:2px; }
-  .gdn-panel-meta { min-height:17px; font-size:10.5px; }
+  .gdn-panel-meta { min-height:17px; font-size:11.5px; }
   .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
-    min-height:17px;
+    min-height:18px;
     padding:1px 5px;
-    font-size:10px;
+    font-size:11px;
   }
-  .gdn-seasons-grid { gap:3px; }
-  .gdn-season-card { padding:2px 5px; }
-  .gdn-season-name { font-size:10.5px; }
-  .gdn-season-rule { font-size:11.5px; line-height:1.15; }
+  .gdn-seasons-grid { gap:2px; }
+  .gdn-season-card { padding:2px 4px; gap:0; }
+  .gdn-season-name { font-size:clamp(12px,3.8vh,14px); }
+  .gdn-season-now { font-size:10px; padding:0 4px; }
+  .gdn-season-rule {
+    font-size:clamp(14px,min(4.5vh,calc((100cqw - 29px) / 15.6)),16.5px);
+    line-height:1.14;
+    letter-spacing:-0.025em;
+    white-space:nowrap;
+  }
   .tg-shell.tg-garden .tg-tile-market button,
-  .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:2px; }
+  .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:1px; }
   .tg-shell.tg-garden .tg-tile-market button > b,
-  .gdn-next-tag { font-size:10px; padding:1px 4px; }
+  .gdn-next-tag { font-size:10.5px; padding:1px 5px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(9px,min(calc((100cqw - 54px) / 12),calc((100cqh - 28px) / 3)),24px);
+    --tile-cell:clamp(8px,min(calc((100cqw - 54px) / 12),calc((100cqh - 26px) / 3)),26px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
-  .gdn-status-box p { font-size:12px; line-height:1.15; }
+  .gdn-status-box p { font-size:13px; line-height:1.15; }
   .gdn-main-actions button,
-  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:34px; font-size:13.5px; }
+  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:32px; font-size:14.5px; }
 }
 
 /* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
@@ -774,10 +791,52 @@
   .tg-garden-desk .tg-garden-block.tg-garden-viewed { display:grid; }
 }
 
+@media (max-width:819px) and (orientation:landscape) and (max-height:340px) {
+  .tg-garden-desk { grid-template-rows:30px minmax(0,1fr); }
+  .tg-garden-tabs, .gdn-tab { height:30px; min-height:30px; font-size:14px; }
+}
+
 @media (orientation:portrait) {
   .tg-garden-desk {
     grid-template-columns:1fr;
     grid-template-rows:36px 360px auto;
   }
   .tg-garden-desk .tg-grid-wrap { min-height:260px; }
+  .tg-garden-tools.pg-paper {
+    grid-template-rows:auto minmax(126px,auto) auto auto;
+    gap:10px;
+    padding:12px 10px;
+  }
+  .gdn-panel-meta {
+    font-size:14.5px;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
+    min-height:28px;
+    padding:3px 10px;
+    font-size:13.5px;
+  }
+  .gdn-seasons-grid {
+    container-type:inline-size;
+    gap:7px;
+  }
+  .gdn-season-card {
+    padding:8px 10px;
+    gap:3px;
+    border-radius:10px;
+  }
+  .gdn-season-name { font-size:15.5px; }
+  .gdn-season-now { font-size:12px; padding:1px 6px; }
+  .gdn-season-rule {
+    font-size:clamp(17px,calc((100cqw - 38px) / 15.6),21px);
+    line-height:1.25;
+  }
+  .gdn-status-box p { font-size:17px; }
+  .gdn-main-actions button,
+  .tg-garden-tools .tg-inline-confirm .pg-choice button {
+    min-height:48px;
+    font-size:18px;
+    font-weight:800;
+  }
 }
