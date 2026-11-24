@@ -434,11 +434,133 @@
 /* Keep 3-column fixed A-left / Tools-center / B-right on wide landscape >= 820px */
 @media (min-width:820px) and (orientation:landscape) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(276px,.96fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) minmax(288px,.98fr) minmax(0,1fr) !important;
     grid-template-rows:minmax(0,1fr) !important;
   }
   .tg-garden-desk .tg-garden-block { display:grid !important; }
   .tg-garden-tabs { display:none !important; }
+}
+
+/* Desktop optimization (>= 820px width and > 600px height): fill the middle workbench container proportionally */
+@media (min-width:820px) and (min-height:601px) and (orientation:landscape) {
+  .tg-garden.tg-live .tg-session {
+    padding:14px 18px;
+  }
+  .tg-garden-desk {
+    grid-template-columns:minmax(0,1fr) minmax(330px,1.04fr) minmax(0,1fr) !important;
+    gap:16px;
+  }
+  .tg-garden-desk .tg-garden-block {
+    grid-template-rows:40px minmax(0,1fr);
+    gap:10px;
+    padding:16px 18px;
+  }
+  .tg-garden-caption { height:40px; }
+  .tg-garden-caption h2 { font-size:24px; gap:8px; }
+  .gdn-turn-pill, .gdn-wait-pill, .tg-shell.tg-garden button.gdn-return-pill {
+    height:30px;
+    padding:0 12px;
+    font-size:14px;
+  }
+  .tg-garden-desk .tg-coordinate-board > b { font-size:16px; }
+
+  .tg-garden-tools.pg-paper {
+    grid-template-rows:minmax(152px,1.15fr) minmax(156px,1.55fr) minmax(56px,auto) minmax(68px,auto) auto;
+    align-content:stretch;
+    gap:14px;
+    padding:18px;
+  }
+  .gdn-seasons-panel {
+    height:100%;
+    min-height:152px;
+    gap:10px;
+  }
+  .gdn-panel-meta {
+    height:auto;
+    font-size:14px;
+  }
+  .gdn-seasons-grid {
+    gap:10px;
+  }
+  .gdn-season-card {
+    padding:10px 14px;
+    gap:4px;
+    border-radius:12px;
+  }
+  .gdn-season-name { font-size:14px; }
+  .gdn-season-now { font-size:12px; padding:2px 7px; }
+  .gdn-season-rule { font-size:clamp(17px,1.35vw,22px); line-height:1.25; }
+
+  .tg-garden-tools .tg-tile-market {
+    gap:12px;
+    height:100%;
+    align-items:stretch;
+  }
+  .tg-shell.tg-garden .tg-tile-market button {
+    padding:12px 6px;
+    border-radius:14px;
+    justify-content:space-between;
+    align-items:center;
+    min-width:0;
+    overflow:hidden;
+  }
+  .tg-shell.tg-garden .tg-tile-market button > b {
+    font-size:15px;
+    padding:3px 10px;
+  }
+  .tg-shell.tg-garden .tg-tile-market button > small {
+    bottom:6px;
+    padding:1px 8px;
+    border-radius:6px;
+    font-size:13px;
+  }
+  .tg-garden-tools .tg-mini-tile {
+    --tile-cell:clamp(22px,2.3vw,42px);
+    height:calc(var(--tile-cell) * 3 + 6px);
+    margin:auto;
+  }
+
+  .gdn-status-box {
+    height:100%;
+    min-height:56px;
+    padding:10px 14px;
+    border-radius:12px;
+  }
+  .gdn-status-box p {
+    font-size:17px;
+    line-height:1.35;
+  }
+  .gdn-action-slot {
+    height:auto;
+    min-height:68px;
+  }
+  .gdn-main-actions {
+    gap:12px;
+  }
+  .gdn-main-actions button,
+  .tg-garden-tools .tg-inline-confirm .pg-choice button {
+    min-height:54px;
+    font-size:18px;
+    font-weight:800;
+    border-radius:12px;
+  }
+  .tg-garden-tools .tg-inline-confirm {
+    padding:10px 12px;
+    border-radius:12px;
+  }
+  .tg-garden-tools .tg-inline-confirm p {
+    font-size:16px;
+    margin-bottom:8px;
+  }
+  .gdn-utility-row {
+    height:auto;
+    gap:12px;
+  }
+  .tg-garden-tools .gdn-utility-row button {
+    min-height:44px;
+    font-size:15px;
+    border-radius:10px;
+  }
 }
 
 /* Short landscape (mobile phones in landscape, <= 600px height): lock every slot height so nothing pushes */
