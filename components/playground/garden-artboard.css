@@ -1,4 +1,4 @@
-/* Modern botanical tabletop aesthetic for Four Seasons Gardener, with zero-shift fixed layout slots & crisp non-clipping typography. */
+/* Modern botanical tabletop aesthetic for Four Seasons Gardener, with 3+1 conveyor draft & zero-shift fixed slots. */
 .tg-shell.tg-garden.tg-live {
   background:radial-gradient(ellipse at 25% 10%, #1d3c34, #10241f 75%) !important;
 }
@@ -26,7 +26,7 @@
 
 .tg-garden-desk {
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(300px,.98fr) minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr) minmax(308px,1fr) minmax(0,1fr);
   grid-template-rows:minmax(0,1fr);
   gap:10px 14px;
   height:100%;
@@ -182,7 +182,7 @@
 }
 .tg-garden-desk .tg-garden-cell svg { width:92%; height:92%; }
 
-/* Modern workbench panel — locked track heights prevent tile-market resizing */
+/* 4-row workbench: Seasons Panel, 3+1 Tile Conveyor, Status Box, Action Slot */
 .tg-garden-tools.pg-paper {
   position:relative;
   border:1px solid #d2dacb;
@@ -191,19 +191,19 @@
   box-shadow:0 8px 22px #05130f3d;
   color:#1f352b;
   display:grid;
-  grid-template-rows:132px 116px 54px 92px 38px;
+  grid-template-rows:138px 124px 54px 92px;
   align-content:space-between;
-  gap:8px;
+  gap:10px;
   padding:12px;
   min-width:0;
   min-height:0;
 }
 
-/* All-4-seasons overview grid + active season highlight */
+/* All-4-seasons overview grid + compact utility pills */
 .gdn-seasons-panel {
   display:flex;
   flex-direction:column;
-  gap:5px;
+  gap:6px;
   height:100%;
   min-width:0;
   min-height:0;
@@ -213,20 +213,32 @@
   align-items:center;
   justify-content:space-between;
   gap:6px;
-  min-height:18px;
-  font-size:12px;
-  line-height:1.25;
+  min-height:22px;
+  font-size:13px;
+  line-height:1.2;
   font-weight:700;
   color:#314d3f;
 }
 .gdn-base-rule {
   min-width:0;
 }
-.gdn-round-turn {
+.gdn-mini-tools {
+  display:flex;
+  align-items:center;
+  gap:5px;
   flex-shrink:0;
-  white-space:nowrap;
-  font-variant-numeric:tabular-nums;
-  color:#486355;
+}
+.tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
+  min-height:24px;
+  min-width:0;
+  padding:2px 8px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.1;
+  border-radius:7px;
+  background:#edf1ea;
+  border:1px solid #c9d4c2;
+  color:#3c5548;
 }
 .gdn-seasons-grid {
   display:grid;
@@ -283,26 +295,23 @@
 .season-autumn .gdn-season-now { background:#b55427; }
 .season-winter .gdn-season-now { background:#2c7191; }
 .gdn-season-rule {
-  font-size:15px;
+  font-size:14.5px;
   font-weight:800;
   line-height:1.25;
 }
 
-/* Strictly equal 1/3 columns & fixed 3x3 MiniTile bounding box so tile market never shifts */
+/* 3+1 Tile Conveyor Belt: 3 equal buttons + 1 non-interactive Next Tile card */
 .tg-shell.tg-garden .tg-garden-tools .tg-tile-market {
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:8px;
+  grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.88fr);
+  gap:7px;
   height:100%;
   min-height:0;
   margin:0;
   align-items:stretch;
 }
-.tg-shell.tg-garden .tg-tile-market button {
-  background:#f1f4ec;
-  box-shadow:none;
-  outline:0;
-  border:1.5px solid #d5ddd0;
+.tg-shell.tg-garden .tg-tile-market button,
+.tg-shell.tg-garden .tg-tile-market .gdn-next-card {
   border-radius:12px;
   padding:6px 4px;
   height:100%;
@@ -313,6 +322,12 @@
   align-items:center;
   justify-content:space-between;
   position:relative;
+}
+.tg-shell.tg-garden .tg-tile-market button {
+  background:#f1f4ec;
+  box-shadow:none;
+  outline:0;
+  border:1.5px solid #d5ddd0;
   transition:border-color .15s ease, background-color .15s ease;
 }
 .tg-shell.tg-garden .tg-tile-market button[aria-pressed="true"] {
@@ -334,8 +349,32 @@
   color:#ffffff;
 }
 .tg-shell.tg-garden .tg-tile-market button:focus-visible { outline:3px solid #1f5e4b; outline-offset:2px; }
+
+.tg-shell.tg-garden .tg-tile-market .gdn-next-card {
+  background:#e8ede5;
+  border:1.5px dashed #8ca394;
+  color:#3c5548;
+  cursor:default;
+}
+.gdn-next-tag {
+  font-size:12px;
+  font-weight:800;
+  line-height:1.15;
+  padding:2px 7px;
+  border-radius:6px;
+  background:#d5dfd2;
+  color:#2b473a;
+  flex-shrink:0;
+}
+.gdn-next-empty {
+  margin:auto;
+  font-size:12px;
+  font-weight:700;
+  color:#607568;
+}
+
 .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-  --tile-cell:22px;
+  --tile-cell:20px;
   gap:2px;
   width:calc(var(--tile-cell) * 3 + 4px);
   height:calc(var(--tile-cell) * 3 + 4px);
@@ -435,66 +474,26 @@
   color:#4e350b;
   margin:0 0 6px;
 }
-.gdn-utility-row {
-  display:grid;
-  grid-template-columns:auto 1fr 1fr;
-  gap:8px;
-  height:100%;
-  align-items:stretch;
-}
-.gdn-next-chip {
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:2px 8px;
-  border-radius:9px;
-  border:1px solid #d4ddd0;
-  background:#f2f5ee;
-  color:#3c5548;
-  font-size:12px;
-  font-weight:800;
-  white-space:nowrap;
-}
-.tg-shell.tg-garden .tg-garden-tools .gdn-next-chip .tg-mini-tile {
-  --tile-cell:8px;
-  gap:1px;
-  width:calc(var(--tile-cell) * 3 + 2px);
-  height:calc(var(--tile-cell) * 3 + 2px);
-  margin:0;
-  place-content:center;
-}
-.tg-shell.tg-garden .tg-garden-tools .gdn-next-chip .tg-mini-tile > div {
-  border-radius:2px;
-  border-width:.5px;
-  box-shadow:none;
-}
-.tg-garden-tools .gdn-utility-row button {
-  min-height:36px;
-  font-size:14px;
-  font-weight:700;
-  background:#f2f5ee;
-  border-color:#d4ddd0;
-  color:#3c5548;
-}
 
 /* Keep 3-column fixed A-left / Tools-center / B-right on wide landscape >= 820px */
 @media (min-width:820px) and (orientation:landscape) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(300px,.98fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) minmax(320px,1.04fr) minmax(0,1fr) !important;
     grid-template-rows:minmax(0,1fr) !important;
   }
   .tg-garden-desk .tg-garden-block { display:grid !important; }
   .tg-garden-tabs { display:none !important; }
+  .gdn-compare-btn { display:none !important; }
 }
 
 /* Desktop optimization (>= 820px width and > 600px height):
-   Seasons & Tile Market fill flexible height; Status/Actions/Utility stay locked height so Market NEVER resizes */
+   4 clean tracks fill the entire middle workbench proportionally with large Next-Tile conveyor preview */
 @media (min-width:820px) and (min-height:601px) and (orientation:landscape) {
   .tg-garden.tg-live .tg-session {
     padding:14px 18px;
   }
   .tg-garden-desk {
-    grid-template-columns:minmax(0,1fr) minmax(350px,1.06fr) minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) minmax(368px,1.12fr) minmax(0,1fr) !important;
     gap:16px;
   }
   .tg-garden-desk .tg-garden-block {
@@ -512,16 +511,22 @@
   .tg-garden-desk .tg-coordinate-board > b { font-size:16px; }
 
   .tg-garden-tools.pg-paper {
-    grid-template-rows:minmax(118px,1fr) minmax(118px,1.35fr) 60px 96px 42px;
+    grid-template-rows:minmax(132px,1.05fr) minmax(136px,1.35fr) 62px 98px;
     align-content:stretch;
-    gap:12px;
-    padding:16px 18px;
+    gap:14px;
+    padding:18px;
   }
   .gdn-seasons-panel {
     gap:8px;
   }
   .gdn-panel-meta {
-    font-size:14px;
+    font-size:14.5px;
+  }
+  .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
+    min-height:28px;
+    padding:3px 11px;
+    font-size:13px;
+    border-radius:8px;
   }
   .gdn-seasons-grid {
     gap:10px;
@@ -533,27 +538,29 @@
   }
   .gdn-season-name { font-size:14px; }
   .gdn-season-now { font-size:12px; padding:2px 7px; }
-  .gdn-season-rule { font-size:clamp(14px,1.15vw,18px); line-height:1.28; }
+  .gdn-season-rule { font-size:clamp(15px,1.2vw,19px); line-height:1.28; }
 
   .tg-shell.tg-garden .tg-garden-tools .tg-tile-market {
-    gap:12px;
+    gap:9px;
   }
-  .tg-shell.tg-garden .tg-tile-market button {
-    padding:12px 6px;
+  .tg-shell.tg-garden .tg-tile-market button,
+  .tg-shell.tg-garden .tg-tile-market .gdn-next-card {
+    padding:10px 4px;
     border-radius:14px;
   }
-  .tg-shell.tg-garden .tg-tile-market button > b {
-    font-size:15px;
-    padding:3px 10px;
+  .tg-shell.tg-garden .tg-tile-market button > b,
+  .gdn-next-tag {
+    font-size:14px;
+    padding:3px 9px;
   }
   .tg-shell.tg-garden .tg-tile-market button > small {
     bottom:6px;
-    padding:1px 8px;
+    padding:1px 7px;
     border-radius:6px;
-    font-size:13px;
+    font-size:12.5px;
   }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(18px,min(2.15vw,3.3vh),36px);
+    --tile-cell:clamp(16px,min(1.85vw,3.1vh),29px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
@@ -590,24 +597,6 @@
     font-weight:800;
     border-radius:10px;
   }
-  .gdn-utility-row {
-    gap:10px;
-  }
-  .gdn-next-chip {
-    padding:3px 10px;
-    border-radius:10px;
-    font-size:13px;
-  }
-  .tg-shell.tg-garden .tg-garden-tools .gdn-next-chip .tg-mini-tile {
-    --tile-cell:10px;
-    width:calc(var(--tile-cell) * 3 + 2px);
-    height:calc(var(--tile-cell) * 3 + 2px);
-  }
-  .tg-garden-tools .gdn-utility-row button {
-    min-height:42px;
-    font-size:15px;
-    border-radius:10px;
-  }
 }
 
 /* Short landscape (mobile phones in landscape, <= 600px height): lock every slot height so nothing pushes or clips */
@@ -631,30 +620,38 @@
     padding:0 7px;
   }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:90px 64px 38px 38px 26px;
+    grid-template-rows:94px 74px 40px 42px;
     align-content:space-between;
-    gap:3px;
-    padding:5px 7px;
+    gap:5px;
+    padding:6px 7px;
     border-radius:12px;
   }
-  .gdn-seasons-panel { gap:2px; }
-  .gdn-panel-meta { min-height:15px; font-size:11px; }
+  .gdn-seasons-panel { gap:3px; }
+  .gdn-panel-meta { min-height:18px; font-size:11px; gap:4px; }
+  .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
+    min-height:18px;
+    padding:1px 6px;
+    font-size:10.5px;
+    border-radius:5px;
+  }
   .gdn-seasons-grid { gap:4px; }
   .gdn-season-card { padding:2px 6px; border-radius:7px; gap:1px; }
   .gdn-season-name { font-size:10.5px; }
   .gdn-season-now { font-size:9px; padding:0 4px; }
   .gdn-season-rule { font-size:11.5px; line-height:1.2; }
-  .tg-shell.tg-garden .tg-garden-tools .tg-tile-market { gap:6px; }
+  .tg-shell.tg-garden .tg-garden-tools .tg-tile-market { gap:5px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
     --tile-cell:14px;
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
-  .tg-shell.tg-garden .tg-tile-market button { padding:3px 2px; border-radius:9px; }
-  .tg-shell.tg-garden .tg-tile-market button > b { font-size:11px; padding:1px 5px; }
+  .tg-shell.tg-garden .tg-tile-market button,
+  .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:3px 2px; border-radius:9px; }
+  .tg-shell.tg-garden .tg-tile-market button > b,
+  .gdn-next-tag { position:static; font-size:10.5px; line-height:1.1; padding:1px 5px; border-radius:5px; }
   .gdn-status-box { padding:2px 8px; }
   .gdn-status-box p { font-size:12px; line-height:1.2; }
-  .gdn-main-actions button { min-height:34px; padding:4px 6px; font-size:14px; }
+  .gdn-main-actions button { min-height:36px; padding:4px 6px; font-size:14px; }
   .tg-garden-tools .tg-inline-confirm {
     padding:0;
     border:0;
@@ -669,21 +666,9 @@
     margin:0;
   }
   .tg-garden-tools .tg-inline-confirm .pg-choice button {
-    min-height:34px;
+    min-height:36px;
     padding:4px 8px;
     font-size:14px;
-  }
-  .gdn-utility-row { gap:6px; }
-  .gdn-next-chip { padding:1px 6px; gap:4px; font-size:11px; border-radius:7px; }
-  .tg-shell.tg-garden .tg-garden-tools .gdn-next-chip .tg-mini-tile {
-    --tile-cell:6px;
-    width:calc(var(--tile-cell) * 3 + 2px);
-    height:calc(var(--tile-cell) * 3 + 2px);
-  }
-  .tg-garden-tools .gdn-utility-row button {
-    min-height:24px;
-    padding:2px 6px;
-    font-size:12px;
   }
 }
 
@@ -692,36 +677,38 @@
   .tg-garden-desk { gap:4px 6px; }
   .tg-garden-desk .tg-garden-block { padding:4px 6px; }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:76px 54px 32px 34px 22px;
-    gap:2px;
+    grid-template-rows:80px 62px 34px 36px;
+    gap:3px;
     padding:4px 5px;
   }
   .gdn-seasons-panel { gap:2px; }
-  .gdn-panel-meta { min-height:14px; font-size:10px; }
+  .gdn-panel-meta { min-height:16px; font-size:10px; }
+  .tg-shell.tg-garden .tg-garden-tools button.gdn-util-btn {
+    min-height:16px;
+    padding:1px 5px;
+    font-size:10px;
+  }
   .gdn-seasons-grid { gap:3px; }
   .gdn-season-card { padding:1px 5px; }
   .gdn-season-rule { font-size:10.5px; line-height:1.15; }
+  .tg-shell.tg-garden .tg-tile-market button,
+  .tg-shell.tg-garden .tg-tile-market .gdn-next-card { padding:2px; }
+  .tg-shell.tg-garden .tg-tile-market button > b,
+  .gdn-next-tag { font-size:9.5px; padding:1px 4px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:12px;
+    --tile-cell:11px;
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
   .gdn-status-box p { font-size:11px; line-height:1.15; }
   .gdn-main-actions button,
-  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:30px; font-size:13px; }
-  .gdn-next-chip { padding:1px 5px; font-size:10px; }
-  .tg-shell.tg-garden .tg-garden-tools .gdn-next-chip .tg-mini-tile {
-    --tile-cell:5px;
-    width:calc(var(--tile-cell) * 3 + 2px);
-    height:calc(var(--tile-cell) * 3 + 2px);
-  }
-  .tg-garden-tools .gdn-utility-row button { min-height:20px; font-size:11px; }
+  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:32px; font-size:13px; }
 }
 
 /* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
 @media (max-width:819px), (orientation:portrait) {
   .tg-garden-desk {
-    grid-template-columns:minmax(0,.92fr) minmax(248px,1.08fr);
+    grid-template-columns:minmax(0,.92fr) minmax(256px,1.08fr);
     grid-template-rows:34px minmax(0,1fr);
   }
   .tg-garden-tabs {

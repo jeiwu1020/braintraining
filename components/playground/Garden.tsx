@@ -495,9 +495,24 @@ function GardenTable({
         <div className="gdn-seasons-panel" aria-label="四季規則與目前回合">
           <div className="gdn-panel-meta">
             <span className="gdn-base-rule">基礎：3連花・連泉徑 2分</span>
-            <span className="gdn-round-turn">
-              第 {Math.min(s.ply + 1, s.limit)}/{s.limit} 手 · {rotation * 90}°
-            </span>
+            <div className="gdn-mini-tools">
+              <button
+                type="button"
+                className="gdn-util-btn"
+                disabled={pending}
+                onClick={() => setCoords(true)}
+              >
+                座標
+              </button>
+              <button
+                type="button"
+                className="gdn-util-btn gdn-compare-btn"
+                disabled={pending}
+                onClick={() => setCompare(true)}
+              >
+                對照花園
+              </button>
+            </div>
           </div>
           <div className="gdn-seasons-grid">
             {SEASON_ORDER.map((id) => {
@@ -544,6 +559,14 @@ function GardenTable({
               {!all.some((a) => a.slot === i) && <small>無落點</small>}
             </button>
           ))}
+          <div className="gdn-next-card" aria-label="下張補牌預告">
+            <span className="gdn-next-tag">下張</span>
+            {s.deck[0] ? (
+              <MiniTile tile={s.deck[0]} />
+            ) : (
+              <span className="gdn-next-empty">最後</span>
+            )}
+          </div>
         </div>
         <div className={`gdn-status-box is-${statusTone}`} role="status">
           <p>{statusText}</p>
@@ -600,18 +623,7 @@ function GardenTable({
           {error ||
             `${String.fromCharCode(65 + selectedCell!.x)}${selectedCell!.y + 1} 可放`}
         </span>
-        <div className="gdn-utility-row">
-          <div className="gdn-next-chip" aria-label="下張補牌預告">
-            <span>下張</span>
-            {s.deck[0] && <MiniTile tile={s.deck[0]} />}
-          </div>
-          <button disabled={pending} onClick={() => setCoords(true)}>
-            座標
-          </button>
-          <button disabled={pending} onClick={() => setCompare(true)}>
-            對照花園
-          </button>
-        </div>
+
       </aside>
       {board("B", s.turn === "B")}
       {coords && (
@@ -780,7 +792,7 @@ export default function Garden({ onBack }: { onBack: () => void }) {
           <ol>
             <li>
               <strong>放置規則與公開「下張」：</strong>
-              每手從 3 塊公開地形選 1 塊，旋轉後放在不重疊且至少一邊緊鄰噴泉或自己已有板塊的位置。左下角會公開預告「下張」補牌，讓雙方都能預判搶牌與卡位。
+              每手從 3 塊公開地形選 1 塊，旋轉後放在不重疊且至少一邊緊鄰噴泉或自己已有板塊的位置。選牌區右側第 4 格會公開預告「下張」補牌，讓雙方都能預判搶牌與卡位。
             </li>
             <li>
               <strong>常駐基礎計分（每一手都算）：</strong>
