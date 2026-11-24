@@ -33,6 +33,9 @@ it("rotates in place, confirms inline without blocking modal, keeps A-left/B-rig
   );
   expect(boardsBefore).toEqual(["A", "B"]);
   expect(host.textContent).toContain("春季");
+  expect(host.textContent).toContain("夏季");
+  expect(host.textContent).toContain("秋季");
+  expect(host.textContent).toContain("冬季");
 
   act(() =>
     (

@@ -12,6 +12,7 @@ export interface SeasonInfo {
   title: string;
   bonus: number;
   headline: string;
+  compact: string;
   desc: string;
 }
 
@@ -23,6 +24,7 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "春季賞",
     bonus: 2,
     headline: "花朵挨著中央噴泉 ＋2分",
+    compact: "花朵靠噴泉",
     desc: "本手放的花有碰到噴泉 ＋2分",
   },
   summer: {
@@ -32,6 +34,7 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "夏季賞",
     bonus: 2,
     headline: "湊出 3 格以上同色花海 ＋2分",
+    compact: "3格同色花",
     desc: "本手湊出或擴大 ≥3格花海 ＋2分",
   },
   autumn: {
@@ -41,6 +44,7 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "秋季賞",
     bonus: 2,
     headline: "小徑連通中央噴泉 ＋2分",
+    compact: "小徑連噴泉",
     desc: "本手鋪出並延長連泉小徑 ＋2分",
   },
   winter: {
@@ -50,9 +54,12 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "冬季賞",
     bonus: 3,
     headline: "紅花海・金花海・連泉小徑齊備 ＋3分",
+    compact: "雙花海+連徑",
     desc: "三景齊全 ＋3分（每隊限領一次）",
   },
 };
+
+export const SEASON_ORDER: SeasonId[] = ["spring", "summer", "autumn", "winter"];
 
 export interface TileCell {
   x: number;
@@ -130,6 +137,13 @@ const SHAPES_3: [number, number][][] = [
   ],
 ];
 
+const SHAPES_2: [number, number][][] = [
+  [
+    [0, 0],
+    [1, 0],
+  ],
+];
+
 const SETS_4: Terrain[][] = [
   ["rose", "rose", "path", "path"],
   ["gold", "gold", "path", "path"],
@@ -148,10 +162,58 @@ const SETS_3: Terrain[][] = [
   ["path", "path", "rose"],
 ];
 
+const SETS_2: Terrain[][] = [
+  ["rose", "path"],
+  ["gold", "path"],
+  ["rose", "gold"],
+  ["rose", "rose"],
+  ["gold", "gold"],
+  ["path", "path"],
+];
+
+function shuffled<T>(items: T[], rng: () => number): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildTile(shapeSize: 2 | 3 | 4, shapeIdx: number, setIdx: number): TileCell[] {
+  const shapes = shapeSize === 4 ? SHAPES_4 : shapeSize === 3 ? SHAPES_3 : SHAPES_2;
+  const sets = shapeSize === 4 ? SETS_4 : shapeSize === 3 ? SETS_3 : SETS_2;
+  const shape = shapes[shapeIdx % shapes.length];
+  const kinds = sets[setIdx % sets.length];
+  return shape.map(([x, y], i) => ({ x, y, kind: kinds[i] }));
+}
+
+function buildBalancedWave(sizes: (2 | 3 | 4)[], rng: () => number): TileCell[][] {
+  const shapeOffsets = {
+    4: Math.floor(rng() * SHAPES_4.length),
+    3: Math.floor(rng() * SHAPES_3.length),
+    2: Math.floor(rng() * SHAPES_2.length),
+  };
+  const setOrders = {
+    4: shuffled([0, 1, 2, 3, 4, 5], rng),
+    3: shuffled([0, 1, 2, 3, 4, 5], rng),
+    2: shuffled([0, 1, 2, 3, 4, 5], rng),
+  };
+  const counts = { 4: 0, 3: 0, 2: 0 };
+  const wave = sizes.map((sz) => {
+    const idx = counts[sz]++;
+    return buildTile(
+      sz,
+      shapeOffsets[sz] + idx,
+      setOrders[sz][idx % setOrders[sz].length],
+    );
+  });
+  return shuffled(wave, rng);
+}
+
 export function currentSeason(s: Pick<GardenState, "ply" | "limit">): SeasonInfo {
-  const order: SeasonId[] = ["spring", "summer", "autumn", "winter"];
   const idx = Math.min(3, Math.floor((s.ply / Math.max(1, s.limit)) * 4));
-  return SEASONS[order[idx]];
+  return SEASONS[SEASON_ORDER[idx]];
 }
 
 export function createGarden(
@@ -163,15 +225,37 @@ export function createGarden(
     size = level === "normal" ? 5 : 6,
     limit = level === "normal" ? 8 : 16;
 
-  const deck = Array.from({ length: limit + 3 }, (_, idx) => {
-    const useThree =
-      level === "normal" ? idx >= limit - 1 : rng() < 0.35 || idx >= limit - 2;
-    const shapes = useThree ? SHAPES_3 : SHAPES_4;
-    const sets = useThree ? SETS_3 : SETS_4;
-    const shape = shapes[Math.floor(rng() * shapes.length)];
-    const kinds = sets[Math.floor(rng() * sets.length)];
-    return shape.map(([x, y], i) => ({ x, y, kind: kinds[i] }));
-  });
+  // Curated, balanced-bag deck so both teams see fair color/path/shape mixes
+  // and late-game 2-cell precision tiles prevent dead-end board lockups.
+  let deck: TileCell[][];
+  if (level === "normal") {
+    // 11 tiles total (3 opening + 8 draws): balanced Rose, Gold, Path + 4/3/2 sizes
+    const opening = shuffled(
+      [
+        buildTile(4, Math.floor(rng() * SHAPES_4.length), 0), // rose+rose+path+path
+        buildTile(4, Math.floor(rng() * SHAPES_4.length) + 1, 1), // gold+gold+path+path
+        buildTile(3, 0, 2), // L3 rose+gold+path
+      ],
+      rng,
+    );
+    const body = buildBalancedWave([4, 4, 3, 3, 3, 2, 2, 4], rng);
+    deck = [...opening, ...body];
+  } else {
+    // 19 tiles total (3 opening + 16 draws):
+    // Opening (3) + Early/Mid wave (8 of 4/3-cell) + Late precision wave (8 of 3/2-cell)
+    const opening = shuffled(
+      [
+        buildTile(4, Math.floor(rng() * SHAPES_4.length), 0),
+        buildTile(4, Math.floor(rng() * SHAPES_4.length) + 2, 1),
+        buildTile(3, 0, 2),
+      ],
+      rng,
+    );
+    const earlyWave = buildBalancedWave([4, 4, 4, 4, 3, 3, 3, 3], rng);
+    const midWave = buildBalancedWave([3, 3, 2, 2], rng);
+    const endWave = buildBalancedWave([2, 2, 2, 2], rng);
+    deck = [...opening, ...earlyWave, ...midWave, ...endWave];
+  }
 
   const makeBoard = () => {
     const b: (CellTerrain | null)[] = Array(size * size).fill(null);
@@ -313,6 +397,7 @@ export function gardenHighlights(
       for (const i of group) doubledFlowers.add(i);
     }
   }
+
   return {
     doubledFlowers,
     connectedPaths,

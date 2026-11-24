@@ -110,3 +110,16 @@ it("rejects passing when a legal placement exists and allows discard only when b
   expect(n.ply).toBe(1);
   expect(n.turn).toBe("B");
 });
+
+it("completes 40 normal and advanced games without deadlocking on late placements", () => {
+  for (const level of ["normal", "advanced"] as const) {
+    for (let seed = 0; seed < 40; seed++) {
+      let s = createGarden(seed, level, "A");
+      while (s.phase !== "finished") {
+        const opts = placements(s);
+        expect(opts.length).toBeGreaterThan(0);
+        s = applyGarden(s, opts[(seed * 19 + s.ply * 11) % opts.length]);
+      }
+    }
+  }
+});

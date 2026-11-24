@@ -7,6 +7,8 @@ import {
   GardenState,
   GardenAction,
   CellTerrain,
+  SEASONS,
+  SEASON_ORDER,
   currentSeason,
   rotated,
   placementError,
@@ -490,17 +492,36 @@ function GardenTable({
       </div>
       {board("A", s.turn === "A")}
       <aside className="tg-garden-tools pg-paper" aria-label="造園工作檯">
-        <div
-          className={`gdn-round-rule season-${season.id}`}
-          aria-label="本回合規則"
-        >
-          <div className="gdn-round-meta">
-            <span className="gdn-round-season">{season.name}</span>
+        <div className="gdn-seasons-panel" aria-label="四季規則與目前回合">
+          <div className="gdn-panel-meta">
+            <span className="gdn-base-rule">基礎：3連花・連泉徑 2分/格</span>
             <span className="gdn-round-turn">
               第 {Math.min(s.ply + 1, s.limit)}/{s.limit} 手 · {rotation * 90}°
             </span>
           </div>
-          <strong className="gdn-round-headline">{season.headline}</strong>
+          <div className="gdn-seasons-grid">
+            {SEASON_ORDER.map((id) => {
+              const info = SEASONS[id];
+              const isCurrent = season.id === id;
+              const isPast =
+                SEASON_ORDER.indexOf(id) < SEASON_ORDER.indexOf(season.id);
+              return (
+                <div
+                  key={id}
+                  className={`gdn-season-card season-${id} ${isCurrent ? "is-current" : ""} ${isPast ? "is-past" : ""}`}
+                  aria-current={isCurrent ? "step" : undefined}
+                >
+                  <div className="gdn-season-top">
+                    <span className="gdn-season-name">
+                      {info.name} ＋{info.bonus}
+                    </span>
+                    {isCurrent && <em className="gdn-season-now">本回</em>}
+                  </div>
+                  <strong className="gdn-season-rule">{info.compact}</strong>
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="tg-tile-market">
           {s.market.map((tile, i) => (
@@ -739,18 +760,18 @@ export default function Garden({ onBack }: { onBack: () => void }) {
         `${currentSeason(s).name}・第 ${Math.min(s.ply + 1, s.limit)}/${s.limit} 手・輪到 ${s.turn} 隊`
       }
       steps={[
-        "每手選一塊地形板，旋轉後緊鄰中央噴泉或自己花園放下。",
+        "牌庫配比均衡，後段會出現 2 格小板塊方便收尾填縫，順暢不卡關。",
         "同色花連滿3格成花海（每格2分），小徑連到噴泉也變每格2分。",
         "達成操作面板上顯示的「當季目標」再拿季節賞，總分高者獲勝。",
       ]}
       demo={[
-        "操作面板會用大字直接提示這一手的季節目標，不用死背規則。",
+        "操作區常駐顯示四季完整目標，方便提前規劃花海與小徑走線。",
         "開局正中央皆有噴泉，沒有空洞扣分，輕鬆規劃花海與小徑。",
       ]}
       rules={
         <>
           <p>
-            兩隊輪流造園，A 隊在左、B 隊在右；雙方正中央皆預設一座「噴泉」。一般 5×5 共 8 手（春・夏・秋・冬各 1 輪），進階 6×6 共 16 手（每季 2 輪）。
+            兩隊輪流造園，A 隊在左、B 隊在右；雙方正中央皆預設一座「噴泉」。一般 5×5 共 8 手（春・夏・秋・冬各 1 輪），進階 6×6 共 16 手（每季 2 輪），牌庫採均衡配比並於後段加入 2 格小板塊以降低運氣並避免卡關。
           </p>
           <ol>
             <li>

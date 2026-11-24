@@ -191,57 +191,103 @@
   box-shadow:0 8px 22px #05130f3d;
   color:#1f352b;
   display:grid;
-  grid-template-rows:78px auto 46px 80px 34px;
+  grid-template-rows:118px auto 44px 72px 34px;
   align-content:center;
-  gap:9px;
-  padding:12px;
+  gap:8px;
+  padding:11px 12px;
   min-width:0;
   min-height:0;
 }
 
-/* Prominent big-typography round rule card */
-.gdn-round-rule {
+/* All-4-seasons overview grid + active season highlight */
+.gdn-seasons-panel {
   display:flex;
   flex-direction:column;
-  justify-content:center;
-  gap:4px;
-  height:78px;
-  padding:8px 12px;
-  border-radius:12px;
-  border:1.5px solid transparent;
-  overflow:hidden;
+  gap:5px;
+  height:118px;
+  min-width:0;
 }
-.gdn-round-rule.season-spring { background:#fceef1; border-color:#e5a8b7; color:#772137; }
-.gdn-round-rule.season-summer { background:#fef4dc; border-color:#e6c274; color:#6d4409; }
-.gdn-round-rule.season-autumn { background:#fbeee6; border-color:#e2ac91; color:#723117; }
-.gdn-round-rule.season-winter { background:#eaf3f8; border-color:#a3cae0; color:#18485f; }
-.gdn-round-meta {
+.gdn-panel-meta {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:8px;
-  line-height:1;
+  gap:6px;
+  height:18px;
+  font-size:12px;
+  font-weight:700;
+  color:#314d3f;
+  white-space:nowrap;
+  overflow:hidden;
 }
-.gdn-round-season {
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:.04em;
+.gdn-base-rule {
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .gdn-round-turn {
-  font-size:13px;
-  font-weight:700;
-  opacity:.85;
+  flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+  color:#486355;
+}
+.gdn-seasons-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:5px;
+  flex:1;
+  min-height:0;
+}
+.gdn-season-card {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:1px;
+  padding:4px 8px;
+  border-radius:9px;
+  border:1.5px solid #d5ddd0;
+  background:#f2f5ee;
+  color:#2b4437;
+  min-width:0;
+  overflow:hidden;
+}
+.gdn-season-card.is-past { opacity:.6; }
+.gdn-season-card.is-current.season-spring { background:#fceef1; border-color:#d6607d; color:#772137; box-shadow:0 2px 6px #d6607d24; }
+.gdn-season-card.is-current.season-summer { background:#fef4dc; border-color:#d4961c; color:#6d4409; box-shadow:0 2px 6px #d4961c24; }
+.gdn-season-card.is-current.season-autumn { background:#fbeee6; border-color:#c96839; color:#723117; box-shadow:0 2px 6px #c9683924; }
+.gdn-season-card.is-current.season-winter { background:#eaf3f8; border-color:#3d84a6; color:#18485f; box-shadow:0 2px 6px #3d84a624; }
+.gdn-season-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+  line-height:1;
+}
+.gdn-season-name {
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
   font-variant-numeric:tabular-nums;
 }
-.gdn-round-headline {
-  font-size:19px;
+.gdn-season-now {
+  font-style:normal;
+  font-size:10px;
   font-weight:800;
-  line-height:1.22;
-  letter-spacing:-0.01em;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
+  padding:1px 5px;
+  border-radius:4px;
+  color:#ffffff;
+  background:#1f5e4b;
+  flex-shrink:0;
+}
+.season-spring .gdn-season-now { background:#c74868; }
+.season-summer .gdn-season-now { background:#b87b12; }
+.season-autumn .gdn-season-now { background:#b55427; }
+.season-winter .gdn-season-now { background:#2c7191; }
+.gdn-season-rule {
+  font-size:16px;
+  font-weight:800;
+  line-height:1.15;
+  white-space:nowrap;
   overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .tg-garden-tools .tg-tile-market { gap:8px; }
@@ -397,10 +443,10 @@
 
 /* Short landscape (mobile phones in landscape, <= 600px height): lock every slot height so nothing pushes */
 @media (orientation:landscape) and (max-height:600px) {
-  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:40px; padding:0 6px; }
+  .tg-shell.tg-garden.tg-live .game-shell__header { min-height:38px; padding:0 6px; }
   .tg-garden.tg-live .game-shell__header h1 { font-size:17px; }
   .tg-garden.tg-live .game-shell__header p { font-size:13px; }
-  .tg-garden.tg-live .tg-session { padding:4px 8px; }
+  .tg-garden.tg-live .tg-session { padding:3px 8px; }
   .tg-garden-desk { gap:4px 8px; }
   .tg-garden-desk .tg-garden-block {
     grid-template-rows:26px minmax(0,1fr);
@@ -416,28 +462,27 @@
     padding:0 7px;
   }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:54px auto 34px 40px 28px;
+    grid-template-rows:86px auto 32px 38px 26px;
     align-content:space-between;
     gap:4px;
     padding:5px 7px;
     border-radius:12px;
   }
-  .gdn-round-rule {
-    height:54px;
-    padding:4px 9px;
-    gap:2px;
-    border-radius:9px;
-  }
-  .gdn-round-season, .gdn-round-turn { font-size:11px; }
-  .gdn-round-headline { font-size:15px; line-height:1.2; }
+  .gdn-seasons-panel { height:86px; gap:3px; }
+  .gdn-panel-meta { height:16px; font-size:11px; }
+  .gdn-seasons-grid { gap:4px; }
+  .gdn-season-card { padding:2px 6px; border-radius:7px; gap:0; }
+  .gdn-season-name { font-size:10px; }
+  .gdn-season-now { font-size:9px; padding:0 4px; }
+  .gdn-season-rule { font-size:13px; line-height:1.15; }
   .tg-garden-tools .tg-tile-market { gap:6px; }
-  .tg-garden-tools .tg-mini-tile { --tile-cell:16px; height:52px; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell:15px; height:48px; }
   .tg-garden-tools .tg-tile-market button { padding:3px 2px; border-radius:9px; }
   .tg-garden-tools .tg-tile-market button > b { font-size:11px; padding:1px 5px; }
-  .gdn-status-box { height:34px; padding:2px 8px; }
-  .gdn-status-box p { font-size:13px; line-height:1.15; }
-  .gdn-action-slot { height:40px; }
-  .gdn-main-actions button { min-height:36px; padding:4px 6px; font-size:14px; }
+  .gdn-status-box { height:32px; padding:2px 8px; }
+  .gdn-status-box p { font-size:12px; line-height:1.15; }
+  .gdn-action-slot { height:38px; }
+  .gdn-main-actions button { min-height:34px; padding:4px 6px; font-size:14px; }
   .tg-garden-tools .tg-inline-confirm {
     padding:0;
     border:0;
@@ -452,37 +497,40 @@
     margin:0;
   }
   .tg-garden-tools .tg-inline-confirm .pg-choice button {
-    min-height:36px;
+    min-height:34px;
     padding:4px 8px;
     font-size:14px;
   }
-  .gdn-utility-row { height:28px; }
+  .gdn-utility-row { height:26px; }
   .tg-garden-tools .gdn-utility-row button {
-    min-height:26px;
+    min-height:24px;
     padding:2px 6px;
     font-size:12px;
   }
 }
 
 @media (orientation:landscape) and (max-height:340px) {
-  .tg-garden.tg-live .tg-session { padding:3px 6px; }
+  .tg-garden.tg-live .tg-session { padding:2px 6px; }
   .tg-garden-desk { gap:4px 6px; }
   .tg-garden-desk .tg-garden-block { padding:4px 6px; }
   .tg-garden-tools.pg-paper {
-    grid-template-rows:46px auto 30px 36px 24px;
+    grid-template-rows:72px auto 28px 34px 22px;
     gap:3px;
     padding:4px 5px;
   }
-  .gdn-round-rule { height:46px; padding:3px 8px; gap:1px; }
-  .gdn-round-headline { font-size:14px; line-height:1.15; }
-  .tg-garden-tools .tg-mini-tile { --tile-cell:14px; height:44px; }
-  .gdn-status-box { height:30px; }
-  .gdn-status-box p { font-size:12px; }
-  .gdn-action-slot { height:36px; }
+  .gdn-seasons-panel { height:72px; gap:2px; }
+  .gdn-panel-meta { height:14px; font-size:10px; }
+  .gdn-seasons-grid { gap:3px; }
+  .gdn-season-card { padding:1px 5px; }
+  .gdn-season-rule { font-size:12px; }
+  .tg-garden-tools .tg-mini-tile { --tile-cell:13px; height:42px; }
+  .gdn-status-box { height:28px; }
+  .gdn-status-box p { font-size:11px; }
+  .gdn-action-slot { height:34px; }
   .gdn-main-actions button,
-  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:32px; font-size:13px; }
-  .gdn-utility-row { height:24px; }
-  .tg-garden-tools .gdn-utility-row button { min-height:22px; font-size:11px; }
+  .tg-garden-tools .tg-inline-confirm .pg-choice button { min-height:30px; font-size:13px; }
+  .gdn-utility-row { height:22px; }
+  .tg-garden-tools .gdn-utility-row button { min-height:20px; font-size:11px; }
 }
 
 /* Narrow landscape (< 820px) or portrait: fixed left-A / right-B tab bar + active view */
