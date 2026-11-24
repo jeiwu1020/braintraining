@@ -44,6 +44,18 @@ it("rotates in place, confirms inline without blocking modal, keeps A-left/B-rig
   );
   click("旋轉90°");
   expect(host.querySelectorAll(".tg-ghost").length).toBeGreaterThan(0);
+  // Switching to option 2 must NOT auto-rotate option 2; slot 1 keeps its own 90° rotation independently
+  click("選地形2");
+  act(() => {
+    const v2 = host.querySelector('[data-valid-anchor="true"]') as HTMLButtonElement;
+    if (v2) v2.click();
+  });
+  if (host.querySelector('[data-valid-anchor="true"]')) {
+    click("放置地形");
+    expect(host.querySelector(".tg-inline-confirm")?.textContent).toContain("（0°）");
+    click("取消選擇");
+  }
+  click("選地形1");
   act(() => {
     const v = host.querySelector('[data-valid-anchor="true"]') as HTMLButtonElement;
     if (v) v.click();

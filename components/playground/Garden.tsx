@@ -285,17 +285,18 @@ function GardenTable({
   confirmation,
 }: TableContext<GardenState, GardenAction>) {
   const [slot, setSlot] = useState(0),
-    [rotation, setRotation] = useState(0),
+    [rotations, setRotations] = useState<[number, number, number]>([0, 0, 0]),
     [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(
       null,
     ),
     [viewedTeam, setViewedTeam] = useState<"A" | "B">(s.turn),
     [compare, setCompare] = useState(false),
     [coords, setCoords] = useState(false);
+  const rotation = rotations[slot] ?? 0;
 
   useEffect(() => {
     setSlot(0);
-    setRotation(0);
+    setRotations([0, 0, 0]);
     setSelectedCell(null);
     setViewedTeam(s.turn);
   }, [s.ply, s.turn]);
@@ -555,7 +556,7 @@ function GardenTable({
                 {slot === i ? "✓ " : ""}
                 {i + 1}
               </b>
-              <MiniTile tile={tile} rotation={slot === i ? rotation : 0} />
+              <MiniTile tile={tile} rotation={rotations[i] ?? 0} />
               {!all.some((a) => a.slot === i) && <small>無落點</small>}
             </button>
           ))}
@@ -579,7 +580,11 @@ function GardenTable({
               <button
                 disabled={pending}
                 onClick={() => {
-                  setRotation((rotation + 1) % 4);
+                  setRotations((prev) => {
+                    const next: [number, number, number] = [prev[0], prev[1], prev[2]];
+                    next[slot] = ((next[slot] ?? 0) + 1) % 4;
+                    return next;
+                  });
                   setViewedTeam(s.turn);
                 }}
               >

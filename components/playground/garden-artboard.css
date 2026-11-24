@@ -317,8 +317,10 @@
 }
 .tg-shell.tg-garden .tg-tile-market button,
 .tg-shell.tg-garden .tg-tile-market .gdn-next-card {
+  box-sizing:border-box;
+  overflow:hidden;
   border-radius:12px;
-  padding:4px 2px;
+  padding:4px 3px;
   width:100%;
   height:100%;
   min-width:0;
@@ -380,7 +382,8 @@
 }
 
 .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-  --tile-cell:clamp(18px,min(calc((100cqw - 36px) / 12),calc((100cqh - 28px) / 3)),38px);
+  --tile-cell:clamp(12px,min(calc((100cqw - 68px) / 12),calc((100cqh - 42px) / 3)),38px);
+  box-sizing:border-box;
   gap:2px;
   width:calc(var(--tile-cell) * 3 + 4px);
   height:calc(var(--tile-cell) * 3 + 4px);
@@ -390,6 +393,7 @@
   flex-shrink:0;
 }
 .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile > div {
+  box-sizing:border-box;
   width:var(--tile-cell);
   height:var(--tile-cell);
   background:#ffffff;
@@ -568,7 +572,7 @@
     font-size:12.5px;
   }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(22px,min(calc((100cqw - 44px) / 12),calc((100cqh - 36px) / 3)),60px);
+    --tile-cell:clamp(14px,min(calc((100cqw - 78px) / 12),calc((100cqh - 48px) / 3)),56px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
@@ -651,7 +655,7 @@
   .gdn-season-rule { font-size:clamp(12.5px,3.4vh,15px); line-height:1.16; }
   .tg-shell.tg-garden .tg-garden-tools .tg-tile-market { gap:4px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(16px,min(calc((100cqw - 28px) / 12),calc((100cqh - 24px) / 3)),34px);
+    --tile-cell:clamp(11px,min(calc((100cqw - 58px) / 12),calc((100cqh - 32px) / 3)),32px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
@@ -710,7 +714,7 @@
   .tg-shell.tg-garden .tg-tile-market button > b,
   .gdn-next-tag { font-size:10px; padding:1px 4px; }
   .tg-shell.tg-garden .tg-garden-tools .tg-mini-tile {
-    --tile-cell:clamp(13px,min(calc((100cqw - 26px) / 12),calc((100cqh - 20px) / 3)),26px);
+    --tile-cell:clamp(9px,min(calc((100cqw - 54px) / 12),calc((100cqh - 28px) / 3)),24px);
     width:calc(var(--tile-cell) * 3 + 4px);
     height:calc(var(--tile-cell) * 3 + 4px);
   }
