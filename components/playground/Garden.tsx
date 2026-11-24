@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableGame, { TableContext } from "./TableGame";
-import { tableAction } from "./tableReview";
 import "./garden-artboard.css";
 import { Modal } from "./Common";
 import {
@@ -13,8 +12,8 @@ import {
   placementError,
   placements,
   resolveCellAnchor,
-  scoreGarden,
   teamScore,
+  formatGardenDelta,
   gardenHighlights,
   applyGarden,
   createGarden,
@@ -172,7 +171,6 @@ export function GardenArt() {
         </linearGradient>
       </defs>
       <rect x="0" y="0" width="500" height="280" rx="22" fill="url(#gdnBg)" />
-      {/* Architectural garden terrace */}
       <rect
         x="34"
         y="24"
@@ -181,7 +179,6 @@ export function GardenArt() {
         rx="20"
         fill="url(#gdnLawn)"
       />
-      {/* Diagonal modern stone path */}
       <path
         d="M52 192 C140 192, 180 128, 250 128 C320 128, 360 64, 448 64"
         fill="none"
@@ -200,12 +197,10 @@ export function GardenArt() {
           fill="#9cb0a6"
         />
       ))}
-      {/* Botanical canopies */}
       <circle cx="110" cy="86" r="42" fill="#d9eadc" />
       <circle cx="102" cy="82" r="24" fill="#6ca380" opacity="0.35" />
       <circle cx="390" cy="176" r="44" fill="#fbe8df" />
       <circle cx="396" cy="174" r="24" fill="#e45d56" opacity="0.25" />
-      {/* Coral & Gold flower clusters */}
       {[
         [86, 76, "#e45d56", "#fff1cf"],
         [124, 68, "#f07b72", "#fff1cf"],
@@ -246,7 +241,6 @@ export function GardenArt() {
           <circle r="4.5" fill="#70441f" />
         </g>
       ))}
-      {/* Central modern fountain */}
       <circle cx="250" cy="128" r="36" fill="#2a7f8e" />
       <circle cx="250" cy="128" r="27" fill="#46aebf" />
       <circle
@@ -258,7 +252,6 @@ export function GardenArt() {
         strokeWidth="2.5"
       />
       <circle cx="250" cy="128" r="8" fill="#ffffff" />
-      {/* Four seasons ribbon */}
       {[
         ["#e06d88", "春"],
         ["#d99326", "夏"],
@@ -316,7 +309,7 @@ function GardenTable({
     : null;
   const error = action
     ? placementError(s, action)
-    : "點花園格子，即可直接預覽落點";
+    : "點花園格子預覽落點";
 
   const scores = {
     A: teamScore(s, "A"),
@@ -339,14 +332,18 @@ function GardenTable({
       }))
     : [];
 
+  const previewDelta = preview
+    ? `${formatGardenDelta(scores[s.turn], previewScores[s.turn])}${preview.lastSeasonAward ? ` · 達成${preview.lastSeasonAward.title}` : ""}`
+    : "";
+
   const statusText = pending
     ? all.length === 0
       ? `確認：${s.turn}隊本手略過？`
-      : preview && action
-        ? `確認：${tableAction("garden", s, action, preview)}`
+      : preview
+        ? `確認：${previewDelta}`
         : "請確認這次放置"
-    : preview && action
-      ? `${tableAction("garden", s, action, preview)}${preview.lastSeasonAward ? `（達成${preview.lastSeasonAward.title}）` : ""}`
+    : preview
+      ? previewDelta
       : error;
 
   const statusTone = pending
@@ -364,7 +361,6 @@ function GardenTable({
     const baseScore = scores[team].total;
     const nextScore = previewScores[team].total;
     const delta = nextScore - baseScore;
-    const shownScore = previewScores[team];
 
     return (
       <section
@@ -398,11 +394,6 @@ function GardenTable({
             <span className="gdn-wait-pill">待命中</span>
           )}
         </div>
-        <p className="tg-garden-tally">
-          花圃 {shownScore.flowers} · 小徑 {shownScore.paths}
-          {shownScore.fertile ? ` · 沃土 ${shownScore.fertile}` : ""}
-          {shownScore.season ? ` · 季節 ${shownScore.season}` : ""}
-        </p>
         <div className="tg-grid-wrap">
           <div
             className="tg-coordinate-board"
@@ -422,7 +413,6 @@ function GardenTable({
                     ghostCell = active
                       ? ghost.find((c) => c.x === x && c.y === y)
                       : null;
-                  const isFertile = s.fertile.includes(idx);
                   const cellCheck = active
                     ? resolveCellAnchor(s, slot, rotation, x, y)
                     : null;
@@ -435,10 +425,6 @@ function GardenTable({
                   const inside =
                     kind || ghostCell ? (
                       <TerrainMark kind={kind || ghostCell!.kind} />
-                    ) : isFertile ? (
-                      <span className="gdn-fertile-mark" title="向陽沃土：蓋上額外 +2 分">
-                        ★+2
-                      </span>
                     ) : null;
 
                   if (kind === "fountain" || !active) {
@@ -447,7 +433,6 @@ function GardenTable({
                         className="tg-garden-cell"
                         data-terrain={kind || ""}
                         data-bonus={bonus}
-                        data-fertile={isFertile ? "true" : undefined}
                         key={x}
                       >
                         {inside}
@@ -462,7 +447,6 @@ function GardenTable({
                       data-valid-anchor={valid}
                       data-terrain={kind || ghostCell?.kind || ""}
                       data-bonus={bonus}
-                      data-fertile={isFertile ? "true" : undefined}
                       aria-pressed={
                         selectedCell?.x === x && selectedCell?.y === y
                       }
@@ -506,12 +490,17 @@ function GardenTable({
       </div>
       {board("A", s.turn === "A")}
       <aside className="tg-garden-tools pg-paper" aria-label="造園工作檯">
-        <div className={`gdn-season-bar season-${season.id}`}>
-          <span className="gdn-season-tag">{season.name}</span>
-          <b className="gdn-season-goal">{season.desc}</b>
-          <span className="gdn-turn-count">
-            {rotation * 90}° · {Math.min(s.ply + 1, s.limit)}/{s.limit}
-          </span>
+        <div
+          className={`gdn-round-rule season-${season.id}`}
+          aria-label="本回合規則"
+        >
+          <div className="gdn-round-meta">
+            <span className="gdn-round-season">{season.name}</span>
+            <span className="gdn-round-turn">
+              第 {Math.min(s.ply + 1, s.limit)}/{s.limit} 手 · {rotation * 90}°
+            </span>
+          </div>
+          <strong className="gdn-round-headline">{season.headline}</strong>
         </div>
         <div className="tg-tile-market">
           {s.market.map((tile, i) => (
@@ -583,33 +572,23 @@ function GardenTable({
                   放置地形
                 </button>
               )}
-              <button
-                className="gdn-coordinates-toggle"
-                disabled={pending}
-                onClick={() => setCoords(true)}
-              >
-                座標
-              </button>
             </div>
           )}
         </div>
         <span className="sr-only" role="status">
           {error ||
-            `${String.fromCharCode(65 + selectedCell!.x)}${selectedCell!.y + 1} 可放 · 虛線為預覽`}
+            `${String.fromCharCode(65 + selectedCell!.x)}${selectedCell!.y + 1} 可放`}
         </span>
-        <div className="tg-garden-comparison">
-          <span>
-            A隊 <b>{scores.A.total}</b> 分 · B隊 <b>{scores.B.total}</b> 分
-          </span>
+        <div className="gdn-utility-row">
+          <button disabled={pending} onClick={() => setCoords(true)}>
+            座標
+          </button>
           <button disabled={pending} onClick={() => setCompare(true)}>
             對照花園
           </button>
         </div>
       </aside>
       {board("B", s.turn === "B")}
-      <p className="tg-desk-note">
-        花海≥3格每格2分 · 連通噴泉小徑每格2分 · 達成季節賞再加分
-      </p>
       {coords && (
         <Modal title="座標輔助選擇" onClose={() => setCoords(false)}>
           <p>也可直接點花園空格選落點。系統會自動把選中地形對齊到該格。</p>
@@ -687,7 +666,7 @@ function GardenLesson() {
   return (
     <section className="tg-demo tg-real-lesson">
       <h3>操作練習：從中央噴泉開始造園</h3>
-      <p>雙方開局正中央都有「噴泉」。綠框代表這次的合法接續位置。</p>
+      <p>雙方開局正中央都有「噴泉」，緊鄰噴泉即可展開造園。</p>
       <div className="tg-lesson-garden">
         <div className="tg-lesson-grid">
           {s.boards.A.map((kind, i) => {
@@ -757,48 +736,34 @@ export default function Garden({ onBack }: { onBack: () => void }) {
       art={<GardenArt />}
       tutorial={<GardenLesson />}
       summary={(s) =>
-        `${currentSeason(s).name}造園・第 ${Math.min(s.ply + 1, s.limit)} / ${s.limit} 手・輪到 ${s.turn} 隊`
+        `${currentSeason(s).name}・第 ${Math.min(s.ply + 1, s.limit)}/${s.limit} 手・輪到 ${s.turn} 隊`
       }
       steps={[
-        "每手從三塊地形板選一塊，旋轉後緊鄰「中央噴泉」或自己花園放下。",
+        "每手選一塊地形板，旋轉後緊鄰中央噴泉或自己花園放下。",
         "同色花連滿3格成花海（每格2分），小徑連到噴泉也變每格2分。",
-        "依循春・夏・秋・冬當季目標拿季節賞（+2~+3分），總分高者獲勝。",
+        "達成操作面板上顯示的「當季目標」再拿季節賞，總分高者獲勝。",
       ]}
       demo={[
-        "開局兩隊花園中央都有噴泉，不需盲選第一格。",
-        "春花迎泉、盛夏成海、秋徑通幽、冬日滿庭，四季各有額外加分！",
-        "完全沒有扣分規則，專心規劃連通與搶奪當季好板塊。",
+        "操作面板會用大字直接提示這一手的季節目標，不用死背規則。",
+        "開局正中央皆有噴泉，沒有空洞扣分，輕鬆規劃花海與小徑。",
       ]}
       rules={
         <>
           <p>
-            兩隊輪流造園，A 隊花園固定在左，B 隊在右；雙方正中央皆預設一座「噴泉」。一般 5×5 花園依序經歷<strong>春・夏・秋・冬</strong>各 1 輪（共 8 手）；進階 6×6 每季 2 輪（共 16 手），並新增 2 格「★+2 沃土」。
+            兩隊輪流造園，A 隊在左、B 隊在右；雙方正中央皆預設一座「噴泉」。一般 5×5 共 8 手（春・夏・秋・冬各 1 輪），進階 6×6 共 16 手（每季 2 輪）。
           </p>
           <ol>
             <li>
               <strong>選板與接續：</strong>
-              每手從 3 塊公開地形選 1 塊，可旋轉 0°／90°／180°／270°；放置時不能蓋住噴泉或原有地形，且至少一邊要接到噴泉或自己的花園。
+              每手從 3 塊地形選 1 塊，可旋轉方向；放入時不能重疊，且至少一邊要接到噴泉或自己已放的地形。
             </li>
             <li>
-              <strong>花海成群（≥3格）：</strong>
-              珊瑚花或金陽花上下左右連成 3 格以上，每格 2 分；不足 3 格每格 1 分。
+              <strong>花海與小徑計分：</strong>
+              珊瑚花或金陽花相連 ≥3 格每格 2 分（未滿 3 格每格 1 分）；石板小徑連通中央噴泉每格 2 分（未連通每格 1 分）。
             </li>
             <li>
-              <strong>小徑連泉：</strong>
-              石板小徑每格 1 分；只要整條連通到中央噴泉，該條小徑每格變 2 分。
-            </li>
-            <li>
-              <strong>四季當令賞（每季不同小目標）：</strong>
-              <ul>
-                <li>春季「春花迎泉」：花朵緊鄰中央噴泉 ＋2 分</li>
-                <li>夏季「盛夏成海」：湊出或擴大 ≥3 格花海 ＋2 分</li>
-                <li>秋季「秋徑通幽」：鋪設並延長連泉小徑 ＋2 分</li>
-                <li>冬季「冬日滿庭」：紅花海、金花海、連泉小徑三景齊備 ＋3 分（每隊限領一次）</li>
-              </ul>
-            </li>
-            <li>
-              <strong>無扣分決勝：</strong>
-              無任何空洞扣分。三塊板全無落點時才略過本手；總分高者獲勝，同分共同獲勝。
+              <strong>四季目標（每季大字提示）：</strong>
+              春季花朵挨著噴泉 ＋2 分；夏季湊出 ≥3 格同色花海 ＋2 分；秋季小徑連通噴泉 ＋2 分；冬季紅花海・金花海・連泉小徑齊備 ＋3 分（每隊限領一次）。
             </li>
           </ol>
         </>
@@ -813,7 +778,6 @@ export default function Garden({ onBack }: { onBack: () => void }) {
                   {t}隊 {v.total} 分
                 </b>
                 ：花圃 {v.flowers} ＋ 小徑 {v.paths}
-                {v.fertile ? ` ＋ 沃土 ${v.fertile}` : ""}
                 {v.season ? ` ＋ 季節賞 ${v.season}` : ""}
               </p>
             );

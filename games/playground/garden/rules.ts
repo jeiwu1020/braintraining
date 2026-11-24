@@ -11,6 +11,7 @@ export interface SeasonInfo {
   short: string;
   title: string;
   bonus: number;
+  headline: string;
   desc: string;
 }
 
@@ -19,33 +20,37 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     id: "spring",
     name: "春季",
     short: "春",
-    title: "春花迎泉",
+    title: "春季賞",
     bonus: 2,
-    desc: "花朵挨著噴泉種 ＋2分",
+    headline: "花朵挨著中央噴泉 ＋2分",
+    desc: "本手放的花有碰到噴泉 ＋2分",
   },
   summer: {
     id: "summer",
     name: "夏季",
     short: "夏",
-    title: "盛夏成海",
+    title: "夏季賞",
     bonus: 2,
-    desc: "湊出或擴大 ≥3格花海 ＋2分",
+    headline: "湊出 3 格以上同色花海 ＋2分",
+    desc: "本手湊出或擴大 ≥3格花海 ＋2分",
   },
   autumn: {
     id: "autumn",
     name: "秋季",
     short: "秋",
-    title: "秋徑通幽",
+    title: "秋季賞",
     bonus: 2,
-    desc: "鋪設並延長連泉小徑 ＋2分",
+    headline: "小徑連通中央噴泉 ＋2分",
+    desc: "本手鋪出並延長連泉小徑 ＋2分",
   },
   winter: {
     id: "winter",
     name: "冬季",
     short: "冬",
-    title: "冬日滿庭",
+    title: "冬季賞",
     bonus: 3,
-    desc: "紅花海・金花海・連泉小徑齊備 ＋3分",
+    headline: "紅花海・金花海・連泉小徑齊備 ＋3分",
+    desc: "三景齊全 ＋3分（每隊限領一次）",
   },
 };
 
@@ -65,7 +70,6 @@ export interface GardenState {
   size: number;
   ply: number;
   limit: number;
-  fertile: number[];
   boards: Record<Team, (CellTerrain | null)[]>;
   seasonBonuses: Record<Team, number>;
   winterClaimed: Record<Team, boolean>;
@@ -171,12 +175,10 @@ export function createGarden(
 
   const makeBoard = () => {
     const b: (CellTerrain | null)[] = Array(size * size).fill(null);
-    const center = level === "normal" ? 2 * size + 2 : 2 * size + 2;
+    const center = 2 * size + 2;
     b[center] = "fountain";
     return b;
   };
-
-  const fertile = level === "advanced" ? [1 * size + 1, 4 * size + 4] : [];
 
   return {
     phase: "playing",
@@ -184,7 +186,6 @@ export function createGarden(
     size,
     ply: 0,
     limit,
-    fertile,
     boards: {
       A: makeBoard(),
       B: makeBoard(),
@@ -232,7 +233,7 @@ export function placementError(
   if (
     !cells.some((c) => adjacent(c.y * s.size + c.x, s.size).some((i) => b[i]))
   )
-    return "新地形至少一邊要接到噴泉或原有花園";
+    return "須接到噴泉或原有花園旁";
   return null;
 }
 
@@ -323,7 +324,6 @@ export function gardenHighlights(
 export function scoreGarden(
   board: (CellTerrain | null)[],
   size: number,
-  fertile: number[] = [],
   seasonBonus = 0,
 ) {
   const visited = new Set<number>();
@@ -352,28 +352,16 @@ export function scoreGarden(
     }
   }
 
-  const fertileBonus = fertile.reduce(
-    (sum, idx) =>
-      sum + (board[idx] && board[idx] !== "fountain" ? 2 : 0),
-    0,
-  );
-
   return {
     flowers,
     paths,
-    fertile: fertileBonus,
     season: seasonBonus,
-    total: flowers + paths + fertileBonus + seasonBonus,
+    total: flowers + paths + seasonBonus,
   };
 }
 
 export function teamScore(s: GardenState, team: Team) {
-  return scoreGarden(
-    s.boards[team],
-    s.size,
-    s.fertile,
-    s.seasonBonuses[team],
-  );
+  return scoreGarden(s.boards[team], s.size, s.seasonBonuses[team]);
 }
 
 const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
@@ -383,16 +371,8 @@ export function formatGardenDelta(
   after: ReturnType<typeof scoreGarden>,
 ): string {
   const totalDelta = after.total - before.total;
-  const flowerDelta = after.flowers - before.flowers;
-  const pathDelta = after.paths - before.paths;
-  const fertileDelta = after.fertile - before.fertile;
   const seasonDelta = after.season - before.season;
-  const parts: string[] = [];
-  if (flowerDelta !== 0) parts.push(`花圃${signed(flowerDelta)}`);
-  if (pathDelta !== 0) parts.push(`小徑${signed(pathDelta)}`);
-  if (fertileDelta !== 0) parts.push(`沃土${signed(fertileDelta)}`);
-  if (seasonDelta !== 0) parts.push(`季節賞${signed(seasonDelta)}`);
-  return `本手 ${signed(totalDelta)}分${parts.length ? `（${parts.join("、")}）` : ""}`;
+  return `本手 ${signed(totalDelta)}分${seasonDelta > 0 ? `（含季節賞${signed(seasonDelta)}）` : ""}`;
 }
 
 export function validGarden(a: unknown): a is GardenAction {
@@ -491,10 +471,9 @@ export function applyGarden(s: GardenState, a: GardenAction): GardenState {
     const after = scoreGarden(
       boards[s.turn],
       s.size,
-      s.fertile,
       seasonBonuses[s.turn],
     );
-    message = `${s.turn}隊完成${season.name}造園，暫計 ${after.total} 分。 ${formatGardenDelta(before, after)}${awardPoints > 0 ? `（達成${season.title}！）` : ""}。`;
+    message = `${s.turn}隊完成${season.name}造園，暫計 ${after.total} 分。 ${formatGardenDelta(before, after)}。`;
   }
 
   const ply = s.ply + 1;

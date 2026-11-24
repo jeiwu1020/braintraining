@@ -33,17 +33,16 @@ it("initializes central fountain, rotates tiles, and rejects overlap or disconne
   expect(() => applyGarden(again, a)).toThrow();
 });
 
-it("scores flower clusters (>=3 doubled), fountain-connected paths, fertile cells and seasonal awards", () => {
+it("scores flower clusters (>=3 doubled), fountain-connected paths, seasonal awards", () => {
   const b = Array(25).fill(null);
   b[12] = "fountain";
   for (const i of [0, 1, 2]) b[i] = "rose"; // 3 * 2 = 6
   for (const i of [13, 14]) b[i] = "path"; // touches fountain at 12 -> 2 * 2 = 4
-  const v = scoreGarden(b, 5, [0], 2);
+  const v = scoreGarden(b, 5, 2);
   expect(v.flowers).toBe(6);
   expect(v.paths).toBe(4);
-  expect(v.fertile).toBe(2);
   expect(v.season).toBe(2);
-  expect(v.total).toBe(14);
+  expect(v.total).toBe(12);
   const hl = gardenHighlights(b, 5);
   expect([...hl.doubledFlowers]).toEqual([0, 1, 2]);
   expect([...hl.connectedPaths]).toEqual([13, 14]);
