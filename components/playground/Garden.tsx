@@ -311,7 +311,7 @@ function GardenTable({
     : null;
   const error = action
     ? placementError(s, action)
-    : "點花園格子預覽落點";
+    : `點格子預覽：${season.desc}`;
 
   const scores = {
     A: teamScore(s, "A"),
@@ -494,7 +494,7 @@ function GardenTable({
       <aside className="tg-garden-tools pg-paper" aria-label="造園工作檯">
         <div className="gdn-seasons-panel" aria-label="四季規則與目前回合">
           <div className="gdn-panel-meta">
-            <span className="gdn-base-rule">基礎：3連花・連泉徑 2分/格</span>
+            <span className="gdn-base-rule">基礎：3連花・連泉徑 2分</span>
             <span className="gdn-round-turn">
               第 {Math.min(s.ply + 1, s.limit)}/{s.limit} 手 · {rotation * 90}°
             </span>
@@ -601,6 +601,10 @@ function GardenTable({
             `${String.fromCharCode(65 + selectedCell!.x)}${selectedCell!.y + 1} 可放`}
         </span>
         <div className="gdn-utility-row">
+          <div className="gdn-next-chip" aria-label="下張補牌預告">
+            <span>下張</span>
+            {s.deck[0] && <MiniTile tile={s.deck[0]} />}
+          </div>
           <button disabled={pending} onClick={() => setCoords(true)}>
             座標
           </button>
@@ -760,31 +764,40 @@ export default function Garden({ onBack }: { onBack: () => void }) {
         `${currentSeason(s).name}・第 ${Math.min(s.ply + 1, s.limit)}/${s.limit} 手・輪到 ${s.turn} 隊`
       }
       steps={[
-        "牌庫配比均衡，後段會出現 2 格小板塊方便收尾填縫，順暢不卡關。",
-        "同色花連滿3格成花海（每格2分），小徑連到噴泉也變每格2分。",
-        "達成操作面板上顯示的「當季目標」再拿季節賞，總分高者獲勝。",
+        "每手從 3 塊板塊選 1 塊並旋轉，緊鄰中央噴泉或自己花園放下；下方預告「下張」補牌，降低抽牌運氣。",
+        "同色花上下左右連滿 3 格變每格 2 分（斜角不算）；小徑只要連到中央噴泉也變每格 2 分。",
+        "四季各有獨立目標（＋2～＋3 分），所有板塊最多含 2 格同色花，必須跨回合佈局規劃才拿得到高分。",
       ]}
       demo={[
-        "操作區常駐顯示四季完整目標，方便提前規劃花海與小徑走線。",
-        "開局正中央皆有噴泉，沒有空洞扣分，輕鬆規劃花海與小徑。",
+        "操作區常駐顯示四季完整目標與「下張」補牌，能算出對手下一手會補進什麼牌。",
+        "關鍵策略：春季別把噴泉四邊用花圍死，以免秋季小徑連不到噴泉；同時培養紅、金花海搶冬季 ＋3 分！",
       ]}
       rules={
         <>
           <p>
-            兩隊輪流造園，A 隊在左、B 隊在右；雙方正中央皆預設一座「噴泉」。一般 5×5 共 8 手（春・夏・秋・冬各 1 輪），進階 6×6 共 16 手（每季 2 輪），牌庫採均衡配比並於後段加入 2 格小板塊以降低運氣並避免卡關。
+            兩隊輪流造園（A 隊在左、B 隊在右），開局正中央皆有一座「噴泉」。一般 5×5 共 8 手（四季各 1 輪），進階 6×6 共 16 手（每季 2 輪）。牌庫採均衡配比且<strong>單張最多只有 2 格同色花</strong>，需靠跨手佈局拼成花海，後段並穩定出現 2 格收尾板塊避免卡關。
           </p>
           <ol>
             <li>
-              <strong>選板與接續：</strong>
-              每手從 3 塊地形選 1 塊，可旋轉方向；放入時不能重疊，且至少一邊要接到噴泉或自己已放的地形。
+              <strong>放置規則與公開「下張」：</strong>
+              每手從 3 塊公開地形選 1 塊，旋轉後放在不重疊且至少一邊緊鄰噴泉或自己已有板塊的位置。左下角會公開預告「下張」補牌，讓雙方都能預判搶牌與卡位。
             </li>
             <li>
-              <strong>花海與小徑計分：</strong>
-              珊瑚花或金陽花相連 ≥3 格每格 2 分（未滿 3 格每格 1 分）；石板小徑連通中央噴泉每格 2 分（未連通每格 1 分）。
+              <strong>常駐基礎計分（每一手都算）：</strong>
+              珊瑚花或金陽花<strong>上下左右相連 ≥3 格</strong>即成花海，該區每格 2 分（未滿 3 格每格 1 分，<strong>斜角不算相連</strong>）；石板小徑只要連通到中央噴泉，整條每格 2 分（未連通每格 1 分）。
             </li>
             <li>
-              <strong>四季目標（每季大字提示）：</strong>
-              春季花朵挨著噴泉 ＋2 分；夏季湊出 ≥3 格同色花海 ＋2 分；秋季小徑連通噴泉 ＋2 分；冬季紅花海・金花海・連泉小徑齊備 ＋3 分（每隊限領一次）。
+              <strong>四季當令賞（彼此獨立、於當季結算，已得不扣）：</strong>
+              <ul>
+                <li><strong>春季（＋2 分）：</strong>本手放下的板塊有任一花朵緊鄰中央噴泉。</li>
+                <li><strong>夏季（＋2 分）：</strong>本手湊出新花海，或把原本 ≥3 格花海再擴大。</li>
+                <li><strong>秋季（＋2 分）：</strong>本手放下的板塊含小徑，且成功連通或延長連泉小徑。</li>
+                <li><strong>冬季（＋3 分）：</strong>花園同時具備「紅花海（≥3 格）＋ 金花海（≥3 格）＋ 連泉小徑」（每隊限領一次）。</li>
+              </ul>
+            </li>
+            <li>
+              <strong>策略提示：</strong>
+              噴泉只有上下左右 4 個入口！春季別把噴泉四邊全種滿花，否則秋季小徑會無法直接接上噴泉；並趁春夏同步鋪出紅花與金花，冬季才能一舉領走 ＋3 分。
             </li>
           </ol>
         </>

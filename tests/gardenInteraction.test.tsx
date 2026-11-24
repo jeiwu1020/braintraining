@@ -44,6 +44,10 @@ it("rotates in place, confirms inline without blocking modal, keeps A-left/B-rig
   );
   click("旋轉90°");
   expect(host.querySelectorAll(".tg-ghost").length).toBeGreaterThan(0);
+  act(() => {
+    const v = host.querySelector('[data-valid-anchor="true"]') as HTMLButtonElement;
+    if (v) v.click();
+  });
 
   const before = saved();
   click("放置地形");

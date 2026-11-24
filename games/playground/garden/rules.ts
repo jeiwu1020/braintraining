@@ -24,8 +24,8 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "春季賞",
     bonus: 2,
     headline: "花朵挨著中央噴泉 ＋2分",
-    compact: "花朵靠噴泉",
-    desc: "本手放的花有碰到噴泉 ＋2分",
+    compact: "本手有花靠噴泉",
+    desc: "本手有花緊鄰噴泉 ＋2分",
   },
   summer: {
     id: "summer",
@@ -34,8 +34,8 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "夏季賞",
     bonus: 2,
     headline: "湊出 3 格以上同色花海 ＋2分",
-    compact: "3格同色花",
-    desc: "本手湊出或擴大 ≥3格花海 ＋2分",
+    compact: "湊出/擴大花海",
+    desc: "湊出或擴大≥3格花海 ＋2分",
   },
   autumn: {
     id: "autumn",
@@ -44,8 +44,8 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "秋季賞",
     bonus: 2,
     headline: "小徑連通中央噴泉 ＋2分",
-    compact: "小徑連噴泉",
-    desc: "本手鋪出並延長連泉小徑 ＋2分",
+    compact: "鋪出連泉小徑",
+    desc: "鋪出並延長連泉小徑 ＋2分",
   },
   winter: {
     id: "winter",
@@ -54,8 +54,8 @@ export const SEASONS: Record<SeasonId, SeasonInfo> = {
     title: "冬季賞",
     bonus: 3,
     headline: "紅花海・金花海・連泉小徑齊備 ＋3分",
-    compact: "雙花海+連徑",
-    desc: "三景齊全 ＋3分（每隊限領一次）",
+    compact: "紅花海+金花海+徑",
+    desc: "齊備紅花海・金花海・連泉徑 ＋3分",
   },
 };
 
@@ -148,8 +148,8 @@ const SETS_4: Terrain[][] = [
   ["rose", "rose", "path", "path"],
   ["gold", "gold", "path", "path"],
   ["rose", "rose", "gold", "gold"],
-  ["rose", "rose", "rose", "path"],
-  ["gold", "gold", "gold", "path"],
+  ["rose", "rose", "gold", "path"],
+  ["gold", "gold", "rose", "path"],
   ["rose", "gold", "path", "path"],
 ];
 
