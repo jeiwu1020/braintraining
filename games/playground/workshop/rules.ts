@@ -1,25 +1,28 @@
 import { Level, Team, other } from "../types";
 import { Engine } from "../session";
+
 export const STATIONS = ["wood", "metal", "craft", "upgrade", "ship"] as const;
 export type Station = (typeof STATIONS)[number];
+
 export const STATION_NAMES: Record<Station, string> = {
-  wood: "木料站",
-  metal: "金屬站",
+  wood: "林場",
+  metal: "大料倉",
   craft: "加工臺",
-  upgrade: "升級坊",
+  upgrade: "急單櫃",
   ship: "出貨埠",
 };
+
 export type WorkshopAction =
-  | { type: "use"; station: Station; count: number }
-  | { type: "rest"; resource?: "wood" | "metal" }
+  | { type: "use"; station: Station }
+  | { type: "rest" }
   | { type: "next" };
+
 export interface Stock {
-  wood: number;
-  metal: number;
+  materials: number;
   goods: number;
-  level: number;
   score: number;
 }
+
 export interface WorkshopState {
   phase: "playing" | "round_summary" | "finished";
   turn: Team;
@@ -32,6 +35,7 @@ export interface WorkshopState {
   occupied: Record<Station, Team | null>;
   message: string;
 }
+
 const emptyStations = (): Record<Station, Team | null> => ({
   wood: null,
   metal: null,
@@ -39,44 +43,46 @@ const emptyStations = (): Record<Station, Team | null> => ({
   upgrade: null,
   ship: null,
 });
+
+export function craftableCount(v: Stock): number {
+  return Math.min(Math.floor(v.materials / 2), 4 - v.goods);
+}
+
 export function createWorkshop(
   seed: number,
   level: Level,
   starter: Team,
 ): WorkshopState {
-  const opening = level === "normal"
-      ? { wood: 1, metal: 1 }
-      : [{ wood: 1, metal: 1 }, { wood: 2, metal: 1 }, { wood: 1, metal: 2 }][(seed >>> 0) % 3],
-    stock = () => ({ ...opening, goods: 0, level: 0, score: 0 }),
-    perTeam = level === "normal" ? 2 : 3;
+  const materials = level === "normal" ? 1 : 1 + ((seed >>> 0) % 2);
+  const stock = (): Stock => ({ materials, goods: 0, score: 0 });
+  const perTeam = level === "normal" ? 2 : 3;
   return {
     phase: "playing",
     turn: starter,
     first: starter,
     round: 1,
-    limit: level === "normal" ? 5 : 6,
+    limit: level === "normal" ? 4 : 5,
     perTeam,
     workers: { A: perTeam, B: perTeam },
     stock: { A: stock(), B: stock() },
     occupied: emptyStations(),
-    message: level === "normal"
-      ? "五個共用工作站每天只接待一位工匠。先看資源與空站，再選工作。"
-      : `本局兩隊同樣從木料${opening.wood}、金屬${opening.metal}開始。共用站仍須搶先；休息可取1木料或1金屬，不占站。`,
+    message:
+      level === "normal"
+        ? "五個共用工作站每天兩隊合計只用一次。收集原料、加工成品再出貨得分！"
+        : `進階開局：兩隊皆從 ${materials} 份原料出發、每日 3 位工匠（必有 1 位須休息取 +1 原料）。`,
   };
 }
+
 export function validWorkshop(a: unknown): a is WorkshopAction {
   if (!a || typeof a !== "object") return false;
   const v = a as any;
   return (
     v.type === "next" ||
-    (v.type === "rest" &&
-      (v.resource === undefined || ["wood", "metal"].includes(v.resource))) ||
-    (v.type === "use" &&
-      STATIONS.includes(v.station) &&
-      [1, 2].includes(v.count) &&
-      (["craft", "ship"].includes(v.station) || v.count === 1))
+    v.type === "rest" ||
+    (v.type === "use" && STATIONS.includes(v.station))
   );
 }
+
 export function workshopError(
   s: WorkshopState,
   a: WorkshopAction,
@@ -87,28 +93,21 @@ export function workshopError(
     return s.phase === "round_summary" ? null : "工匠尚未全部完成工作";
   if (s.phase !== "playing") return "請先結束工作日";
   if (s.workers[s.turn] <= 0) return "本隊工匠已用完";
-  if (a.type === "rest") {
-    if (!a.resource) return null;
-    if (s.perTeam !== 3) return "一般模式休息不取資源";
-    return s.stock[s.turn][a.resource] >= 6
-      ? `${a.resource === "wood" ? "木料" : "金屬"}已達上限6，請改選其他資源或不取材`
-      : null;
-  }
+  if (a.type === "rest") return null;
   if (s.occupied[a.station])
     return `${STATION_NAMES[a.station]}已被${s.occupied[a.station]}隊占用`;
   const v = s.stock[s.turn];
-  if (a.station === "wood" && v.wood === 6) return "木料已達上限6";
-  if (a.station === "metal" && v.metal === 6) return "金屬已達上限6";
-  if (
-    a.station === "craft" &&
-    (v.wood < a.count || v.metal < a.count || v.goods + a.count > 3)
-  )
-    return "每件需木料1、金屬1，成品上限3";
-  if (a.station === "upgrade" && (v.wood < 2 || v.metal < 1 || v.level >= 2))
-    return "升級需木料2、金屬1，最高2級";
-  if (a.station === "ship" && v.goods < a.count) return "成品不足";
+  if ((a.station === "wood" || a.station === "metal") && v.materials >= 6)
+    return "原料已達上限 6";
+  if (a.station === "craft" && craftableCount(v) === 0)
+    return v.goods >= 4 ? "成品已達上限 4" : "至少需 2 份原料才能加工";
+  if (a.station === "upgrade" && v.materials < 2)
+    return "急單需要 2 份原料";
+  if (a.station === "ship" && v.goods === 0)
+    return "目前沒有成品可出貨";
   return null;
 }
+
 export function applyWorkshop(
   s: WorkshopState,
   a: WorkshopAction,
@@ -120,7 +119,7 @@ export function applyWorkshop(
       return {
         ...s,
         phase: "finished",
-        message: "工坊營業結束，以累積出貨分數比較。",
+        message: "工坊營業結束，以累積分數比較勝負。",
       };
     return {
       ...s,
@@ -129,7 +128,7 @@ export function applyWorkshop(
       turn: s.round % 2 ? other(s.first) : s.first,
       workers: { A: s.perTeam, B: s.perTeam },
       occupied: emptyStations(),
-      message: "新工作日，全部工作站已清空；先手交換。",
+      message: "新工作日開始，全部工作站已清空並交換先手。",
     };
   }
   const n = {
@@ -141,26 +140,37 @@ export function applyWorkshop(
   const v = n.stock[s.turn];
   if (a.type === "use") {
     n.occupied[a.station] = s.turn;
-    if (a.station === "wood") v.wood = Math.min(6, v.wood + 2 + v.level);
-    if (a.station === "metal") v.metal = Math.min(6, v.metal + 2 + v.level);
-    if (a.station === "craft") {
-      v.wood -= a.count;
-      v.metal -= a.count;
-      v.goods += a.count;
+    if (a.station === "wood") {
+      const gained = Math.min(6 - v.materials, 2);
+      v.materials += gained;
+      n.message = `${s.turn}隊到林場取得 ${gained} 份原料。`;
+    } else if (a.station === "metal") {
+      const gained = Math.min(6 - v.materials, 3);
+      v.materials += gained;
+      n.message = `${s.turn}隊搶占大料倉，取得 ${gained} 份原料！`;
+    } else if (a.station === "craft") {
+      const made = craftableCount(v);
+      v.materials -= made * 2;
+      v.goods += made;
+      n.message = `${s.turn}隊在加工臺一口氣做成 ${made} 件成品。`;
+    } else if (a.station === "upgrade") {
+      v.materials -= 2;
+      v.score += 4;
+      n.message = `${s.turn}隊接下急單櫃，耗 2 原料立刻＋4 分！`;
+    } else if (a.station === "ship") {
+      const shipped = v.goods;
+      const pts = shipped * 6;
+      v.goods = 0;
+      v.score += pts;
+      n.message = `${s.turn}隊在出貨埠售出 ${shipped} 件成品，獲得 ${pts} 分！`;
     }
-    if (a.station === "upgrade") {
-      v.wood -= 2;
-      v.metal--;
-      v.level++;
-    }
-    if (a.station === "ship") {
-      v.goods -= a.count;
-      v.score += a.count * (4 + 2 * v.level);
-    }
-    n.message = `${s.turn}隊使用${STATION_NAMES[a.station]}${["craft", "ship"].includes(a.station) ? `，處理${a.count}件` : ""}。${a.station === "ship" ? `獲得${a.count * (4 + 2 * v.level)}分。` : a.station === "upgrade" ? `工坊升到${v.level}級。` : "庫存已更新。"}`;
   } else {
-    if (a.resource) v[a.resource]++;
-    n.message = `${s.turn}隊安排一位工匠休息${a.resource ? `，取${a.resource === "wood" ? "木料" : "金屬"}1` : ""}，不占工作站。`;
+    const gained = Math.min(6 - v.materials, 1);
+    v.materials += gained;
+    n.message =
+      gained > 0
+        ? `${s.turn}隊安排工匠休息（不占站），領取 1 份原料。`
+        : `${s.turn}隊安排工匠休息（不占站，原料已滿）。`;
   }
   n.workers[s.turn]--;
   if (n.workers.A + n.workers.B === 0) {
@@ -169,24 +179,20 @@ export function applyWorkshop(
   } else n.turn = n.workers[other(s.turn)] > 0 ? other(s.turn) : s.turn;
   return n;
 }
+
 export function legalWorkshop(s: WorkshopState): WorkshopAction[] {
   if (s.phase === "finished") return [];
   if (s.phase === "round_summary") return [{ type: "next" }];
   const out: WorkshopAction[] = [{ type: "rest" }];
-  for (const resource of ["wood", "metal"] as const) {
-    const a: WorkshopAction = { type: "rest", resource };
+  for (const station of STATIONS) {
+    const a: WorkshopAction = { type: "use", station };
     if (!workshopError(s, a)) out.push(a);
   }
-  for (const station of STATIONS)
-    for (const count of [1, 2]) {
-      const a: WorkshopAction = { type: "use", station, count };
-      if (!workshopError(s, a)) out.push(a);
-    }
   return out;
 }
+
 export const workshopEngine: Engine<WorkshopState, WorkshopAction> = {
   create: createWorkshop,
   apply: applyWorkshop,
   validAction: validWorkshop,
 };
-

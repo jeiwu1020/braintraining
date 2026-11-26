@@ -58,3 +58,15 @@
 .ln-wait { display:flex; flex-direction:column; gap:4px; align-self:center; }.ln-wait .ln-pass { width:100%; margin:0; }.ln-forecast { font-size:16px; color:#5e674d; white-space:nowrap; }
 @media (orientation:landscape) and (max-height:600px) { .ln-forecast { font-size:15px; } }
 @media (orientation:landscape) and (max-height:340px) { .ln-forecast { font-size:14px; } }
+
+.tg-shell .ln-district.ln-district-source { outline: 3px solid #ffe18d; outline-offset: 2px; border-radius: 10px; background: #ffe18d1c; position: relative; }
+.ln-source-badge { position: absolute; top: 4px; right: 4px; background: #f2c96b; color: #362413; font-size: 13px; font-weight: 800; padding: 2px 7px; border-radius: 6px; z-index: 2; }
+.ln-count-choice { margin: 0; gap: 5px; }
+.ln-count-choice button { flex: 1; white-space: nowrap; }
+.tg-shell .ln-planning-desk button.ln-clear-from { padding: 3px 10px; font-size: 14px; min-height: 30px; margin-top: 2px; }
+@media (orientation: landscape) and (max-height: 600px) {
+  .ln-planning-desk { grid-template-columns: 126px 128px minmax(0, 1fr) 96px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .ln-planning-desk { grid-template-columns: 112px 118px minmax(0, 1fr) 88px; }
+}

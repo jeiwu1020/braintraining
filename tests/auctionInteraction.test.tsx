@@ -21,10 +21,10 @@ it("previews a bid, cancels, debits one winning sale and restores interrupted au
   act(() => root.render(<Auction onBack={() => {}} />));
   click("開始本局");
   click("開始正式局");
-  click("加一枚籌碼");
+  click("+1 枚");
   click("取消選擇");
   expect(save().actions).toHaveLength(0);
-  click("加一枚籌碼");
+  click("+1 枚");
   const b = [...h.querySelectorAll("button")].find(
     (b) => b.textContent === "確認行動",
   )!;

@@ -88,3 +88,17 @@ it.each(["normal", "advanced"] as const)(
     }
   },
 );
+
+it("supports +2 and +3 multi-step bids and awards 1 point per 3 remaining chips", () => {
+  let s = createAuction(0, "normal", "A");
+  s = applyAuction(s, { type: "bid", amount: 3 });
+  expect(s.price).toBe(3);
+  expect(s.leader).toBe("A");
+  s = applyAuction(s, { type: "bid", amount: 2 });
+  expect(s.price).toBe(5);
+  expect(() => applyAuction(s, { type: "bid", amount: 4 as any })).toThrow();
+  s = applyAuction(s, { type: "pass" });
+  expect(s.budgets.B).toBe(13);
+  expect(exhibitionScore(s.collections.B, s.budgets.B).chipBonus).toBe(4);
+  expect(exhibitionScore(s.collections.A, s.budgets.A).chipBonus).toBe(6);
+});

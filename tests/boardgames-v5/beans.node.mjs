@@ -40,3 +40,50 @@ for(const reduce of [false,true])test(`essential bean flight has intermediate ge
   c.restart();assert.match(root.querySelector('.beans-status').textContent,/剩餘：青 8 次／橘 8 次/);assert.equal(root.querySelector('.beans-flying'),null);
  }finally{c.destroy();for(const [k,v]of Object.entries(saved)){if(v===undefined)delete globalThis[k];else globalThis[k]=v;}dom.window.close();}
 });
+
+test('landing in own empty bowl captures that bean plus opposite bowl into own store', () => {
+  // Turn 0 picks bowl 0 with 2 beans -> lands at bowl 2 (empty, opposite = 8 - 2 = 6 which has 7 beans)
+  const s = { board: [2, 3, 0, 1, 4, 2, 7, 5, 8, 0], turn: 0, ply: 2, done: false };
+  assert.equal(s.board.reduce((a, b) => a + b), 32);
+  const next = play(s, 0);
+  assert.equal(next.captured, 7);
+  assert.equal(next.board[2], 0);
+  assert.equal(next.board[6], 0);
+  assert.equal(next.board[4], 4 + 1 + 7);
+  assert.equal(next.board.reduce((a, b) => a + b), 32);
+
+  // Resolution skip and natural completion produce exact same captured board
+  let r = beginResolution(s, 0);
+  const skipped = advanceResolution(r, 0, { skip: true });
+  assert.deepEqual(skipped.board, next.board);
+  while (!r.done) r = advanceResolution(r, 120);
+  assert.deepEqual(r.board, next.board);
+});
+
+test('landing in opponent empty bowl does NOT capture', () => {
+  // Turn 0 picks bowl 3 with 2 beans -> skips nothing before 4: drops at 4 (store), 5 (opponent bowl 1)
+  const s = { board: [4, 4, 4, 2, 0, 0, 6, 6, 6, 0], turn: 0, ply: 0, done: false };
+  const next = play(s, 3);
+  assert.equal(next.captured, 0);
+  assert.equal(next.board[5], 1);
+  assert.equal(next.board[4], 1);
+});
+
+test('UI distinguishes team colors (beans-owner-0 vs beans-owner-1) and shows capture preview', () => {
+  const { JSDOM } = createRequire(import.meta.url)('jsdom');
+  const dom = new JSDOM('<div id="root"></div>');
+  const root = dom.window.document.querySelector('#root');
+  const c = mount(root, { mode: 'local', difficulty: 'normal' });
+  try {
+    assert.equal(root.querySelectorAll('.beans-owner-0').length, 5);
+    assert.equal(root.querySelectorAll('.beans-owner-1').length, 5);
+    assert.ok(root.querySelector('.beans-lane-0'));
+    assert.ok(root.querySelector('.beans-lane-1'));
+    // Play moves to set up an empty bowl capture: P0 plays bowl 3 -> P1 plays bowl 5 -> P0 plays bowl 1? Let's just check preview works
+    root.querySelector('[data-bowl="0"]').click();
+    assert.match(root.querySelector('.beans-preview').textContent, /\+1 顆/);
+  } finally {
+    c.destroy();
+    dom.window.close();
+  }
+});

@@ -36,7 +36,7 @@ it("previews, cancels, prevents duplicate scoring and completes a public match",
       });
     }
     if ([2, 5, 8].includes(i)) {
-      expect(host.textContent).toContain("本次計分");
+      expect(host.textContent).toContain("輪計分");
       click(i === 8 ? "查看總結果" : "繼續布局");
       click("確認行動");
     }

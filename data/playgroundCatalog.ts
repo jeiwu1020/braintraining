@@ -28,8 +28,8 @@ export const PLAYGROUND_CATALOG = [
     action: "準備出航",
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
-      normal: "9回合交付8箱補給，較平穩海況",
-      advanced: "9回合交付12箱，3種需求配置、部分燈塔需分批",
+      normal: "7回合交付8箱，抵達燈塔自動交貨",
+      advanced: "8回合交付12箱，3種需求配置、部分燈塔需分批",
     },
   },
   {
@@ -50,19 +50,19 @@ export const PLAYGROUND_CATALOG = [
     action: "點亮街區",
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
-      normal: "每隊8盞，三次固定公開價值",
-      advanced: "每隊6盞，三次變化公開價值",
+      normal: "每隊8盞，三輪固定偶數公開價值",
+      advanced: "每隊6盞，三輪變化偶數公開價值",
     },
   },
   {
     id: "workshop",
     title: "小鎮工坊",
-    description: "派工取材，投資升級或立即出貨",
+    description: "搶共用站取原料、急單或出貨得分",
     action: "開啟工坊",
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
-      normal: "5工作日，每隊每日2位工匠",
-      advanced: "6工作日，對稱多樣開局；休息可取1基本資源",
+      normal: "4工作日，單一原料加工出貨或接急單",
+      advanced: "5工作日、每日3位工匠，休息可領1原料",
     },
   },
   {
@@ -72,14 +72,14 @@ export const PLAYGROUND_CATALOG = [
     action: "進入拍賣廳",
     layoutPreset: "BOARD_TABLE",
     difficultyDescriptions: {
-      normal: "6件展品，每隊18枚遊戲籌碼",
-      advanced: "8件展品，每隊22枚，規劃更多套組",
+      normal: "6件展品，每隊18枚籌碼（餘幣每3枚+1分）",
+      advanced: "8件展品，每隊22枚，多檔加價更緊湊",
     },
   },
-  { id: "beans", title: "豆豆分碗", description: "想好落點，一顆一顆分豆", action: "開始分豆", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "每碗4顆，預判最後一顆的落點", advanced: "對稱多樣開局，電腦預想後續" } },
+  { id: "beans", title: "豆豆分碗", description: "算準落點，空碗搶對面拼高分", action: "開始分豆", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "每碗4顆，含空碗搶對面規則", advanced: "對稱多樣開局，含空碗搶對面與後續推演" } },
   { id: "lost", title: "失物招領所", description: "問對問題，找出真正失物", action: "開始認領", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "8件器物，最多3問", advanced: "12件器物，最多4問" } },
   { id: "animals", title: "動物排排坐", description: "交換座位，滿足朋友的小要求", action: "開始排座位", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "6隻動物，觀察相鄰與左右關係", advanced: "8隻動物，加入不相鄰條件" } },
-  { id: "borrow", title: "借一步棋", description: "這一步用過的招式，對手也能借走", action: "開始下棋", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "看懂移動卡，親手練習換牌", advanced: "電腦預想對手的合法回應" } },
+  { id: "borrow", title: "借一步棋", description: "這一步用過的招式，對手也能借走", action: "開始下棋", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "可看雙方移動圖示，親手練習換牌", advanced: "看雙方圖示，電腦預想對手回應" } },
 ] as const;
 export type PlaygroundId = (typeof PLAYGROUND_CATALOG)[number]["id"];
 

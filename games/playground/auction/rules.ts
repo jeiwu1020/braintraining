@@ -1,22 +1,29 @@
 import { Level, Team, other, shuffled } from "../types";
 import { Engine } from "../session";
+
 export type ExhibitKind = "ceramic" | "bronze" | "scroll";
 export const KIND_NAMES: Record<ExhibitKind, string> = {
   ceramic: "陶瓷",
   bronze: "銅器",
   scroll: "書畫",
 };
+
 export interface Exhibit {
   id: number;
   name: string;
   kind: ExhibitKind;
   points: number;
 }
+
 export interface Purchase extends Exhibit {
   price: number;
 }
+
 export type AuctionAction =
-  { type: "bid" } | { type: "pass" } | { type: "next" };
+  | { type: "bid"; amount?: 1 | 2 | 3 }
+  | { type: "pass" }
+  | { type: "next" };
+
 export interface AuctionState {
   phase: "playing" | "round_summary" | "finished";
   turn: Team;
@@ -31,6 +38,7 @@ export interface AuctionState {
   sales: { exhibit: Exhibit; owner: Team | null; price: number }[];
   message: string;
 }
+
 export function createAuction(
   seed: number,
   level: Level,
@@ -76,27 +84,33 @@ export function createAuction(
     collections: { A: [], B: [] },
     exhibits,
     sales: [],
-    message: "全部展品與分數已公開。每次加一枚遊戲籌碼或退出本件，成交才付款。",
+    message: "全部展品與分數已公開。可加價 +1/+2/+3 枚籌碼或退出，得標才付款；每剩 3 枚籌碼＋1 分。",
   };
 }
-export function exhibitionScore(collection: Exhibit[]) {
+
+export function exhibitionScore(collection: Exhibit[], budget = 0) {
   const counts = { ceramic: 0, bronze: 0, scroll: 0 };
   let base = 0;
   for (const e of collection) {
     counts[e.kind]++;
     base += e.points;
   }
-  const sets = Math.min(counts.ceramic, counts.bronze, counts.scroll),
-    bonus = sets * 5;
-  return { base, sets, bonus, total: base + bonus, counts };
+  const sets = Math.min(counts.ceramic, counts.bronze, counts.scroll);
+  const bonus = sets * 5;
+  const chipBonus = Math.floor(Math.max(0, budget) / 3);
+  return { base, sets, bonus, chipBonus, total: base + bonus + chipBonus, counts };
 }
+
 export function validAuction(a: unknown): a is AuctionAction {
-  return (
-    !!a &&
-    typeof a === "object" &&
-    ["bid", "pass", "next"].includes((a as any).type)
-  );
+  if (!a || typeof a !== "object") return false;
+  const v = a as any;
+  if (v.type === "pass" || v.type === "next") return true;
+  if (v.type === "bid") {
+    return v.amount === undefined || v.amount === 1 || v.amount === 2 || v.amount === 3;
+  }
+  return false;
 }
+
 function settle(
   s: AuctionState,
   owner: Team | null,
@@ -120,6 +134,7 @@ function settle(
       : `兩隊都退出，${exhibit.name}流標，無人付款。`,
   };
 }
+
 export function applyAuction(s: AuctionState, a: AuctionAction): AuctionState {
   if (!validAuction(a) || s.phase === "finished")
     throw Error("本局已結束或行動無效");
@@ -129,7 +144,7 @@ export function applyAuction(s: AuctionState, a: AuctionAction): AuctionState {
       return {
         ...s,
         phase: "finished",
-        message: "全部展品拍賣完成，請看展覽總分與套組加分。",
+        message: "全部展品拍賣完成，請看展覽總分、套組與餘幣折分。",
       };
     const lot = s.lot + 1;
     return {
@@ -146,14 +161,15 @@ export function applyAuction(s: AuctionState, a: AuctionAction): AuctionState {
   if (s.phase !== "playing" || s.withdrawn[s.turn])
     throw Error("請先查看成交結果或等待下一件");
   if (a.type === "bid") {
-    const price = s.price + 1;
+    const step = a.amount ?? 1;
+    const price = s.price + step;
     if (price > s.budgets[s.turn] || s.leader === s.turn)
       throw Error("遊戲籌碼不足或已是最高叫價方");
     const n = {
       ...s,
       price,
       leader: s.turn,
-      message: `${s.turn}隊叫價${price}枚，尚未扣除；輪到對方加一枚或退出。`,
+      message: `${s.turn}隊出價至${price}枚（+${step}），尚未扣除；輪到對方加價或退出。`,
     };
     if (s.withdrawn[other(s.turn)]) return settle(n, s.turn, price);
     return { ...n, turn: other(s.turn) };
@@ -165,21 +181,25 @@ export function applyAuction(s: AuctionState, a: AuctionAction): AuctionState {
   return {
     ...n,
     turn: other(s.turn),
-    message: `${s.turn}隊退出本件，另一隊可用1枚取得，或退出讓展品流標。`,
+    message: `${s.turn}隊退出本件，另一隊可直接加價取得，或退出讓展品流標。`,
   };
 }
+
 export function legalAuction(s: AuctionState): AuctionAction[] {
   if (s.phase === "finished") return [];
   if (s.phase === "round_summary") return [{ type: "next" }];
-  const out: AuctionAction[] = [{ type: "pass" }];
-  if (
-    s.price + 1 <= s.budgets[s.turn] &&
-    !s.withdrawn[s.turn] &&
-    s.leader !== s.turn
-  )
-    out.unshift({ type: "bid" });
+  const out: AuctionAction[] = [];
+  if (!s.withdrawn[s.turn] && s.leader !== s.turn) {
+    for (const amount of [1, 2, 3] as const) {
+      if (s.price + amount <= s.budgets[s.turn]) {
+        out.push(amount === 1 ? { type: "bid" } : { type: "bid", amount });
+      }
+    }
+  }
+  out.push({ type: "pass" });
   return out;
 }
+
 export const auctionEngine: Engine<AuctionState, AuctionAction> = {
   create: createAuction,
   apply: applyAuction,

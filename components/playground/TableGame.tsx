@@ -32,8 +32,9 @@ export default function TableGame<
   S extends { phase: string; turn: Team; message: string },
   A,
 >(p: Props<S, A>) {
-  const updatedRules = p.game === "lighthouse" || p.game === "workshop" || p.game === "garden";
-  const j = useSession(p.game, p.engine, updatedRules ? "rules-v2" : undefined);
+  const scope = p.game === "lighthouse" || p.game === "workshop" ? "rules-v3" : p.game === "garden" ? "rules-v2" : undefined;
+  const updatedRules = !!scope;
+  const j = useSession(p.game, p.engine, scope);
   const [starter, setStarter] = useState<Team>("A");
   const comparisonKey = "braintraining.playground.lantern.comparison";
   const [comparison, setComparison] = useState<{ seed: number; summary: string } | null>(() => {

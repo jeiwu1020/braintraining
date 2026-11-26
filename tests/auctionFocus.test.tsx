@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 it("moves focus into the inline confirmation and announces the selected action", () => {
-  click("加一枚籌碼");
+  click("+1 枚");
   expect(document.activeElement).toBe(button("取消選擇"));
   const confirmation = host.querySelector('[aria-label="確認拍賣選擇"]')!;
   expect(confirmation).toBeTruthy();
@@ -46,9 +46,9 @@ it("moves focus into the inline confirmation and announces the selected action",
 });
 
 it("returns focus to the original action after cancellation or Escape without committing", () => {
-  click("加一枚籌碼");
+  click("+1 枚");
   click("取消選擇");
-  expect(document.activeElement).toBe(button("加一枚籌碼"));
+  expect(document.activeElement).toBe(button("+1 枚"));
   expect(saved().actions).toEqual([]);
   click("退出本件");
   expect(document.activeElement).toBe(button("取消選擇"));
@@ -59,9 +59,9 @@ it("returns focus to the original action after cancellation or Escape without co
 });
 
 it("keeps keyboard focus usable through a bid, sale settlement, and next-lot transition", () => {
-  click("加一枚籌碼");
+  click("+1 枚");
   click("確認行動");
-  expect(document.activeElement).toBe(button("加一枚籌碼"));
+  expect(document.activeElement).toBe(button("+1 枚"));
   click("退出本件");
   click("確認行動");
   expect(host.textContent).toContain("本件成交");
@@ -69,7 +69,7 @@ it("keeps keyboard focus usable through a bid, sale settlement, and next-lot tra
   click("下一件展品");
   expect(document.activeElement).toBe(button("取消選擇"));
   click("確認行動");
-  expect(document.activeElement).toBe(button("加一枚籌碼"));
+  expect(document.activeElement).toBe(button("+1 枚"));
   expect(saved().actions).toHaveLength(3);
 });
 

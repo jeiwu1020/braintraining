@@ -36,3 +36,8 @@
 @media (orientation:portrait) { .tg-auction-desk { grid-template-rows:auto 360px auto auto; }.tg-current-art .tg-artifact { max-height:180px; }.tg-auction-display { grid-template-columns:1fr; } }
 
 .tg-shell.tg-auction .tg-auction-decision button.pg-primary { background:linear-gradient(#f0d38e,#dcb768); color:#443323; border:1px solid #e8c37b; }
+
+.tg-auction-decision .tg-auction-bids { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+@media (max-width:740px) {
+  .tg-auction-decision .tg-auction-bids { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

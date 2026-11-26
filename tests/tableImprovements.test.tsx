@@ -18,12 +18,12 @@ function mount(Component: typeof Auction) {
 }
 it('confirms auction choices inline, retains the board, and reviews every action', () => {
   const v=mount(Auction); v.click('開始本局'); v.click('開始正式局');
-  v.click('加一枚籌碼');
+  v.click('+1 枚');
   expect(v.host.querySelector('[role="dialog"]')).toBeNull();
   expect(v.host.querySelector('[aria-label="確認拍賣選擇"]')).toBeTruthy();
   v.click('取消選擇');
   expect(JSON.parse(sessionStorage.getItem(`${PREFIX}.auction`)!).actions).toHaveLength(0);
-  v.click('加一枚籌碼'); v.click('確認行動'); v.click('退出本件'); v.click('確認行動');
+  v.click('+1 枚'); v.click('確認行動'); v.click('退出本件'); v.click('確認行動');
   v.click('紀錄');
   expect(v.host.textContent).toContain('完整操作與得分回顧');
   expect(v.host.querySelectorAll('[data-review-step]')).toHaveLength(2);
@@ -39,7 +39,7 @@ it('lantern chooses B as starter and rematches the same public values with swapp
   v.close();
 });
 it('auction confirmation can be dismissed by Escape without recording a bid', () => {
- const v=mount(Auction); v.click('開始本局');v.click('開始正式局');v.click('加一枚籌碼');
+ const v=mount(Auction); v.click('開始本局');v.click('開始正式局');v.click('+1 枚');
  act(()=>window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})));
  expect(v.host.querySelector('[aria-label="確認拍賣選擇"]')).toBeNull();
  expect(JSON.parse(sessionStorage.getItem(`${PREFIX}.auction`)!).actions).toHaveLength(0);v.close();

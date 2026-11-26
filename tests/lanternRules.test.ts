@@ -76,3 +76,16 @@ it.each(["normal", "advanced"] as const)(
     }
   },
 );
+
+it("uses even district values in normal and advanced modes so ties split cleanly", () => {
+  for (const level of ["normal", "advanced"] as const) {
+    for (let seed = 0; seed < 16; seed++) {
+      const s = createLantern(seed, level, "A");
+      for (const wave of s.values) {
+        for (const v of wave) {
+          expect(v % 2).toBe(0);
+        }
+      }
+    }
+  }
+});

@@ -84,3 +84,13 @@
  .tg-lighthouse.tg-live .game-shell__header p { font-size:16px; }
  .lh-cargo-manifest { font-size:16px; }
 }
+
+.lh-stepper { display:inline-flex; align-items:center; gap:6px; background:#f8f0db; border:1px solid #9c987b; border-radius:8px; padding:3px 7px; font-size:17px; }
+.lh-stepper > span { font-weight:700; color:#284b43; }
+.lh-stepper > b { min-width:18px; text-align:center; font-size:20px; font-variant-numeric:tabular-nums; color:#1c3d35; }
+.tg-shell .lh-ship-deck .lh-stepper button { min-width:36px; min-height:36px; padding:2px 8px; font-size:19px; font-weight:800; line-height:1; }
+@media (orientation:landscape) and (max-height:600px) {
+  .lh-stepper { gap:4px; padding:2px 5px; font-size:15px; }
+  .lh-stepper > b { font-size:18px; min-width:15px; }
+  .tg-shell .lh-ship-deck .lh-stepper button { min-width:34px; min-height:34px; padding:2px 6px; font-size:17px; }
+}

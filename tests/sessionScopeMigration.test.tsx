@@ -12,7 +12,7 @@ import type { PlaygroundId } from "../data/playgroundCatalog";
 
 const cases = [
   { game: "lighthouse" as const, engine: lighthouseEngine, first: { type: "load", fuel: 1, food: 1 }, second: { type: "wait" } },
-  { game: "workshop" as const, engine: workshopEngine, first: { type: "use", station: "wood", count: 1 }, second: { type: "rest" } },
+  { game: "workshop" as const, engine: workshopEngine, first: { type: "use", station: "wood" }, second: { type: "rest" } },
 ];
 
 let host: HTMLDivElement, root: Root;
@@ -31,7 +31,7 @@ afterEach(() => {
 
 function mount(game: PlaygroundId, engine: Engine<any, any>) {
   function Harness() {
-    current = useSession(game, engine, "rules-v2");
+    current = useSession(game, engine, "rules-v3");
     return <div data-corrupt={String(current.corrupt)}>{current.session?.id ?? "setup"}</div>;
   }
   act(() => root.render(<Harness />));
@@ -51,8 +51,8 @@ function journal(game: PlaygroundId, actions: unknown[], level: "normal" | "adva
   };
 }
 
-describe.each(cases)("$game rules-v2 storage migration", ({ game, engine, first, second }) => {
-  const legacyKey = `${PREFIX}.${game}`, scopedKey = `${legacyKey}.rules-v2`;
+describe.each(cases)("$game rules-v3 storage migration", ({ game, engine, first, second }) => {
+  const legacyKey = `${PREFIX}.${game}`, scopedKey = `${legacyKey}.rules-v3`;
 
   it("copies a compatible normal legacy journal, continues it, and preserves the original bytes", () => {
     const legacy = journal(game, [first]);

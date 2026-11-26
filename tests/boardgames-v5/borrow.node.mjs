@@ -24,3 +24,22 @@ import {mount} from '../../public/boardgames-v5/games/borrow.mjs';
 const {JSDOM}=createRequire(import.meta.url)('jsdom');
 test('tutorial actual UI preserves competitive state, pause blocks tutorial and retry keeps level',()=>{const dom=new JSDOM('<div id="root"></div>');const root=dom.window.document.querySelector('#root');let paused=false,finished=0;const api=mount(root,{mode:'local',difficulty:'advanced',isPaused:()=>paused,onFinish:()=>finished++});root.querySelector('[data-tutorial]').click();const click=s=>{const b=root.querySelector(s);assert.ok(b,s);b.click()};click('[data-cell="22"]');click('[data-cell="12"]');click('[data-confirm]');const saved=root.querySelector('.borrow-status').textContent;api.tutorial();assert.match(root.textContent,/互動教學/);paused=true;click('[data-cell="22"]');assert.match(root.querySelector('.borrow-instruction').textContent,/1 · 選棋子/);paused=false;click('[data-cell="22"]');click('[data-card="0"]');click('[data-cell="12"]');click('[data-confirm]');assert.match(root.querySelector('.borrow-instruction').textContent,/4 · 用過的卡/);click('[data-next]');assert.match(root.querySelector('.borrow-instruction').textContent,/5 · 對手/);click('[data-next]');click('[data-cell="12"]');click('[data-card="0"]');click('[data-cell="2"]');click('[data-confirm]');assert.match(root.querySelector('.borrow-instruction').textContent,/教學完成/);assert.equal(finished,0);click('[data-next]');assert.equal(root.querySelector('.borrow-status').textContent,saved);api.tutorial();click('[data-tutorial]');assert.equal(root.querySelector('.borrow-status').textContent,saved);api.restart();assert.match(root.querySelector('.borrow-status').textContent,/進階/);assert.match(root.querySelector('.borrow-status').textContent,/1\/60/);api.destroy();assert.equal(root.innerHTML,'');dom.window.close()});
 test('advanced lookahead can choose differently from immediate evaluation',()=>{let seed=17;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};let different=false;for(let game=0;game<15&&!different;game++){let s=createState();for(let ply=0;ply<35&&s.winner===null;ply++){if(JSON.stringify(chooseAI(s,'normal'))!==JSON.stringify(chooseAI(s,'advanced')))different=true;let ms=allMoves(s),m=ms[Math.floor(rand()*ms.length)];s=m?play(s,m):pass(s,0)}}assert.ok(different)});
+
+test('topcards display opponent mini diagrams and double-tapping destination commits move', () => {
+  const dom = new JSDOM('<div id="root"></div>');
+  const root = dom.window.document.querySelector('#root');
+  const api = mount(root, { mode: 'local', difficulty: 'normal' });
+  try {
+    root.querySelector('[data-tutorial]').click();
+    assert.equal(root.querySelectorAll('.borrow-topcard .borrow-diagram').length, 2);
+    // Select p0k at (2,4)=22, slot 0 is default ('躍進', dy=-2 -> (2,2)=12), tap 12 twice to commit!
+    root.querySelector('[data-cell="22"]').click();
+    root.querySelector('[data-cell="12"]').click();
+    assert.ok(root.querySelector('[data-cell="12"].destination'));
+    root.querySelector('[data-cell="12"]').click();
+    assert.match(root.querySelector('.borrow-status').textContent, /松隊的回合/);
+  } finally {
+    api.destroy();
+    dom.window.close();
+  }
+});

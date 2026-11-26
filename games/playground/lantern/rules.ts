@@ -1,10 +1,13 @@
 import { Level, Team, other, random } from "../types";
 import { Engine } from "../session";
+
 export const DISTRICTS = ["茶巷", "河畔", "戲臺", "牌樓"];
+
 export type LanternAction =
   | { type: "place"; to: number; count: number }
   | { type: "move"; from: number; to: number; count: number }
   | { type: "pass" | "next" };
+
 export interface LanternState {
   phase: "playing" | "round_summary" | "finished";
   turn: Team;
@@ -21,6 +24,7 @@ export interface LanternState {
   }[];
   message: string;
 }
+
 export function createLantern(
   seed: number,
   level: Level,
@@ -37,18 +41,19 @@ export function createLantern(
     values:
       level === "normal"
         ? [
-            [3, 4, 3, 4],
-            [5, 2, 5, 2],
+            [2, 4, 2, 4],
+            [4, 2, 4, 2],
             [2, 6, 2, 6],
           ]
         : Array.from({ length: 3 }, () =>
-            Array.from({ length: 4 }, () => 2 + Math.floor(rng() * 6)),
+            Array.from({ length: 4 }, () => (1 + Math.floor(rng() * 4)) * 2),
           ),
     totals: { A: 0, B: 0 },
     history: [],
-    message: "四街區的三次價值都已公開。先看這次與下次，再決定放置或移動。",
+    message: "四街區三次公開價值皆為偶數（領先全拿、平手對半）。先看本輪與下輪價值，再放置或移動。",
   };
 }
+
 export function scoreDistricts(d: number[][], values: number[]) {
   const points = { A: 0, B: 0 };
   d.forEach(([a, b], i) => {
@@ -61,6 +66,7 @@ export function scoreDistricts(d: number[][], values: number[]) {
   });
   return points;
 }
+
 export function validLantern(a: unknown): a is LanternAction {
   if (!a || typeof a !== "object") return false;
   const v = a as any;
@@ -75,6 +81,7 @@ export function validLantern(a: unknown): a is LanternAction {
         (Number.isInteger(v.from) && v.from >= 0 && v.from < 4)))
   );
 }
+
 export function applyLantern(s: LanternState, a: LanternAction): LanternState {
   if (!validLantern(a) || s.phase === "finished")
     throw Error("行動無效或已結束");
@@ -88,14 +95,14 @@ export function applyLantern(s: LanternState, a: LanternAction): LanternState {
       message:
         s.round === 9
           ? "三次街區評比完成，請看兩隊總分。"
-          : "下一次評比價值已標示，從上一回合後手開始布局。",
+          : `進入第 ${Math.floor(s.round / 3) + 1}/3 輪（本輪第 1/3 步），由上一回合後手先行動。`,
     };
   }
   if (s.phase !== "playing") throw Error("請先查看本次計分");
   const n = {
     ...s,
-    districts: s.districts.map((d) => [...d]),
     reserve: { ...s.reserve },
+    districts: s.districts.map((d) => [...d]),
     totals: { ...s.totals },
     history: [...s.history],
   };
@@ -132,6 +139,7 @@ export function applyLantern(s: LanternState, a: LanternAction): LanternState {
   }
   return n;
 }
+
 export function legalLantern(s: LanternState): LanternAction[] {
   if (s.phase === "finished") return [];
   if (s.phase === "round_summary") return [{ type: "next" }];
@@ -151,6 +159,7 @@ export function legalLantern(s: LanternState): LanternAction[] {
     }
   });
 }
+
 export const lanternEngine: Engine<LanternState, LanternAction> = {
   create: createLantern,
   apply: applyLantern,
