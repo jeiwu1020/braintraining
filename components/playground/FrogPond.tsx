@@ -179,9 +179,13 @@ export default function FrogPond({ onBack }: { onBack: () => void }) {
     >
       <div className="pg-four-stage" data-phase={aiTurn ? "awaiting_ai_reveal" : s.phase}>
         <div className="pg-four-arena">
+          <div className="pg-four-board-wrap">
           <div
             className="pg-pond-grid"
-            style={{ gridTemplateColumns: `repeat(${s.size}, minmax(0, 1fr))` }}
+            style={{
+              gridTemplateColumns: `repeat(${s.size}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${s.size}, minmax(0, 1fr))`,
+            }}
             role="grid"
             aria-label="荷葉池塘棋盤"
           >
@@ -229,6 +233,7 @@ export default function FrogPond({ onBack }: { onBack: () => void }) {
                 </button>
               );
             })}
+          </div>
           </div>
           <div className="pg-board-last" aria-live="polite">
             {s.last}

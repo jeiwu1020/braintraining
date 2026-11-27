@@ -230,7 +230,7 @@ export default function ChefSplit({ onBack }: { onBack: () => void }) {
                 <div className="flex items-center justify-between font-bold text-sm">
                   <span>點擊點心切換「左盤」或「右盤」（目前左 {leftPreview.length} / 右 {rightPreview.length}）</span>
                 </div>
-                <div className="pg-dish-grid">
+                <div className="pg-dish-grid" style={{ ["--dish-cols" as string]: s.tray.length === 4 ? 4 : 5 }}>
                   {s.tray.map((dish, idx) => {
                     const inLeft = leftSet.has(idx);
                     return (

@@ -134,9 +134,13 @@ export default function SumoPush({ onBack }: { onBack: () => void }) {
     >
       <div className="pg-four-stage" data-phase={aiTurn ? "awaiting_ai_reveal" : s.phase}>
         <div className="pg-four-arena">
+          <div className="pg-four-board-wrap">
           <div
             className="pg-sumo-grid"
-            style={{ gridTemplateColumns: `repeat(${s.size}, minmax(0, 1fr))` }}
+            style={{
+              gridTemplateColumns: `repeat(${s.size}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${s.size}, minmax(0, 1fr))`,
+            }}
             role="grid"
             aria-label="木製相撲擂台"
           >
@@ -175,6 +179,7 @@ export default function SumoPush({ onBack }: { onBack: () => void }) {
                 </button>
               );
             })}
+          </div>
           </div>
           <div className="pg-board-last" aria-live="polite">
             {s.last}

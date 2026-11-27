@@ -139,6 +139,7 @@ export default function CloudTowers({ onBack }: { onBack: () => void }) {
     >
       <div className="pg-four-stage" data-phase={aiTurn ? "awaiting_ai_reveal" : s.phase}>
         <div className="pg-four-arena">
+          <div className="pg-four-board-wrap">
           <div className="pg-tower-grid" role="grid" aria-label="雲頂雙塔 5×5 海島">
             {s.heights.map((h, idx) => {
               const isReef = s.reefs.includes(idx);
@@ -207,6 +208,7 @@ export default function CloudTowers({ onBack }: { onBack: () => void }) {
                 </button>
               );
             })}
+          </div>
           </div>
           <div className="pg-board-last" aria-live="polite">
             {s.last}
