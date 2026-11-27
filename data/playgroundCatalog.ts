@@ -80,6 +80,50 @@ export const PLAYGROUND_CATALOG = [
   { id: "lost", title: "失物招領所", description: "問對問題，找出真正失物", action: "開始認領", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "8件器物，最多3問", advanced: "12件器物，最多4問" } },
   { id: "animals", title: "動物排排坐", description: "交換座位，滿足朋友的小要求", action: "開始排座位", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "6隻動物，觀察相鄰與左右關係", advanced: "8隻動物，加入不相鄰條件" } },
   { id: "borrow", title: "借一步棋", description: "這一步用過的招式，對手也能借走", action: "開始下棋", layoutPreset: "BOARD_TABLE", difficultyDescriptions: { normal: "可看雙方移動圖示，親手練習換牌", advanced: "看雙方圖示，電腦預想對手回應" } },
+  {
+    id: "frog-pond",
+    title: "池塘跳荷葉",
+    description: "直跳採蓮花，順手切斷對手去路",
+    action: "跳進池塘",
+    layoutPreset: "BOARD_SIDEBAR",
+    difficultyDescriptions: {
+      normal: "5×5池塘、每隊2隻青蛙，先採多蓮花",
+      advanced: "6×6池塘、每隊3隻青蛙，含天然水洞切島",
+    },
+  },
+  {
+    id: "cloud-towers",
+    title: "雲頂雙塔",
+    description: "走一步再蓋一層，搶先登上 3 樓塔頂",
+    action: "登上高塔",
+    layoutPreset: "BOARD_SIDEBAR",
+    difficultyDescriptions: {
+      normal: "5×5海島標準局，每隊2位建築師",
+      advanced: "5×5含海礁障礙與雙座預設 1 樓露台",
+    },
+  },
+  {
+    id: "chef-split",
+    title: "主廚分雙盤",
+    description: "我來分盤、你先選，換位算計湊甜點",
+    action: "開張甜點台",
+    layoutPreset: "BOARD_TABLE",
+    difficultyDescriptions: {
+      normal: "6輪每輪4份甜點，湊成套組拼高分",
+      advanced: "6輪每輪5份甜點，加入扣分焦黑點心",
+    },
+  },
+  {
+    id: "sumo-push",
+    title: "擂台推推樂",
+    description: "人多推得動人少，把對手推下擂台",
+    action: "站上擂台",
+    layoutPreset: "BOARD_SIDEBAR",
+    difficultyDescriptions: {
+      normal: "5×5木製擂台、各6枚棋子，先推落3枚勝",
+      advanced: "6×6擂台、各8枚棋子，含中立木箱推擠",
+    },
+  },
 ] as const;
 export type PlaygroundId = (typeof PLAYGROUND_CATALOG)[number]["id"];
 

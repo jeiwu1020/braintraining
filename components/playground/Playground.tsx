@@ -17,9 +17,13 @@ const Garden = React.lazy(() => import("./Garden"));
 const Lantern = React.lazy(() => import("./Lantern"));
 const Workshop = React.lazy(() => import("./Workshop"));
 const Auction = React.lazy(() => import("./Auction"));
+const FrogPond = React.lazy(() => import("./FrogPond"));
+const CloudTowers = React.lazy(() => import("./CloudTowers"));
+const ChefSplit = React.lazy(() => import("./ChefSplit"));
+const SumoPush = React.lazy(() => import("./SumoPush"));
 const NewBoardgame = React.lazy(() => import("./NewBoardgame"));
 const NEW_GAMES = new Set(["beans", "lost", "animals", "borrow"]);
-const SCREENS = { "night-market": NightMarket, "wall-race": WallRace, lighthouse: Lighthouse, garden: Garden, lantern: Lantern, workshop: Workshop, auction: Auction };
+const SCREENS = { "night-market": NightMarket, "wall-race": WallRace, lighthouse: Lighthouse, garden: Garden, lantern: Lantern, workshop: Workshop, auction: Auction, "frog-pond": FrogPond, "cloud-towers": CloudTowers, "chef-split": ChefSplit, "sumo-push": SumoPush };
 export default function Playground({ onBack }: { onBack: () => void }) {
   const viewportStyle = useExperienceViewport();
   const [game, setGame] = useState<PlaygroundId | null>(null),

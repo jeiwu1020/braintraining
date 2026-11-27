@@ -96,7 +96,7 @@ export function savedSettings(game: PlaygroundId): Settings {
     )
       return s;
   } catch {}
-  return game === "night-market" || game === "wall-race"
+  return ["night-market", "wall-race", "frog-pond", "cloud-towers", "chef-split", "sumo-push"].includes(game)
     ? { mode: "teams", level: "normal", aiDifficulty: "standard" }
     : { mode: "teams", level: "normal" };
 }

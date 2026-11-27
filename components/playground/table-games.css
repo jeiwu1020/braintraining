@@ -790,3 +790,9 @@
 .tg-inline-confirm .pg-choice button { flex: 1; }
 [data-review-step] { margin-bottom: 16px; }
 [data-review-step] p { margin: 4px 0; }
+
+.pg-art-frog-pond{background-image:url('/playground/box-frog-pond.webp');background-size:cover;background-position:center 55%}
+.pg-art-cloud-towers{background-image:url('/playground/box-cloud-towers.webp');background-size:cover;background-position:center 45%}
+.pg-art-chef-split{background-image:url('/playground/box-chef-split.webp');background-size:cover;background-position:center 55%}
+.pg-art-sumo-push{background-image:url('/playground/box-sumo-push.webp');background-size:cover;background-position:center 50%}
+.pg-art-frog-pond span,.pg-art-cloud-towers span,.pg-art-chef-split span,.pg-art-sumo-push span{display:none}

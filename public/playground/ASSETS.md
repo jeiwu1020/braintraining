@@ -24,3 +24,11 @@
 實際取得來源：同一私有儲存庫素材分支 `backup/tabletop-menu-20261020` 的固定提交 [`2313fce3fc90563cad799d55a2854d60c067c336`](https://github.com/jeiwu1020/braintraining/tree/2313fce3fc90563cad799d55a2854d60c067c336/asset-backup/tabletop-menu-20261020)，目錄 `asset-backup/tabletop-menu-20261020/`。原檔為 `box-{id}-preview.png`，雜湊與大小依同目錄 `manifest.json` 驗證；未合併素材分支。
 
 五張 PNG 共14,603,913 bytes，執行用 WebP共1,071,398 bytes（減少約92.7%）。原圖完整保留於素材提交及本機 `/workspace/tabletop-menu-originals/`。夜市、築牆盒繪、原 SVG 與所有遊戲內素材均保留；標題、描述、可存取名稱仍由 HTML 呈現，五款圖區不再重複疊標題。
+
+## 四款新增對戰桌遊無字盒繪與桌面紋理（2026-11-26）
+
+- `box-frog-pond.webp`（1000×750）：池塘跳荷葉手繪風盒繪（無文字）
+- `box-cloud-towers.webp`（1000×750）：雲頂雙塔地中海階梯建築盒繪（無文字）
+- `box-chef-split.webp`（1000×750）：主廚分雙盤手工甜點分盤盒繪（無文字）
+- `box-sumo-push.webp`（1000×750）：擂台推推樂檜木棋盤與陶漆推棋盒繪（無文字）
+- `tabletop-wood-linen.webp`（1600×900）：胡桃木與鼠尾草亞麻布共用桌面底圖
